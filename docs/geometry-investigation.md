@@ -157,8 +157,9 @@ differed by 14 and 26/255 respectively. No unmistakable target lighting change
 was seen. The target's first material reported lighting enabled, light mask
 255, diffuse mode 2, and GX indexed normals. The J3D count is eight, but offline
 inspection sees six ordinary axis normals followed by two very large finite
-values at the array boundary; whether those last two records are referenced
-needs further investigation. A second candidate room, `F_SP116,3,0,-1`,
+values at the array boundary. A read-only SHP1/display-list parse found six
+GX triangle-strip draws (24 vertex references); normal indices 0–5 each occur
+four times, while indices 6–7 are unreferenced. A second candidate room, `F_SP116,3,0,-1`,
 opened but did not load this model on its default layer. Parsing its room DZR
 showed three `ironbox` ACT2 records at `(3300,-900,5736)`,
 `(3450,-900,5736)`, and `(3600,-900,5736)`. `F_SP116,3,13,2` spawns Link
@@ -166,15 +167,22 @@ nearby at approximately `(2766,-900,6147)` and does load the model. Paired
 baseline/negated captures from that spawn still lacked a clear lighting
 change in the nearby box-shaped objects. Rain and Link animation caused
 larger uncontrolled pixel differences than the initial dry-scene comparison.
-The visible boxes have not been tied unambiguously to the three actor records.
+The large visible crates are not those actors. A temporary pre-draw hook logged
+all three `daObjMBox_c::Draw` calls at the DZR coordinates, then skipped their
+draws for one capture; the crates remained visible. The alternate upward-normal
+capture also lacked an unmistakable change. These two JPEGs are retained in
+ignored `build/m7-evidence/ironbox-room3-skipped.jpg` and
+`ironbox-room3-upward.jpg`. The temporary hook and alternate mutation were
+removed; neither is part of the shipped mod.
 
 The evidence proves source-array mutation and graceful shutdown restoration,
-but not that the visible object in the capture is the allowlisted model or that
-the renderer consumes the edited normals. **Gate 1 is not passed.** Per the M7
+but not a view of the allowlisted model or that the renderer consumes the
+edited normals. **Gate 1 is not passed.** Per the M7
 stop condition, Gate 2 topology work and adaptive smoothing remain deferred.
-The next useful test is a fixed, clearly identified view of an `ironbox`
-instance, with before/after frames and its shape's referenced normal indices
-recorded. If that view remains unchanged, the engine needs a model-resource
+The next useful test is a fixed view that locates a visible `ironbox` instance,
+using temporary draw suppression to identify its pixels before matched
+original/mutated captures. The shape's referenced normal indices are now known
+(0–5). If that view remains unchanged, the engine needs a model-resource
 mutation callback before normal values are captured or uploaded, with archive
 identity and a pre-release restoration callback. Current evidence does not
 prove such an API change is necessary.
@@ -197,14 +205,17 @@ retain material/shape/group context, and reject missing or unsupported formats.
 The PC shape constructor may optimize raw DLs into indexed Aurora commands before
 MidnaFX sees them, so a parser restricted to fan/strip opcodes would be wrong.
 `Reader` offers the necessary path, but its output on the selected model has not
-been validated. Gate 2 remains unproven and is gated on Gate 1's visual result.
+been validated at runtime; the read-only parse above used the original BMD
+display list. Gate 2 remains unproven and is gated on Gate 1's visual result.
 
 ## Required next experiment
 
-1. In a source-matched Dusklight host, enable **Mutation test: metal box only**
-   before entering a candidate room, then reload the room. Confirm the single
-   "normals negated" log for the exact resource.
-2. Capture matched original/mutated metal-box screenshots and verify an
+1. Locate a genuinely visible `ironbox` instance. `F_SP116,3,13,2` calls Draw
+   for three instances, but the prominent crates are different scenery. Use a
+   temporary draw-suppression comparison to identify the target pixels.
+2. In a source-matched Dusklight host, enable **Mutation test: metal box only**
+   before entering the room. Confirm the single "normals negated" log for the
+   exact resource. Capture matched original/mutated target screenshots and verify an
    unmistakable lighting change. Exercise two instances, archive unload/reload,
    toggle disable, and mod reload, checking restoration logs and visuals.
 3. Only after that proof, validate `Reader` against the chosen model's DLs and
