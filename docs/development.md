@@ -38,7 +38,10 @@ Alternatively run `python tools/build-release.py --preset windows-release` or `-
 
 The SDK's `midnafx_package` target produces `build/<preset>/mods/midnafx.dusk`. It is a ZIP containing `mod.json`, `res/` resources, and a native library at `lib/<platform>-<architecture>/mod.dll` (Windows) or `mod.so` (other platforms, including macOS). It supports only the platform built. Do not present a Windows-only artifact as a Mac or combined release. `upstream/mod-template/tools/merge_mod.py` is the official reference for later combining independently validated architecture artifacts.
 
-Shader source is embedded at configure time from `shaders/passthrough.wgsl` using a generated C++ header. Changing the shader triggers CMake reconfiguration; runtime tuning must not recompile it. Initial M1 uses an immutable pipeline and bypasses unsupported layouts, including MSAA greater than one, until reload.
+The passthrough and grading WGSL sources are embedded at configure time in a generated C++
+header. Changing either shader triggers CMake reconfiguration; parameter tuning does not
+recompile either pipeline. Unsupported formats/MSAA bypass the pass and are retried when a
+supported layout returns.
 
 ## Install and reload
 
@@ -68,6 +71,8 @@ interpreting results.
 ## Validation
 
 Portable test configuration avoids SDK/GPU dependencies: `cmake --preset tests`, `cmake --build --preset tests`, then `ctest --preset tests`. Test presets error when no tests are registered, so a successful empty run is never evidence of validation. `tests/CMakeLists.txt` is included when supplied. Native presets can run their tests with `ctest --preset <preset>`.
+The portable `grade_math` test checks neutral parameters, exposure preparation, disabled
+effects and bounded gamma values; it does not execute WGSL.
 
 The current automated `package_contract` test checks manifest identity, native package
 layout and binary architecture. On the Intel Mac, run this host checklist with a fixed save
@@ -98,5 +103,12 @@ the log and host revision for diagnosis. A successful package build does not pro
 Metal execution or image parity.
 
 A successful compile/package is not host runtime validation. Verify startup, enable/disable, neutral image identity, HUD exclusion, resize, stage changes, reload and shutdown in an actual host. For M1 test both successful single-sample rendering and clean MSAA bypass. Record host revision, backend, architecture, render resolution, texture packs and Dawnlight version. Intel Mac/Metal 4K performance remains a separate required hardware check.
+
+For M2, first use **Force passthrough comparison** with **Enable grading** to repeat the M1
+neutral test. Then turn passthrough off: all neutral sliders should produce the disabled
+image with no submitted MidnaFX draw. Adjust one control at a time and verify direction,
+range, persistence across restart, per-effect toggle, and Restore neutral grading. Repeat
+with a changing Twilight scene and inspect for clipping/banding and unintended HUD changes.
+The Windows package test does not compile WGSL on the target Metal backend.
 
 Source evidence for build decisions: `upstream/dusklight/sdk/CMakeLists.txt`; `cmake/ModSDK.cmake::{add_mod,_mod_lib_info,_mod_add_webgpu_headers,_mod_download_link_stub}`; `upstream/mod-template/{CMakeLists.txt,README.md}` at the revisions above. The SDK creates a module library, C++20 requirement, hidden exports, platform-specific host linking and a `.dusk` packaging target. MidnaFX delegates those details to the supported helper.

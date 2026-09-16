@@ -1,4 +1,5 @@
 #pragma once
 namespace midnafx::render {
 inline constexpr char passthrough_shader[] = R"midnafx(@MIDNAFX_SHADER@)midnafx";
+inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_GRADING_SHADER@)midnafx";
 }

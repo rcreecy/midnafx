@@ -13,7 +13,7 @@ extern "C" {
 MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
     midnafx::render::initialize();
-    svc_log->info(mod_ctx, "MidnaFX M1 initialized; opt-in pre-HUD passthrough only");
+    svc_log->info(mod_ctx, "MidnaFX M2 initialized; fused pre-HUD grading ready when supported");
     return MOD_OK;
 }
 MOD_EXPORT ModResult mod_update(ModError*) {

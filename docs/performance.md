@@ -4,6 +4,11 @@ No GPU runtime measurement has been made. The proposed M2 target is under 0.25 m
 3840×2160 for basic fused grading, excluding sharpening; it is a target to test on the
 actual Intel Mac, not a guarantee.
 
+M2 uploads one 32-byte uniform block and uses one scene `textureLoad` and one fused fragment
+invocation per pixel. Each effect toggle substitutes a neutral parameter on the CPU; there
+is no per-effect shader branch or runtime pipeline compilation. Fully neutral settings
+bypass the snapshot and draw. Forced passthrough uses the separate cached M1 pipeline.
+
 M1 records one color snapshot and one fullscreen draw when enabled. Aurora implements the
 snapshot as a full-size `CopyTextureToTexture` after a pass break; M1 then reads and writes
 one texel per pixel. At 4K, a four-byte snapshot is about 31.6 MiB. Its copy reads and

@@ -78,6 +78,18 @@ storage using ConfigService and HostService's persistent data directory. M5 can 
 game ABI integration using semantic Twilight state. No placeholder grading controls or
 unverified Twilight sliders ship in M1.
 
+## M2 implementation addendum
+
+M2 adds a second pipeline built during initialization: the original passthrough is retained
+for forced diagnostic comparison, and ordinary grading uses one fused WGSL pipeline with a
+32-byte uniform block. The game thread caches a complete `grade::Prepared` value after
+each configuration change. The stage callback calls `push_uniform` and passes its aligned
+range in the copied draw payload; the render callback binds the current frame's snapshot
+and uniform buffer. The active pipeline is selected per payload, so queued draws do not
+read mutable UI settings. Fully neutral controls bypass snapshot, uniform upload and draw.
+Each effect's toggle selects its neutral constant during CPU preparation, avoiding a shader
+branch per effect. Parameter edits do not rebuild either pipeline.
+
 ## Performance budget
 
 The initial basic-grading objective remains less than 0.25 ms at 3840x2160, excluding sharpening;

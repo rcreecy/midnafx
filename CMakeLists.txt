@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(MidnaFX VERSION 0.1.0 LANGUAGES CXX)
+project(MidnaFX VERSION 0.2.0 LANGUAGES CXX)
 
 option(MIDNAFX_BUILD_MOD "Build the native Dusklight mod and .dusk package" ON)
 option(MIDNAFX_ALLOW_UNVERIFIED_SDK "Allow a Dusklight checkout other than the researched revision" OFF)
@@ -24,12 +24,14 @@ if(MIDNAFX_BUILD_MOD)
     add_subdirectory("${DUSKLIGHT_DIR}/sdk" dusklight-sdk EXCLUDE_FROM_ALL)
     add_mod(midnafx
         FEATURES webgpu
-        SOURCES src/mod.cpp src/render/renderer.cpp src/ui/settings.cpp
+        SOURCES src/mod.cpp src/config/grade.cpp src/render/renderer.cpp src/ui/settings.cpp
         MOD_JSON mod.json
         RES_DIR res
     )
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.wgsl")
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.wgsl" MIDNAFX_SHADER)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/grading.wgsl")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/grading.wgsl" MIDNAFX_GRADING_SHADER)
     configure_file(src/render/shader.hpp.in generated/midnafx_shader.hpp @ONLY)
     target_include_directories(midnafx PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src" "${CMAKE_CURRENT_BINARY_DIR}/generated")
     if(MSVC)
