@@ -71,3 +71,27 @@ those changed normals. The timed smoke process did not exercise graceful
 shutdown or restoration. Gate 1 remains open until original/mutated
 screenshots and lifecycle checks on the named metal box are captured. Intel
 macOS behavior remains runtime-unvalidated.
+
+## Visible Gate 1 follow-up
+
+The original upward-normal and subsequent negated-normal runs both reached the
+target BMD. The negation keeps the same exact allowlist, F32 bounds, backup,
+and restore lifecycle. Graceful exit from the visible negation run logged
+restoration before mod unload. Matched captures of the visible metal surface
+showed no unmistakable lighting difference; this is a failed visual proof,
+not evidence that the mutation hook is generally ineffective. The precise
+identity of the surface in view and which normal indices its shape references
+remain unverified. Gate 1 stays open, and no topology or smoothing code was
+added.
+
+A second matched run at `F_SP116,3,13,2` loaded the target model near three
+layer-2 `ironbox` actor placements. Nearby box-shaped objects still showed no
+unmistakable change, and the rain made pixel comparisons less decisive.
+The review therefore does not promote source-array mutation logs or a nearby
+actor placement into a passed render-path gate.
+
+The dedicated follow-up reviewer found a possible null dereference in a
+temporary material-diagnostic log (`getColorChan(0)` may be null even when a
+material exists). That diagnostic was removed after recording its observed
+values; the shipped PoC does not dereference a color channel. No further
+actionable defect was found in the negation and restore path.

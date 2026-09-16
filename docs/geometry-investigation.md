@@ -97,8 +97,9 @@ node tag, archive/file, position/normal counts, normal GX type and component
 count, PC normal stride, NBT presence, envelope count, shape count, and material
 count. It does not retain pointers or mutate game memory. It examines only
 future resource loads; already loaded models require an archive/scene reload.
-The hook is removed at mod shutdown. The catalog toggle was not enabled in the
-isolated runtime check, so catalog lines were not recorded.
+The hook is removed at mod shutdown. A later isolated `D_MN04` run with the
+catalog toggle enabled logged the target as BMDR, F32 XYZ, stride 12, eight
+J3D-reported normal records, no NBT/envelopes, and one shape/material.
 
 ## Supplied game data and named PoC model
 
@@ -107,7 +108,7 @@ The read-only `tools/inspect-bmd.py` inspected its extracted files in ignored
 `build/runtime-assets`; no extracted game data is tracked. Across 2,511 BMDs in
 `files/res/Object`, the exact allowlisted target is
 `L_mbox_00.arc/l_metabox_00.bmd`: BMDR, 35,040 bytes, F32 XYZ normals with
-stride 12 and eight records, normal VTX1 offset 224, no NBT, no weighted
+stride 12 and eight J3D-reported records, normal VTX1 offset 224, no NBT, no weighted
 envelopes, and one shape. The game's `d_a_obj_metalbox.cpp` loads this archive
 and model for the `ironbox` actor. A byte search found `ironbox` in
 `D_MN04/R07_00.arc` and `F_SP116/R03_00.arc` room data. These are candidate
@@ -117,7 +118,7 @@ test rooms, not confirmed rendered metal-box sightings.
 the target archive loads, the post-load hook checks the exact archive/file,
 F32 XYZ normal format, stride, count, absence of NBT and envelopes, finite
 values, and that the full array lies inside the original archive resource.
-It backs up those bytes and forces all normals upward once. A pre-unload hook
+It backs up those bytes and negates each normal component once. A pre-unload hook
 restores them before archive teardown; shutdown and disabling the toggle also
 restore them. Disabling after model instances exist may leave copied/transformed
 normals in those instances, so a scene reload is required for a clean comparison.
@@ -135,6 +136,48 @@ check, so it did not exercise mod shutdown or restoration. The log demonstrates
 the hook reached and changed the named model's source array, but it does not
 establish a visible lighting difference, instance propagation, or lifecycle
 correctness in gameplay. Gate 1 therefore remains open.
+
+## Gate 1 visual retest and decision
+
+The source-matched Windows D3D11 host was launched visibly into
+`D_MN04,7,0,-1` with the same game, stage, render size (1218×928 captured
+window), mod package, and default-off grading settings. The first run left
+geometry mutation disabled. The next enabled the original upward-normal
+diagnostic; a third enabled the stronger negation diagnostic. In both mutated
+runs the named BMD loaded and the mutation log appeared once. Graceful Alt+F4
+exit from each visible run logged original-normal restoration before the mod
+unloaded. This verifies the shutdown restore path in this host; it does not
+exercise archive unload/reload, toggle disable, or multiple instances.
+
+The three unmodified game-frame captures are stored locally under ignored
+`build/m7-evidence/` as JPEGs. In the visible metal-surface regions, mean
+absolute RGB differences against baseline were about 0.7/255 for both upward
+and negated normals, near capture/compression noise; Link's animated region
+differed by 14 and 26/255 respectively. No unmistakable target lighting change
+was seen. The target's first material reported lighting enabled, light mask
+255, diffuse mode 2, and GX indexed normals. The J3D count is eight, but offline
+inspection sees six ordinary axis normals followed by two very large finite
+values at the array boundary; whether those last two records are referenced
+needs further investigation. A second candidate room, `F_SP116,3,0,-1`,
+opened but did not load this model on its default layer. Parsing its room DZR
+showed three `ironbox` ACT2 records at `(3300,-900,5736)`,
+`(3450,-900,5736)`, and `(3600,-900,5736)`. `F_SP116,3,13,2` spawns Link
+nearby at approximately `(2766,-900,6147)` and does load the model. Paired
+baseline/negated captures from that spawn still lacked a clear lighting
+change in the nearby box-shaped objects. Rain and Link animation caused
+larger uncontrolled pixel differences than the initial dry-scene comparison.
+The visible boxes have not been tied unambiguously to the three actor records.
+
+The evidence proves source-array mutation and graceful shutdown restoration,
+but not that the visible object in the capture is the allowlisted model or that
+the renderer consumes the edited normals. **Gate 1 is not passed.** Per the M7
+stop condition, Gate 2 topology work and adaptive smoothing remain deferred.
+The next useful test is a fixed, clearly identified view of an `ironbox`
+instance, with before/after frames and its shape's referenced normal indices
+recorded. If that view remains unchanged, the engine needs a model-resource
+mutation callback before normal values are captured or uploaded, with archive
+identity and a pre-release restoration callback. Current evidence does not
+prove such an API change is necessary.
 
 ## Gate 2 source reconnaissance, not validation
 
@@ -160,7 +203,7 @@ been validated. Gate 2 remains unproven and is gated on Gate 1's visual result.
 
 1. In a source-matched Dusklight host, enable **Mutation test: metal box only**
    before entering a candidate room, then reload the room. Confirm the single
-   "normals forced upward" log for the exact resource.
+   "normals negated" log for the exact resource.
 2. Capture matched original/mutated metal-box screenshots and verify an
    unmistakable lighting change. Exercise two instances, archive unload/reload,
    toggle disable, and mod reload, checking restoration logs and visuals.

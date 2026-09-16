@@ -79,13 +79,10 @@ void maybe_mutate(dRes_info_c& info, const char* file_name, J3DModelData& model)
     mutation.normals = normals;
     mutation.bytes = bytes;
     mutation.original = std::move(original);
-    for (u32 i = 0; i < count; ++i) {
-        normals[3 * i] = 0.0f;
-        normals[3 * i + 1] = 1.0f;
-        normals[3 * i + 2] = 0.0f;
-    }
+    for (u32 i = 0; i < count * 3; ++i)
+        normals[i] = -normals[i];
     svc_log->info(mod_ctx,
-                  "Geometry mutation test: L_mbox_00.arc/l_metabox_00.bmd normals forced upward");
+                  "Geometry mutation test: L_mbox_00.arc/l_metabox_00.bmd normals negated");
 }
 
 bool is_model_node(u32 type) {
