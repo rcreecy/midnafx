@@ -1,11 +1,13 @@
 # MidnaFX
 
-MidnaFX is an experimental native visual processing mod for Dusklight. M3 provides a fused
+MidnaFX is an experimental native visual processing mod for Dusklight. M4 provides a fused
 pre-HUD grading shader with exposure, black point, contrast, gamma, saturation, highlight
 rolloff, temperature and tint controls. Neutral grading bypasses the render pass. Save,
 load, and duplicate looks in the Presets section; Vanilla restores neutral settings and
-Custom tracks edits. A forced RGBA passthrough remains available for validating the render
-path. Automatic Twilight profiles are later milestones. Windows builds have not been tested in
+Custom retains its own live look across preset switches. A forced RGBA passthrough remains
+available for validating the render path. Optional CPU diagnostics report stage p50/p95,
+layout/resolve call time, snapshot requests, and pipeline counts. Automatic Twilight
+profiles are later milestones. Windows builds have not been tested in
 the game; Intel Mac/Metal validation is still required.
 
 Download platform-specific packages from the latest successful
@@ -17,3 +19,4 @@ one platform's native library. A CI build does not establish in-game visual beha
 Research and exact source revision: [docs/research.md](docs/research.md).
 Architecture and limits: [docs/architecture.md](docs/architecture.md).
 Build and Intel Mac validation: [docs/development.md](docs/development.md).
+Performance instrumentation and Mac capture plan: [docs/performance.md](docs/performance.md).

@@ -134,5 +134,9 @@ its stored values and effect toggles. Editing a control selects Custom. Up to 16
 presets are persisted through Dusklight ConfigService. Test Save, Load, Duplicate,
 restart persistence, and malformed config recovery in the host UI. The portable
 `presets_roundtrip` test covers the versioned storage format and rejected corrupt input.
+Custom is retained separately when switching to Vanilla or a saved preset; select Custom
+again to restore the prior live look. For M4, enable CPU diagnostics and use **Reset CPU
+timing samples** before each resolution/profile run. The performance procedure and
+unmeasured Intel Mac/GPU fields are in `docs/performance.md`.
 
 Source evidence for build decisions: `upstream/dusklight/sdk/CMakeLists.txt`; `cmake/ModSDK.cmake::{add_mod,_mod_lib_info,_mod_add_webgpu_headers,_mod_download_link_stub}`; `upstream/mod-template/{CMakeLists.txt,README.md}` at the revisions above. The SDK creates a module library, C++20 requirement, hidden exports, platform-specific host linking and a `.dusk` packaging target. MidnaFX delegates those details to the supported helper.

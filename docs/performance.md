@@ -1,45 +1,94 @@
-# Performance budget and measurement
+# M4 performance instrumentation and measurement
 
-No GPU runtime measurement has been made. The proposed M2 target is under 0.25 ms at
-3840×2160 for basic fused grading, excluding sharpening; it is a target to test on the
-actual Intel Mac, not a guarantee.
+The native Windows package and portable tests have been run. Neither a Dusklight runtime
+nor the target Intel Mac GPU is available in this workspace, so **GPU timings at 1080p,
+1440p, and 4K have not been measured**. The basic grading target remains less than
+0.25 ms GPU time at 4K, excluding optional sharpening. It is a target, not a result.
+No 4K performance claim should be made until a trace on the target hardware supports it.
 
-M2 uploads one 32-byte uniform block and uses one scene `textureLoad` and one fused fragment
-invocation per pixel. Each effect toggle substitutes a neutral parameter on the CPU; there
-is no per-effect shader branch or runtime pipeline compilation. Fully neutral settings
-bypass the snapshot and draw. Forced passthrough uses the separate cached M1 pipeline.
+## Cost model from the pinned source
 
-M1 records one color snapshot and one fullscreen draw when enabled. Aurora implements the
-snapshot as a full-size `CopyTextureToTexture` after a pass break; M1 then reads and writes
-one texel per pixel. At 4K, a four-byte snapshot is about 31.6 MiB. Its copy reads and
-writes about 63.3 MiB, and the draw adds about 63.3 MiB of nominal texel traffic, before
-MSAA, tile load/store and cache effects. This is an estimate from pixel counts, not measured
-GPU bandwidth. One frame-local WebGPU bind group is created per active frame. Persistent
-shader/pipeline objects are created once. Disabled state requests no snapshot/draw.
-The active stage also calls `GfxService::get_scene_target_layout`, whose implementation
-uses `AuroraGXSync()` (`src/dusk/mods/svc/gfx.cpp` in the pinned host). This is a GX
-recording synchronization boundary, not evidence of a GPU queue wait. Its CPU cost is
-included in the callback measurement and should be isolated during runtime profiling.
+An active, nonneutral frame uploads one 32-byte uniform block, requests one scene
+snapshot, and queues one fullscreen draw. The fused shader uses one `textureLoad` per
+pixel and no per-effect branches or runtime shader compilation. Aurora's
+`resolve_pass` encodes a full-size color copy after a pass break
+(`upstream/dusklight/extern/aurora/lib/gfx/recording.cpp`); the mod has no zero-copy
+feedback path. The draw creates a frame-local WebGPU bind group because the snapshot
+view and streamed uniform slice are frame-scoped. The mod owns no full-resolution target.
 
-The UI reports a CPU stage-callback duration only while diagnostics is enabled. It does not
-include later render-worker encoding or GPU execution. Counters distinguish queued and
-encoded draw callbacks; they are not proof of completed GPU work. The SDK has no public
-timestamp-query service. Pipeline creation count, bind-group count, resolution and status
-are exposed in diagnostics. Host snapshot pool memory and device allocations are outside
-the public mod API; the UI shows only a byte-size estimate. No frame allocations claim is
-made until Dawn and allocator captures are taken.
+| Resolution | RGBA8 snapshot | Copy read + write | Nominal copy + grade read/write |
+| --- | ---: | ---: | ---: |
+| 1920×1080 | 7.91 MiB | 15.82 MiB | 31.64 MiB |
+| 2560×1440 | 14.06 MiB | 28.13 MiB | 56.25 MiB |
+| 3840×2160 | 31.64 MiB | 63.28 MiB | 126.56 MiB |
 
-On the Intel Mac, record OS version, GPU, driver/backend, host and mod revisions, texture
-pack/Dawnlight versions, bloom mode and render scale. Use a fixed save, camera and time.
-Capture 1080p, 1440p if available, and 4K with (1) mod disabled, (2) M1 passthrough,
-(3) future M2 neutral, and (4) future grading. Warm pipelines and snapshot pool before
-sampling. Obtain repeated median and high-percentile GPU frame timings, plus a GPU trace
-that separates pass break, color copy, fullscreen draw and host composition. Report
-enabled-minus-disabled distribution with uncertainty; do not infer per-pass time from total
-frame time alone. Repeat Dawnlight and texture packs on/off if time permits.
+These are byte counts from `width × height × 4`, not observed memory traffic. Tile
+loads/stores, compression, cache reuse, host snapshot-pool behavior, and GPU scheduling
+can change physical traffic. The 4K nominal total divided by 0.25 ms is about
+531 GB/s, which makes the target worth testing carefully on the Intel Mac. Shader
+arithmetic and pass transitions add further time. A LUT would add a texture lookup
+and storage, so it is deferred until a trace indicates arithmetic is limiting.
 
-Investigate any unexpected copy/resolve, per-frame heap allocation, pipeline rebuild, GPU
-queue wait, texture transition or resize allocation. Compare M2 direct fused arithmetic
-against a LUT only if profiling suggests the extra lookup/storage is worthwhile. Optional
-sharpening needs a separate cost budget and can use nearby texels in the same pass only
-after confirming its quality and bandwidth effects.
+## Changes made for M4
+
+- Master-disabled and fully neutral grading return before the layout query, snapshot,
+  uniform upload, and draw. CPU timing is optional. When diagnostics are off, the
+  stage takes no clock readings or timing-window writes.
+- Pipeline pairs are cached by layout key. After an unseen supported layout, the stage
+  bypasses one frame and `mod_update` builds the pair outside the render-stage callback.
+  Parameter changes do not rebuild either shader or pipeline. Old pairs stay alive
+  until the host drains draw callbacks during shutdown.
+- Diagnostics show latest active and disabled stage CPU time, rolling p50/p95 over 256
+  samples, latest layout-query and `resolve_pass` **CPU call** time, latest grading
+  configuration-update time, snapshot request count, and pipeline/bind-group counts.
+  The reset button clears timing windows before each test. Percentile sorting happens
+  only when the settings panel updates, never in a render-stage callback.
+- There is no per-frame heap allocation in MidnaFX's steady-state stage path. A new
+  layout allocates a cached pair during `mod_update`. The host's stage dispatcher and
+  WebGPU bind-group implementation may allocate internally; this needs an allocator
+  capture to characterize. The mod does not call a GPU queue wait in steady state.
+
+`get_scene_target_layout`, `push_uniform`, `resolve_pass`, and `push_draw` each enter
+the pinned host's `AuroraGXSync()` boundary in
+`upstream/dusklight/src/dusk/mods/svc/gfx.cpp`. This synchronizes GX command
+recording; it is not evidence of a GPU completion wait. The CPU timings include host
+service-call time, while draw encoding happens later on the render worker. Public
+GfxService 1.2 has no timestamp-query API; GPU pass/copy duration requires a platform
+GPU capture. The disabled callback timer excludes the host's dispatch and surrounding
+`AuroraGXSync()` calls, so total disabled-state overhead still needs an external CPU
+trace. The counters report queued/encoded work, not completed GPU work.
+
+## Target Mac measurement procedure
+
+Use a fixed save, camera, time of day, bloom mode, Dusklight revision, MidnaFX revision,
+texture pack, and Dawnlight revision. Record Mac model, Intel GPU, macOS version,
+native graphics backend, and render scale. Warm the scene and pipeline for at least
+several seconds. At 1920×1080, 2560×1440 if available, and 3840×2160:
+
+1. Enable CPU diagnostics, disable grading, press **Reset CPU timing samples**, wait for
+   at least 256 frames, and record disabled p50/p95 and total-frame p50/p95.
+2. Enable grading with neutral values, reset samples, and record the neutral bypass.
+   Snapshot count must remain zero after reset.
+3. Apply a nonneutral saved preset, reset samples after warm-up, and record active
+   p50/p95, latest layout/resolve-call time, snapshot count, and pipeline count.
+4. Repeat with **Force passthrough comparison** to separate shader arithmetic from
+   the common copy/draw path. Restore the preset afterward.
+5. Capture a Metal GPU trace. Measure scene copy, pass break/transition, MidnaFX
+   fullscreen draw, and whole-frame GPU time independently. Check whether a resize
+   allocates a new snapshot-pool texture, whether a format change builds a new pair,
+   and whether bind groups or host callbacks allocate each frame.
+6. Repeat with Dawnlight and the high-resolution pack both off and on. Compare
+   enabled-minus-disabled distributions and report sample count, median, p95, and
+   uncertainty; do not infer a pass time from whole-frame deltas alone.
+
+| Resolution | Disabled CPU p50/p95 | Active CPU p50/p95 | Copy GPU p50/p95 | Draw GPU p50/p95 | Frame delta p50/p95 |
+| --- | --- | --- | --- | --- | --- |
+| 1080p | Awaiting Intel Mac | Awaiting Intel Mac | Awaiting GPU trace | Awaiting GPU trace | Awaiting Intel Mac |
+| 1440p | Awaiting Intel Mac | Awaiting Intel Mac | Awaiting GPU trace | Awaiting GPU trace | Awaiting Intel Mac |
+| 4K | Awaiting Intel Mac | Awaiting Intel Mac | Awaiting GPU trace | Awaiting GPU trace | Awaiting Intel Mac |
+
+If GPU copy dominates, the next optimization decision belongs at the Dusklight/Aurora
+integration boundary; changing grading arithmetic will not remove the copy. If draw
+dominates, inspect texture-fetch bandwidth and the grading shader before adding a LUT
+or sharpening. If CPU layout/resolve calls dominate, use a host trace to identify the
+specific GX synchronization cost before altering call order.

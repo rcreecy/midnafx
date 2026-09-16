@@ -41,14 +41,32 @@ grade::Prepared prepared = grade::prepare({});
 UiElementHandle status_element = 0, detail_element = 0;
 std::chrono::steady_clock::time_point next_refresh{};
 bool warned_ui = false;
+double config_update_us = 0.0;
 void warn(const char* message);
 void check_ui(ModResult result);
 void update_grade();
+presets::Snapshot capture();
 std::vector<presets::Entry> saved_presets;
 std::string selected_preset = "Custom";
-ConfigVarHandle presets_handle = 0, selected_handle = 0;
+ConfigVarHandle presets_handle = 0, selected_handle = 0, custom_handle = 0;
 UiElementHandle preset_control = 0;
 bool applying_preset = false;
+presets::Snapshot custom_snapshot;
+
+void persist_custom() {
+    if (!svc_config || !custom_handle)
+        return;
+    const auto encoded = presets::encode({{"Live", custom_snapshot}});
+    if (encoded.empty() ||
+        svc_config->set_string(mod_ctx, custom_handle, encoded.c_str()) != MOD_OK)
+        warn("Could not save the Custom look.");
+}
+void remember_custom() {
+    if (selected_preset == "Custom") {
+        custom_snapshot = capture();
+        persist_custom();
+    }
+}
 
 void persist_selection() {
     if (svc_config && selected_handle)
@@ -59,6 +77,8 @@ void mark_custom() {
         selected_preset = "Custom";
         persist_selection();
     }
+    if (!applying_preset)
+        custom_snapshot = capture();
 }
 std::size_t preset_index() {
     if (selected_preset == "Vanilla")
@@ -94,6 +114,7 @@ void refresh_preset_options() {
     check_ui(svc_ui->control_set_options(mod_ctx, preset_control, options.data(), options.size()));
 }
 void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
+    remember_custom();
     applying_preset = true;
     for (unsigned i = 0; i < grade::Count; ++i) {
         auto& effect = effects[i];
@@ -128,12 +149,19 @@ void warn(const char* message) {
         svc_log->warn(mod_ctx, message);
 }
 void update_grade() {
+    const bool timing = diagnostics_toggle.value;
+    const auto start =
+        timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     grade::Controls controls;
     for (unsigned i = 0; i < grade::Count; ++i) {
         controls.value[i] = static_cast<float>(effects[i].value) / 100.0f;
         controls.active[i] = effects[i].active;
     }
     prepared = grade::prepare(controls);
+    if (timing)
+        config_update_us =
+            std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start)
+                .count();
 }
 void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
                       const ConfigVarValue*, void* user) {
@@ -291,8 +319,7 @@ void set_preset(ModContext*, void*, const UiControlValue* in) {
     if (index == 0)
         apply_preset(presets::Snapshot{}, "Vanilla");
     else if (index == 1) {
-        selected_preset = "Custom";
-        persist_selection();
+        apply_preset(custom_snapshot, "Custom");
     } else if (index >= 2 && static_cast<std::size_t>(index - 2) < saved_presets.size()) {
         const auto& preset = saved_presets[static_cast<std::size_t>(index - 2)];
         apply_preset(preset.snapshot, preset.name);
@@ -311,6 +338,7 @@ void save_preset(ModContext*, void*) {
         warn("Preset limit reached (16).");
         return;
     }
+    remember_custom();
     auto name = unique_name("Custom");
     saved_presets.push_back({name, capture()});
     selected_preset = name;
@@ -323,6 +351,7 @@ void duplicate_preset(ModContext*, void*) {
         warn("Preset limit reached (16).");
         return;
     }
+    remember_custom();
     auto name = unique_name("Copy");
     saved_presets.push_back({name, capture()});
     selected_preset = name;
@@ -337,10 +366,12 @@ void load_preset(ModContext*, void*) {
     else if (index >= 2)
         apply_preset(saved_presets[index - 2].snapshot, saved_presets[index - 2].name);
 }
+void reset_timing(ModContext*, void*) { render::reset_timing_samples(); }
 void register_presets() {
     saved_presets.clear();
     selected_preset = "Custom";
-    presets_handle = selected_handle = 0;
+    presets_handle = selected_handle = custom_handle = 0;
+    custom_snapshot = capture();
     if (!svc_config)
         return;
     ConfigVarDesc desc = CONFIG_VAR_DESC_INIT;
@@ -359,6 +390,25 @@ void register_presets() {
                 }
             } else
                 warn("Saved presets exceed the size limit.");
+        }
+    }
+    desc = CONFIG_VAR_DESC_INIT;
+    desc.name = "custom_data";
+    desc.type = CONFIG_VAR_STRING;
+    if (svc_config->register_var(mod_ctx, &desc, &custom_handle) == MOD_OK) {
+        size_t length = 0;
+        if (svc_config->get_string(mod_ctx, custom_handle, nullptr, 0, &length) == MOD_OK &&
+            length <= 8192) {
+            std::string data(length + 1, '\0');
+            if (svc_config->get_string(mod_ctx, custom_handle, data.data(), data.size(), nullptr) ==
+                MOD_OK) {
+                data.resize(length);
+                std::vector<presets::Entry> custom;
+                if (presets::decode(data, custom) && custom.size() == 1 && custom[0].name == "Live")
+                    custom_snapshot = custom[0].snapshot;
+                else if (!data.empty())
+                    warn("Invalid Custom look; using current settings.");
+            }
         }
     }
     desc = CONFIG_VAR_DESC_INIT;
@@ -382,6 +432,8 @@ void register_presets() {
             }
         }
     }
+    if (selected_preset == "Custom")
+        custom_snapshot = capture();
 }
 void refresh_status() {
     const auto data = render::diagnostics();
@@ -393,16 +445,24 @@ void refresh_status() {
         check_ui(svc_ui->elem_set_text(mod_ctx, status_element, status));
     if (!detail_element)
         return;
-    char detail[640];
+    char detail[768];
     if (diagnostics_toggle.value)
-        std::snprintf(detail, sizeof(detail),
-                      "Queued: %llu | Encoded: %llu | Bind groups: %llu | Pipelines: %llu\n"
-                      "CPU stage: %.2f us. GPU timing unavailable. Backend: %s",
-                      static_cast<unsigned long long>(data.submitted_draws),
-                      static_cast<unsigned long long>(data.encoded_draws),
-                      static_cast<unsigned long long>(data.bind_groups),
-                      static_cast<unsigned long long>(data.pipeline_builds), data.callback_us,
-                      data.backend);
+        std::snprintf(
+            detail, sizeof(detail),
+            "Preset: %s | Queued: %llu | Encoded: %llu | Binds: %llu | Pipelines: %llu\n"
+            "CPU stage: %.2f us (p50 %.2f/p95 %.2f) | disabled: %.2f us (p50 %.2f/p95 %.2f, %llu "
+            "samples)\n"
+            "Layout query: %.2f us | resolve call: %.2f us | config update: %.2f us\n"
+            "Snapshots: %llu | neutral: %llu | GPU timing unavailable | Backend: %s",
+            selected_preset.c_str(), static_cast<unsigned long long>(data.submitted_draws),
+            static_cast<unsigned long long>(data.encoded_draws),
+            static_cast<unsigned long long>(data.bind_groups),
+            static_cast<unsigned long long>(data.pipeline_builds), data.callback_us,
+            data.active_p50_us, data.active_p95_us, data.disabled_us, data.disabled_p50_us,
+            data.disabled_p95_us, static_cast<unsigned long long>(data.disabled_samples),
+            data.layout_us, data.resolve_us, config_update_us,
+            static_cast<unsigned long long>(data.snapshot_requests),
+            static_cast<unsigned long long>(data.neutral_samples), data.backend);
     else
         std::snprintf(detail, sizeof(detail), "Diagnostics disabled. GPU timing unavailable.");
     check_ui(svc_ui->elem_set_text(mod_ctx, detail_element, detail));
@@ -451,6 +511,9 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_effect(panel, effects[grade::Tint]);
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
+    button.label = "Reset CPU timing samples";
+    button.on_pressed = reset_timing;
+    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &status_element));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &detail_element));
     refresh_status();

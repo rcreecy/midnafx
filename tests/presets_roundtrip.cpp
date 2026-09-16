@@ -21,4 +21,8 @@ int main() {
     CHECK(decoded[0].name == "Warm Night");
     CHECK(!presets::decode(encoded + encoded.substr(5), decoded));
     CHECK(!presets::decode("MFX2\n", decoded));
+    const presets::Entry custom{"Live", entries[0].snapshot};
+    CHECK(presets::decode(presets::encode({custom}), decoded));
+    CHECK(decoded.size() == 1 && decoded[0].name == "Live");
+    CHECK(decoded[0].snapshot.values[grade::Temperature] == 45);
 }

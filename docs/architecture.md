@@ -98,3 +98,20 @@ one snapshot request, one queued draw, and one bind-group creation per active fr
 are no mod-owned pixel-sized allocations, no steady-state pipeline compilation and no
 per-frame logging. Host snapshot memory, MSAA resolve/store behavior and bandwidth are
 material costs. See `performance.md` for the measurement procedure before any speed claim.
+
+## M3–M4 addendum
+
+M3 stores saved looks and a separate Custom snapshot through ConfigService. Saved rows
+are bounded and versioned; the UI holds the selected name and applies all eight values
+and toggles on the game thread before publishing the prepared grading uniforms. Vanilla
+is a built-in neutral snapshot. The host copies dropdown option labels when the saved
+collection changes.
+
+M4 keeps pipeline pairs by scene layout key. A new supported key is detected at the
+pre-HUD stage; `mod_update` creates its pipelines before a later frame uses them. The
+draw payload carries a pointer to the immutable pair, and pairs remain alive until
+draw callbacks are drained at shutdown. Steady-state stages allocate no mod heap
+objects. Optional CPU diagnostics record active and disabled callback durations in
+fixed 256-sample windows and compute percentiles only on a settings-panel update.
+The scene snapshot still entails a host full-size copy. GPU timing remains a target-Mac
+capture task; see `performance.md`.

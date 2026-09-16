@@ -4,6 +4,8 @@
 #include "ui/settings.hpp"
 #include <mods/svc/gfx.h>
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdio>
@@ -43,9 +45,29 @@ std::atomic<std::uint32_t> state{
     0}; // 0 unavailable, 1 ready, 2 failed, 3 layout skip, 4 GPU pending, 5 init layout skip
 std::atomic<std::uint32_t> width{0}, height{0};
 std::atomic<std::uint64_t> submitted{0}, encoded{0}, groups{0}, builds{0};
-std::atomic<double> callback_us{0.0};
+std::atomic<std::uint64_t> disabled_samples{0}, neutral_samples{0}, snapshot_requests{0};
+std::atomic<double> callback_us{0.0}, disabled_us{0.0}, layout_us{0.0}, resolve_us{0.0};
+struct SampleWindow {
+    static constexpr unsigned Capacity = 256;
+    std::array<double, Capacity> values{};
+    unsigned next = 0, count = 0;
+    void add(double value) {
+        values[next] = value;
+        next = (next + 1) % Capacity;
+        count = std::min(count + 1, Capacity);
+    }
+    std::pair<double, double> percentiles() const {
+        if (count == 0)
+            return {0.0, 0.0};
+        auto sorted = values;
+        std::sort(sorted.begin(), sorted.begin() + count);
+        return {sorted[(count - 1) / 2], sorted[(count - 1) * 95 / 100]};
+    }
+};
+SampleWindow active_times, disabled_times;
 bool warned = false;
 std::chrono::steady_clock::time_point next_init_retry{};
+std::chrono::steady_clock::time_point next_layout_retry{};
 
 struct ScopeResult {
     bool complete = false;
@@ -92,6 +114,27 @@ bool supported(const GfxRenderTargetLayout& target) {
 void release_pair(PipelinePair& pair);
 void build_pipeline(Pipeline& selected, const char* source, const char* label,
                     const GfxRenderTargetLayout& layout);
+bool create_pair(const GfxRenderTargetLayout& layout) {
+    auto next = std::make_unique<PipelinePair>();
+    next->layout = layout;
+    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_OutOfMemory);
+    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Internal);
+    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
+    build_pipeline(next->pipelines[0], passthrough_shader, "MidnaFX passthrough", layout);
+    build_pipeline(next->pipelines[1], grading_shader, "MidnaFX fused grading", layout);
+    const bool validation_ok = pop_scope(device.device, device.instance);
+    const bool internal_ok = pop_scope(device.device, device.instance);
+    const bool memory_ok = pop_scope(device.device, device.instance);
+    const bool ok = validation_ok && internal_ok && memory_ok && next->pipelines[0].pipeline &&
+                    next->pipelines[0].bind_layout && next->pipelines[1].pipeline &&
+                    next->pipelines[1].bind_layout;
+    if (!ok) {
+        release_pair(*next);
+        return false;
+    }
+    pairs.push_back(std::move(next));
+    return true;
+}
 
 void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size, void*) {
     if (size != sizeof(Payload) || ctx == nullptr)
@@ -144,18 +187,39 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
 
 void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const auto current_state = state.load(std::memory_order_acquire);
-    if ((current_state != 1 && current_state != 3) || !settings::enabled() ||
-        stage_ctx == nullptr || stage_ctx->stage != GFX_STAGE_FRAME_BEFORE_HUD)
-        return;
-    const auto prepared = settings::prepared_grade();
-    const bool passthrough_test = settings::passthrough_test();
-    if (prepared.neutral && !passthrough_test)
+    if ((current_state != 1 && current_state != 3) || stage_ctx == nullptr ||
+        stage_ctx->stage != GFX_STAGE_FRAME_BEFORE_HUD)
         return;
     const bool timing = settings::diagnostics_enabled();
     const auto start =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
+    if (!settings::enabled()) {
+        if (timing) {
+            disabled_samples.fetch_add(1, std::memory_order_relaxed);
+            const auto elapsed =
+                std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start)
+                    .count();
+            disabled_us.store(elapsed, std::memory_order_relaxed);
+            disabled_times.add(elapsed);
+        }
+        return;
+    }
+    const auto prepared = settings::prepared_grade();
+    const bool passthrough_test = settings::passthrough_test();
+    if (prepared.neutral && !passthrough_test) {
+        if (timing)
+            neutral_samples.fetch_add(1, std::memory_order_relaxed);
+        return;
+    }
     GfxRenderTargetLayout current = GFX_RENDER_TARGET_LAYOUT_INIT;
+    const auto before_layout =
+        timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     const auto layout_result = svc_gfx->get_scene_target_layout(mod_ctx, &current);
+    if (timing)
+        layout_us.store(std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() -
+                                                                  before_layout)
+                            .count(),
+                        std::memory_order_relaxed);
     if (layout_result == MOD_UNAVAILABLE)
         return;
     if (layout_result != MOD_OK) {
@@ -173,26 +237,9 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
             break;
         }
     if (pair == nullptr) {
-        auto next = std::make_unique<PipelinePair>();
-        next->layout = current;
-        wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_OutOfMemory);
-        wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Internal);
-        wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
-        build_pipeline(next->pipelines[0], passthrough_shader, "MidnaFX passthrough", current);
-        build_pipeline(next->pipelines[1], grading_shader, "MidnaFX fused grading", current);
-        const bool validation_ok = pop_scope(device.device, device.instance);
-        const bool internal_ok = pop_scope(device.device, device.instance);
-        const bool memory_ok = pop_scope(device.device, device.instance);
-        const bool ok = validation_ok && internal_ok && memory_ok && next->pipelines[0].pipeline &&
-                        next->pipelines[0].bind_layout && next->pipelines[1].pipeline &&
-                        next->pipelines[1].bind_layout;
-        if (!ok) {
-            release_pair(*next);
-            state.store(2, std::memory_order_release);
-            return;
-        }
-        pair = next.get();
-        pairs.push_back(std::move(next));
+        next_layout_retry = std::chrono::steady_clock::now();
+        state.store(3, std::memory_order_release);
+        return;
     }
     std::uint32_t skipped = 3;
     (void)state.compare_exchange_strong(skipped, 1, std::memory_order_acq_rel);
@@ -213,7 +260,14 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     request.color = true;
     request.depth = false;
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
+    const auto before_resolve =
+        timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     const auto resolve_result = svc_gfx->resolve_pass(mod_ctx, &request, &snapshot);
+    if (timing)
+        resolve_us.store(std::chrono::duration<double, std::micro>(
+                             std::chrono::steady_clock::now() - before_resolve)
+                             .count(),
+                         std::memory_order_relaxed);
     if (resolve_result == MOD_UNAVAILABLE)
         return;
     if (resolve_result != MOD_OK || snapshot.color == nullptr) {
@@ -226,6 +280,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         state.store(3, std::memory_order_release);
         return;
     }
+    if (timing)
+        snapshot_requests.fetch_add(1, std::memory_order_relaxed);
     width.store(snapshot.width, std::memory_order_relaxed);
     height.store(snapshot.height, std::memory_order_relaxed);
     const Payload payload{snapshot.color,       pair,
@@ -240,10 +296,11 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     }
     submitted.fetch_add(1, std::memory_order_relaxed);
     if (timing) {
-        callback_us.store(
+        const auto elapsed =
             std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start)
-                .count(),
-            std::memory_order_relaxed);
+                .count();
+        callback_us.store(elapsed, std::memory_order_relaxed);
+        active_times.add(elapsed);
     }
 }
 
@@ -310,8 +367,10 @@ void build_pipeline(Pipeline& selected, const char* source, const char* label,
 
 void initialize() {
     state.store(0);
+    reset_timing_samples();
     warned = false;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+    next_layout_retry = std::chrono::steady_clock::now();
     if (svc_gfx == nullptr)
         return;
     if (svc_gfx->get_device_info(mod_ctx, &device) != MOD_OK || device.device == nullptr ||
@@ -328,24 +387,10 @@ void initialize() {
         state.store(5);
         return;
     }
-    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_OutOfMemory);
-    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Internal);
-    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
-    auto first = std::make_unique<PipelinePair>();
-    first->layout = layout;
-    build_pipeline(first->pipelines[0], passthrough_shader, "MidnaFX passthrough", layout);
-    build_pipeline(first->pipelines[1], grading_shader, "MidnaFX fused grading", layout);
-    const bool validation_ok = pop_scope(device.device, device.instance);
-    const bool internal_ok = pop_scope(device.device, device.instance);
-    const bool memory_ok = pop_scope(device.device, device.instance);
-    if (!validation_ok || !internal_ok || !memory_ok || first->pipelines[0].pipeline == nullptr ||
-        first->pipelines[0].bind_layout == nullptr || first->pipelines[1].pipeline == nullptr ||
-        first->pipelines[1].bind_layout == nullptr) {
-        release_pair(*first);
+    if (!create_pair(layout)) {
         state.store(2);
         return;
     }
-    pairs.push_back(std::move(first));
     GfxDrawTypeDesc draw_desc = GFX_DRAW_TYPE_DESC_INIT;
     draw_desc.label = "MidnaFX fullscreen grading";
     draw_desc.draw = draw;
@@ -370,6 +415,23 @@ void update() {
         if (now >= next_init_retry)
             initialize();
     }
+    if (current_state == 3 && settings::enabled() && svc_gfx != nullptr) {
+        const auto now = std::chrono::steady_clock::now();
+        if (now >= next_layout_retry) {
+            next_layout_retry = now + std::chrono::milliseconds(250);
+            GfxRenderTargetLayout current = GFX_RENDER_TARGET_LAYOUT_INIT;
+            if (svc_gfx->get_scene_target_layout(mod_ctx, &current) == MOD_OK &&
+                supported(current)) {
+                bool found = false;
+                for (const auto& pair : pairs)
+                    found |= pair->layout.key == current.key;
+                if (found || create_pair(current))
+                    state.store(1, std::memory_order_release);
+                else
+                    state.store(2, std::memory_order_release);
+            }
+        }
+    }
     if (!warned && state.load(std::memory_order_acquire) == 2 && svc_log != nullptr) {
         svc_log->error(mod_ctx, "MidnaFX graphics path failed and was disabled");
         warned = true;
@@ -385,6 +447,18 @@ void shutdown() {
     stage_hook = 0;
     draw_type = 0;
     release_gpu();
+}
+
+void reset_timing_samples() {
+    active_times = {};
+    disabled_times = {};
+    callback_us.store(0.0, std::memory_order_relaxed);
+    disabled_us.store(0.0, std::memory_order_relaxed);
+    layout_us.store(0.0, std::memory_order_relaxed);
+    resolve_us.store(0.0, std::memory_order_relaxed);
+    disabled_samples.store(0, std::memory_order_relaxed);
+    neutral_samples.store(0, std::memory_order_relaxed);
+    snapshot_requests.store(0, std::memory_order_relaxed);
 }
 
 Diagnostics diagnostics() {
@@ -406,6 +480,11 @@ Diagnostics diagnostics() {
         status_text = "Unsupported initial scene layout or MSAA; waiting";
         break;
     }
+    const bool timing = settings::diagnostics_enabled();
+    const auto active_percentiles =
+        timing ? active_times.percentiles() : std::pair<double, double>{};
+    const auto disabled_percentiles =
+        timing ? disabled_times.percentiles() : std::pair<double, double>{};
     return {status_text,
             width.load(),
             height.load(),
@@ -413,8 +492,18 @@ Diagnostics diagnostics() {
             encoded.load(),
             groups.load(),
             builds.load(),
+            disabled_samples.load(),
+            neutral_samples.load(),
+            snapshot_requests.load(),
             callback_us.load(),
-            settings::diagnostics_enabled(),
+            disabled_us.load(),
+            layout_us.load(),
+            resolve_us.load(),
+            active_percentiles.first,
+            active_percentiles.second,
+            disabled_percentiles.first,
+            disabled_percentiles.second,
+            timing,
             "Dawn backend not exposed by GfxService"};
 }
 } // namespace midnafx::render
