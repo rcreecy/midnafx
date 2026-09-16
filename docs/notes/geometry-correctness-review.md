@@ -37,3 +37,37 @@ There was no runtime game test.
 No normal bytes, topology, draw lists, or GPU state are changed. Gate 1 remains
 open until a named model passes the controlled mutation and unload/reload test;
 Gate 2 and adaptive smoothing remain pending.
+
+## Controlled mutation PoC review (September 2026)
+
+The follow-up review covered the default-off metal-box-only mutation and its
+archive lifecycle hooks against pinned Dusklight `edf42c6`. It found and
+resolved these implementation defects:
+
+1. The initial bounds check used `JKRArchive::getFileSize(entry)`, which can
+   reflect an overlay file's size rather than the original buffer holding the
+   normal array. The PoC now obtains `getExpandedResSize(model.getRawData())`,
+   rejects its sentinel and out-of-range pointers, and checks the entire array.
+2. Turning the diagnostic toggle off initially left the source normals changed
+   until archive unload. It now restores them immediately through both the UI
+   setter and the config subscription. A scene reload is still needed if an
+   existing J3D instance copied or transformed those normals.
+3. The offline Yaz0/RARC/BMD inspector now checks decompression references,
+   archive bounds, and VTX1 offsets before reporting model metadata.
+
+The reviewer found no further actionable C++ defect after these fixes. The
+model is exact-allowlisted, F32 XYZ with stride 12, static and unweighted;
+other models and unsupported formats are bypassed. The `loadResource` post-hook
+observes completed J3D source data; the `deleteArchiveRes` pre-hook restores
+bytes before teardown, and shutdown restores before uninstalling it. The
+experiment has no per-frame path. No topology parser or smoothing algorithm
+exists yet, so primitive winding, material boundaries, packed formats, and
+skinning are Gate 2/design concerns rather than implemented behavior.
+
+Windows compilation and an isolated source-matched Dusklight run reached the
+exact `l_metabox_00.bmd` load and logged the upward-normal mutation once.
+This is source-array mutation smoke evidence, not visual proof that TP renders
+those changed normals. The timed smoke process did not exercise graceful
+shutdown or restoration. Gate 1 remains open until original/mutated
+screenshots and lifecycle checks on the named metal box are captured. Intel
+macOS behavior remains runtime-unvalidated.

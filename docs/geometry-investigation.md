@@ -1,20 +1,17 @@
-# M7 geometry investigation — Gate 1 checkpoint
+# M7 geometry investigation — controlled mutation checkpoint
 
 Pinned Dusklight revision: `edf42c6a7202647b56dd2fcdef02d17671bc814b`.
 CameraService and camera overrides remain deferred. This checkpoint contains source
-research and an optional read-only resource catalog. It does not enable geometry
-processing or claim a rendered result.
+research, a read-only resource catalog, and a default-off, single-model normal
+mutation experiment. It does not claim a rendered result or enable smoothing.
 
 ## Decision
 
-**Stop before the controlled mutation PoC and adaptive smoothing.** Source inspection
-identifies a plausible normal stream, but the required binary test — an unmistakable
-lighting change on one explicitly identified model through TP's actual renderer —
-cannot be performed without an installed game resource and a Dusklight runtime. No
-`.arc`, `.bmd`, or `.bdl` game asset is present in this workspace, so even the test
-model cannot be identified and checked against its actual format. Gate 1 is therefore
-incomplete, not passed. Gate 2 and smoothing implementation must remain pending under
-the M7 stop condition.
+**Gate 1 remains open; stop before Gate 2 and smoothing.** The supplied USA GZ2E01
+RVZ was inspected locally without adding game assets to the repository. It supplies
+an exact static test model and permitted a tightly scoped mutation PoC. The required
+binary test is an unmistakable lighting change in TP's actual renderer, with matched
+screenshots and unload/reload checks. That visual result has not been obtained.
 
 ## Normal ownership and ordering
 
@@ -69,8 +66,9 @@ the M7 stop condition.
    use an explicitly owned replacement with an equally explicit release path.
    Reused archive buffers and reloads also require a per-resource identity check.
 
-The buffer is writable in the loader's PC fixup path, but **safe restoration on
-mod reload, shared instances, and skinning is not yet established**. A bare
+The buffer is writable in the loader's PC fixup path. The PoC now restores the
+original bytes before archive destruction or mod detach, and rejects skinned models.
+Its behavior with shared instances and in actual rendering still needs validation. A bare
 `loaderBasicBmd` return hook cannot identify a file by name: its arguments are only
 the node tag and raw pointer. An allowlisted experiment needs a higher-level
 archive/file association, verified against an actual asset, before mutation.
@@ -83,10 +81,10 @@ archive/file association, verified against an actual asset, before mutation.
 | End of `J3DModelLoader::load` | After shape setup, before caller's shared material DL | Engine-wide, no archive/file identity; may include unsupported loader paths. |
 | `dRes_info_c::loaderBasicBmd` return | Narrow game-side path, after complete model load | After shared material DL; no file name; misses other BMD node types. |
 
-The third remains the best **candidate** for a restricted PoC, provided a parent
-resource context reliably identifies one file, the target is a supported static
-model, and teardown restores the original bytes before the archive is released.
-It is not selected as a proven mutation hook yet.
+The implemented PoC instead hooks `dRes_info_c::loadResource` after completion,
+where archive and file identity are available, and `deleteArchiveRes` before
+teardown. It edits the source array after J3D load/fixup, not during the
+`loaderBasicBmd` return. This is source-supported but not visually proven.
 
 ## Read-only resource catalog
 
@@ -99,7 +97,44 @@ node tag, archive/file, position/normal counts, normal GX type and component
 count, PC normal stride, NBT presence, envelope count, shape count, and material
 count. It does not retain pointers or mutate game memory. It examines only
 future resource loads; already loaded models require an archive/scene reload.
-The hook is removed at mod shutdown. Runtime logs have not yet been observed.
+The hook is removed at mod shutdown. The catalog toggle was not enabled in the
+isolated runtime check, so catalog lines were not recorded.
+
+## Supplied game data and named PoC model
+
+The user-supplied RVZ at `C:\dev\Dusklight_Runtime` is GameCube USA GZ2E01 rev 0.
+The read-only `tools/inspect-bmd.py` inspected its extracted files in ignored
+`build/runtime-assets`; no extracted game data is tracked. Across 2,511 BMDs in
+`files/res/Object`, the exact allowlisted target is
+`L_mbox_00.arc/l_metabox_00.bmd`: BMDR, 35,040 bytes, F32 XYZ normals with
+stride 12 and eight records, normal VTX1 offset 224, no NBT, no weighted
+envelopes, and one shape. The game's `d_a_obj_metalbox.cpp` loads this archive
+and model for the `ironbox` actor. A byte search found `ironbox` in
+`D_MN04/R07_00.arc` and `F_SP116/R03_00.arc` room data. These are candidate
+test rooms, not confirmed rendered metal-box sightings.
+
+`geometry_mutation_test` is persisted and OFF by default. When enabled before
+the target archive loads, the post-load hook checks the exact archive/file,
+F32 XYZ normal format, stride, count, absence of NBT and envelopes, finite
+values, and that the full array lies inside the original archive resource.
+It backs up those bytes and forces all normals upward once. A pre-unload hook
+restores them before archive teardown; shutdown and disabling the toggle also
+restore them. Disabling after model instances exist may leave copied/transformed
+normals in those instances, so a scene reload is required for a clean comparison.
+All other models are bypassed. The experiment adds no per-frame work.
+
+The supplied Dusklight v1.4.1 executable was built from June 2026 revision
+`f5642f307384bd4b7b7a09f690e391152445c815`; MidnaFX targets the pinned
+September 2026 SDK revision above. The older runtime lacks the services used by
+the mod, so it cannot validate this PoC. A source-matched Windows host was built
+from the pinned revision. In an isolated D3D11 run with `--stage D_MN04,7,0,-1`
+and `--cvar mod.com_midnafx_midnafx.geometry_mutation_test=true`, Dusklight
+activated MidnaFX, loaded `l_metabox_00.bmd` (35,040 bytes), and MidnaFX logged
+`normals forced upward` once. A 30-second run was terminated after this smoke
+check, so it did not exercise mod shutdown or restoration. The log demonstrates
+the hook reached and changed the named model's source array, but it does not
+establish a visible lighting difference, instance propagation, or lifecycle
+correctness in gameplay. Gate 1 therefore remains open.
 
 ## Gate 2 source reconnaissance, not validation
 
@@ -118,26 +153,18 @@ retain material/shape/group context, and reject missing or unsupported formats.
 
 The PC shape constructor may optimize raw DLs into indexed Aurora commands before
 MidnaFX sees them, so a parser restricted to fan/strip opcodes would be wrong.
-`Reader` offers the necessary path, but no TP model DL was available here to verify
-actual primitive mix, index widths, NBT usage, or format completeness. Gate 2 is
-also unproven.
+`Reader` offers the necessary path, but its output on the selected model has not
+been validated. Gate 2 remains unproven and is gated on Gate 1's visual result.
 
 ## Required next experiment
 
-1. On a Dusklight-capable installation, enable **Log model catalog on resource
-   load**, then reload a scene. Use the resulting archive/file entries to identify
-   **one exact static ordinary BMD model**. Record its node tag, position/normal
-   GX format, normal count/stride, NBT status, envelope count, and eventually
-   shape/primitive summary.
-2. Prove the chosen hook runs once for that resource and before any model instance
-   copies its normals. Verify how the hook obtains the archive and file identity.
-3. Preserve original normal bytes under an archive-scoped lifetime. In a developer
-   mode that defaults off, negate the selected model's F32 XYZ normals once at
-   load. Restore them before mod detach and archive release. Reject all other
-   resources and any uncertain format/lifetime.
-4. Capture matched original/negated screenshots and verify an unmistakable
-   lighting change. Exercise two instances, archive unload/reload, and mod reload.
-5. Only after that proof, validate `Reader` against the chosen model's DLs and
+1. In a source-matched Dusklight host, enable **Mutation test: metal box only**
+   before entering a candidate room, then reload the room. Confirm the single
+   "normals forced upward" log for the exact resource.
+2. Capture matched original/mutated metal-box screenshots and verify an
+   unmistakable lighting change. Exercise two instances, archive unload/reload,
+   toggle disable, and mod reload, checking restoration logs and visuals.
+3. Only after that proof, validate `Reader` against the chosen model's DLs and
    implement the conservative smoothing subset. Do not infer a successful visual
    proof from compilation or source tracing.
 
