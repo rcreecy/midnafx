@@ -1,6 +1,7 @@
 #include "settings.hpp"
 #include "config/presets.hpp"
 #include "config/visual.hpp"
+#include "game/camera_probe.hpp"
 #include "game/twilight.hpp"
 #include "render/renderer.hpp"
 #include "services.hpp"
@@ -64,7 +65,7 @@ bool has_twilight_target = false;
 ConfigVarHandle twilight_target_handle = 0;
 twilight::State twilight_state = twilight::State::Unavailable;
 float twilight_weight = 0.0f;
-UiElementHandle status_element = 0, detail_element = 0;
+UiElementHandle status_element = 0, detail_element = 0, camera_element = 0;
 std::chrono::steady_clock::time_point next_refresh{};
 bool warned_ui = false;
 double config_update_us = 0.0;
@@ -667,9 +668,30 @@ void refresh_status() {
     else
         std::snprintf(detail, sizeof(detail), "Diagnostics disabled. GPU timing unavailable.");
     check_ui(svc_ui->elem_set_text(mod_ctx, detail_element, detail));
+    if (camera_element) {
+        const auto camera = camera_probe::snapshot();
+        char camera_text[512];
+        if (!camera.registered)
+            std::snprintf(camera_text, sizeof(camera_text),
+                          "Camera probe unavailable | MidnaFX override: OFF (no safe FOV API)");
+        else if (!camera.valid)
+            std::snprintf(camera_text, sizeof(camera_text),
+                          "No recent perspective scene | Context: Unknown | MidnaFX override: OFF "
+                          "(no safe FOV API)");
+        else
+            std::snprintf(camera_text, sizeof(camera_text),
+                          "Context: Unknown | MidnaFX operator: not registered | Override: OFF "
+                          "(no safe FOV API)\n"
+                          "Native/effective vertical FOV: %.2f deg | Aspect: %.3f | Near/far: "
+                          "%.2f / %.2f\nEye: %.2f, %.2f, %.2f | Probe: %.2f us | Samples: %llu",
+                          camera.native_fovy, camera.aspect, camera.near_plane, camera.far_plane,
+                          camera.eye[0], camera.eye[1], camera.eye[2], camera.callback_us,
+                          static_cast<unsigned long long>(camera.samples));
+        check_ui(svc_ui->elem_set_text(mod_ctx, camera_element, camera_text));
+    }
 }
 ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
-    status_element = detail_element = 0;
+    status_element = detail_element = camera_element = 0;
     preset_control = 0;
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "MidnaFX"));
     add_toggle(panel, "Enable grading", master);
@@ -740,6 +762,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &status_element));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &detail_element));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Camera research diagnostics"));
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &camera_element));
     refresh_status();
     next_refresh = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
     return MOD_OK;
@@ -801,5 +825,5 @@ void update_twilight(twilight::State state, float elapsed_seconds) {
     twilight_weight = twilight::advance(twilight_weight, state, elapsed_seconds,
                                         static_cast<float>(twilight_transition.value) / 100.0f);
 }
-void shutdown() { status_element = detail_element = preset_control = 0; }
+void shutdown() { status_element = detail_element = camera_element = preset_control = 0; }
 } // namespace midnafx::settings

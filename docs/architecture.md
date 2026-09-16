@@ -144,3 +144,11 @@ copied frame payload. The public GfxService provides no mod-scoped native
 fog/bloom ownership contract, so M6 currently has a source investigation and
 validation gate rather than upstream parameter writes. See
 `m5-m6-investigation.md`.
+
+## Camera API gate
+
+The pinned CameraService's accepting operator replaces the native camera
+controller for that tick. MidnaFX therefore registers only a read-only scene
+camera probe, which copies FOV, aspect, near/far, and eye into diagnostics.
+No camera FOV or composition override is active. See `camera-investigation.md`
+for the required post-controller API contract.

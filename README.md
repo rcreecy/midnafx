@@ -28,3 +28,4 @@ Performance instrumentation and Mac capture plan: [docs/performance.md](docs/per
 Detail design and sample costs: [docs/detail.md](docs/detail.md).
 One-session Intel Mac checklist: [docs/runtime-validation.md](docs/runtime-validation.md).
 Twilight source audit and M6 decision: [docs/m5-m6-investigation.md](docs/m5-m6-investigation.md).
+CameraService source audit and safe-override gate: [docs/camera-investigation.md](docs/camera-investigation.md).
