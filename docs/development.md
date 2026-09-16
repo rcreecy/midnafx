@@ -28,6 +28,12 @@ No full game build, game assets or ROM are needed to compile the mod SDK target.
 
 The first native configure may download the pinned Dawn headers/package and the SDK's platform link stub. These are upstream SDK behavior, not vendored MidnaFX dependencies. `DUSK_GAME_EXE` selects a preexisting platform stub/game binary instead; Windows requires an import `.lib`. The stub download URL is controlled by upstream `DUSKLIGHT_SDK_STUB_URL`. Preserve acquired dependency versions/checksums with release records. M1 uses `FEATURES webgpu` only; it does not opt into the game ABI feature.
 
+The pinned macOS x86_64 SDK link stub omits `LC_UUID`, which the current hosted Apple
+linker requires for `-bundle_loader`. CI runs `tools/add_macho_uuid.py` after configure;
+it adds a deterministic UUID in existing zero header padding without changing symbols.
+If a local Intel Mac build reports a missing `LC_UUID`, run the same script against
+`build/macos-intel-release/dusklight-sdk-stubs/stub-macos-x86_64` before building.
+
 ## Build
 
 Windows with Visual Studio 2026 C++ workload:

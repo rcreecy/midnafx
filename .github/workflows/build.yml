@@ -42,6 +42,11 @@ jobs:
         shell: bash
         run: cmake --preset "${{ matrix.preset }}"
 
+      - name: Repair upstream macOS SDK link stub UUID
+        if: matrix.platform == 'macos-x86_64'
+        shell: bash
+        run: python3 tools/add_macho_uuid.py build/macos-intel-release/dusklight-sdk-stubs/stub-macos-x86_64
+
       - name: Build native package
         shell: bash
         run: cmake --build --preset "${{ matrix.preset }}" --parallel
