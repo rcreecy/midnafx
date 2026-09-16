@@ -1,5 +1,15 @@
 # Development and packaging
 
+## Download a build
+
+The [Build MidnaFX workflow](https://github.com/rcreecy/midnafx/actions/workflows/build.yml)
+builds Windows AMD64 and Intel macOS packages on GitHub-hosted runners after pushes to
+`main`, pull requests, or manual dispatch. Open a successful run, download the artifact
+matching your platform, extract its `midnafx.dusk`, and copy that file to the Dusklight
+mods folder listed below. Platform artifacts are separate; do not rename one platform's
+package as a combined release. This removes the need for users to compile MidnaFX locally.
+CI validates compilation and package structure, not game loading, Metal output, or latency.
+
 MidnaFX uses the standalone Dusklight SDK at commit `edf42c6a7202647b56dd2fcdef02d17671bc814b`, including its pinned Aurora submodule `7f2801cd0133c9333eadb4e2e6b24100c328d328`. Research reference: official mod template commit `ece6d0dae843675fbd1e3f2308a0f1f782da5d80`. See `notes/render.md` for renderer contracts.
 
 ## Prerequisites and checkout
@@ -40,8 +50,8 @@ The SDK's `midnafx_package` target produces `build/<preset>/mods/midnafx.dusk`. 
 
 The passthrough and grading WGSL sources are embedded at configure time in a generated C++
 header. Changing either shader triggers CMake reconfiguration; parameter tuning does not
-recompile either pipeline. Unsupported formats/MSAA bypass the pass and are retried when a
-supported layout returns.
+recompile either pipeline. Unsupported formats/MSAA bypass the pass; a new supported
+layout builds and retains its own pipelines until shutdown.
 
 ## Install and reload
 
@@ -86,7 +96,7 @@ and camera, keeping the same render resolution and time of day for each comparis
    for animation and temporal bloom before calling any difference a regression.
 3. Resize through 1080p, 1440p if available, and 4K. Aurora's pipeline layout key excludes
    dimensions, so resolution-only changes should keep the same pipeline and update the
-   diagnostic size. A format or sample-count change bypasses until reload. Disable and reload
+   diagnostic size. A supported format change builds new pipelines; MSAA bypasses. Disable and reload
    the mod; check no error or GPU validation messages. Repeat with MSAA enabled and verify
    **Unsupported scene layout or MSAA; bypassed** before any M1 draw.
 4. Repeat with Dawnlight and a high-resolution texture pack active. Compare Vanilla,
@@ -110,5 +120,13 @@ image with no submitted MidnaFX draw. Adjust one control at a time and verify di
 range, persistence across restart, per-effect toggle, and Restore neutral grading. Repeat
 with a changing Twilight scene and inspect for clipping/banding and unintended HUD changes.
 The Windows package test does not compile WGSL on the target Metal backend.
+
+For M3, select **Vanilla** for the neutral built-in look. **Custom** is the live edited look.
+**Save current preset** creates a numbered saved copy, or updates a selected saved copy;
+**Duplicate current look** creates another numbered copy. **Load selected preset** restores
+its stored values and effect toggles. Editing a control selects Custom. Up to 16 saved
+presets are persisted through Dusklight ConfigService. Test Save, Load, Duplicate,
+restart persistence, and malformed config recovery in the host UI. The portable
+`presets_roundtrip` test covers the versioned storage format and rejected corrupt input.
 
 Source evidence for build decisions: `upstream/dusklight/sdk/CMakeLists.txt`; `cmake/ModSDK.cmake::{add_mod,_mod_lib_info,_mod_add_webgpu_headers,_mod_download_link_stub}`; `upstream/mod-template/{CMakeLists.txt,README.md}` at the revisions above. The SDK creates a module library, C++20 requirement, hidden exports, platform-specific host linking and a `.dusk` packaging target. MidnaFX delegates those details to the supported helper.

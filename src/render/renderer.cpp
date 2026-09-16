@@ -8,12 +8,16 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <thread>
+#include <vector>
 
 namespace midnafx::render {
 namespace {
+struct PipelinePair;
 struct Payload {
     WGPUTextureView scene;
+    const PipelinePair* pair;
     std::uint64_t layout_key;
     std::uint32_t kind;
     std::uint32_t uniform_offset;
@@ -22,13 +26,17 @@ struct Payload {
 static_assert(sizeof(Payload) <= GFX_INLINE_DRAW_PAYLOAD_SIZE);
 
 GfxDeviceInfo device = GFX_DEVICE_INFO_INIT;
-GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
 struct Pipeline {
     WGPUShaderModule shader = nullptr;
     WGPURenderPipeline pipeline = nullptr;
     WGPUBindGroupLayout bind_layout = nullptr;
 };
-Pipeline pipelines[2]; // 0: M1 passthrough; 1: fused M2 grading.
+struct PipelinePair {
+    GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
+    Pipeline pipelines[2];
+};
+// Pairs stay alive until the host has drained draw callbacks at shutdown.
+std::vector<std::unique_ptr<PipelinePair>> pairs;
 GfxStageHookHandle stage_hook = 0;
 GfxDrawTypeHandle draw_type = 0;
 std::atomic<std::uint32_t> state{
@@ -81,6 +89,10 @@ bool supported(const GfxRenderTargetLayout& target) {
     return format == WGPUTextureFormat_RGBA8Unorm || format == WGPUTextureFormat_BGRA8Unorm;
 }
 
+void release_pair(PipelinePair& pair);
+void build_pipeline(Pipeline& selected, const char* source, const char* label,
+                    const GfxRenderTargetLayout& layout);
+
 void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size, void*) {
     if (size != sizeof(Payload) || ctx == nullptr)
         return;
@@ -88,11 +100,13 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     std::memcpy(&payload, bytes, sizeof(payload));
     if (payload.kind > 1)
         return;
-    const auto& selected = pipelines[payload.kind];
+    if (payload.pair == nullptr)
+        return;
+    const auto& selected = payload.pair->pipelines[payload.kind];
     if (selected.pipeline == nullptr || selected.bind_layout == nullptr)
         return;
     if (payload.scene == nullptr || payload.layout_key != ctx->layout.key ||
-        payload.layout_key != layout.key || ctx->layout.sample_count != 1)
+        payload.layout_key != payload.pair->layout.key || ctx->layout.sample_count != 1)
         return;
     WGPUBindGroupEntry entries[2] = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     entries[0].binding = 0;
@@ -148,9 +162,37 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         state.store(2, std::memory_order_release);
         return;
     }
-    if (!supported(current) || current.key != layout.key) {
+    if (!supported(current)) {
         state.store(3, std::memory_order_release);
         return;
+    }
+    const PipelinePair* pair = nullptr;
+    for (const auto& candidate : pairs)
+        if (candidate->layout.key == current.key) {
+            pair = candidate.get();
+            break;
+        }
+    if (pair == nullptr) {
+        auto next = std::make_unique<PipelinePair>();
+        next->layout = current;
+        wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_OutOfMemory);
+        wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Internal);
+        wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
+        build_pipeline(next->pipelines[0], passthrough_shader, "MidnaFX passthrough", current);
+        build_pipeline(next->pipelines[1], grading_shader, "MidnaFX fused grading", current);
+        const bool validation_ok = pop_scope(device.device, device.instance);
+        const bool internal_ok = pop_scope(device.device, device.instance);
+        const bool memory_ok = pop_scope(device.device, device.instance);
+        const bool ok = validation_ok && internal_ok && memory_ok && next->pipelines[0].pipeline &&
+                        next->pipelines[0].bind_layout && next->pipelines[1].pipeline &&
+                        next->pipelines[1].bind_layout;
+        if (!ok) {
+            release_pair(*next);
+            state.store(2, std::memory_order_release);
+            return;
+        }
+        pair = next.get();
+        pairs.push_back(std::move(next));
     }
     std::uint32_t skipped = 3;
     (void)state.compare_exchange_strong(skipped, 1, std::memory_order_acq_rel);
@@ -178,7 +220,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         state.store(2, std::memory_order_release);
         return;
     }
-    if (snapshot.color_format != layout.color_attachments[0].format ||
+    if (snapshot.color_format != current.color_attachments[0].format ||
         snapshot.width != current.color_attachments[0].width ||
         snapshot.height != current.color_attachments[0].height) {
         state.store(3, std::memory_order_release);
@@ -186,7 +228,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     }
     width.store(snapshot.width, std::memory_order_relaxed);
     height.store(snapshot.height, std::memory_order_relaxed);
-    const Payload payload{snapshot.color, current.key, passthrough_test ? 0u : 1u,
+    const Payload payload{snapshot.color,       pair,
+                          current.key,          passthrough_test ? 0u : 1u,
                           uniform_range.offset, uniform_range.size};
     const auto push_result = svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload));
     if (push_result == MOD_UNAVAILABLE)
@@ -204,8 +247,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     }
 }
 
-void release_gpu() {
-    for (auto& selected : pipelines) {
+void release_pair(PipelinePair& pair) {
+    for (auto& selected : pair.pipelines) {
         if (selected.bind_layout != nullptr) {
             wgpuBindGroupLayoutRelease(selected.bind_layout);
             selected.bind_layout = nullptr;
@@ -221,7 +264,14 @@ void release_gpu() {
     }
 }
 
-void build_pipeline(Pipeline& selected, const char* source, const char* label) {
+void release_gpu() {
+    for (auto& pair : pairs)
+        release_pair(*pair);
+    pairs.clear();
+}
+
+void build_pipeline(Pipeline& selected, const char* source, const char* label,
+                    const GfxRenderTargetLayout& layout) {
     WGPUShaderSourceWGSL wgsl = WGPU_SHADER_SOURCE_WGSL_INIT;
     wgsl.code = {source, WGPU_STRLEN};
     WGPUShaderModuleDescriptor shader_desc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
@@ -269,6 +319,7 @@ void initialize() {
         state.store(4);
         return;
     }
+    GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK) {
         state.store(4);
         return;
@@ -280,17 +331,21 @@ void initialize() {
     wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_OutOfMemory);
     wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Internal);
     wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
-    build_pipeline(pipelines[0], passthrough_shader, "MidnaFX passthrough");
-    build_pipeline(pipelines[1], grading_shader, "MidnaFX fused grading");
+    auto first = std::make_unique<PipelinePair>();
+    first->layout = layout;
+    build_pipeline(first->pipelines[0], passthrough_shader, "MidnaFX passthrough", layout);
+    build_pipeline(first->pipelines[1], grading_shader, "MidnaFX fused grading", layout);
     const bool validation_ok = pop_scope(device.device, device.instance);
     const bool internal_ok = pop_scope(device.device, device.instance);
     const bool memory_ok = pop_scope(device.device, device.instance);
-    if (!validation_ok || !internal_ok || !memory_ok || pipelines[0].pipeline == nullptr ||
-        pipelines[0].bind_layout == nullptr || pipelines[1].pipeline == nullptr ||
-        pipelines[1].bind_layout == nullptr) {
+    if (!validation_ok || !internal_ok || !memory_ok || first->pipelines[0].pipeline == nullptr ||
+        first->pipelines[0].bind_layout == nullptr || first->pipelines[1].pipeline == nullptr ||
+        first->pipelines[1].bind_layout == nullptr) {
+        release_pair(*first);
         state.store(2);
         return;
     }
+    pairs.push_back(std::move(first));
     GfxDrawTypeDesc draw_desc = GFX_DRAW_TYPE_DESC_INIT;
     draw_desc.label = "MidnaFX fullscreen grading";
     draw_desc.draw = draw;
