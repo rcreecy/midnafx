@@ -36,6 +36,7 @@ may include display scaling or color management, so it is not raw framebuffer ev
 19. Capture the same A–H set in one stable Twilight Realm scene if possible; at minimum take `twilight-A-disabled.png`, `twilight-C-smoke.png`, `twilight-D-detail.png`, `twilight-E-split50.png`, and `twilight-H-difference.png`.
 20. Collect MidnaFX and Dusklight logs, warning/error messages, CPU diagnostics, and any reproducible visual defect with exact settings and scene location.
 21. If available, take a Metal GPU capture at 1080p and 4K. Separate the scene-copy/pass transition, fullscreen draw, and whole-frame GPU time. Follow `docs/performance.md` for disabled and active CPU p50/p95 measurements; CPU service-call time is not GPU duration.
+22. For the M5 prototype, capture a conservative manual look as the Twilight target, restore a different general look, then enable Automatic Twilight profile. Record state and blend percentage in a normal scene, active Twilight, a Twilight spot, entry/exit, load, pause, and mod reload. Confirm state 2 never selects the target. Capture `twilight-M5-general.png` and `twilight-M5-auto.png` from one stable Twilight scene. Check whether playerless scenes or Palace rooms should be handled separately before treating detection as validated.
 
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and

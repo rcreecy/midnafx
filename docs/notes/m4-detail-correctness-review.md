@@ -17,3 +17,15 @@ None identified in the reviewed source. The review does not establish in-game vi
 - The source shader is embedded through CMake configure dependencies; `src/config/visual.cpp` is included in the mod and test targets. The package test expects the updated manifest version. The workflow runs the package and parameter tests on Windows and Intel macOS. `shader_compile` uses Dawn's Null adapter and can skip if that adapter is unavailable; it is not an Intel Metal validation.
 
 Runtime validation remains as specified in `docs/runtime-validation.md`, especially snapshots A–H, frame resize/transition, reload, Dawnlight ordering, high-resolution textures, and a target Intel Mac GPU capture.
+
+## Follow-up correctness pass
+
+During the M5 source pass, `register_presets()` was found to decode the saved
+Custom snapshot and then overwrite it from current control variables whenever
+Custom was selected. That could lose the separate stored Custom look on reload
+if the variables and snapshot diverged. The overwrite was removed; the decoded
+snapshot remains authoritative for the Custom selection. The M4 shader,
+pipeline, uniform, and diagnostic paths were reread; no further actionable
+M4 source defect was found. Windows build/tests, shader pipeline compilation,
+formatting, and static analysis were rerun as part of the follow-up. This is
+still not visual or target-Mac runtime validation.

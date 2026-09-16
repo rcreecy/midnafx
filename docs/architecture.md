@@ -132,3 +132,15 @@ MFX1 and assigns detail OFF. Debug view and split position are separate ConfigSe
 settings, not gameplay preset fields. The built-in smoke test is a developer diagnostic
 look. None of these paths reads game environment state or changes native fog/geometry.
 See `detail.md` and `runtime-validation.md` for algorithm and host test procedures.
+
+## M5 prototype and M6 boundary
+
+The `game` SDK feature imports Dusklight's game ABI epoch. `mod_update` samples
+the semantic world-dark value on the game thread, treating only 1 as active
+Twilight. A captured, opt-in target look and the general look are prepared
+independently. A bounded CPU transition blends their grading/detail uniforms
+before the existing stage publishes them; the render worker sees only the
+copied frame payload. The public GfxService provides no mod-scoped native
+fog/bloom ownership contract, so M6 currently has a source investigation and
+validation gate rather than upstream parameter writes. See
+`m5-m6-investigation.md`.

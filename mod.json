@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "author": "MidnaFX contributors",
-  "description": "Pre-HUD scene grading, optional detail, and visual diagnostics"
+  "description": "Pre-HUD scene grading, detail, diagnostics, and optional Twilight profiles"
 }

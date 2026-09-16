@@ -1,6 +1,7 @@
 #include "settings.hpp"
 #include "config/presets.hpp"
 #include "config/visual.hpp"
+#include "game/twilight.hpp"
 #include "render/renderer.hpp"
 #include "services.hpp"
 
@@ -34,11 +35,14 @@ struct NumberSetting {
 };
 
 Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
-    passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"};
+    passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"},
+    auto_twilight{"auto_twilight"};
 NumberSetting detail_strength_setting{
     "detail_strength", "Detail strength (%)", 0, 50, 20, 20, true};
 NumberSetting debug_mode_setting{"debug_mode", "Debug view", 0, 6, 0, 0, false};
 NumberSetting split_setting{"split_percent", "A/B split position (%)", 10, 90, 50, 50, false};
+NumberSetting twilight_transition{
+    "twilight_transition_cs", "Twilight transition (0.01 s)", 0, 300, 100, 100, false};
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
     "Final",           "Passthrough", "A/B Split", "Luminance", "Highlight Clipping",
@@ -54,6 +58,12 @@ std::array<Setting, grade::Count> effects{{
     {"tint", "Tint (%)", -100, 100, 0, 0},
 }};
 grade::Prepared prepared = grade::prepare({});
+grade::Prepared twilight_prepared = grade::prepare({});
+presets::Snapshot twilight_target;
+bool has_twilight_target = false;
+ConfigVarHandle twilight_target_handle = 0;
+twilight::State twilight_state = twilight::State::Unavailable;
+float twilight_weight = 0.0f;
 UiElementHandle status_element = 0, detail_element = 0;
 std::chrono::steady_clock::time_point next_refresh{};
 bool warned_ui = false;
@@ -61,6 +71,7 @@ double config_update_us = 0.0;
 void warn(const char* message);
 void check_ui(ModResult result);
 void update_grade();
+void update_twilight_prepared();
 presets::Snapshot capture();
 std::vector<presets::Entry> saved_presets;
 std::string selected_preset = "Custom";
@@ -196,6 +207,16 @@ void update_grade() {
         config_update_us =
             std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start)
                 .count();
+}
+void update_twilight_prepared() {
+    grade::Controls controls;
+    for (unsigned i = 0; i < grade::Count; ++i) {
+        controls.value[i] = static_cast<float>(twilight_target.values[i]) / 100.0f;
+        controls.active[i] = twilight_target.active[i];
+    }
+    twilight_prepared = grade::prepare(controls);
+    twilight_prepared.uniforms.detail_strength =
+        visual::detail_strength(twilight_target.detail_enabled, twilight_target.detail_strength);
 }
 void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
                       const ConfigVarValue*, void* user) {
@@ -472,7 +493,64 @@ void load_preset(ModContext*, void*) {
     else if (index >= 3)
         apply_preset(saved_presets[index - 3].snapshot, saved_presets[index - 3].name);
 }
+void capture_twilight_target(ModContext*, void*) {
+    const auto snapshot = capture();
+    const auto encoded = presets::encode({{"Twilight", snapshot}});
+    if (encoded.empty() ||
+        (svc_config && twilight_target_handle &&
+         svc_config->set_string(mod_ctx, twilight_target_handle, encoded.c_str()) != MOD_OK)) {
+        warn("Could not save Twilight target.");
+        return;
+    }
+    twilight_target = snapshot;
+    has_twilight_target = true;
+    update_twilight_prepared();
+}
+void clear_twilight_target(ModContext*, void*) {
+    if (svc_config && twilight_target_handle &&
+        svc_config->set_string(mod_ctx, twilight_target_handle, "") != MOD_OK) {
+        warn("Could not clear Twilight target.");
+        return;
+    }
+    has_twilight_target = false;
+    twilight_weight = 0.0f;
+}
 void reset_timing(ModContext*, void*) { render::reset_timing_samples(); }
+void register_twilight_target() {
+    has_twilight_target = false;
+    twilight_target_handle = 0;
+    twilight_weight = 0.0f;
+    twilight_state = twilight::State::Unavailable;
+    if (!svc_config)
+        return;
+    ConfigVarDesc desc = CONFIG_VAR_DESC_INIT;
+    desc.name = "twilight_target";
+    desc.type = CONFIG_VAR_STRING;
+    if (svc_config->register_var(mod_ctx, &desc, &twilight_target_handle) != MOD_OK) {
+        warn("Could not register Twilight target storage.");
+        return;
+    }
+    size_t length = 0;
+    if (svc_config->get_string(mod_ctx, twilight_target_handle, nullptr, 0, &length) != MOD_OK ||
+        length == 0)
+        return;
+    if (length > 8192) {
+        warn("Saved Twilight target exceeds size limit.");
+        return;
+    }
+    std::string data(length + 1, '\0');
+    if (svc_config->get_string(mod_ctx, twilight_target_handle, data.data(), data.size(),
+                               nullptr) != MOD_OK)
+        return;
+    data.resize(length);
+    std::vector<presets::Entry> entries;
+    if (presets::decode(data, entries) && entries.size() == 1 && entries[0].name == "Twilight") {
+        twilight_target = entries[0].snapshot;
+        has_twilight_target = true;
+        update_twilight_prepared();
+    } else
+        warn("Invalid saved Twilight target; automatic profile inactive.");
+}
 void register_presets() {
     saved_presets.clear();
     selected_preset = "Custom";
@@ -538,16 +616,15 @@ void register_presets() {
             }
         }
     }
-    if (selected_preset == "Custom")
-        custom_snapshot = capture();
 }
 void refresh_status() {
     const auto data = render::diagnostics();
     char status[512];
-    const bool detail_active = prepared.uniforms.detail_strength > 0.0f;
+    const auto active_grade = prepared_grade();
+    const bool detail_active = active_grade.uniforms.detail_strength > 0.0f;
     const auto mode = visual::debug_mode(debug_mode_setting.value);
     std::snprintf(status, sizeof(status), "%s | %s | %u x %u",
-                  master.value ? (prepared.neutral && !detail_active &&
+                  master.value ? (active_grade.neutral && !detail_active &&
                                           mode == visual::DebugMode::Final && !passthrough.value
                                       ? "Neutral"
                                       : "Processing")
@@ -566,7 +643,8 @@ void refresh_status() {
             "CPU stage: %.2f us (p50 %.2f/p95 %.2f) | disabled: %.2f us (p50 %.2f/p95 %.2f, %llu "
             "samples)\n"
             "Layout query: %.2f us | resolve call: %.2f us | config update: %.2f us\n"
-            "Snapshots: %llu | neutral: %llu | GPU timing unavailable | Backend: %s",
+            "Snapshots: %llu | neutral: %llu | GPU timing unavailable | Backend: %s\n"
+            "World: %s | Auto Twilight: %s | Target: %s | Blend: %.0f%%",
             selected_preset.c_str(),
             passthrough.value || mode == visual::DebugMode::Passthrough
                 ? "Passthrough"
@@ -583,7 +661,9 @@ void refresh_status() {
             data.disabled_p95_us, static_cast<unsigned long long>(data.disabled_samples),
             data.layout_us, data.resolve_us, config_update_us,
             static_cast<unsigned long long>(data.snapshot_requests),
-            static_cast<unsigned long long>(data.neutral_samples), data.backend);
+            static_cast<unsigned long long>(data.neutral_samples), data.backend,
+            twilight::label(twilight_state), auto_twilight.value ? "ON" : "OFF",
+            has_twilight_target ? "captured" : "unset", 100.0f * twilight_weight);
     else
         std::snprintf(detail, sizeof(detail), "Diagnostics disabled. GPU timing unavailable.");
     check_ui(svc_ui->elem_set_text(mod_ctx, detail_element, detail));
@@ -644,6 +724,15 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     debug.option_count = DebugLabels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &debug, nullptr));
     add_number(panel, split_setting);
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Twilight prototype"));
+    add_toggle(panel, "Automatic Twilight profile", auto_twilight);
+    add_number(panel, twilight_transition);
+    button.label = "Capture current look as Twilight target";
+    button.on_pressed = capture_twilight_target;
+    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
+    button.label = "Clear Twilight target";
+    button.on_pressed = clear_twilight_target;
+    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
     button.label = "Reset CPU timing samples";
@@ -670,12 +759,15 @@ bool initialize() {
     register_toggle(diagnostics_toggle);
     register_toggle(passthrough);
     register_toggle(detail_toggle);
+    register_toggle(auto_twilight);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
     register_number(split_setting);
+    register_number(twilight_transition);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
+    register_twilight_target();
     update_grade();
     if (!svc_config)
         warn("Configuration service unavailable; settings last for this session only.");
@@ -692,6 +784,22 @@ bool enabled() { return master.value; }
 bool diagnostics_enabled() { return diagnostics_toggle.value; }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
-grade::Prepared prepared_grade() { return prepared; }
+grade::Prepared prepared_grade() {
+    if (!auto_twilight.value || !has_twilight_target || twilight_weight <= 0.0f)
+        return prepared;
+    auto result = twilight::blend(prepared, twilight_prepared, twilight_weight);
+    result.uniforms.debug_mode = prepared.uniforms.debug_mode;
+    result.uniforms.difference_gain = prepared.uniforms.difference_gain;
+    return result;
+}
+void update_twilight(twilight::State state, float elapsed_seconds) {
+    twilight_state = state;
+    if (!auto_twilight.value || !has_twilight_target) {
+        twilight_weight = 0.0f;
+        return;
+    }
+    twilight_weight = twilight::advance(twilight_weight, state, elapsed_seconds,
+                                        static_cast<float>(twilight_transition.value) / 100.0f);
+}
 void shutdown() { status_element = detail_element = preset_control = 0; }
 } // namespace midnafx::settings

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(MidnaFX VERSION 0.4.2 LANGUAGES CXX)
+project(MidnaFX VERSION 0.5.0 LANGUAGES CXX)
 
 option(MIDNAFX_BUILD_MOD "Build the native Dusklight mod and .dusk package" ON)
 option(MIDNAFX_ALLOW_UNVERIFIED_SDK "Allow a Dusklight checkout other than the researched revision" OFF)
@@ -23,8 +23,8 @@ if(MIDNAFX_BUILD_MOD)
     endif()
     add_subdirectory("${DUSKLIGHT_DIR}/sdk" dusklight-sdk EXCLUDE_FROM_ALL)
     add_mod(midnafx
-        FEATURES webgpu
-        SOURCES src/mod.cpp src/config/grade.cpp src/config/presets.cpp src/config/visual.cpp src/render/renderer.cpp src/ui/settings.cpp
+        FEATURES game webgpu
+        SOURCES src/mod.cpp src/config/grade.cpp src/config/presets.cpp src/config/visual.cpp src/game/game_state.cpp src/game/twilight.cpp src/render/renderer.cpp src/ui/settings.cpp
         MOD_JSON mod.json
         RES_DIR res
     )

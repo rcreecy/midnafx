@@ -9,7 +9,9 @@ Custom retains its own live look across preset switches. A forced RGBA passthrou
 available for validating the render path. Developer views provide A/B split, luminance,
 highlight/shadow clipping, and amplified difference using the same scene snapshot.
 Optional CPU diagnostics report stage p50/p95, layout/resolve call time, snapshot
-requests, and pipeline counts. Automatic Twilight profiles are later milestones.
+requests, and pipeline counts. An opt-in Twilight prototype can blend from the
+general look toward a user-captured target when Dusklight reports active
+Twilight. It is disabled until configured and has not been observed in-game.
 Windows builds have not been tested in
 the game; Intel Mac/Metal validation is still required.
 
@@ -25,3 +27,4 @@ Build and Intel Mac validation: [docs/development.md](docs/development.md).
 Performance instrumentation and Mac capture plan: [docs/performance.md](docs/performance.md).
 Detail design and sample costs: [docs/detail.md](docs/detail.md).
 One-session Intel Mac checklist: [docs/runtime-validation.md](docs/runtime-validation.md).
+Twilight source audit and M6 decision: [docs/m5-m6-investigation.md](docs/m5-m6-investigation.md).
