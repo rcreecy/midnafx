@@ -37,7 +37,7 @@ struct NumberSetting {
 
 Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"},
-    auto_twilight{"auto_twilight"};
+    auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"};
 NumberSetting detail_strength_setting{
     "detail_strength", "Detail strength (%)", 0, 50, 20, 20, true};
 NumberSetting debug_mode_setting{"debug_mode", "Debug view", 0, 6, 0, 0, false};
@@ -764,6 +764,11 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &detail_element));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Camera research diagnostics"));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &camera_element));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Geometry research"));
+    add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
+    check_ui(svc_ui->pane_add_text(
+        mod_ctx, panel, "Enable before loading a scene; reload to catalog existing models.",
+        nullptr));
     refresh_status();
     next_refresh = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
     return MOD_OK;
@@ -784,6 +789,7 @@ bool initialize() {
     register_toggle(passthrough);
     register_toggle(detail_toggle);
     register_toggle(auto_twilight);
+    register_toggle(geometry_diagnostics);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
     register_number(split_setting);
@@ -806,6 +812,7 @@ bool initialize() {
 }
 bool enabled() { return master.value; }
 bool diagnostics_enabled() { return diagnostics_toggle.value; }
+bool geometry_diagnostics_enabled() { return geometry_diagnostics.value; }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {

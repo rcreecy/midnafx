@@ -1,5 +1,6 @@
 #include "game/camera_probe.hpp"
 #include "game/game_state.hpp"
+#include "game/geometry_probe.hpp"
 #include "render/renderer.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -11,6 +12,7 @@ DEFINE_MOD();
 IMPORT_OPTIONAL_SERVICE_VERSION(GfxService, svc_gfx, 2);
 IMPORT_OPTIONAL_SERVICE(ConfigService, svc_config);
 IMPORT_OPTIONAL_SERVICE(CameraService, svc_camera);
+IMPORT_OPTIONAL_SERVICE(HookService, svc_hook);
 IMPORT_OPTIONAL_SERVICE(UiService, svc_ui);
 IMPORT_SERVICE(LogService, svc_log);
 
@@ -23,6 +25,7 @@ MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
     midnafx::render::initialize();
     midnafx::camera_probe::initialize();
+    midnafx::geometry_probe::initialize();
     last_update = std::chrono::steady_clock::now();
     svc_log->info(mod_ctx,
                   "MidnaFX grading, detail, diagnostics, and Twilight prototype initialized");
@@ -40,6 +43,7 @@ MOD_EXPORT ModResult mod_shutdown(ModError*) {
     // Dusklight deactivates/drains draw callbacks before invoking this export.
     midnafx::render::shutdown();
     midnafx::camera_probe::shutdown();
+    midnafx::geometry_probe::shutdown();
     midnafx::settings::shutdown();
     return MOD_OK;
 }

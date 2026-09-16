@@ -2,7 +2,8 @@
 
 Pinned Dusklight revision: `edf42c6a7202647b56dd2fcdef02d17671bc814b`.
 CameraService and camera overrides remain deferred. This checkpoint contains source
-research only. It does not enable geometry processing or claim a rendered result.
+research and an optional read-only resource catalog. It does not enable geometry
+processing or claim a rendered result.
 
 ## Decision
 
@@ -87,6 +88,19 @@ resource context reliably identifies one file, the target is a supported static
 model, and teardown restores the original bytes before the archive is released.
 It is not selected as a proven mutation hook yet.
 
+## Read-only resource catalog
+
+`src/game/geometry_probe.cpp` uses a post-hook on `dRes_info_c::loadResource`
+to inspect the archive's completed `mRes` table. This level of the call chain
+supplies both archive and file names, which `loaderBasicBmd` itself lacks. A
+persisted **Log model catalog on resource load** toggle in the Geometry research
+panel is OFF by default. When enabled before a model loads, the hook logs BMD
+node tag, archive/file, position/normal counts, normal GX type and component
+count, PC normal stride, NBT presence, envelope count, shape count, and material
+count. It does not retain pointers or mutate game memory. It examines only
+future resource loads; already loaded models require an archive/scene reload.
+The hook is removed at mod shutdown. Runtime logs have not yet been observed.
+
 ## Gate 2 source reconnaissance, not validation
 
 `J3DShapeDraw::countVertex` and `addTexMtxIndexInDL` use Aurora's stride-only
@@ -110,9 +124,11 @@ also unproven.
 
 ## Required next experiment
 
-1. On a Dusklight-capable installation, identify **one exact archive and BMD file**
-   with a static ordinary model. Record its node tag, position/normal GX format,
-   normal count/stride, NBT status, envelope count, and shape/primitive summary.
+1. On a Dusklight-capable installation, enable **Log model catalog on resource
+   load**, then reload a scene. Use the resulting archive/file entries to identify
+   **one exact static ordinary BMD model**. Record its node tag, position/normal
+   GX format, normal count/stride, NBT status, envelope count, and eventually
+   shape/primitive summary.
 2. Prove the chosen hook runs once for that resource and before any model instance
    copies its normals. Verify how the hook obtains the archive and file identity.
 3. Preserve original normal bytes under an archive-scoped lifetime. In a developer
