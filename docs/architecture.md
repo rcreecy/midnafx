@@ -115,3 +115,20 @@ objects. Optional CPU diagnostics record active and disabled callback durations 
 fixed 256-sample windows and compute percentiles only on a settings-panel update.
 The scene snapshot still entails a host full-size copy. GPU timing remains a target-Mac
 capture task; see `performance.md`.
+
+## M4.1–M4.2 generic shader layer
+
+Each supported scene layout owns two shader modules and five cached render pipelines:
+passthrough, one-read grade, five-read grade + detail, diagnostic grade, and diagnostic
+grade + detail. The two normal entry points contain no debug-view branch. Detail is
+selected only when its prepared strength is nonzero; UI strength changes update the
+48-byte uniform block without compiling another pipeline. All fragment entry points
+preserve the center source alpha. Debug views share the same frame-scoped snapshot and
+draw, with the A/B left half returning the source before processing. The game-thread
+stage chooses a pipeline and streams one immutable payload to the render worker.
+
+The preset storage format is MFX2 with detail toggle/strength; the decoder accepts
+MFX1 and assigns detail OFF. Debug view and split position are separate ConfigService
+settings, not gameplay preset fields. The built-in smoke test is a developer diagnostic
+look. None of these paths reads game environment state or changes native fog/geometry.
+See `detail.md` and `runtime-validation.md` for algorithm and host test procedures.

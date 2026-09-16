@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "config/visual.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -17,6 +18,14 @@
 namespace midnafx::render {
 namespace {
 struct PipelinePair;
+enum PipelineKind : std::uint32_t {
+    Passthrough = 0,
+    Grade = 1,
+    Detail = 2,
+    Debug = 3,
+    DebugDetail = 4,
+    PipelineCount = 5,
+};
 struct Payload {
     WGPUTextureView scene;
     const PipelinePair* pair;
@@ -29,13 +38,13 @@ static_assert(sizeof(Payload) <= GFX_INLINE_DRAW_PAYLOAD_SIZE);
 
 GfxDeviceInfo device = GFX_DEVICE_INFO_INIT;
 struct Pipeline {
-    WGPUShaderModule shader = nullptr;
     WGPURenderPipeline pipeline = nullptr;
     WGPUBindGroupLayout bind_layout = nullptr;
 };
 struct PipelinePair {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
-    Pipeline pipelines[2];
+    WGPUShaderModule shaders[2]{};
+    Pipeline pipelines[PipelineCount];
 };
 // Pairs stay alive until the host has drained draw callbacks at shutdown.
 std::vector<std::unique_ptr<PipelinePair>> pairs;
@@ -112,22 +121,35 @@ bool supported(const GfxRenderTargetLayout& target) {
 }
 
 void release_pair(PipelinePair& pair);
-void build_pipeline(Pipeline& selected, const char* source, const char* label,
-                    const GfxRenderTargetLayout& layout);
+void create_shader(WGPUShaderModule& shader, const char* source, const char* label);
+void build_pipeline(Pipeline& selected, WGPUShaderModule shader, const char* entry_point,
+                    const char* label, const GfxRenderTargetLayout& layout);
 bool create_pair(const GfxRenderTargetLayout& layout) {
     auto next = std::make_unique<PipelinePair>();
     next->layout = layout;
     wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_OutOfMemory);
     wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Internal);
     wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
-    build_pipeline(next->pipelines[0], passthrough_shader, "MidnaFX passthrough", layout);
-    build_pipeline(next->pipelines[1], grading_shader, "MidnaFX fused grading", layout);
+    create_shader(next->shaders[0], passthrough_shader, "MidnaFX passthrough shader");
+    create_shader(next->shaders[1], grading_shader, "MidnaFX grading and detail shader");
+    if (next->shaders[0] && next->shaders[1]) {
+        build_pipeline(next->pipelines[Passthrough], next->shaders[0], "fs_main",
+                       "MidnaFX passthrough", layout);
+        build_pipeline(next->pipelines[Grade], next->shaders[1], "fs_main", "MidnaFX grading",
+                       layout);
+        build_pipeline(next->pipelines[Detail], next->shaders[1], "fs_detail", "MidnaFX detail",
+                       layout);
+        build_pipeline(next->pipelines[Debug], next->shaders[1], "fs_debug",
+                       "MidnaFX visual diagnostic", layout);
+        build_pipeline(next->pipelines[DebugDetail], next->shaders[1], "fs_debug_detail",
+                       "MidnaFX detail diagnostic", layout);
+    }
     const bool validation_ok = pop_scope(device.device, device.instance);
     const bool internal_ok = pop_scope(device.device, device.instance);
     const bool memory_ok = pop_scope(device.device, device.instance);
-    const bool ok = validation_ok && internal_ok && memory_ok && next->pipelines[0].pipeline &&
-                    next->pipelines[0].bind_layout && next->pipelines[1].pipeline &&
-                    next->pipelines[1].bind_layout;
+    bool ok = validation_ok && internal_ok && memory_ok;
+    for (const auto& pipeline : next->pipelines)
+        ok &= pipeline.pipeline != nullptr && pipeline.bind_layout != nullptr;
     if (!ok) {
         release_pair(*next);
         return false;
@@ -141,7 +163,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
         return;
     Payload payload{};
     std::memcpy(&payload, bytes, sizeof(payload));
-    if (payload.kind > 1)
+    if (payload.kind >= PipelineCount)
         return;
     if (payload.pair == nullptr)
         return;
@@ -154,7 +176,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     WGPUBindGroupEntry entries[2] = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     entries[0].binding = 0;
     entries[0].textureView = payload.scene;
-    if (payload.kind == 1) {
+    if (payload.kind != Passthrough) {
         if (payload.uniform_size != sizeof(grade::Uniforms))
             return;
         entries[1].binding = 1;
@@ -165,7 +187,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     desc.label = {"MidnaFX scene", WGPU_STRLEN};
     desc.layout = selected.bind_layout;
-    desc.entryCount = payload.kind == 1 ? 2 : 1;
+    desc.entryCount = payload.kind == Passthrough ? 1 : 2;
     desc.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(ctx->device, &desc);
     if (group == nullptr) {
@@ -204,9 +226,13 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         }
         return;
     }
-    const auto prepared = settings::prepared_grade();
-    const bool passthrough_test = settings::passthrough_test();
-    if (prepared.neutral && !passthrough_test) {
+    auto prepared = settings::prepared_grade();
+    const auto mode = visual::debug_mode(prepared.uniforms.debug_mode);
+    const bool passthrough_test =
+        settings::passthrough_test() || mode == visual::DebugMode::Passthrough;
+    const bool detail_enabled = prepared.uniforms.detail_strength > 0.0f;
+    if (prepared.neutral && !detail_enabled && !passthrough_test &&
+        mode == visual::DebugMode::Final) {
         if (timing)
             neutral_samples.fetch_add(1, std::memory_order_relaxed);
         return;
@@ -245,6 +271,12 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     (void)state.compare_exchange_strong(skipped, 1, std::memory_order_acq_rel);
     if (state.load(std::memory_order_acquire) != 1)
         return;
+    std::uint32_t kind = Passthrough;
+    if (!passthrough_test)
+        kind = mode == visual::DebugMode::Final ? (detail_enabled ? Detail : Grade)
+                                                : (detail_enabled ? DebugDetail : Debug);
+    prepared.uniforms.split_x =
+        visual::split_boundary(current.color_attachments[0].width, settings::split_percent());
     GfxRange uniform_range{0, 0};
     if (!passthrough_test) {
         const auto uniform_result = svc_gfx->push_uniform(
@@ -284,9 +316,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         snapshot_requests.fetch_add(1, std::memory_order_relaxed);
     width.store(snapshot.width, std::memory_order_relaxed);
     height.store(snapshot.height, std::memory_order_relaxed);
-    const Payload payload{snapshot.color,       pair,
-                          current.key,          passthrough_test ? 0u : 1u,
-                          uniform_range.offset, uniform_range.size};
+    const Payload payload{snapshot.color,    pair, current.key, kind, uniform_range.offset,
+                          uniform_range.size};
     const auto push_result = svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload));
     if (push_result == MOD_UNAVAILABLE)
         return;
@@ -314,11 +345,12 @@ void release_pair(PipelinePair& pair) {
             wgpuRenderPipelineRelease(selected.pipeline);
             selected.pipeline = nullptr;
         }
-        if (selected.shader != nullptr) {
-            wgpuShaderModuleRelease(selected.shader);
-            selected.shader = nullptr;
-        }
     }
+    for (auto& shader : pair.shaders)
+        if (shader != nullptr) {
+            wgpuShaderModuleRelease(shader);
+            shader = nullptr;
+        }
 }
 
 void release_gpu() {
@@ -327,22 +359,25 @@ void release_gpu() {
     pairs.clear();
 }
 
-void build_pipeline(Pipeline& selected, const char* source, const char* label,
-                    const GfxRenderTargetLayout& layout) {
+void create_shader(WGPUShaderModule& shader, const char* source, const char* label) {
     WGPUShaderSourceWGSL wgsl = WGPU_SHADER_SOURCE_WGSL_INIT;
     wgsl.code = {source, WGPU_STRLEN};
     WGPUShaderModuleDescriptor shader_desc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
     shader_desc.nextInChain = &wgsl.chain;
     shader_desc.label = {label, WGPU_STRLEN};
-    selected.shader = wgpuDeviceCreateShaderModule(device.device, &shader_desc);
-    if (selected.shader == nullptr)
+    shader = wgpuDeviceCreateShaderModule(device.device, &shader_desc);
+}
+
+void build_pipeline(Pipeline& selected, WGPUShaderModule shader, const char* entry_point,
+                    const char* label, const GfxRenderTargetLayout& layout) {
+    if (shader == nullptr)
         return;
     WGPUColorTargetState colors[GFX_MAX_COLOR_ATTACHMENTS];
     const auto count =
         gfx_init_color_target_states(&layout, colors, nullptr, WGPUColorWriteMask_All);
     WGPUFragmentState fragment = WGPU_FRAGMENT_STATE_INIT;
-    fragment.module = selected.shader;
-    fragment.entryPoint = {"fs_main", WGPU_STRLEN};
+    fragment.module = shader;
+    fragment.entryPoint = {entry_point, WGPU_STRLEN};
     fragment.targetCount = count;
     fragment.targets = colors;
     WGPUDepthStencilState depth = WGPU_DEPTH_STENCIL_STATE_INIT;
@@ -351,7 +386,7 @@ void build_pipeline(Pipeline& selected, const char* source, const char* label,
     depth.depthCompare = WGPUCompareFunction_Always;
     WGPURenderPipelineDescriptor desc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
     desc.label = {label, WGPU_STRLEN};
-    desc.vertex.module = selected.shader;
+    desc.vertex.module = shader;
     desc.vertex.entryPoint = {"vs_main", WGPU_STRLEN};
     desc.primitive.topology = WGPUPrimitiveTopology_TriangleList;
     desc.depthStencil =

@@ -8,9 +8,10 @@ No 4K performance claim should be made until a trace on the target hardware supp
 
 ## Cost model from the pinned source
 
-An active, nonneutral frame uploads one 32-byte uniform block, requests one scene
-snapshot, and queues one fullscreen draw. The fused shader uses one `textureLoad` per
-pixel and no per-effect branches or runtime shader compilation. Aurora's
+An active, nonneutral frame uploads one 48-byte uniform block, requests one scene
+snapshot, and queues one fullscreen draw. Ordinary fused grading uses one
+`textureLoad` per pixel, while enabled detail uses five in the same draw; debug modes
+reuse that snapshot and draw. No control edit recompiles a pipeline. Aurora's
 `resolve_pass` encodes a full-size color copy after a pass break
 (`upstream/dusklight/extern/aurora/lib/gfx/recording.cpp`); the mod has no zero-copy
 feedback path. The draw creates a frame-local WebGPU bind group because the snapshot
@@ -31,12 +32,12 @@ and storage, so it is deferred until a trace indicates arithmetic is limiting.
 
 ## Changes made for M4
 
-- Master-disabled and fully neutral grading return before the layout query, snapshot,
+- Master-disabled and fully neutral grading with detail off and Final view return before the layout query, snapshot,
   uniform upload, and draw. CPU timing is optional. When diagnostics are off, the
   stage takes no clock readings or timing-window writes.
-- Pipeline pairs are cached by layout key. After an unseen supported layout, the stage
+- Pipeline collections are cached by layout key. After an unseen supported layout, the stage
   bypasses one frame and `mod_update` builds the pair outside the render-stage callback.
-  Parameter changes do not rebuild either shader or pipeline. Old pairs stay alive
+  Parameter changes do not rebuild shaders or pipelines. Old collections stay alive
   until the host drains draw callbacks during shutdown.
 - Diagnostics show latest active and disabled stage CPU time, rolling p50/p95 over 256
   samples, latest layout-query and `resolve_pass` **CPU call** time, latest grading
@@ -47,6 +48,9 @@ and storage, so it is deferred until a trace indicates arithmetic is limiting.
   layout allocates a cached pair during `mod_update`. The host's stage dispatcher and
   WebGPU bind-group implementation may allocate internally; this needs an allocator
   capture to characterize. The mod does not call a GPU queue wait in steady state.
+- Optional detail adds four neighbor reads per pixel to the ordinary source read,
+  with explicit bounds clamping. The original half of A/B Split returns after the
+  center read. See `detail.md` for read counts and the chosen limiter.
 
 `get_scene_target_layout`, `push_uniform`, `resolve_pass`, and `push_draw` each enter
 the pinned host's `AuroraGXSync()` boundary in

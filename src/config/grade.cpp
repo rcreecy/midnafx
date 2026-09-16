@@ -20,10 +20,10 @@ Prepared prepare(const Controls& controls) {
     const float exposure = std::exp2(value[Exposure]);
     const float temperature = value[Temperature];
     const float tint = value[Tint];
-    return {{exposure * (1.0f + 0.10f * temperature + 0.03f * tint),
-             exposure * (1.0f - 0.06f * tint),
-             exposure * (1.0f - 0.10f * temperature + 0.03f * tint), value[BlackPoint],
-             value[Contrast], value[Saturation], 1.0f / value[Gamma], value[HighlightRolloff]},
-            all_neutral};
+    return {
+        {exposure * (1.0f + 0.10f * temperature + 0.03f * tint), exposure * (1.0f - 0.06f * tint),
+         exposure * (1.0f - 0.10f * temperature + 0.03f * tint), value[BlackPoint], value[Contrast],
+         value[Saturation], 1.0f / value[Gamma], value[HighlightRolloff], 0.0f, 4.0f, 0u, 0u},
+        all_neutral};
 }
 } // namespace midnafx::grade

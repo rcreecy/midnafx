@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
+#include <type_traits>
 
 namespace midnafx::grade {
 enum Effect : unsigned {
@@ -20,7 +22,7 @@ struct Controls {
     std::array<bool, Count> active{true, true, true, true, true, true, true, true};
 };
 
-// Eight scalar floats match the WGSL uniform struct exactly (32 bytes).
+// Eight grading floats plus detail/debug parameters match WGSL's 48-byte uniform struct.
 struct alignas(16) Uniforms {
     float gain_r;
     float gain_g;
@@ -30,8 +32,13 @@ struct alignas(16) Uniforms {
     float saturation;
     float gamma_inverse;
     float rolloff;
+    float detail_strength;
+    float difference_gain;
+    std::uint32_t debug_mode;
+    std::uint32_t split_x;
 };
-static_assert(sizeof(Uniforms) == 32);
+static_assert(sizeof(Uniforms) == 48);
+static_assert(std::is_standard_layout_v<Uniforms>);
 
 struct Prepared {
     Uniforms uniforms;

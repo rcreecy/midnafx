@@ -139,4 +139,12 @@ again to restore the prior live look. For M4, enable CPU diagnostics and use **R
 timing samples** before each resolution/profile run. The performance procedure and
 unmeasured Intel Mac/GPU fields are in `docs/performance.md`.
 
+M4.1/M4.2 add optional detail and visual debug views. Saved MFX1 presets still load;
+new saves use MFX2 with detail toggle/strength. The diagnostic smoke-test entry is
+deliberately extreme and is not a recommended gameplay look. Native builds add the
+`shader_compile` test, which asks the pinned Dawn package to parse/type-check both
+WGSL modules on its Null backend when available; it skips if that adapter is absent.
+Passing it does not establish Metal execution, image quality, or GPU time. Follow the
+ordered [Intel Mac session checklist](runtime-validation.md) for those checks.
+
 Source evidence for build decisions: `upstream/dusklight/sdk/CMakeLists.txt`; `cmake/ModSDK.cmake::{add_mod,_mod_lib_info,_mod_add_webgpu_headers,_mod_download_link_stub}`; `upstream/mod-template/{CMakeLists.txt,README.md}` at the revisions above. The SDK creates a module library, C++20 requirement, hidden exports, platform-specific host linking and a `.dusk` packaging target. MidnaFX delegates those details to the supported helper.

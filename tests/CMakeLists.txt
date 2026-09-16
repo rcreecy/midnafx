@@ -7,7 +7,21 @@ add_executable(presets_roundtrip presets_roundtrip.cpp ../src/config/presets.cpp
 target_compile_features(presets_roundtrip PRIVATE cxx_std_20)
 target_include_directories(presets_roundtrip PRIVATE ../src)
 add_test(NAME presets_roundtrip COMMAND presets_roundtrip)
+add_executable(visual_parameters visual_parameters.cpp ../src/config/visual.cpp)
+target_compile_features(visual_parameters PRIVATE cxx_std_20)
+target_include_directories(visual_parameters PRIVATE ../src)
+add_test(NAME visual_parameters COMMAND visual_parameters)
 if(MIDNAFX_BUILD_MOD)
+    add_executable(shader_compile shader_compile.cpp)
+    target_compile_features(shader_compile PRIVATE cxx_std_20)
+    target_include_directories(shader_compile PRIVATE "${CMAKE_BINARY_DIR}/generated")
+    target_link_libraries(shader_compile PRIVATE dawn::webgpu_dawn)
+    if(WIN32)
+        add_custom_command(TARGET shader_compile POST_BUILD COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "$<TARGET_FILE:dawn::webgpu_dawn>" "$<TARGET_FILE_DIR:shader_compile>")
+    endif()
+    add_test(NAME shader_compile COMMAND shader_compile)
+    set_tests_properties(shader_compile PROPERTIES SKIP_RETURN_CODE 77)
     add_test(NAME package_contract COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/package_contract.py"
         "${CMAKE_BINARY_DIR}/mods/midnafx.dusk")

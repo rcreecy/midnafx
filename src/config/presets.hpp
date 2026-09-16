@@ -11,6 +11,8 @@ constexpr std::size_t Maximum = 16;
 struct Snapshot {
     std::array<std::int64_t, grade::Count> values{0, 0, 100, 100, 100, 0, 0, 0};
     std::array<bool, grade::Count> active{true, true, true, true, true, true, true, true};
+    bool detail_enabled = false;
+    std::int64_t detail_strength = 20;
 };
 struct Entry {
     std::string name;
@@ -19,4 +21,5 @@ struct Entry {
 bool valid_name(const std::string& name);
 std::string encode(const std::vector<Entry>& entries);
 bool decode(const std::string& text, std::vector<Entry>& output);
+Snapshot smoke_test();
 } // namespace midnafx::presets

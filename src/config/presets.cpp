@@ -14,7 +14,7 @@ bool number(std::string_view text, std::int64_t& result) {
     const auto parsed = std::from_chars(text.data(), text.data() + text.size(), result);
     return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size();
 }
-bool parse_row(std::string_view row, Entry& entry) {
+bool parse_row(std::string_view row, bool version_two, Entry& entry) {
     const auto tab = row.find('\t');
     if (tab == row.npos)
         return false;
@@ -32,7 +32,24 @@ bool parse_row(std::string_view row, Entry& entry) {
         row.remove_prefix(comma + 1);
     }
     std::int64_t mask = 0;
-    if (!number(row, mask) || mask < 0 || mask > 255)
+    if (version_two) {
+        const auto first = row.find(',');
+        if (first == row.npos || !number(row.substr(0, first), mask))
+            return false;
+        row.remove_prefix(first + 1);
+        const auto second = row.find(',');
+        std::int64_t detail_on = 0;
+        if (second == row.npos || !number(row.substr(0, second), detail_on) ||
+            (detail_on != 0 && detail_on != 1))
+            return false;
+        entry.snapshot.detail_enabled = detail_on == 1;
+        row.remove_prefix(second + 1);
+        if (!number(row, entry.snapshot.detail_strength) || entry.snapshot.detail_strength < 0 ||
+            entry.snapshot.detail_strength > 50)
+            return false;
+    } else if (!number(row, mask))
+        return false;
+    if (mask < 0 || mask > 255)
         return false;
     for (unsigned i = 0; i < grade::Count; ++i)
         entry.snapshot.active[i] = (mask & (std::int64_t{1} << i)) != 0;
@@ -53,7 +70,7 @@ bool valid_name(const std::string& name) {
 std::string encode(const std::vector<Entry>& entries) {
     if (entries.size() > Maximum)
         return {};
-    std::string result = "MFX1\n";
+    std::string result = "MFX2\n";
     for (const auto& entry : entries) {
         if (!valid_name(entry.name))
             return {};
@@ -69,6 +86,12 @@ std::string encode(const std::vector<Entry>& entries) {
                 mask |= 1u << i;
         }
         result += std::to_string(mask);
+        if (entry.snapshot.detail_strength < 0 || entry.snapshot.detail_strength > 50)
+            return {};
+        result += ',';
+        result += entry.snapshot.detail_enabled ? '1' : '0';
+        result += ',';
+        result += std::to_string(entry.snapshot.detail_strength);
         result += '\n';
     }
     return result.size() <= 8192 ? result : std::string{};
@@ -79,8 +102,9 @@ bool decode(const std::string& text, std::vector<Entry>& output) {
         output.clear();
         return true;
     }
-    if (text.size() > 8192 || text.substr(0, 5) != "MFX1\n")
+    if (text.size() > 8192 || (text.substr(0, 5) != "MFX1\n" && text.substr(0, 5) != "MFX2\n"))
         return false;
+    const bool version_two = text[3] == '2';
     std::vector<Entry> parsed;
     std::string_view remaining(text.data() + 5, text.size() - 5);
     while (!remaining.empty()) {
@@ -88,7 +112,7 @@ bool decode(const std::string& text, std::vector<Entry>& output) {
         if (end == remaining.npos || parsed.size() >= Maximum)
             return false;
         Entry next;
-        if (!parse_row(remaining.substr(0, end), next))
+        if (!parse_row(remaining.substr(0, end), version_two, next))
             return false;
         for (const auto& prior : parsed)
             if (prior.name == next.name)
@@ -98,5 +122,13 @@ bool decode(const std::string& text, std::vector<Entry>& output) {
     }
     output = std::move(parsed);
     return true;
+}
+
+Snapshot smoke_test() {
+    Snapshot result;
+    result.values = {120, 12, 145, 85, 0, 70, 85, -65};
+    result.detail_enabled = true;
+    result.detail_strength = 35;
+    return result;
 }
 } // namespace midnafx::presets
