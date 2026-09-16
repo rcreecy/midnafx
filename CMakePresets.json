@@ -1,0 +1,39 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 26, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "windows-release",
+      "displayName": "Windows x64 release (VS 2026)",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/windows-release",
+      "cacheVariables": { "BUILD_TESTING": "ON" },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "macos-intel-release",
+      "displayName": "macOS Intel release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/macos-intel-release",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release", "CMAKE_OSX_ARCHITECTURES": "x86_64", "BUILD_TESTING": "ON" },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" }
+    },
+    {
+      "name": "tests",
+      "displayName": "Portable tests without Dusklight or GPU dependencies",
+      "binaryDir": "${sourceDir}/build/tests",
+      "cacheVariables": { "MIDNAFX_BUILD_MOD": "OFF", "BUILD_TESTING": "ON", "CMAKE_BUILD_TYPE": "Release" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "windows-release", "configurePreset": "windows-release", "configuration": "Release" },
+    { "name": "macos-intel-release", "configurePreset": "macos-intel-release" },
+    { "name": "tests", "configurePreset": "tests", "configuration": "Release" }
+  ],
+  "testPresets": [
+    { "name": "windows-release", "configurePreset": "windows-release", "configuration": "Release", "output": { "outputOnFailure": true }, "execution": { "noTestsAction": "error" } },
+    { "name": "macos-intel-release", "configurePreset": "macos-intel-release", "output": { "outputOnFailure": true }, "execution": { "noTestsAction": "error" } },
+    { "name": "tests", "configurePreset": "tests", "configuration": "Release", "output": { "outputOnFailure": true }, "execution": { "noTestsAction": "error" } }
+  ]
+}

@@ -1,0 +1,88 @@
+# MidnaFX M1 architecture decision
+
+Decision date: 2026-09-16. Source baseline: Dusklight
+`edf42c6a7202647b56dd2fcdef02d17671bc814b`, Aurora
+`7f2801cd0133c9333eadb4e2e6b24100c328d328`. This decision precedes implementation.
+See [render evidence](notes/render.md), [game evidence](notes/game.md), and
+[UI evidence](notes/ui-config.md) for paths, symbols, and limitations.
+
+## Selected integration
+
+Use a standalone native C++20 service-only mod, `add_mod(... FEATURES webgpu)`.
+Import GfxService 1.2 optionally, and use `GFX_STAGE_FRAME_BEFORE_HUD`.
+Resolve color only, then enqueue one fullscreen triangle into the continuing scene pass.
+WGSL uses integer pixel coordinates and `textureLoad` to preserve all four channels.
+No sampler, grading uniforms, separate output texture, game ABI dependency, or environment
+hooks are necessary for M1. The host already owns the snapshot and frame command stream.
+
+```mermaid
+flowchart TD
+  A[Game scene: terrain, opaque, translucent and effects] --> B[Native bloom / monochrome]
+  B --> C[Remaining world draws and some game 2D effects]
+  C --> D[FRAME_BEFORE_HUD hooks]
+  D --> E[MidnaFX color snapshot: pass break and full-size copy]
+  E --> F[One passthrough fullscreen draw into continuing EFB pass]
+  F --> G[Game HUD and later composition]
+  G --> H[FRAME_AFTER_HUD, host presentation and host UI]
+```
+
+This is a simplified source-traced order, not a guarantee about ordering among third-party
+hooks at the same stage. Some game 2D effects precede the callback. Dawnlight's complete
+visual position and installed-version compatibility require runtime testing.
+
+## Ownership and boundaries
+
+* `src/mod.cpp`: lifecycle, service imports, cached configuration, state-change logging.
+* `src/render/renderer.*`: immutable pipeline/layout, stage and draw callbacks, diagnostics.
+* `src/ui/settings.*`: host-native Mods panel with enable and optional diagnostic controls.
+* `shaders/passthrough.wgsl`: the only M1 image operation; embedded at configure time.
+
+Game-thread configuration subscriptions update booleans; no config lookup occurs on the
+render worker. The stage callback resolves color and copies a small POD payload into the
+host queue. The render callback calls only raw WebGPU functions using its context and owned
+immutable objects. Cross-thread failure/counter publication uses atomics. UI polls cached
+diagnostics only while visible; clocks are sampled only when diagnostics are enabled.
+
+Pipeline compatibility depends on attachment formats/count, depth format and sample count,
+not resolution. Resolution is taken from the current callback. A changed incompatible layout
+disables rendering until reload; M1 does not race pipeline replacement against queued draws.
+Disabled state returns before resolve/push/draw. Existing queued work may finish after toggle.
+
+## Lifetime and errors
+
+The host device outlives mods. Borrowed snapshot views are used only in their queued frame;
+MidnaFX never stores them across frames. A frame-local bind group is created/released in the
+draw callback, following the upstream custom rendering examples. This is a known per-frame
+WebGPU object allocation, not a zero-allocation claim. A future cache requires a stronger
+view-lifetime contract or an independently owned resource strategy and measurement.
+
+The host unregisters mod draw types and drains its render worker before `mod_shutdown`.
+Only then release owned WebGPU objects. No GPU queue wait is added per frame. No borrowed
+device, view, queue, or encoder is released. Initialization failures keep the native settings
+panel available with a disabled-render status where possible. Optional UI/config availability
+degrades to logged defaults. Rendering faults latch bypass and are logged on the game thread.
+WebGPU validation and actual visual neutrality still require runtime validation.
+
+## Alternatives and extension points
+
+Original environment overrides alone cannot provide general frame grading and couple the
+mod to game ABI internals. Defer them to M6, independently switchable and supported by visual
+evidence. Combined parameter overrides plus grading is a future option, not M1 scope.
+Post-HUD processing unnecessarily grades text. Present interception is not a replacement of
+the primary display; GfxService present-target APIs serve additional targets. Native Metal
+injection duplicates Aurora portability. A zero-copy shader sampling the writable scene
+attachment is unsupported feedback. Additional offscreen output adds work without M1 value.
+
+M2 can add one uniform payload and fused arithmetic to the same shader. M3 adds preset
+storage using ConfigService and HostService's persistent data directory. M5 can add isolated
+game ABI integration using semantic Twilight state. No placeholder grading controls or
+unverified Twilight sliders ship in M1.
+
+## Performance budget
+
+The initial basic-grading objective remains less than 0.25 ms at 3840x2160, excluding sharpening;
+it is an unmeasured target. Report snapshot and draw costs separately and together. M1 makes
+one snapshot request, one queued draw, and one bind-group creation per active frame. There
+are no mod-owned pixel-sized allocations, no steady-state pipeline compilation and no
+per-frame logging. Host snapshot memory, MSAA resolve/store behavior and bandwidth are
+material costs. See `performance.md` for the measurement procedure before any speed claim.
