@@ -363,8 +363,11 @@ void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
 }
 
 HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
-    if (args && mods::arg<dRes_info_c*>(args, 0) == mutation.owner)
+    if (args && mods::arg<dRes_info_c*>(args, 0) == mutation.owner) {
+        if (mutation.kind == MutationBackup::Kind::Smoothing)
+            svc_log->info(mod_ctx, "Geometry smoothing: archive pre-delete restoration");
         restore_active_mutation();
+    }
     return HOOK_CONTINUE;
 }
 

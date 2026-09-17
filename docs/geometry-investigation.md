@@ -331,8 +331,14 @@ diagnostic used the actual config service to disable the feature after the
 fifth instance was created. The settings callback restored the original
 normals immediately while the instances were live, and shutdown did not
 restore them a second time (`stdout-pot-toggle-test.log`). That forced trigger
-was removed after the test. Archive unload/reload and mod reload have not
-been exercised in-process.
+was removed after the test. A separate temporary stage-departure trigger
+exercised the archive pre-delete hook: the active backup was restored before
+the pot resource was deleted (`stdout-pot-transition-test2.log`). The trigger
+was removed. Its scripted return request stalled on a black transition view
+before the pot reloaded, so archive reload and mod reload remain unproven.
+The next lifecycle check needs a normal in-game scene return and a mod reload
+while the source-matched host is running; neither can be inferred from the
+successful pre-delete restoration.
 
 No currently scanned enveloped model can safely receive changed normals
 without index splitting: Link body, face, and head, horse, enemies, and sampled
@@ -350,6 +356,6 @@ index conflicts, material/original-normal splits, and restoration ownership.
 It found and fixed the incomplete toggle restore path and added a checked S16
 codec with round-trip tests. The follow-up review also checked the new
 model-instance hook, exact allowlist replacement, and single-owner backup.
-Remaining risks are the untested archive/mod reload paths, small-scale visual
-evidence, and the unresolved skinned normal-index conflicts. All eight Windows
+Remaining risks are the untested archive and mod reload paths, small-scale
+visual evidence, and the unresolved skinned normal-index conflicts. All eight Windows
 Release tests pass for the current prototype.
