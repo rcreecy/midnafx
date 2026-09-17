@@ -217,7 +217,7 @@ behavior, archive unload/reload, in-process toggle restoration, or mod reload.
 Those remain runtime validation items before broad model coverage. No engine
 API change is currently required for this narrow interception point.
 
-## Gate 2 source reconnaissance, not validation
+## Gate 2 source reconnaissance
 
 `J3DShapeDraw::countVertex` and `addTexMtxIndexInDL` use Aurora's stride-only
 `aurora::gx::dl::Reader` on PC (`J3DShapeDraw.cpp:33–105`). Its full-layout
@@ -234,10 +234,46 @@ retain material/shape/group context, and reject missing or unsupported formats.
 
 The PC shape constructor may optimize raw DLs into indexed Aurora commands before
 MidnaFX sees them, so a parser restricted to fan/strip opcodes would be wrong.
-`Reader` offers the necessary path, but its output on the selected model has not
-been validated at runtime; the read-only parse above used the original BMD
-display list. Gate 2 remains unproven and requires separate validation before
-adaptive smoothing.
+Aurora's `Reader` symbols are not linkable from the mod SDK (a direct use
+produced unresolved externals). MidnaFX therefore has a bounded, read-only
+decoder in `src/game/topology.cpp` that mirrors the pinned Reader's command and
+attribute-layout rules. It fails closed on unsupported layouts, indices,
+commands, and display-list sizes. The source-backed choice is necessary for
+the mod binary; the independent original-BMD parser below provides a second
+implementation for comparison.
+
+## Gate 2 runtime topology proof
+
+With default-off **Log topology for three M7 models** enabled, the
+source-matched Windows host loaded `F_SP116,3,13,2`. The runtime decoder
+visited every shape and matrix group of these three exact resources. PC
+construction had optimized the original GX triangle strips into Aurora
+`DRAW_INDEXED` triangle commands before MidnaFX's resource-load hook ran.
+`tools/inspect-topology.py` separately read the original BMD SHP1 lists and
+expanded their strips. For each nondegenerate triangle, both decoders hashed
+shape, matrix group, and all three ordered position/normal index pairs. The
+64-bit hashes match exactly:
+
+| Resource | Original strips | Runtime indexed draws | Triangles | Degenerate | Corner hash |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `L_mbox_00.arc/l_metabox_00.bmd` | 6 | 1 | 12 | 0 | `1a30360897392267` |
+| `R03_00.arc/model.bmd` in `F_SP116` | 9,205 | 31 | 27,126 | 11 | `e084ce9e7c32a4c2` |
+| `Bmdl.arc/bl.bmd` (enveloped Link body) | 1,023 | 37 | 3,617 | 0 | `fefc475b8f9a6309` |
+
+The comparison also matched position and normal array counts, unique
+referenced indices, and positions with multiple normal indices. The room
+model uses S16 XYZ positions/normals, while the metal box uses F32 XYZ;
+Link's body has 133 envelope matrices and S16 XYZ normals. Runtime decode
+took about 8 µs, 4.6 ms, and 0.6 ms respectively on this Windows host in
+one sampled load; these are diagnostic timings, not production benchmarks.
+The runtime JSON lines are in ignored `build/runtime-smoke/stdout-gate2-b.log`.
+
+**Gate 2 topology reconstruction PASS for these three classes.** The ordered
+per-corner position/normal stream survived PC optimization exactly. This is a
+read-only gate result; it does not establish that smoothing is safe or visually
+better. The next phase must build model-wide adjacency, preserve intentional
+normal/material splits, and reject normal-index conflicts before writing data.
+Raw game assets and runtime logs remain ignored and untracked.
 
 ## Remaining validation
 

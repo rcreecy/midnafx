@@ -39,6 +39,7 @@ struct NumberSetting {
 Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"},
     auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"},
+    topology_diagnostics{"topology_diagnostics"},
     geometry_mutation_test{"geometry_mutation_test"};
 NumberSetting detail_strength_setting{
     "detail_strength", "Detail strength (%)", 0, 50, 20, 20, true};
@@ -772,6 +773,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &camera_element));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Geometry research"));
     add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
+    add_toggle(panel, "Log topology for three M7 models", topology_diagnostics);
     add_toggle(panel, "Mutation test: metal box only", geometry_mutation_test);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
                                    "Developer test only. Enable before loading a metal box scene; "
@@ -798,6 +800,7 @@ bool initialize() {
     register_toggle(detail_toggle);
     register_toggle(auto_twilight);
     register_toggle(geometry_diagnostics);
+    register_toggle(topology_diagnostics);
     register_toggle(geometry_mutation_test);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
@@ -822,6 +825,7 @@ bool initialize() {
 bool enabled() { return master.value; }
 bool diagnostics_enabled() { return diagnostics_toggle.value; }
 bool geometry_diagnostics_enabled() { return geometry_diagnostics.value; }
+bool topology_diagnostics_enabled() { return topology_diagnostics.value; }
 bool geometry_mutation_test_enabled() { return geometry_mutation_test.value; }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }

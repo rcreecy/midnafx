@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(topology topology.cpp ../src/game/topology.cpp)
+target_compile_features(topology PRIVATE cxx_std_20)
+target_include_directories(topology PRIVATE ../src)
+add_test(NAME topology COMMAND topology)
 add_executable(grade_math grade_math.cpp ../src/config/grade.cpp)
 target_compile_features(grade_math PRIVATE cxx_std_20)
 target_include_directories(grade_math PRIVATE ../src)
