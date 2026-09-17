@@ -129,6 +129,16 @@ bool array_in_resource(const dRes_info_c& info, const J3DModelData& model, const
            count <= (size - (address - base)) / stride;
 }
 
+template <class T> std::uint64_t vector_bytes(const std::vector<T>& values) {
+    return static_cast<std::uint64_t>(values.capacity()) * sizeof(T);
+}
+template <class T> std::uint64_t nested_vector_bytes(const std::vector<std::vector<T>>& values) {
+    std::uint64_t bytes = vector_bytes(values);
+    for (const auto& inner : values)
+        bytes += vector_bytes(inner);
+    return bytes;
+}
+
 void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& model) {
     const bool target = is_smoothing_target(info, name);
     const bool apply = settings::geometry_smoothing_enabled() && target && !mutation.owner;
@@ -141,6 +151,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const u32 stride = vertex.getVtxArrStride(GX_VA_POS);
     const int pos_type = vertex.getVtxPosType();
     topology::Result result;
+    std::uint64_t peak_vector_bytes = 0;
     if (!array_in_resource(info, model, vertex.getVtxPosArray(), pos_count, stride) ||
         pos_count == 0 ||
         !((pos_type == GX_F32 && stride == 12) || (pos_type == GX_S16 && stride == 6))) {
@@ -203,18 +214,24 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         }
         if (!result.error)
             result = topology::decode(shapes, formats, positions, normal_count);
+        peak_vector_bytes = vector_bytes(positions) + vector_bytes(formats) +
+                            nested_vector_bytes(attrs) + nested_vector_bytes(groups) +
+                            vector_bytes(shapes) + vector_bytes(result.triangles) +
+                            result.peak_temporary_vector_bytes;
     }
     const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                              std::chrono::steady_clock::now() - begin)
                              .count();
     smoothing::Result smooth;
     long long smooth_us = 0;
+    long long normal_decode_us = 0;
     const int normal_type = vertex.getVtxNrmType();
     const u32 normal_stride = vertex.getVtxArrStride(GX_VA_NRM);
     if (result.ok() && !vertex.getVtxNBTArray() &&
         array_in_resource(info, model, vertex.getVtxNrmArray(), normal_count, normal_stride) &&
         ((normal_type == GX_F32 && normal_stride == 12) ||
          (normal_type == GX_S16 && normal_stride == 6))) {
+        const auto normal_begin = std::chrono::steady_clock::now();
         std::vector<topology::Vec3> normals(normal_count);
         const auto* bytes = static_cast<const std::byte*>(vertex.getVtxNrmArray());
         const float scale = std::ldexp(1.0f, -static_cast<int>(vertex.getVtxNrmFrac()));
@@ -232,12 +249,18 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
             normals[i] = {values[0], values[1], values[2]};
         }
         const auto smoothing_begin = std::chrono::steady_clock::now();
+        normal_decode_us =
+            std::chrono::duration_cast<std::chrono::microseconds>(smoothing_begin - normal_begin)
+                .count();
         smoothing::Options options;
         options.face_angle_degrees = settings::geometry_smoothing_angle();
         smooth = smoothing::plan(result, normals, options);
         smooth_us = std::chrono::duration_cast<std::chrono::microseconds>(
                         std::chrono::steady_clock::now() - smoothing_begin)
                         .count();
+        peak_vector_bytes =
+            std::max(peak_vector_bytes, vector_bytes(result.triangles) + vector_bytes(normals) +
+                                            smooth.working_vector_bytes);
     } else {
         smooth.error = "unsupported normal array or topology";
     }
@@ -276,7 +299,10 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
             svc_log->info(mod_ctx, "Geometry smoothing: target rejected by safety checks");
         }
     }
-    char report[650];
+    const auto total_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                              std::chrono::steady_clock::now() - begin)
+                              .count();
+    char report[850];
     std::snprintf(
         report, sizeof(report),
         "Topology JSON: {\"archive\":\"%s\",\"file\":\"%s\",\"positions\":%u,"
@@ -286,7 +312,8 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         "\"positionNormalSplits\":%u,\"cornerHash\":\"%016llx\","
         "\"decodeUs\":%lld,\"error\":\"%s\",\"smoothGroups\":%u,"
         "\"smoothCandidates\":%u,\"smoothChanges\":%u,\"indexConflicts\":%u,"
-        "\"ambiguousFaces\":%u,\"smoothUs\":%lld,\"backupBytes\":%u,"
+        "\"ambiguousFaces\":%u,\"normalDecodeUs\":%lld,\"adjacencyUs\":%llu,"
+        "\"smoothUs\":%lld,\"totalUs\":%lld,\"peakTrackedVectorBytes\":%llu,\"backupBytes\":%u,"
         "\"cacheEntries\":%u,\"smoothError\":\"%s\"}",
         info.mArchiveName, name, pos_count, normal_count, model.getShapeNum(),
         model.getWEvlpMtxNum(), result.primitive_count, result.strip_count, result.fan_count,
@@ -294,7 +321,9 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         result.unique_positions, result.unique_normals, result.position_normal_splits,
         static_cast<unsigned long long>(result.corner_hash), static_cast<long long>(elapsed),
         result.error ? result.error : "", smooth.smoothing_groups, smooth.candidate_indices,
-        smooth.changed_indices, smooth.index_conflicts, smooth.ambiguous_faces, smooth_us,
+        smooth.changed_indices, smooth.index_conflicts, smooth.ambiguous_faces, normal_decode_us,
+        static_cast<unsigned long long>(smooth.adjacency_us), smooth_us,
+        static_cast<long long>(total_us), static_cast<unsigned long long>(peak_vector_bytes),
         mutation.kind == MutationBackup::Kind::Smoothing ? mutation.bytes : 0,
         mutation.owner ? 1u : 0u, smooth.error ? smooth.error : "");
     svc_log->info(mod_ctx, report);

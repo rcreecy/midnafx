@@ -308,9 +308,17 @@ normal bytes are backed up. Diagnostic mutation and smoothing cannot overlap.
 In the live source-matched host, this resource produced 129 smoothing groups,
 300 changed normal indices, zero conflicts, and zero ambiguous faces. A sample
 load recorded 71 µs for topology decode and 77 µs for smoothing planning
-(`build/runtime-smoke/stdout-pot-room19-on.log`). The active backup cache has
-one entry and 2,142 bytes. Allocation peaks and total load time, including
-encoding/logging, are not measured; there is no per-frame topology work.
+(`build/runtime-smoke/stdout-pot-room19-on.log`). A later instrumented live
+load measured 65 µs for topology decode, 1 µs for normal-array decode, and
+77 µs for smoothing planning, of which 25 µs built adjacency. Total MidnaFX
+processing through mutation, before report formatting, was 157 µs
+(`build/runtime-smoke/stdout-pot-performance-final.log`). These are single
+host samples, not worst-case budgets. The largest tracked vector-storage
+snapshot was 35,004 bytes, plus the retained 2,142-byte backup cache (one
+entry). The vector figure counts capacities in the decoder and planner; it
+excludes allocator metadata, logging, and engine-owned resources, so it is
+not a process-memory peak. Processing occurs on resource load, with no
+per-frame topology work.
 
 Matched room-19 captures are retained locally as
 `build/m7-evidence/pot-off-room19.jpg` and `pot-on-room19.jpg`, with an
@@ -376,6 +384,9 @@ index conflicts, material/original-normal splits, and restoration ownership.
 It found and fixed the incomplete toggle restore path and added a checked S16
 codec with round-trip tests. The follow-up review also checked the new
 model-instance hook, exact allowlist replacement, and single-owner backup.
+The performance-instrumentation review checked that the extra counters are
+load-time only, the vector-capacity arithmetic uses 64-bit storage, and the
+reported vector bytes are not presented as a whole-process allocation peak.
 Remaining risks are small-scale visual evidence and unresolved skinned
-normal-index conflicts. All eight Windows
-Release tests pass for the current prototype.
+normal-index conflicts. All eight Windows Release tests pass for the current
+prototype.

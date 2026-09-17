@@ -15,6 +15,17 @@ constexpr unsigned Pos = 9, Nrm = 10, Clr0 = 11, Clr1 = 12, Tex0 = 13, Tex7 = 20
 constexpr std::size_t MaxDisplayList = 16 * 1024 * 1024;
 constexpr std::size_t MaxTriangles = 2'000'000;
 
+template <class T> std::uint64_t vector_bytes(const std::vector<T>& values) {
+    return static_cast<std::uint64_t>(values.capacity()) * sizeof(T);
+}
+std::uint64_t vector_bytes(const std::vector<bool>& values) { return (values.capacity() + 7) / 8; }
+template <class T> std::uint64_t nested_vector_bytes(const std::vector<std::vector<T>>& values) {
+    std::uint64_t bytes = vector_bytes(values);
+    for (const auto& inner : values)
+        bytes += vector_bytes(inner);
+    return bytes;
+}
+
 struct Slot {
     std::uint8_t kind = 0;
     std::uint8_t size = 0;
@@ -242,6 +253,8 @@ bool decode_group(Result& out, std::span<const Vec3> positions, std::uint32_t no
 
         std::vector<Corner> vertices;
         vertices.reserve(vertex_count);
+        out.peak_temporary_vector_bytes =
+            std::max(out.peak_temporary_vector_bytes, vector_bytes(vertices));
         for (std::size_t i = 0; i < vertex_count; ++i) {
             const auto* vertex = dl.data() + vertices_at + i * layout.stride;
             const Slot ps = layout.slots[Pos], ns = layout.slots[Nrm];
@@ -326,6 +339,9 @@ Result decode(std::span<const Shape> shapes, std::span<const Format> formats,
                 normals.push_back(corner.normal);
             used_normal[corner.normal] = true;
         }
+    result.peak_temporary_vector_bytes =
+        std::max(result.peak_temporary_vector_bytes,
+                 nested_vector_bytes(normal_by_position) + vector_bytes(used_normal));
     for (const auto& normals : normal_by_position) {
         result.unique_positions += !normals.empty();
         result.position_normal_splits += normals.size() > 1;

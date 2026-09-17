@@ -55,6 +55,7 @@ struct Result {
     std::uint32_t position_normal_splits = 0;
     std::uint32_t ignored_nontriangles = 0;
     std::uint64_t corner_hash = 0;
+    std::uint64_t peak_temporary_vector_bytes = 0;
     const char* error = nullptr;
 
     bool ok() const { return error == nullptr; }

@@ -1,6 +1,7 @@
 #include "smoothing.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <vector>
@@ -24,6 +25,16 @@ struct Ref {
     std::uint32_t triangle;
     std::uint8_t corner;
 };
+template <class T> std::uint64_t vector_bytes(const std::vector<T>& values) {
+    return static_cast<std::uint64_t>(values.capacity()) * sizeof(T);
+}
+std::uint64_t vector_bytes(const std::vector<bool>& values) { return (values.capacity() + 7) / 8; }
+template <class T> std::uint64_t nested_vector_bytes(const std::vector<std::vector<T>>& values) {
+    std::uint64_t bytes = vector_bytes(values);
+    for (const auto& inner : values)
+        bytes += vector_bytes(inner);
+    return bytes;
+}
 } // namespace
 
 Vec3 decode_s16_xyz(const std::int16_t values[3], unsigned fraction_bits) {
@@ -85,6 +96,7 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
                                                   -triangle.face_normal.z}
                                            : triangle.face_normal;
     }
+    const auto adjacency_begin = std::chrono::steady_clock::now();
     for (const auto& triangle : mesh.triangles)
         for (const auto& corner : triangle.corners) {
             if (corner.normal >= originals.size()) {
@@ -97,6 +109,10 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     for (std::uint32_t ti = 0; ti < mesh.triangles.size(); ++ti)
         for (std::uint8_t ci = 0; ci < 3; ++ci)
             by_position[mesh.triangles[ti].corners[ci].position].push_back({ti, ci});
+    result.adjacency_us =
+        static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
+                                       std::chrono::steady_clock::now() - adjacency_begin)
+                                       .count());
 
     const float face_limit = cosine(options.face_angle_degrees);
     const float split_limit = cosine(options.original_split_degrees);
@@ -104,6 +120,10 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     std::vector<Vec3> desired(originals.size());
     std::vector<bool> assigned(originals.size());
     std::vector<bool> candidate(originals.size());
+    const auto base_working_bytes = vector_bytes(original_unit) + vector_bytes(oriented_faces) +
+                                    nested_vector_bytes(by_position) + vector_bytes(desired) +
+                                    vector_bytes(assigned) + vector_bytes(candidate);
+    result.working_vector_bytes = base_working_bytes;
 
     for (const auto& refs : by_position) {
         if (refs.empty())
@@ -188,12 +208,16 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
                 }
             }
         }
+        result.working_vector_bytes =
+            std::max(result.working_vector_bytes, base_working_bytes + nested_vector_bytes(groups));
     }
     result.candidate_indices =
         static_cast<std::uint32_t>(std::count(candidate.begin(), candidate.end(), true));
     if (result.index_conflicts)
         return result;
     result.normals.assign(originals.begin(), originals.end());
+    result.working_vector_bytes =
+        std::max(result.working_vector_bytes, base_working_bytes + vector_bytes(result.normals));
     for (std::size_t i = 0; i < originals.size(); ++i)
         if (assigned[i] && dot(original_unit[i], desired[i]) < conflict_limit) {
             result.normals[i] = desired[i];

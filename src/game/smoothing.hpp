@@ -2,6 +2,7 @@
 
 #include "topology.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <span>
 #include <vector>
@@ -22,6 +23,8 @@ struct Result {
     std::uint32_t changed_indices = 0;
     std::uint32_t index_conflicts = 0;
     std::uint32_t ambiguous_faces = 0;
+    std::uint64_t adjacency_us = 0;
+    std::uint64_t working_vector_bytes = 0;
     const char* error = nullptr;
     bool safe() const { return error == nullptr && index_conflicts == 0; }
 };
