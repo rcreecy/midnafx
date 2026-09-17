@@ -275,15 +275,58 @@ better. The next phase must build model-wide adjacency, preserve intentional
 normal/material splits, and reject normal-index conflicts before writing data.
 Raw game assets and runtime logs remain ignored and untracked.
 
-## Remaining validation
+## First smoothing prototype and validation boundary
 
-Confirm the same mutation on a naturally unobstructed instance and on two
-instances sharing the resource. Exercise archive unload/reload, in-process
-toggle disable, and mod reload, checking restoration logs and visuals. Then
-validate `Reader` against the chosen model's runtime DLs before considering
-the conservative Gate 2 smoothing subset.
+Gate 2 passed before any smoothing write. The subsequent dry run analyzed loaded
+models in `F_SP116` and `D_MN04`. The room (`R03_00.arc/model.bmd`) and Link body
+(`Bmdl.arc/bl.bmd`) need 37,728 and 3,695 normal-index splits respectively;
+the algorithm rejects those models rather than choosing between incompatible
+directions for the same normal index. The metal box has no smoothing changes.
+Three other conflict-free changes were flat effect meshes (wood-crate debris,
+heart effect, portal plane), so they are not suitable evidence of improved
+curved-surface shading.
 
-The required engine/API change, if a safe archive/file identity and pre-unload
-callback cannot be established with hooks, is a model-resource lifecycle service:
-it should supply the archive/file name, post-fixup `J3DModelData`, and a callback
-before instances are created and before the resource buffer is released.
+The default-off write experiment is confined to
+`@bg0016.arc/model0.bmd` in `D_MN04,7,0,-1`. An independent raw-BMD parse and
+the source-matched runtime decoder agreed on corner hash `d105924d00769e26`:
+492 triangles, 312 positions, 1,290 normals, two shapes, no degenerate
+triangles. The runtime draws are two optimized indexed commands rather than
+the raw BMD's 398 GX strips. Position data is F32 XYZ; normals are S16 XYZ
+with 15 fraction bits; there are no envelopes. The prototype checks resource
+identity, this exact hash and layout, array bounds, index conflicts, and the
+pre-unload hook before writing. It keeps the original 7,740 normal bytes and
+restores them on feature disable, archive deletion, or shutdown. Only one
+resource backup can be active at a time. Both diagnostic mutation and
+smoothing are off by default and cannot overlap.
+
+In a live source-matched host run (`build/runtime-smoke/stdout-smooth-prototype.log`),
+the target produced 642 smoothing groups, 912 changed normal indices, zero
+index conflicts, and zero ambiguous faces. Decode took 128 µs and smoothing
+planning 233 µs in that sample; the write occurred once on load and original
+bytes were restored on graceful exit. These times exclude allocation, normal
+decode, encoding, and logging, so they are not a complete load-time benchmark.
+The backup occupies 7,740 bytes and the active backup cache has one entry;
+topology and adjacency allocation peaks have not been measured. There is no
+per-frame geometry work. All eight Windows Release tests pass. A second live
+run after the checked S16 codec change again logged one application and one
+restoration (`build/runtime-smoke/stdout-smooth-final.log`).
+
+**The smoothing prototype is experimental, not visually validated.** The
+candidate is a thin dungeon architectural model. We have not captured a
+matched original/smoothed pair that demonstrates better curved-surface shading
+while preserving its hard edges. Consequently this prototype must remain off
+by default and cannot be described as completed M7 smoothing. Skinned-model
+mutation, multiple-instance sharing, archive unload/reload, in-process disable,
+and mod reload are likewise unproven. The next experiment is to obtain matched
+views of the exact allowlisted model with the toggle off/on, inspect the result,
+then exercise those lifecycle cases before broadening coverage. If it fails
+visually, choose a different genuinely curved, conflict-free model or add an
+explicit normal-index-splitting capability in a later milestone.
+
+The dedicated correctness pass checked array bounds against the expanded BMD
+resource, exact topology/format identity before writes, finite normal encoding,
+index conflicts, material/original-normal splits, and restoration ownership.
+It found and fixed the incomplete toggle restore path and added a checked S16
+codec with round-trip tests. The remaining risk is validation, not a known
+buffer or lifetime failure: this target has no demonstrated visual benefit,
+and the lifecycle/skinning cases above have not yet been exercised.

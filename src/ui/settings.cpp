@@ -39,8 +39,10 @@ struct NumberSetting {
 Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"},
     auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"},
-    topology_diagnostics{"topology_diagnostics"},
-    geometry_mutation_test{"geometry_mutation_test"};
+    topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
+    geometry_smoothing{"geometry_smoothing"};
+NumberSetting smoothing_angle_setting{
+    "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
     "detail_strength", "Detail strength (%)", 0, 50, 20, 20, true};
 NumberSetting debug_mode_setting{"debug_mode", "Debug view", 0, 6, 0, 0, false};
@@ -228,6 +230,8 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
         static_cast<Toggle*>(user)->value = value->bool_value;
         if (user == &geometry_mutation_test && !value->bool_value)
             geometry_probe::restore_mutation();
+        if (user == &geometry_smoothing && !value->bool_value)
+            geometry_probe::restore_smoothing();
         if (user == &detail_toggle && !applying_preset) {
             mark_custom();
             update_grade();
@@ -340,6 +344,8 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
     toggle.value = in->bool_value;
     if (&toggle == &geometry_mutation_test && !toggle.value)
         geometry_probe::restore_mutation();
+    if (&toggle == &geometry_smoothing && !toggle.value)
+        geometry_probe::restore_smoothing();
     if (&toggle == &detail_toggle) {
         mark_custom();
         update_grade();
@@ -773,12 +779,15 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &camera_element));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Geometry research"));
     add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
-    add_toggle(panel, "Log topology for three M7 models", topology_diagnostics);
+    add_toggle(panel, "Log topology for loaded models (developer)", topology_diagnostics);
     add_toggle(panel, "Mutation test: metal box only", geometry_mutation_test);
-    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-                                   "Developer test only. Enable before loading a metal box scene; "
-                                   "changing either setting requires a scene reload.",
-                                   nullptr));
+    add_toggle(panel, "Experimental smoothing: one dungeon model", geometry_smoothing);
+    add_number(panel, smoothing_angle_setting);
+    check_ui(svc_ui->pane_add_text(
+        mod_ctx, panel,
+        "Developer test only. Enable before loading the target scene; "
+        "enabling requires a scene reload. Disabling restores source normals.",
+        nullptr));
     refresh_status();
     next_refresh = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
     return MOD_OK;
@@ -802,6 +811,8 @@ bool initialize() {
     register_toggle(geometry_diagnostics);
     register_toggle(topology_diagnostics);
     register_toggle(geometry_mutation_test);
+    register_toggle(geometry_smoothing);
+    register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
     register_number(split_setting);
@@ -827,6 +838,8 @@ bool diagnostics_enabled() { return diagnostics_toggle.value; }
 bool geometry_diagnostics_enabled() { return geometry_diagnostics.value; }
 bool topology_diagnostics_enabled() { return topology_diagnostics.value; }
 bool geometry_mutation_test_enabled() { return geometry_mutation_test.value; }
+bool geometry_smoothing_enabled() { return geometry_smoothing.value; }
+float geometry_smoothing_angle() { return static_cast<float>(smoothing_angle_setting.value); }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {

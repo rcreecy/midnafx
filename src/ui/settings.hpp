@@ -9,6 +9,8 @@ bool diagnostics_enabled();
 bool geometry_diagnostics_enabled();
 bool topology_diagnostics_enabled();
 bool geometry_mutation_test_enabled();
+bool geometry_smoothing_enabled();
+float geometry_smoothing_angle();
 bool passthrough_test();
 std::int64_t split_percent();
 grade::Prepared prepared_grade();

@@ -1,9 +1,14 @@
 #include "game/topology.hpp"
 
 #include <array>
-#include <cassert>
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
+
+void check(bool condition) {
+    if (!condition)
+        throw std::runtime_error("topology test failed");
+}
 
 using namespace midnafx::topology;
 
@@ -35,11 +40,11 @@ int main() {
     vertex(strip, 2, 2);
     vertex(strip, 3, 3);
     auto r = run(strip);
-    assert(r.ok() && r.triangles.size() == 2 && r.strip_count == 1);
-    assert(r.triangles[0].corners[0].position == 0);
-    assert(r.triangles[1].corners[0].position == 2);
-    assert(r.triangles[1].corners[1].position == 1);
-    assert(r.triangles[0].face_normal.z > 0 && r.triangles[1].face_normal.z > 0);
+    check(r.ok() && r.triangles.size() == 2 && r.strip_count == 1);
+    check(r.triangles[0].corners[0].position == 0);
+    check(r.triangles[1].corners[0].position == 2);
+    check(r.triangles[1].corners[1].position == 1);
+    check(r.triangles[0].face_normal.z > 0 && r.triangles[1].face_normal.z > 0);
 
     std::vector<std::uint8_t> fan{0xa0, 0, 4};
     vertex(fan, 0, 3);
@@ -47,15 +52,15 @@ int main() {
     vertex(fan, 3, 1);
     vertex(fan, 2, 0);
     r = run(fan);
-    assert(r.ok() && r.triangles.size() == 2 && r.fan_count == 1);
-    assert(r.triangles[1].corners[0].normal == 3);
+    check(r.ok() && r.triangles.size() == 2 && r.fan_count == 1);
+    check(r.triangles[1].corners[0].normal == 3);
 
     std::vector<std::uint8_t> degenerate{0x90, 0, 3};
     vertex(degenerate, 0, 0);
     vertex(degenerate, 0, 1);
     vertex(degenerate, 2, 2);
     r = run(degenerate);
-    assert(r.ok() && r.triangles.empty() && r.degenerate_count == 1);
+    check(r.ok() && r.triangles.empty() && r.degenerate_count == 1);
 
     std::vector<std::uint8_t> indexed{0x50, 0, 0x41, 0x90, 0, 4, 0, 0, 0, 6};
     const std::array<std::uint16_t, 6> order{{0, 1, 2, 2, 1, 3}};
@@ -64,11 +69,11 @@ int main() {
     for (unsigned i = 0; i < 4; ++i)
         vertex(indexed, i, i);
     r = run(indexed);
-    assert(r.ok() && r.indexed_count == 1 && r.triangles.size() == 2);
-    assert(r.triangles[1].corners[0].position == 2);
+    check(r.ok() && r.indexed_count == 1 && r.triangles.size() == 2);
+    check(r.triangles[1].corners[0].position == 2);
 
     indexed[10] = 0xff;
     indexed[11] = 0x7f;
     r = run(indexed);
-    assert(!r.ok());
+    check(!r.ok());
 }

@@ -1,6 +1,7 @@
 #include "geometry_probe.hpp"
 
 #include "services.hpp"
+#include "smoothing.hpp"
 #include "topology.hpp"
 #include "ui/settings.hpp"
 
@@ -11,6 +12,7 @@
 #include <d/d_resorce.h>
 #include <mods/svc/hook.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -29,6 +31,7 @@ bool load_registered = false;
 bool delete_registered = false;
 
 struct MutationBackup {
+    enum class Kind { None, Diagnostic, Smoothing } kind = Kind::None;
     dRes_info_c* owner = nullptr;
     void* normals = nullptr;
     u32 bytes = 0;
@@ -40,8 +43,11 @@ void restore_active_mutation() {
     if (!mutation.owner)
         return;
     std::memcpy(mutation.normals, mutation.original.get(), mutation.bytes);
+    const auto kind = mutation.kind;
     mutation = {};
-    svc_log->info(mod_ctx, "Geometry mutation test: original normals restored");
+    svc_log->info(mod_ctx, kind == MutationBackup::Kind::Smoothing
+                               ? "Geometry smoothing: original normals restored"
+                               : "Geometry mutation test: original normals restored");
 }
 
 void maybe_mutate(dRes_info_c& info, const char* file_name, J3DModelData& model) {
@@ -81,6 +87,7 @@ void maybe_mutate(dRes_info_c& info, const char* file_name, J3DModelData& model)
         return;
     std::memcpy(original.get(), normals, bytes);
     mutation.owner = &info;
+    mutation.kind = MutationBackup::Kind::Diagnostic;
     mutation.normals = normals;
     mutation.bytes = bytes;
     mutation.original = std::move(original);
@@ -96,14 +103,30 @@ bool is_model_node(u32 type) {
 }
 
 bool is_topology_target(const dRes_info_c& info, const char* name) {
-    return (std::strcmp(info.mArchiveName, "L_mbox_00") == 0 &&
-            std::strcmp(name, "l_metabox_00.bmd") == 0) ||
-           (std::strcmp(info.mArchiveName, "R03_00") == 0 && std::strcmp(name, "model.bmd") == 0) ||
-           (std::strcmp(info.mArchiveName, "Bmdl") == 0 && std::strcmp(name, "bl.bmd") == 0);
+    const auto length = std::strlen(name);
+    return info.mArchiveName && length >= 4 && std::strcmp(name + length - 4, ".bmd") == 0;
+}
+
+bool is_smoothing_target(const dRes_info_c& info, const char* name) {
+    return info.mArchiveName && std::strcmp(info.mArchiveName, "@bg0016") == 0 &&
+           std::strcmp(name, "model0.bmd") == 0;
+}
+
+bool array_in_resource(const dRes_info_c& info, const J3DModelData& model, const void* array,
+                       u32 count, u32 stride) {
+    if (!array || !info.mArchive || !model.getRawData() || !stride || count > 65536)
+        return false;
+    const u32 size = info.mArchive->getExpandedResSize(model.getRawData());
+    const auto base = reinterpret_cast<std::uintptr_t>(model.getRawData());
+    const auto address = reinterpret_cast<std::uintptr_t>(array);
+    return size != static_cast<u32>(-1) && address >= base && address - base <= size &&
+           count <= (size - (address - base)) / stride;
 }
 
 void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& model) {
-    if (!settings::topology_diagnostics_enabled() || !is_topology_target(info, name))
+    const bool target = is_smoothing_target(info, name);
+    const bool apply = settings::geometry_smoothing_enabled() && target && !mutation.owner;
+    if ((!settings::topology_diagnostics_enabled() || !is_topology_target(info, name)) && !apply)
         return;
     const auto begin = std::chrono::steady_clock::now();
     const J3DVertexData& vertex = model.getVertexData();
@@ -112,7 +135,8 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const u32 stride = vertex.getVtxArrStride(GX_VA_POS);
     const int pos_type = vertex.getVtxPosType();
     topology::Result result;
-    if (!vertex.getVtxPosArray() || pos_count == 0 || pos_count > 65536 ||
+    if (!array_in_resource(info, model, vertex.getVtxPosArray(), pos_count, stride) ||
+        pos_count == 0 ||
         !((pos_type == GX_F32 && stride == 12) || (pos_type == GX_S16 && stride == 6))) {
         result.error = "unsupported position array";
     } else {
@@ -177,21 +201,91 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                              std::chrono::steady_clock::now() - begin)
                              .count();
+    smoothing::Result smooth;
+    long long smooth_us = 0;
+    const int normal_type = vertex.getVtxNrmType();
+    const u32 normal_stride = vertex.getVtxArrStride(GX_VA_NRM);
+    if (result.ok() && !vertex.getVtxNBTArray() &&
+        array_in_resource(info, model, vertex.getVtxNrmArray(), normal_count, normal_stride) &&
+        ((normal_type == GX_F32 && normal_stride == 12) ||
+         (normal_type == GX_S16 && normal_stride == 6))) {
+        std::vector<topology::Vec3> normals(normal_count);
+        const auto* bytes = static_cast<const std::byte*>(vertex.getVtxNrmArray());
+        const float scale = std::ldexp(1.0f, -static_cast<int>(vertex.getVtxNrmFrac()));
+        for (u32 i = 0; i < normal_count; ++i) {
+            float values[3];
+            for (unsigned c = 0; c < 3; ++c) {
+                if (normal_type == GX_F32)
+                    std::memcpy(&values[c], bytes + i * normal_stride + c * 4, 4);
+                else {
+                    std::int16_t value;
+                    std::memcpy(&value, bytes + i * normal_stride + c * 2, 2);
+                    values[c] = value * scale;
+                }
+            }
+            normals[i] = {values[0], values[1], values[2]};
+        }
+        const auto smoothing_begin = std::chrono::steady_clock::now();
+        smoothing::Options options;
+        options.face_angle_degrees = settings::geometry_smoothing_angle();
+        smooth = smoothing::plan(result, normals, options);
+        smooth_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                        std::chrono::steady_clock::now() - smoothing_begin)
+                        .count();
+    } else {
+        smooth.error = "unsupported normal array or topology";
+    }
+    if (apply) {
+        const bool exact = result.corner_hash == 0xd105924d00769e26ULL && pos_count == 312 &&
+                           normal_count == 1290 && model.getWEvlpMtxNum() == 0 &&
+                           normal_type == GX_S16 && normal_stride == 6 &&
+                           vertex.getVtxNrmFrac() == 15;
+        if (exact && smooth.safe() && smooth.changed_indices > 0 && delete_registered) {
+            const u32 bytes_count = normal_count * normal_stride;
+            std::unique_ptr<std::byte[]> backup{new (std::nothrow) std::byte[bytes_count]};
+            if (backup) {
+                auto* destination = static_cast<std::byte*>(vertex.getVtxNrmArray());
+                std::memcpy(backup.get(), destination, bytes_count);
+                for (u32 i = 0; i < normal_count; ++i) {
+                    std::int16_t encoded[3];
+                    // Source values are S16, and the plan only returns finite originals or
+                    // normalized weighted faces; the checked codec rejects any regression.
+                    if (!smoothing::encode_s16_xyz(smooth.normals[i], 15, encoded)) {
+                        std::memcpy(destination, backup.get(), bytes_count);
+                        svc_log->info(mod_ctx, "Geometry smoothing: normal encoding rejected");
+                        return;
+                    }
+                    std::memcpy(destination + i * 6, encoded, 6);
+                }
+                mutation = {MutationBackup::Kind::Smoothing, const_cast<dRes_info_c*>(&info),
+                            destination, bytes_count, std::move(backup)};
+                svc_log->info(mod_ctx, "Geometry smoothing: applied @bg0016.arc/model0.bmd");
+            }
+        } else {
+            svc_log->info(mod_ctx, "Geometry smoothing: target rejected by safety checks");
+        }
+    }
     char report[650];
-    std::snprintf(report, sizeof(report),
-                  "Topology JSON: {\"archive\":\"%s\",\"file\":\"%s\",\"positions\":%u,"
-                  "\"normals\":%u,\"shapes\":%u,\"envelopes\":%u,\"primitives\":%u,"
-                  "\"strips\":%u,\"fans\":%u,\"indexed\":%u,\"triangles\":%zu,"
-                  "\"degenerate\":%u,\"uniquePositions\":%u,\"uniqueNormals\":%u,"
-                  "\"positionNormalSplits\":%u,\"cornerHash\":\"%016llx\","
-                  "\"decodeUs\":%lld,\"error\":\"%s\"}",
-                  info.mArchiveName, name, pos_count, normal_count, model.getShapeNum(),
-                  model.getWEvlpMtxNum(), result.primitive_count, result.strip_count,
-                  result.fan_count, result.indexed_count, result.triangles.size(),
-                  result.degenerate_count, result.unique_positions, result.unique_normals,
-                  result.position_normal_splits,
-                  static_cast<unsigned long long>(result.corner_hash),
-                  static_cast<long long>(elapsed), result.error ? result.error : "");
+    std::snprintf(
+        report, sizeof(report),
+        "Topology JSON: {\"archive\":\"%s\",\"file\":\"%s\",\"positions\":%u,"
+        "\"normals\":%u,\"shapes\":%u,\"envelopes\":%u,\"primitives\":%u,"
+        "\"strips\":%u,\"fans\":%u,\"indexed\":%u,\"triangles\":%zu,"
+        "\"degenerate\":%u,\"uniquePositions\":%u,\"uniqueNormals\":%u,"
+        "\"positionNormalSplits\":%u,\"cornerHash\":\"%016llx\","
+        "\"decodeUs\":%lld,\"error\":\"%s\",\"smoothGroups\":%u,"
+        "\"smoothCandidates\":%u,\"smoothChanges\":%u,\"indexConflicts\":%u,"
+        "\"ambiguousFaces\":%u,\"smoothUs\":%lld,\"backupBytes\":%u,"
+        "\"cacheEntries\":%u,\"smoothError\":\"%s\"}",
+        info.mArchiveName, name, pos_count, normal_count, model.getShapeNum(),
+        model.getWEvlpMtxNum(), result.primitive_count, result.strip_count, result.fan_count,
+        result.indexed_count, result.triangles.size(), result.degenerate_count,
+        result.unique_positions, result.unique_normals, result.position_normal_splits,
+        static_cast<unsigned long long>(result.corner_hash), static_cast<long long>(elapsed),
+        result.error ? result.error : "", smooth.smoothing_groups, smooth.candidate_indices,
+        smooth.changed_indices, smooth.index_conflicts, smooth.ambiguous_faces, smooth_us,
+        mutation.kind == MutationBackup::Kind::Smoothing ? mutation.bytes : 0,
+        mutation.owner ? 1u : 0u, smooth.error ? smooth.error : "");
     svc_log->info(mod_ctx, report);
 }
 
@@ -236,7 +330,7 @@ void describe_model(const dRes_info_c& info, u32 type, u32 file_index) {
 
 void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
     if ((!settings::geometry_diagnostics_enabled() && !settings::geometry_mutation_test_enabled() &&
-         !settings::topology_diagnostics_enabled()) ||
+         !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled()) ||
         !args || !retval || *static_cast<int*>(retval) < 0)
         return;
     auto* info = mods::arg<dRes_info_c*>(args, 0);
@@ -289,5 +383,12 @@ void shutdown() {
     load_registered = delete_registered = false;
 }
 
-void restore_mutation() { restore_active_mutation(); }
+void restore_mutation() {
+    if (mutation.kind == MutationBackup::Kind::Diagnostic)
+        restore_active_mutation();
+}
+void restore_smoothing() {
+    if (mutation.kind == MutationBackup::Kind::Smoothing)
+        restore_active_mutation();
+}
 } // namespace midnafx::geometry_probe
