@@ -95,3 +95,13 @@ temporary material-diagnostic log (`getColorChan(0)` may be null even when a
 material exists). That diagnostic was removed after recording its observed
 values; the shipped PoC does not dereference a color channel. No further
 actionable defect was found in the negation and restore path.
+
+## Subsequent Gate 1 evidence
+
+This review recorded the state before a later controlled visibility test. That
+test used a temporary render-only transform to bring the exact metal-box model
+out from behind scenery. Original versus negated normals produced an
+unmistakable lighting difference, documented in `docs/geometry-investigation.md`.
+The temporary transform and draw hook were removed afterward. The earlier
+"Gate 1 stays open" statements above describe the review checkpoint, not the
+current binary renderer result. Lifecycle and broad-model checks remain open.

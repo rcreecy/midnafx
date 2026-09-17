@@ -1,17 +1,18 @@
-# M7 geometry investigation — controlled mutation checkpoint
+# M7 geometry investigation — Gate 1 controlled proof
 
 Pinned Dusklight revision: `edf42c6a7202647b56dd2fcdef02d17671bc814b`.
 CameraService and camera overrides remain deferred. This checkpoint contains source
 research, a read-only resource catalog, and a default-off, single-model normal
-mutation experiment. It does not claim a rendered result or enable smoothing.
+mutation experiment. A later controlled view of the named model proved a
+rendered lighting change; smoothing remains unimplemented.
 
 ## Decision
 
-**Gate 1 remains open; stop before Gate 2 and smoothing.** The supplied USA GZ2E01
-RVZ was inspected locally without adding game assets to the repository. It supplies
-an exact static test model and permitted a tightly scoped mutation PoC. The required
-binary test is an unmistakable lighting change in TP's actual renderer, with matched
-screenshots and unload/reload checks. That visual result has not been obtained.
+**Gate 1's binary renderer proof passes for the named rigid metal box.** The
+supplied USA GZ2E01 RVZ was inspected locally without adding game assets to the
+repository. The scoped PoC produces an unmistakable lighting change in TP's
+renderer, documented below with original/negated captures. Runtime lifecycle
+and skinned-model checks remain open, as does Gate 2 topology validation.
 
 ## Normal ownership and ordering
 
@@ -175,17 +176,46 @@ ignored `build/m7-evidence/ironbox-room3-skipped.jpg` and
 `ironbox-room3-upward.jpg`. The temporary hook and alternate mutation were
 removed; neither is part of the shipped mod.
 
-The evidence proves source-array mutation and graceful shutdown restoration,
-but not a view of the allowlisted model or that the renderer consumes the
-edited normals. **Gate 1 is not passed.** Per the M7
-stop condition, Gate 2 topology work and adaptive smoothing remain deferred.
-The next useful test is a fixed view that locates a visible `ironbox` instance,
-using temporary draw suppression to identify its pixels before matched
-original/mutated captures. The shape's referenced normal indices are now known
-(0–5). If that view remains unchanged, the engine needs a model-resource
-mutation callback before normal values are captured or uploaded, with archive
-identity and a pre-release restoration callback. Current evidence does not
-prove such an API change is necessary.
+At this checkpoint, source-array mutation and graceful shutdown restoration
+were established, but the actual model was obscured. The subsequent controlled
+proof below resolves the renderer question. The shape's referenced normal
+indices are 0–5.
+
+## Gate 1 controlled visible-model proof
+
+On the same source-matched Windows D3D11 host, a temporary draw hook projected
+the three `daObjMBox_c` centers in `F_SP116,3,13,2` to approximately
+`(288,107)`, `(317,89)`, and `(342,73)` in the 640×480 game viewport. This
+located them behind the large scenery crates in the earlier captures. For a
+repeatable renderer experiment, the hook changed only the first actor's model
+draw transform from `(3300,-900,5736)` to `(3000,-900,6000)`, placing its
+metal box unobstructed in front of Link. It did not edit game assets, actor
+position, collision, or normal data. The temporary hook has been removed from
+the shipped mod; the existing resource-load normal mutation remains once per
+load and default-off.
+
+Two temporary diagnostic builds used the same stage/spawn, camera, render size,
+and model draw transform; the second allowed relocation when the normal
+mutation toggle was off. In the original-normal capture, the box's near face and metal edges
+are lit; in the negated-normal capture, those surfaces become visibly dark.
+The captures are retained locally in ignored
+`build/m7-evidence/relocated-original.jpg` and
+`build/m7-evidence/relocated-negated.jpg`. A fixed 95×90-pixel region inside
+the box's near face averaged 39.3/255 RGB with original normals and 17.9/255
+with negated normals (mean absolute difference 21.7/255). A nearby wood-crate
+control region changed by 3.2/255. Rain, animation, and JPEG compression make
+these measurements approximate, but the model-local lighting difference is
+unmistakable. The mutated run logged the exact-resource mutation once and
+original-byte restoration on graceful exit. A following original-normal run
+rendered the lit face again.
+
+**Gate 1's binary renderer proof passes for this named rigid model:** editing
+the allowlisted source normal array before instance creation reaches TP's
+normal rendering path. The temporary relocation is a controlled visibility
+aid, so it does not establish natural-camera appearance, skinned-model
+behavior, archive unload/reload, in-process toggle restoration, or mod reload.
+Those remain runtime validation items before broad model coverage. No engine
+API change is currently required for this narrow interception point.
 
 ## Gate 2 source reconnaissance, not validation
 
@@ -206,21 +236,16 @@ The PC shape constructor may optimize raw DLs into indexed Aurora commands befor
 MidnaFX sees them, so a parser restricted to fan/strip opcodes would be wrong.
 `Reader` offers the necessary path, but its output on the selected model has not
 been validated at runtime; the read-only parse above used the original BMD
-display list. Gate 2 remains unproven and is gated on Gate 1's visual result.
+display list. Gate 2 remains unproven and requires separate validation before
+adaptive smoothing.
 
-## Required next experiment
+## Remaining validation
 
-1. Locate a genuinely visible `ironbox` instance. `F_SP116,3,13,2` calls Draw
-   for three instances, but the prominent crates are different scenery. Use a
-   temporary draw-suppression comparison to identify the target pixels.
-2. In a source-matched Dusklight host, enable **Mutation test: metal box only**
-   before entering the room. Confirm the single "normals negated" log for the
-   exact resource. Capture matched original/mutated target screenshots and verify an
-   unmistakable lighting change. Exercise two instances, archive unload/reload,
-   toggle disable, and mod reload, checking restoration logs and visuals.
-3. Only after that proof, validate `Reader` against the chosen model's DLs and
-   implement the conservative smoothing subset. Do not infer a successful visual
-   proof from compilation or source tracing.
+Confirm the same mutation on a naturally unobstructed instance and on two
+instances sharing the resource. Exercise archive unload/reload, in-process
+toggle disable, and mod reload, checking restoration logs and visuals. Then
+validate `Reader` against the chosen model's runtime DLs before considering
+the conservative Gate 2 smoothing subset.
 
 The required engine/API change, if a safe archive/file identity and pre-unload
 callback cannot be established with hooks, is a model-resource lifecycle service:
