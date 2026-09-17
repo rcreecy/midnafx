@@ -781,7 +781,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
     add_toggle(panel, "Log topology for loaded models (developer)", topology_diagnostics);
     add_toggle(panel, "Mutation test: metal box only", geometry_mutation_test);
-    add_toggle(panel, "Experimental smoothing: one dungeon model", geometry_smoothing);
+    add_toggle(panel, "Experimental smoothing: Forest Temple hanging pot", geometry_smoothing);
     add_number(panel, smoothing_angle_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,

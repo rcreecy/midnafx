@@ -286,47 +286,70 @@ Three other conflict-free changes were flat effect meshes (wood-crate debris,
 heart effect, portal plane), so they are not suitable evidence of improved
 curved-surface shading.
 
-The default-off write experiment is confined to
-`@bg0016.arc/model0.bmd` in `D_MN04,7,0,-1`. An independent raw-BMD parse and
-the source-matched runtime decoder agreed on corner hash `d105924d00769e26`:
-492 triangles, 312 positions, 1,290 normals, two shapes, no degenerate
-triangles. The runtime draws are two optimized indexed commands rather than
-the raw BMD's 398 GX strips. Position data is F32 XYZ; normals are S16 XYZ
-with 15 fraction bits; there are no envelopes. The prototype checks resource
-identity, this exact hash and layout, array bounds, index conflicts, and the
-pre-unload hook before writing. It keeps the original 7,740 normal bytes and
-restores them on feature disable, archive deletion, or shutdown. Only one
-resource backup can be active at a time. Both diagnostic mutation and
-smoothing are off by default and cannot overlap.
+The first write candidate, `@bg0016.arc/model0.bmd` in `D_MN04`, passed
+topology and conflict checks and restored on shutdown. Matched settled views
+(`build/m7-evidence/smoothing-off-settled.jpg` and
+`smoothing-on-settled.jpg`) showed only about 0.8/255 mean absolute difference
+over its visible thin panel, comparable to background noise. This is not a
+curved-surface improvement. It was removed from the write allowlist.
 
-In a live source-matched host run (`build/runtime-smoke/stdout-smooth-prototype.log`),
-the target produced 642 smoothing groups, 912 changed normal indices, zero
-index conflicts, and zero ambiguous faces. Decode took 128 µs and smoothing
-planning 233 µs in that sample; the write occurred once on load and original
-bytes were restored on graceful exit. These times exclude allocation, normal
-decode, encoding, and logging, so they are not a complete load-time benchmark.
-The backup occupies 7,740 bytes and the active backup cache has one entry;
-topology and adjacency allocation peaks have not been measured. There is no
-per-frame geometry work. All eight Windows Release tests pass. A second live
-run after the checked S16 codec change again logged one application and one
-restoration (`build/runtime-smoke/stdout-smooth-final.log`).
+Three further live scans (`F_SP103`, `F_SP108`, `D_MN05`) found one useful
+curved candidate: `OBJ_GM.arc/k_kumo_tubo01.bmd`, a hanging Forest Temple pot.
+In `D_MN05,19,0,-1`, the independent original-BMD decoder and runtime decoder
+agreed on corner hash `2d260cc6b2cbe6a5`, 174 triangles, 90 positions,
+357 normals, one shape, and no degenerate triangles. The original 91 GX
+strips become one Aurora indexed draw at the interception point. Normals are
+S16 XYZ with 14 fraction bits; positions are F32 XYZ; there are no envelopes.
+The default-off write experiment is now confined to this exact archive, file,
+topology hash, counts, and encoding. It also requires array bounds, zero index
+conflicts, and the pre-unload hook before changing data. The original 2,142
+normal bytes are backed up. Diagnostic mutation and smoothing cannot overlap.
 
-**The smoothing prototype is experimental, not visually validated.** The
-candidate is a thin dungeon architectural model. We have not captured a
-matched original/smoothed pair that demonstrates better curved-surface shading
-while preserving its hard edges. Consequently this prototype must remain off
-by default and cannot be described as completed M7 smoothing. Skinned-model
-mutation, multiple-instance sharing, archive unload/reload, in-process disable,
-and mod reload are likewise unproven. The next experiment is to obtain matched
-views of the exact allowlisted model with the toggle off/on, inspect the result,
-then exercise those lifecycle cases before broadening coverage. If it fails
-visually, choose a different genuinely curved, conflict-free model or add an
-explicit normal-index-splitting capability in a later milestone.
+In the live source-matched host, this resource produced 129 smoothing groups,
+300 changed normal indices, zero conflicts, and zero ambiguous faces. A sample
+load recorded 71 µs for topology decode and 77 µs for smoothing planning
+(`build/runtime-smoke/stdout-pot-room19-on.log`). The active backup cache has
+one entry and 2,142 bytes. Allocation peaks and total load time, including
+encoding/logging, are not measured; there is no per-frame topology work.
+
+Matched room-19 captures are retained locally as
+`build/m7-evidence/pot-off-room19.jpg` and `pot-on-room19.jpg`, with an
+enlarged original/smoothed comparison at `pot-compare-enlarged.jpg` (original
+left). Visible pot-surface regions differed by about 6–13/255, while adjacent
+wall and floor controls were close to zero. The right-hand view softens some
+facet shading on the curved body while the mouth rim remains distinct. This
+is a narrow visual indication, limited by the roughly 40-pixel pot size,
+texture, particles, and possible swing-phase differences; it is not art
+sign-off or evidence for global smoothing.
+
+The source actor maps type-1 `Obj_gm` instances to this BMD. Room 19 contains
+five such placements. A temporary model-create diagnostic in the final
+prototype logged **five successful instances** sharing one preprocessed
+`J3DModelData`, followed by one original-byte restoration at shutdown
+(`build/runtime-smoke/stdout-pot-instances.log`). A separate temporary
+diagnostic used the actual config service to disable the feature after the
+fifth instance was created. The settings callback restored the original
+normals immediately while the instances were live, and shutdown did not
+restore them a second time (`stdout-pot-toggle-test.log`). That forced trigger
+was removed after the test. Archive unload/reload and mod reload have not
+been exercised in-process.
+
+No currently scanned enveloped model can safely receive changed normals
+without index splitting: Link body, face, and head, horse, enemies, and sampled
+NPC models report hundreds or thousands of normal-index conflicts; others
+have unsupported normal layouts. Thus the required skinned-model write proof
+remains blocked by the existing representation, not by unvalidated guesswork.
+Skinned topology read-only proof remains valid. The next geometry milestone
+must either find a conflict-free skinned resource or explicitly design safe
+normal-index duplication and display-list rewriting before attempting that
+proof. The pot toggle stays off by default.
 
 The dedicated correctness pass checked array bounds against the expanded BMD
 resource, exact topology/format identity before writes, finite normal encoding,
 index conflicts, material/original-normal splits, and restoration ownership.
 It found and fixed the incomplete toggle restore path and added a checked S16
-codec with round-trip tests. The remaining risk is validation, not a known
-buffer or lifetime failure: this target has no demonstrated visual benefit,
-and the lifecycle/skinning cases above have not yet been exercised.
+codec with round-trip tests. The follow-up review also checked the new
+model-instance hook, exact allowlist replacement, and single-owner backup.
+Remaining risks are the untested archive/mod reload paths, small-scale visual
+evidence, and the unresolved skinned normal-index conflicts. All eight Windows
+Release tests pass for the current prototype.
