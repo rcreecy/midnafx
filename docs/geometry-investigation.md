@@ -335,10 +335,30 @@ was removed after the test. A separate temporary stage-departure trigger
 exercised the archive pre-delete hook: the active backup was restored before
 the pot resource was deleted (`stdout-pot-transition-test2.log`). The trigger
 was removed. Its scripted return request stalled on a black transition view
-before the pot reloaded, so archive reload and mod reload remain unproven.
-The next lifecycle check needs a normal in-game scene return and a mod reload
-while the source-matched host is running; neither can be inferred from the
-successful pre-delete restoration.
+before the pot reloaded. A later isolated run instead moved from Forest Temple
+room 19 to room 0 and back, waiting for room 0 to load before returning
+(`build/runtime-smoke/stdout-pot-room-transition-test.log`). The log shows
+three smoothing applications: five instances in room 19, two in room 0, and
+five after returning to room 19. Each room transition logged archive
+pre-delete restoration followed by original-byte restoration before the next
+application. Graceful shutdown restored the final backup once. The temporary
+transition trigger was removed and the shipped mod rebuilt. This verifies
+archive unload/reload in the source-matched host.
+
+A separate host-only test queued Dusklight's normal native-mod reload after
+the five room-19 instances had been created
+(`build/runtime-smoke/stdout-pot-mod-reload-test.log`). The loader called
+MidnaFX shutdown, which restored the original normals once, then reloaded
+the package and initialized it successfully. The game ran for several more
+thousand frames and exited cleanly. The host-only trigger was removed and
+the source-matched host rebuilt. A combined isolated run then reloaded the
+mod, moved to room 0, and returned to room 19
+(`build/runtime-smoke/stdout-pot-post-reload-test.log`). The already loaded
+pot remained original immediately after reload, as expected. The reloaded
+mod's resource hook smoothed the newly loaded pot in room 0, restored it on
+archive pre-delete, and smoothed the fresh room-19 resource. Shutdown
+restored that final backup. Both test-only triggers were removed and the
+normal mod and host rebuilt.
 
 No currently scanned enveloped model can safely receive changed normals
 without index splitting: Link body, face, and head, horse, enemies, and sampled
@@ -356,6 +376,6 @@ index conflicts, material/original-normal splits, and restoration ownership.
 It found and fixed the incomplete toggle restore path and added a checked S16
 codec with round-trip tests. The follow-up review also checked the new
 model-instance hook, exact allowlist replacement, and single-owner backup.
-Remaining risks are the untested archive and mod reload paths, small-scale
-visual evidence, and the unresolved skinned normal-index conflicts. All eight Windows
+Remaining risks are small-scale visual evidence and unresolved skinned
+normal-index conflicts. All eight Windows
 Release tests pass for the current prototype.
