@@ -26,6 +26,11 @@ jobs:
       - name: Check out MidnaFX
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Check out researched Dusklight SDK revision
         uses: actions/checkout@v4
         with:
@@ -37,6 +42,10 @@ jobs:
       - name: Initialize pinned Aurora submodule
         shell: bash
         run: git -C upstream/dusklight submodule update --init --depth 1 extern/aurora
+
+      - name: Check candidate CPU-skinning host patch
+        shell: bash
+        run: python tools/host-patch.py --dusklight-dir upstream/dusklight
 
       - name: Configure
         shell: bash

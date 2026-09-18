@@ -12,6 +12,15 @@ CI validates compilation and package structure, not game loading, Metal output, 
 
 MidnaFX uses the standalone Dusklight SDK at commit `edf42c6a7202647b56dd2fcdef02d17671bc814b`, including its pinned Aurora submodule `7f2801cd0133c9333eadb4e2e6b24100c328d328`. Research reference: official mod template commit `ece6d0dae843675fbd1e3f2308a0f1f782da5d80`. See `notes/render.md` for renderer contracts.
 
+The candidate CPU-skinning host fix is tracked as
+`patches/dusklight-cpu-skinning-pc.patch`. CI checks that it applies to the
+pinned source; the SDK package build does not compile or ship this host patch.
+For a separate source-matched host experiment, run
+`python tools/host-patch.py --dusklight-dir upstream/dusklight --apply`
+from a clean checkout, then build Dusklight itself. Omit `--apply` for a
+read-only compatibility check. Do not distribute a patched host as a
+validated MidnaFX release without its own runtime and platform testing.
+
 ## Prerequisites and checkout
 
 Use CMake 3.26+ (the Windows VS 2026 preset requires a CMake supporting that generator), Git, a C++20 compiler, and Python 3 for convenience scripts. On macOS use Xcode command-line tools and Ninja. The Intel target is `x86_64`; this is not a universal binary. A Windows build cannot validate Metal or produce the Intel Mac release by itself.

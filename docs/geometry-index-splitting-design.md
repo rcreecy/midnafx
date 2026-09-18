@@ -120,6 +120,18 @@ host or an animated character.
 
 ## Smallest safe boundary to investigate
 
+The current source path is `dRes_info_c::loadResource` obtaining raw bytes
+from `JKRArchive::getIdxResource`, then calling either
+`dRes_info_c::loaderBasicBmd` or `J3DModelLoaderDataBase::load` before
+`J3DModelLoader` reads VTX1/SHP1. The mod hook dispatcher passes arguments by
+reference to pre-hooks, so a pre-hook on `J3DModelLoaderDataBase::load` could
+substitute a validated input pointer early enough for the existing loader and
+Aurora optimizer. This is a timing opportunity, not an ownership contract:
+the model retains `mpRawData`, while the mod can unload before its models and
+archive do. A mod-owned temporary buffer would therefore be unsafe. The next
+implementation needs a host-owned replacement associated with the archive's
+resource lifetime, with failure leaving the original pointer untouched.
+
 The preferred next experiment is an engine-owned transaction on a validated
 copy of the BMD before `J3DModelLoader` reads VTX1 and SHP1. It should accept
 a per-corner normal assignment, expand the normal array and raw GX streams,
