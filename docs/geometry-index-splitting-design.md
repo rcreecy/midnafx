@@ -80,8 +80,32 @@ capacity is 13,136 for Link (13,133 actual entries) and 880 for the pot (879
 actual entries). The proof rejects offsets, draw-table bounds, and topology
 mismatches. These results show a coherent file representation only. They do
 not exercise Aurora's PC optimizer, establish engine buffer ownership, or
-verify CPU skinning. A source-matched loader test is the next gate; no runtime
-write is authorized by the offline result.
+verify CPU skinning. The source-matched loader result below advances this
+gate; it does not authorize a shipped runtime write.
+
+## Source-matched Windows loader checkpoint (2026-09-18)
+
+With an active desktop session, the pinned Dusklight `edf42c6` host ran on
+Windows/D3D11 from the supplied USA game image. A temporary, host-only loader
+branch substituted the validated 273,216-byte Link BMD for the original
+165,088-byte `Bmdl.arc/bl.bmd`; its storage stayed alive for the process.
+The actual `J3DModelLoader`/PC draw construction completed, one Link
+`J3DModel::entryModelData` call reported 13,136 normal-array entries and flags
+`524288`, and the game continued beyond frame 1,200 before graceful close.
+The isolated logs are `build/runtime-smoke/stderr-link-reindex-instance.log`
+and `stdout-link-reindex-instance.log` (ignored local evidence). There was no
+loader assertion or GPU validation error. The unrelated missing `gczelda2`
+card-file warning and device-destroyed messages on shutdown also appeared in
+baseline runs. The temporary upstream source edits were removed, its checkout
+is clean, and the ordinary source-matched executable was rebuilt.
+
+This is an **identity split**: every new normal copies the original value, so
+it cannot show smoother shading. The Link instance did not invoke
+`J3DModel::setSkinDeform`; therefore CPU normal-to-matrix mapping and CPU
+skinning remain untested. A remote window capture returned a black GPU
+surface, so there is no visual A/B claim from this session. A production
+transaction still needs owned resource lifetime, a real smoothing-group
+assignment, fail-closed validation, and animation/visual comparison.
 
 ## Smallest safe boundary to investigate
 
@@ -112,11 +136,12 @@ defer a new preprocessing choice until the next resource load.
    model instance creation, and its actual GPU/CPU skin path. Record which
    code consumes normal indices and when buffers are allocated. Confirm that
    the proposed transaction point precedes all consumers.
-2. Run the rebuilt in-memory BMD through the source-matched loader and PC
-   optimizer, then through a sampled model instance and CPU skinning setup.
-   Require identical ordered triangle positions, shape/material/matrix
-   groups, and all non-normal attributes. Then replace the identity split
-   with indices assigned by the intended smoothing groups.
+2. The rebuilt BMD passed the source-matched loader, PC draw construction,
+   and one Link instance creation. Independently exercise CPU normal-to-matrix
+   mapping on a compatible sampled resource, then replace the identity split
+   with indices assigned by the intended smoothing groups. Require identical
+   ordered triangle positions, shape/material/matrix groups, and all
+   non-normal attributes after the transform.
 3. Add an engine-owned, fail-closed replacement API only after the offline
    transform proves feasible. Test allocation failure, index-width limits,
    malformed lists, multiple instances, archive unload/reload, and mod reload.

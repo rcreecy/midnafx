@@ -32,7 +32,7 @@ def put32(data, offset, value):
     struct.pack_into(">I", data, offset, value)
 
 
-def rebuild(data):
+def rebuild(data, return_bytes=False):
     evidence, normals, groups = proof.prove(data, return_artifacts=True)
     parts = proof.blocks(data)
     vtx, vtx_size = parts[b"VTX1"]
@@ -136,24 +136,30 @@ def rebuild(data):
             decoded["normals"] < evidence["rewrittenNormalCount"] or
             decoded["cornerHash"] != f"{expected_hash:016x}"):
         raise ValueError("independent rebuilt topology mismatch")
-    return {**evidence, "rebuiltBytes": len(rebuilt), "originalBytes": len(data),
+    result = {**evidence, "rebuiltBytes": len(rebuilt), "originalBytes": len(data),
             "rebuiltNormalArrayCapacity": decoded["normals"],
             "rebuiltCornerHash": decoded["cornerHash"],
             "rebuiltSha256": hashlib.sha256(rebuilt).hexdigest()}
+    return (result, rebuilt) if return_bytes else result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path)
     parser.add_argument("--name", required=True)
+    parser.add_argument("--output", type=Path, help="Write validated BMD for isolated loader testing")
     args = parser.parse_args()
     matches = [(tag, data) for tag, name, data in
                bmd.archive_entries(args.archive.read_bytes()) if name == args.name]
     if len(matches) != 1:
         raise ValueError(f"expected one {args.name!r} resource, found {len(matches)}")
     tag, data = matches[0]
+    result, transformed = rebuild(data, return_bytes=True)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_bytes(transformed)
     print(json.dumps({"archive": args.archive.name, "file": args.name, "tag": tag,
-                      **rebuild(data)}, separators=(",", ":")))
+                      **result}, separators=(",", ":")))
 
 
 if __name__ == "__main__":
