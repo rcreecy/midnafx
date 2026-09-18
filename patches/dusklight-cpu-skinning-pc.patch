@@ -1,0 +1,94 @@
+diff --git a/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp b/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp
+index 7f7c999..c972b1d 100644
+--- a/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp
++++ b/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp
+@@ -396,7 +396,13 @@ s32 J3DModel::setSkinDeform(J3DSkinDeform* p_skinDeform, u32 flags) {
+         return 5;
+     }
+ 
+-    mSkinDeform->initMtxIndexArray(mModelData);
++    s32 initResult = mSkinDeform->initMtxIndexArray(mModelData);
++    if (initResult != kJ3DError_Success) {
++        mSkinDeform = NULL;
++        offFlag(J3DMdlFlag_SkinPosCpu);
++        offFlag(J3DMdlFlag_SkinNrmCpu);
++        return initResult;
++    }
+ 
+     if (mModelData->checkFlag(0x100)) {
+         mSkinDeform->changeFastSkinDL(mModelData);
+diff --git a/libs/JSystem/src/J3DGraphAnimator/J3DSkinDeform.cpp b/libs/JSystem/src/J3DGraphAnimator/J3DSkinDeform.cpp
+index e262797..f8c45d8 100644
+--- a/libs/JSystem/src/J3DGraphAnimator/J3DSkinDeform.cpp
++++ b/libs/JSystem/src/J3DGraphAnimator/J3DSkinDeform.cpp
+@@ -5,6 +5,9 @@
+ #include "JSystem/J3DGraphAnimator/J3DModel.h"
+ #include "JSystem/JKernel/JKRHeap.h"
+ #include <cstring>
++#if TARGET_PC
++#include <aurora/dl.hpp>
++#endif
+ 
+ J3DSkinNList::J3DSkinNList() {
+     field_0x0 = NULL;
+@@ -272,6 +275,52 @@ int J3DSkinDeform::initMtxIndexArray(J3DModelData* pModelData) {
+         for (u16 j = 0; j < (u16)pModelData->getShapeNodePointer(i)->getMtxGroupNum(); j++) {
+             J3DShapeMtx* pShapeMtx = pModelData->getShapeNodePointer(i)->getShapeMtx(j);
+             u8* pDList = pModelData->getShapeNodePointer(i)->getShapeDraw(j)->getDisplayList();
++#if TARGET_PC
++            if (pnmtx_num < 0 || vtx_num < 0) {
++                OSReport("Invalid CPU skin vertex descriptor\n");
++                return 6;
++            }
++            aurora::gx::dl::Reader reader{
++                pDList,
++                pModelData->getShapeNodePointer(i)->getShapeDraw(j)->getDisplayListSize(),
++                pModelData->getShapeNodePointer(i)->getVtxDesc()};
++            u32 mappedVertices = 0;
++            while (const auto cmd = reader.next()) {
++                if (cmd->kind == aurora::gx::dl::Command::Kind::Passthrough) {
++                    continue;
++                }
++                const auto& draw = cmd->draw;
++                for (u32 vertex = 0; vertex < draw.vtxCount; vertex++) {
++                    const u16 matrixSlot = draw.attr_idx(vertex, GX_VA_PNMTXIDX) / 3U;
++                    const u16 position = draw.attr_idx(vertex, GX_VA_POS);
++                    const u16 normal = nrm_num >= 0 ? draw.attr_idx(vertex, GX_VA_NRM) : 0;
++                    if (matrixSlot >= pShapeMtx->getUseMtxNum() || position >= pModelData->getVtxNum() ||
++                        (nrm_num >= 0 && normal >= pModelData->getNrmNum())) {
++                        OSReport("Invalid CPU skin vertex index\n");
++                        return 6;
++                    }
++                    u16 matrix = pShapeMtx->getUseMtxIndex(matrixSlot);
++                    if (matrix == 0xffff) {
++                        matrix = sWorkArea_MtxReg[matrixSlot];
++                    } else {
++                        sWorkArea_MtxReg[matrixSlot] = matrix;
++                    }
++                    if (matrix >= pModelData->getDrawMtxNum()) {
++                        OSReport("Invalid CPU skin matrix index\n");
++                        return 6;
++                    }
++                    mPosData[position] = matrix;
++                    if (nrm_num >= 0) {
++                        mNrmData[normal] = matrix;
++                    }
++                    mappedVertices++;
++                }
++            }
++            if (reader.failed() || mappedVertices == 0) {
++                OSReport("Invalid or empty CPU skin display list\n");
++                return 6;
++            }
++#else
+             u8* pDListPos = pDList;
+             int uVar13;
+             for (;
+@@ -328,6 +377,7 @@ int J3DSkinDeform::initMtxIndexArray(J3DModelData* pModelData) {
+                     }
+                 }
+             }
++#endif
+ 
+             if (nrm_num == -1) {
+                 pModelData->getShapeNodePointer(i)->onFlag(J3DShpFlag_EnableLod);

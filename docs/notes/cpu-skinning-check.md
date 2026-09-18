@@ -49,3 +49,21 @@ not invoke `setSkinDeform` at all. CPU-skinned resource mutation remains
 default off until Dusklight has a tested raw/optimized draw interpretation,
 correct PC endian/step handling, and a fail-closed setup API; then repeat the
 test in an animated scene.
+
+## Proposed PC host correction
+
+`patches/dusklight-cpu-skinning-pc.patch` is a reviewable patch against the
+pinned host revision. It uses Aurora's bounded display-list reader on PC, so
+both plain draws and optimized indexed draws contribute vertex-to-matrix
+assignments. It checks descriptor and index bounds, rejects an empty or
+malformed draw group, and propagates setup errors from `setSkinDeform`. The
+console path is untouched. The patched Windows host compiled and linked, and
+the patch applied cleanly to a restored pinned checkout. The ordinary host
+was then rebuilt from clean upstream sources.
+
+This is a candidate host fix, not an enabled MidnaFX feature. It still needs
+a targeted runtime replay of original and rewritten `bh.bmd` through the
+optimized draw path, a negative malformed-list test, and an animated CPU skin
+sample before CPU-skinned normal mutation can be enabled. In particular,
+`changeFastSkinDL` also edits display lists with a raw GX parser and needs a
+separate review for any model using the fast-skin flag.
