@@ -102,8 +102,9 @@ is clean, and the ordinary source-matched executable was rebuilt.
 This is an **identity split**: every new normal copies the original value, so
 it cannot show smoother shading. The Link instance did not invoke
 `J3DModel::setSkinDeform`; therefore CPU normal-to-matrix mapping and CPU
-skinning remain untested. A remote window capture returned a black GPU
-surface, so there is no visual A/B claim from this session. A production
+skinning remain untested. Direct GDI capture returned a black GPU surface;
+Windows.Graphics.Capture worked in the subsequent pot off/on retest, but no
+Link identity-split visual A/B was recorded. A production
 transaction still needs owned resource lifetime, a real smoothing-group
 assignment, fail-closed validation, and animation/visual comparison.
 

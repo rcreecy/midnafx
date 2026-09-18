@@ -330,6 +330,19 @@ is a narrow visual indication, limited by the roughly 40-pixel pot size,
 texture, particles, and possible swing-phase differences; it is not art
 sign-off or evidence for global smoothing.
 
+On 2026-09-18, a restored Windows desktop session allowed GPU-window capture
+through Windows.Graphics.Capture after direct GDI capture had returned a black
+surface. A fresh source-matched D3D11 off/on launch at
+`D_MN05,19,0,-1` produced ignored PNG evidence at
+`build/runtime-smoke/desktop-pot-off-20260918.png` and
+`desktop-pot-on-20260918.png`. Both show Link and the hanging pots in the
+same room and camera setup. The enabled log records 300 changed normals,
+zero index conflicts, five model instances, and original-normal restoration
+on graceful close (`stdout-desktop-capture-on.log`). This confirms that the
+live visual capture route is available again, but the small, swinging pot
+and different Link pose still limit pixel-level comparison; the prototype
+remains default off.
+
 The source actor maps type-1 `Obj_gm` instances to this BMD. Room 19 contains
 five such placements. A temporary model-create diagnostic in the final
 prototype logged **five successful instances** sharing one preprocessed
