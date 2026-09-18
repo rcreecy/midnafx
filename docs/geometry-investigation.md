@@ -341,7 +341,10 @@ zero index conflicts, five model instances, and original-normal restoration
 on graceful close (`stdout-desktop-capture-on.log`). This confirms that the
 live visual capture route is available again, but the small, swinging pot
 and different Link pose still limit pixel-level comparison; the prototype
-remains default off.
+remains default off. The project owner observed the pot during this live
+session and reported that its smoothing looked better. That is useful visual
+feedback for this allowlisted model, while close matched captures and broader
+model checks remain necessary before expanding the feature.
 
 The source actor maps type-1 `Obj_gm` instances to this BMD. Room 19 contains
 five such placements. A temporary model-create diagnostic in the final

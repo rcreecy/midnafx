@@ -108,6 +108,16 @@ Link identity-split visual A/B was recorded. A production
 transaction still needs owned resource lifetime, a real smoothing-group
 assignment, fail-closed validation, and animation/visual comparison.
 
+The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
+host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper
+to visit zero corners while returning success, and its GameCube branch reads
+raw big-endian strip counts incorrectly on PC. With both paths corrected only
+in an isolated test host, original and per-corner-reindexed `B_bh.arc/bh.bmd`
+completed `setSkinDeform` and one `J3DModel::calc` with non-null normal buffers;
+the split sample mapped all 5,817 triangle corners without matrix conflicts.
+This is CPU representation feasibility evidence, not a pass for the unmodified
+host or an animated character.
+
 ## Smallest safe boundary to investigate
 
 The preferred next experiment is an engine-owned transaction on a validated
@@ -138,11 +148,12 @@ defer a new preprocessing choice until the next resource load.
    code consumes normal indices and when buffers are allocated. Confirm that
    the proposed transaction point precedes all consumers.
 2. The rebuilt BMD passed the source-matched loader, PC draw construction,
-   and one Link instance creation. Independently exercise CPU normal-to-matrix
-   mapping on a compatible sampled resource, then replace the identity split
-   with indices assigned by the intended smoothing groups. Require identical
-   ordered triangle positions, shape/material/matrix groups, and all
-   non-normal attributes after the transform.
+   and one Link instance creation. An isolated, corrected-host CPU test passed
+   mapping and one calculation on `bh.bmd`. Resolve the two pinned host CPU
+   blockers and repeat in the unmodified production path, then replace the
+   identity split with indices assigned by the intended smoothing groups.
+   Require identical ordered triangle positions, shape/material/matrix
+   groups, and all non-normal attributes after the transform.
 3. Add an engine-owned, fail-closed replacement API only after the offline
    transform proves feasible. Test allocation failure, index-width limits,
    malformed lists, multiple instances, archive unload/reload, and mod reload.
