@@ -39,19 +39,52 @@ required smoothing splits; a shared index can still legitimately use one
 direction. They are independent evidence that a Link rewrite must preserve
 matrix-group semantics as well as shading groups.
 
+## Offline stream-rewrite feasibility
+
+`tools/prove-normal-reindex.py` now performs a pessimistic, read-only rewrite
+in memory. It expands each surviving triangle into a three-vertex GX strip,
+gives every corner a unique 16-bit normal index, and copies that corner's
+original normal bytes to a conceptual expanded array. The validator parses
+the rewritten streams again and requires identical ordered non-normal
+vertex records, shape/matrix-group identity, normal values, and triangle
+count. It also checks the original topology against the independent BMD
+decoder. It never writes a game asset.
+
+On the supplied `Bmdl.arc/bl.bmd`, 1,023 raw strips expanded to 3,617
+three-vertex strips across the same 8 shapes and 37 matrix groups. Normal
+entries rose from 2,282 to 13,133; the largest index, 13,132, fits in
+GX_INDEX16. The aggregate raw draw-list bytes rose from 42,272 (including
+source padding) to 84,828 before output alignment. Mapping the rewritten
+indices back to their source entries reproduced the independent Link corner
+hash `fefc475b8f9a6309`. The pot control also passed: 174 triangles, 357
+to 879 normals, and original hash
+`2d260cc6b2cbe6a5`. This is a worst-case representation proof, not an
+efficient rewrite or a smoothing result. It does not yet rebuild a complete
+BMD resource, exercise Aurora's PC optimizer, or verify skinning at runtime.
+
+The three-vertex-strip choice matters: `J3DSkinDeform::initMtxIndexArray`
+walks raw GX strips/fans when it builds normal-to-matrix mappings. A generic
+GX_TRIANGLES conversion could fall outside that path. The proposed engine
+transaction should be placed before `J3DModelLoader::readVertex` and
+`readShape`, so their existing array-count fixup and PC display-list
+optimization see the same rewritten resource. A full in-memory BMD rebuild
+and load test is the next gate; the stream proof alone does not authorize a
+runtime write.
+
 ## Smallest safe boundary to investigate
 
-The next experiment needs an engine-owned, load-time transaction before model
-instances and skin-deformation mappings are initialized. It should accept a
-validated per-corner normal assignment, allocate a new normal array with an
-explicit count and lifetime, and rebuild every affected shape draw from a
-copy. For an Aurora indexed draw, duplicate vertex-table rows when corners
-need different normal indices, then rewrite only their index-buffer entries.
-Preserve all other attributes, matrix-group boundaries, shape/material
-association, and triangle order. If an 8-bit attribute index would overflow,
-either promote the descriptor and every vertex stride consistently or reject
-the resource. Reject 16-bit overflow, unsupported commands/normal formats,
-and any topology hash mismatch before publishing the replacement.
+The preferred next experiment is an engine-owned transaction on a validated
+copy of the BMD before `J3DModelLoader` reads VTX1 and SHP1. It should accept
+a per-corner normal assignment, expand the normal array and raw GX streams,
+then let the existing loader build its optimized draw copies. If that early
+boundary proves unavailable, a later API would also have to duplicate
+Aurora indexed vertex-table rows when corners need different normal indices;
+changing only index-buffer entries is insufficient. Preserve all other
+attributes, matrix-group boundaries, shape/material association, and
+triangle order. If an 8-bit attribute index would overflow, either promote
+the descriptor and every vertex stride consistently or reject the resource.
+Reject 16-bit overflow, unsupported commands/normal formats, and any
+topology hash mismatch before publishing the replacement.
 
 The transaction must update the data seen by both GPU draws and CPU skinning,
 including normal count, array pointers, per-instance transformed-buffer
@@ -67,11 +100,11 @@ defer a new preprocessing choice until the next resource load.
    model instance creation, and its actual GPU/CPU skin path. Record which
    code consumes normal indices and when buffers are allocated. Confirm that
    the proposed transaction point precedes all consumers.
-2. Build an offline split/reindex transform for that exact resource. Decode
-   both old and transformed lists independently; require identical ordered
-   triangle positions, shape/material/matrix groups, and all non-normal
-   attributes. Require the new normal index at every corner to match the
-   intended smoothing group.
+2. Extend the passing per-corner stream proof to a complete in-memory BMD
+   rebuild and load test. Decode both old and transformed resources
+   independently; require identical ordered triangle positions,
+   shape/material/matrix groups, and all non-normal attributes. Then replace
+   the identity split with indices assigned by the intended smoothing groups.
 3. Add an engine-owned, fail-closed replacement API only after the offline
    transform proves feasible. Test allocation failure, index-width limits,
    malformed lists, multiple instances, archive unload/reload, and mod reload.
