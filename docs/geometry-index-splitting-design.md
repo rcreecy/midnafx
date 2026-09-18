@@ -67,9 +67,21 @@ walks raw GX strips/fans when it builds normal-to-matrix mappings. A generic
 GX_TRIANGLES conversion could fall outside that path. The proposed engine
 transaction should be placed before `J3DModelLoader::readVertex` and
 `readShape`, so their existing array-count fixup and PC display-list
-optimization see the same rewritten resource. A full in-memory BMD rebuild
-and load test is the next gate; the stream proof alone does not authorize a
-runtime write.
+optimization see the same rewritten resource.
+
+`tools/prove-bmd-rebuild.py` now builds that complete BMD **in memory**. It
+replaces VTX1's normal array and SHP1's raw display-list section, updates
+their block sizes and affected section offsets, rebuilds the outer file size,
+and leaves all other blocks byte-for-byte identical. The independent decoder
+accepts both rebuilt samples and matches the expected rewritten corner hash:
+Link grows from 165,088 to 273,216 bytes with 3,617 triangles; the pot grows
+from 12,896 to 17,600 bytes with 174 triangles. The padded normal-array
+capacity is 13,136 for Link (13,133 actual entries) and 880 for the pot (879
+actual entries). The proof rejects offsets, draw-table bounds, and topology
+mismatches. These results show a coherent file representation only. They do
+not exercise Aurora's PC optimizer, establish engine buffer ownership, or
+verify CPU skinning. A source-matched loader test is the next gate; no runtime
+write is authorized by the offline result.
 
 ## Smallest safe boundary to investigate
 
@@ -100,11 +112,11 @@ defer a new preprocessing choice until the next resource load.
    model instance creation, and its actual GPU/CPU skin path. Record which
    code consumes normal indices and when buffers are allocated. Confirm that
    the proposed transaction point precedes all consumers.
-2. Extend the passing per-corner stream proof to a complete in-memory BMD
-   rebuild and load test. Decode both old and transformed resources
-   independently; require identical ordered triangle positions,
-   shape/material/matrix groups, and all non-normal attributes. Then replace
-   the identity split with indices assigned by the intended smoothing groups.
+2. Run the rebuilt in-memory BMD through the source-matched loader and PC
+   optimizer, then through a sampled model instance and CPU skinning setup.
+   Require identical ordered triangle positions, shape/material/matrix
+   groups, and all non-normal attributes. Then replace the identity split
+   with indices assigned by the intended smoothing groups.
 3. Add an engine-owned, fail-closed replacement API only after the offline
    transform proves feasible. Test allocation failure, index-width limits,
    malformed lists, multiple instances, archive unload/reload, and mod reload.

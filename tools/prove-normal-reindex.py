@@ -79,7 +79,7 @@ def hash_u16(value, current):
     return current
 
 
-def prove(data):
+def prove(data, return_artifacts=False):
     parts = blocks(data)
     vtx, vtx_size = parts[b"VTX1"]
     shp, shp_size = parts[b"SHP1"]
@@ -195,7 +195,7 @@ def prove(data):
         raise ValueError("triangle count differs from independent decoder")
     if independent["cornerHash"] != f"{remapped_hash:016x}":
         raise ValueError("rewritten topology differs from independent decoder")
-    return {
+    result = {
         "originalCornerHash": independent["cornerHash"],
         "remappedCornerHash": f"{remapped_hash:016x}",
         "shapes": shape_count,
@@ -210,6 +210,9 @@ def prove(data):
         "rewrittenDrawBytes": output_bytes,
         "nonNormalCornerSha256": digest_after.hexdigest(),
     }
+    if return_artifacts:
+        return result, normal_values, rewritten
+    return result
 
 
 def main():
