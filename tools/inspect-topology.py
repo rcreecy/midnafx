@@ -110,7 +110,7 @@ def triangles_for_draw(primitive, vertices):
         raise ValueError(f"unsupported triangle primitive {primitive:#x}")
 
 
-def decode(data):
+def decode(data, normal_usage=False):
     blocks = {}
     at = 32
     for _ in range(bmd.be32(data, 12)):
@@ -136,12 +136,14 @@ def decode(data):
     draw_base = shp + bmd.be32(data, shp + 40)
     tris = []
     primitive_counts = {}
+    normal_index_widths = set()
     degenerate = 0
     for shape in range(shape_count):
         shape_init = init_base + bmd.be16(data, index_base + shape * 2) * 40
         group_count = bmd.be16(data, shape_init + 2)
         desc_at = desc_base + bmd.be16(data, shape_init + 4)
         offsets, stride = descriptor(data, desc_at, fmts)
+        normal_index_widths.add(8 if offsets[10][1] == 2 else 16)
         draw_index = bmd.be16(data, shape_init + 8)
         for group in range(group_count):
             draw = draw_base + (draw_index + group) * 8
@@ -196,17 +198,39 @@ def decode(data):
     for _, _, tri in tris:
         for p, n in tri:
             pns.setdefault(p, set()).add(n)
-    return {"positions": len(pos), "normals": normal_count, "shapes": shape_count,
+    result = {"positions": len(pos), "normals": normal_count, "shapes": shape_count,
             "primitives": primitive_counts, "triangles": len(tris), "degenerate": degenerate,
             "uniquePositions": len(pns), "uniqueNormals": len({n for ns in pns.values() for n in ns}),
             "positionNormalSplits": sum(len(ns) > 1 for ns in pns.values()),
             "cornerHash": f"{hash_value:016x}"}
+    if normal_usage:
+        usage = {}
+        for shape, group, tri in tris:
+            for position, normal in tri:
+                entry = usage.setdefault(normal, {"positions": set(), "shapes": set(),
+                                                  "matrixGroups": set(), "references": 0})
+                entry["positions"].add(position)
+                entry["shapes"].add(shape)
+                entry["matrixGroups"].add((shape, group))
+                entry["references"] += 1
+        result["normalUsage"] = {
+            "indexWidths": sorted(normal_index_widths),
+            "reusedAcrossPositions": sum(len(item["positions"]) > 1 for item in usage.values()),
+            "reusedAcrossShapes": sum(len(item["shapes"]) > 1 for item in usage.values()),
+            "reusedAcrossMatrixGroups": sum(len(item["matrixGroups"]) > 1 for item in usage.values()),
+            "maxPositionsPerNormal": max((len(item["positions"]) for item in usage.values()), default=0),
+            "maxMatrixGroupsPerNormal": max((len(item["matrixGroups"]) for item in usage.values()), default=0),
+            "maxReferencesPerNormal": max((item["references"] for item in usage.values()), default=0),
+        }
+    return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archives", nargs="+", type=Path)
     parser.add_argument("--name", action="append", help="Select BMD file name; repeatable")
+    parser.add_argument("--normal-usage", action="store_true",
+                        help="Report normal-index reuse across positions and matrix groups")
     args = parser.parse_args()
     for path in args.archives:
         for tag, name, data in bmd.archive_entries(path.read_bytes()):
@@ -215,7 +239,7 @@ def main():
             if not name.endswith(".bmd"):
                 continue
             try:
-                result = decode(data)
+                result = decode(data, args.normal_usage)
                 print(json.dumps({"archive": path.name, "file": name, "tag": tag, **result},
                                  separators=(",", ":")))
             except (ValueError, KeyError, IndexError, struct.error) as exc:

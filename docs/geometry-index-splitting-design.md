@@ -28,6 +28,17 @@ normal indices from shape draws (`J3DSkinDeform.cpp`, `J3DVertex.cpp`). A
 mod-only append to the original normal bytes would leave counts, owners, and
 skinning buffers inconsistent.
 
+The independent read-only audit (`tools/inspect-topology.py --normal-usage`)
+of the supplied USA BMDs found 16-bit normal indices in both Link body and
+the Forest Temple pot. Link body has 2,282 normal entries and 3,617 triangles;
+72 normal indices are referenced from multiple positions, 10 from multiple
+shapes, and 396 from multiple shape/matrix-group pairs. The pot has 357
+normal entries and 174 triangles, with none reused across positions, shapes,
+or matrix groups. These are raw index-sharing counts, not the number of
+required smoothing splits; a shared index can still legitimately use one
+direction. They are independent evidence that a Link rewrite must preserve
+matrix-group semantics as well as shading groups.
+
 ## Smallest safe boundary to investigate
 
 The next experiment needs an engine-owned, load-time transaction before model
