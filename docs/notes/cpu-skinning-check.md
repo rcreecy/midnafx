@@ -62,8 +62,30 @@ the patch applied cleanly to a restored pinned checkout. The ordinary host
 was then rebuilt from clean upstream sources.
 
 This is a candidate host fix, not an enabled MidnaFX feature. It still needs
-a targeted runtime replay of original and rewritten `bh.bmd` through the
-optimized draw path, a negative malformed-list test, and an animated CPU skin
-sample before CPU-skinned normal mutation can be enabled. In particular,
+an animated CPU skin sample before CPU-skinned normal mutation can be enabled. In particular,
 `changeFastSkinDL` also edits display lists with a raw GX parser and needs a
 separate review for any model using the fast-skin flag.
+
+## Optimized draw replay (2026-09-18)
+
+The candidate patch was applied temporarily to the pinned host. A test-only
+hook in `J3DModel::entryModelData` loaded each local BMD, created a model,
+called `setSkinDeform`, and ran one `calc`. The hook was removed after testing.
+The host launched with the source-matched DVD image, D3D11, and developer
+logging. The reader saw Aurora `DrawIndexed` commands in every matrix group;
+the raw-draw workaround from the earlier check was not used.
+
+| Sample | Vertices mapped | Optimized indexed draws | `setSkinDeform` | `calc` |
+| --- | ---: | ---: | ---: | --- |
+| Original `bh.bmd` | 2,847 | 9 | 0 | Completed |
+| Reindexed `bh.bmd` | 5,817 | 9 | 0 | Completed |
+| Original with first draw opcode corrupted to `0xff` | Rejected | N/A | 6 | Skipped |
+
+Aurora reported `unknown opcode (opcode 0xFF at offset 0)` for the negative
+case, and the patched mapper returned `Invalid or empty CPU skin display list`
+before `setSkinDeform` returned 6. Logs are in the ignored local
+`build/runtime-smoke/stdout-cpu-optimized-{original,reindexed,malformed}.log`.
+All temporary host edits were removed, its checkout is clean, and the normal
+host was rebuilt. This validates the optimized representation and failure
+propagation for the pot sample. It does not yet prove animated CPU skinning,
+other model descriptor layouts, or the fast-skin display-list path.
