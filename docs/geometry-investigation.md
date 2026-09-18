@@ -376,7 +376,9 @@ remains blocked by the existing representation, not by unvalidated guesswork.
 Skinned topology read-only proof remains valid. The next geometry milestone
 must either find a conflict-free skinned resource or explicitly design safe
 normal-index duplication and display-list rewriting before attempting that
-proof. The pot toggle stays off by default.
+proof. The engine ownership and validation boundary for that separate work
+is recorded in `geometry-index-splitting-design.md`. The pot toggle stays off
+by default.
 
 The dedicated correctness pass checked array bounds against the expanded BMD
 resource, exact topology/format identity before writes, finite normal encoding,
