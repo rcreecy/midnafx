@@ -1,12 +1,24 @@
 diff --git a/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp b/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp
-index 7f7c999..c972b1d 100644
+index 7f7c999..985e898 100644
 --- a/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp
 +++ b/libs/JSystem/src/J3DGraphAnimator/J3DModel.cpp
-@@ -396,7 +396,13 @@ s32 J3DModel::setSkinDeform(J3DSkinDeform* p_skinDeform, u32 flags) {
+@@ -396,7 +396,25 @@ s32 J3DModel::setSkinDeform(J3DSkinDeform* p_skinDeform, u32 flags) {
          return 5;
      }
  
 -    mSkinDeform->initMtxIndexArray(mModelData);
++#if TARGET_PC
++    // changeFastSkinDL only understands raw GX strips/fans. PC draw lists may
++    // already be Aurora-optimized, so do not mutate them with that parser.
++    if (mModelData->checkFlag(0x100)) {
++        mSkinDeform = NULL;
++        offFlag(J3DMdlFlag_SkinPosCpu);
++        offFlag(J3DMdlFlag_SkinNrmCpu);
++        OSReport("CPU skinning fast display lists are unsupported on PC\n");
++        return 6;
++    }
++#endif
++
 +    s32 initResult = mSkinDeform->initMtxIndexArray(mModelData);
 +    if (initResult != kJ3DError_Success) {
 +        mSkinDeform = NULL;
@@ -92,3 +104,16 @@ index e262797..f8c45d8 100644
  
              if (nrm_num == -1) {
                  pModelData->getShapeNodePointer(i)->onFlag(J3DShpFlag_EnableLod);
+diff --git a/src/d/actor/d_a_door_boss.cpp b/src/d/actor/d_a_door_boss.cpp
+index 37034cd..68f6cea 100644
+--- a/src/d/actor/d_a_door_boss.cpp
++++ b/src/d/actor/d_a_door_boss.cpp
+@@ -63,7 +63,7 @@ int daBdoor_c::CreateHeap() {
+     if (deform == NULL) {
+         return 0;
+     }
+-    if (mpLockModel->setSkinDeform(deform, 1) == 4) {
++    if (mpLockModel->setSkinDeform(deform, 1) != 0) {
+         return 0;
+     }
+ 

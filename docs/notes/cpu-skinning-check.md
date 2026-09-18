@@ -61,10 +61,9 @@ console path is untouched. The patched Windows host compiled and linked, and
 the patch applied cleanly to a restored pinned checkout. The ordinary host
 was then rebuilt from clean upstream sources.
 
-This is a candidate host fix, not an enabled MidnaFX feature. It still needs
-an animated CPU skin sample before CPU-skinned normal mutation can be enabled. In particular,
-`changeFastSkinDL` also edits display lists with a raw GX parser and needs a
-separate review for any model using the fast-skin flag.
+This is a candidate host fix, not an enabled MidnaFX feature. CPU-skinned
+normal mutation remains off until the patch is integrated into a supported
+host and tested across more model layouts.
 
 ## Optimized draw replay (2026-09-18)
 
@@ -89,3 +88,32 @@ All temporary host edits were removed, its checkout is clean, and the normal
 host was rebuilt. This validates the optimized representation and failure
 propagation for the pot sample. It does not yet prove animated CPU skinning,
 other model descriptor layouts, or the fast-skin display-list path.
+
+## Animated replay and fast-skin boundary (2026-09-18)
+
+The same patched host loaded `bh_attack.bck` from `B_bh.arc` and attached its
+joint animation to each isolated pot model. `bh.bmd` has 25 joints, 12
+envelopes, and model-data flag `0x2` (without the `0x100` fast-skin bit). Frames 0, 10, and 20 (of 40)
+completed `calc` for both original and reindexed models. Joint 1 matrix
+element `[0][0]` changed `0.6098 → 0.6687 → 0.5485`; hashes of the full
+transformed normal buffer changed on every frame:
+
+| Model | Frame 0 | Frame 10 | Frame 20 |
+| --- | --- | --- | --- |
+| Original | `65d5f8b46306f12b` | `6246925b93bc04f3` | `1f3b7d55244430ec` |
+| Reindexed | `b3620fe838bc82ed` | `4cad0629bf54d7fa` | `02c3d637403fd286` |
+
+These hashes show animated CPU deformation executed and produced changing
+buffers. They do not establish visual normal quality or safe ownership for
+production archive mutation. Local ignored logs are
+`build/runtime-smoke/stdout-cpu-animated-{original,reindexed}.log`.
+
+Review of `changeFastSkinDL` found another raw-strip parser that rewrites
+display lists in place. Aurora may already have converted those lists to
+indexed draws on PC, so the candidate patch now rejects `0x100` fast-skin
+models before that rewrite and returns error 6. An isolated pot load with
+flag `0x102` confirmed that return and emitted
+`CPU skinning fast display lists are unsupported on PC`; see
+`build/runtime-smoke/stdout-cpu-animated-fast.log`. The boss-door caller now
+checks every nonzero `setSkinDeform` result. A full fast-skin implementation
+would need an optimized-list-aware rewrite and separate validation.
