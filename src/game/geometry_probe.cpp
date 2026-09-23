@@ -1,5 +1,6 @@
 #include "geometry_probe.hpp"
 
+#include "bmd_rebuild.hpp"
 #include "services.hpp"
 #include "smoothing.hpp"
 #include "topology.hpp"
@@ -8,7 +9,10 @@
 #include <JSystem/J3DGraphAnimator/J3DModelData.h>
 #include <JSystem/J3DGraphBase/J3DMaterial.h>
 #include <JSystem/J3DGraphBase/J3DShape.h>
+#include <JSystem/J3DGraphLoader/J3DModelLoader.h>
 #include <JSystem/JKernel/JKRArchive.h>
+#include <JSystem/JKernel/JKRHeap.h>
+#include <JSystem/JKernel/JKRSolidHeap.h>
 #include <d/d_resorce.h>
 #include <m_Do/m_Do_ext.h>
 #include <mods/svc/hook.hpp>
@@ -20,8 +24,10 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <new>
+#include <optional>
 #include <vector>
 
 namespace midnafx::geometry_probe {
@@ -29,9 +35,110 @@ namespace {
 DEFINE_HOOK(&dRes_info_c::loadResource, ResourceLoad);
 DEFINE_HOOK(&dRes_info_c::deleteArchiveRes, ResourceDelete);
 DEFINE_HOOK(&mDoExt_J3DModel__create, ModelCreate);
+DEFINE_HOOK(&J3DModelLoaderDataBase::load, ModelLoad);
 bool load_registered = false;
 bool delete_registered = false;
 bool create_registered = false;
+bool model_load_registered = false;
+
+struct Replacement {
+    dRes_info_c* owner = nullptr;
+    const void* source = nullptr;
+    void* data = nullptr;
+    u32 size = 0;
+};
+std::optional<Replacement> replacement;
+
+std::uint64_t fnv1a(const std::byte* data, std::size_t size) {
+    std::uint64_t hash = 14695981039346656037ULL;
+    for (std::size_t i = 0; i < size; ++i) {
+        hash ^= std::to_integer<std::uint8_t>(data[i]);
+        hash *= 1099511628211ULL;
+    }
+    return hash;
+}
+
+const Replacement* replacement_for(const void* data) {
+    return replacement && replacement->data == data ? &*replacement : nullptr;
+}
+
+HookAction use_rebuilt_model(ModContext*, void* args, void*, void*) {
+    if (!args)
+        return HOOK_CONTINUE;
+    const void* source = mods::arg<const void*>(args, 0);
+    if (replacement && replacement->source == source)
+        mods::arg_ref<const void*>(args, 0) = replacement->data;
+    return HOOK_CONTINUE;
+}
+
+HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
+    if (!args || !model_load_registered || !delete_registered || replacement ||
+        !settings::geometry_smoothing_enabled())
+        return HOOK_CONTINUE;
+    auto* info = mods::arg<dRes_info_c*>(args, 0);
+    if (!info || !info->mArchive || !info->mDataHeap ||
+        std::strcmp(info->mArchiveName, "OBJ_GM") != 0 ||
+        JKRHeap::getCurrentHeap() != info->mDataHeap)
+        return HOOK_CONTINUE;
+    const u32 count = static_cast<u32>(info->mArchive->countFile());
+    for (u32 index = 0; index < count; ++index) {
+        if (!info->mArchive->isFileEntry(index))
+            continue;
+        auto* entry = info->mArchive->findIdxResource(index);
+        if (!entry)
+            continue;
+        const char* name = info->mArchive->mStringTable +
+                           (entry->type_flags_and_name_offset & 0xFFFFFF);
+        if (std::strcmp(name, "k_kumo_tubo01.bmd") != 0)
+            continue;
+        const void* source = info->mArchive->getIdxResource(index);
+        if (!source) {
+            svc_log->info(mod_ctx, "Geometry rebuild: pot source unavailable");
+            return HOOK_CONTINUE;
+        }
+        const u32 size = info->mArchive->getExpandedResSize(source);
+        if (size != 12896 ||
+            fnv1a(static_cast<const std::byte*>(source), size) != 0xa9efd2ace652b900ULL) {
+            svc_log->info(mod_ctx, "Geometry rebuild: pot source fingerprint rejected");
+            return HOOK_CONTINUE;
+        }
+        const auto begin = std::chrono::steady_clock::now();
+        auto rebuilt = bmd_rebuild::split_normals(
+            {static_cast<const std::byte*>(source), static_cast<std::size_t>(size)});
+        if (!rebuilt.ok()) {
+            char message[300];
+            std::snprintf(message, sizeof(message), "Geometry rebuild: rejected: %.220s",
+                          rebuilt.error.c_str());
+            svc_log->info(mod_ctx, message);
+            return HOOK_CONTINUE;
+        }
+        if (rebuilt.bytes.size() > std::numeric_limits<u32>::max()) {
+            svc_log->info(mod_ctx, "Geometry rebuild: output exceeds archive allocation limit");
+            return HOOK_CONTINUE;
+        }
+        void* owned = JKRHeap::alloc(static_cast<u32>(rebuilt.bytes.size()), 0x20, info->mDataHeap);
+        if (!owned) {
+            svc_log->info(mod_ctx, "Geometry rebuild: archive allocation failed");
+            return HOOK_CONTINUE;
+        }
+        std::memcpy(owned, rebuilt.bytes.data(), rebuilt.bytes.size());
+        replacement = Replacement{info, source, owned, static_cast<u32>(rebuilt.bytes.size())};
+        const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+                                 std::chrono::steady_clock::now() - begin)
+                                 .count();
+        char message[300];
+        std::snprintf(message, sizeof(message),
+                      "Geometry rebuild: OBJ_GM.arc/k_kumo_tubo01.bmd bytes=%u normals=%u/%u "
+                      "triangles=%u us=%lld",
+                      static_cast<unsigned>(rebuilt.bytes.size()),
+                      rebuilt.evidence.written_normals,
+                      rebuilt.evidence.rebuilt_normal_capacity, rebuilt.evidence.triangles,
+                      static_cast<long long>(elapsed));
+        svc_log->info(mod_ctx, message);
+        return HOOK_CONTINUE;
+    }
+    return HOOK_CONTINUE;
+}
 
 struct MutationBackup {
     enum class Kind { None, Diagnostic, Smoothing } kind = Kind::None;
@@ -122,7 +229,9 @@ bool array_in_resource(const dRes_info_c& info, const J3DModelData& model, const
                        u32 count, u32 stride) {
     if (!array || !info.mArchive || !model.getRawData() || !stride || count > 65536)
         return false;
-    const u32 size = info.mArchive->getExpandedResSize(model.getRawData());
+    const auto* owned_replacement = replacement_for(model.getRawData());
+    const u32 size = owned_replacement ? owned_replacement->size
+                                       : info.mArchive->getExpandedResSize(model.getRawData());
     const auto base = reinterpret_cast<std::uintptr_t>(model.getRawData());
     const auto address = reinterpret_cast<std::uintptr_t>(array);
     return size != static_cast<u32>(-1) && address >= base && address - base <= size &&
@@ -265,8 +374,9 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         smooth.error = "unsupported normal array or topology";
     }
     if (apply) {
-        const bool exact = result.corner_hash == 0x2d260cc6b2cbe6a5ULL && pos_count == 90 &&
-                           normal_count == 357 && model.getWEvlpMtxNum() == 0 &&
+        const bool rebuilt = replacement_for(model.getRawData()) != nullptr;
+        const bool exact = rebuilt && result.corner_hash == 0xc25e3fbcbca371d2ULL &&
+                           pos_count == 90 && normal_count == 880 && model.getWEvlpMtxNum() == 0 &&
                            normal_type == GX_S16 && normal_stride == 6 &&
                            vertex.getVtxNrmFrac() == 14;
         if (exact && smooth.safe() && smooth.changed_indices > 0 && delete_registered) {
@@ -392,10 +502,15 @@ void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
 }
 
 HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
-    if (args && mods::arg<dRes_info_c*>(args, 0) == mutation.owner) {
+    auto* owner = args ? mods::arg<dRes_info_c*>(args, 0) : nullptr;
+    if (owner == mutation.owner) {
         if (mutation.kind == MutationBackup::Kind::Smoothing)
             svc_log->info(mod_ctx, "Geometry smoothing: archive pre-delete restoration");
         restore_active_mutation();
+    }
+    if (replacement && replacement->owner == owner) {
+        replacement.reset();
+        svc_log->info(mod_ctx, "Geometry rebuild: archive replacement released");
     }
     return HOOK_CONTINUE;
 }
@@ -416,17 +531,25 @@ void initialize() {
     load_registered = false;
     delete_registered = false;
     create_registered = false;
+    model_load_registered = false;
+    replacement.reset();
     mutation = {};
     if (!svc_hook)
         return;
+    if (mods::hook::add_pre<ModelLoad>(use_rebuilt_model) == MOD_OK)
+        model_load_registered = true;
+    else
+        (void)mods::hook::uninstall<ModelLoad>();
     if (mods::hook::add_pre<ResourceDelete>(on_resource_delete) == MOD_OK)
         delete_registered = true;
     else
         (void)mods::hook::uninstall<ResourceDelete>();
-    if (mods::hook::add_post<ResourceLoad>(on_resource_loaded) == MOD_OK)
+    if (mods::hook::add_pre<ResourceLoad>(prepare_rebuilt_model) == MOD_OK &&
+        mods::hook::add_post<ResourceLoad>(on_resource_loaded) == MOD_OK) {
         load_registered = true;
-    else
+    } else {
         (void)mods::hook::uninstall<ResourceLoad>();
+    }
     if (mods::hook::add_post<ModelCreate>(on_model_created) == MOD_OK)
         create_registered = true;
     else
@@ -441,7 +564,11 @@ void shutdown() {
         (void)mods::hook::uninstall<ResourceDelete>();
     if (create_registered)
         (void)mods::hook::uninstall<ModelCreate>();
+    if (model_load_registered)
+        (void)mods::hook::uninstall<ModelLoad>();
     load_registered = delete_registered = create_registered = false;
+    model_load_registered = false;
+    replacement.reset();
 }
 
 void restore_mutation() {

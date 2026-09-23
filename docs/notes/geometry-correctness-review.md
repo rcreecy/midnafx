@@ -105,3 +105,30 @@ unmistakable lighting difference, documented in `docs/geometry-investigation.md`
 The temporary transform and draw hook were removed afterward. The earlier
 "Gate 1 stays open" statements above describe the review checkpoint, not the
 current binary renderer result. Lifecycle and broad-model checks remain open.
+
+## Archive-owned identity-split integration review (September 2026)
+
+The production default-off pot path now rebuilds its BMD before the J3D loader,
+then applies the existing smoothing plan to the rebuilt normal array. The review
+found and fixed two boundary defects: expanded resource size was queried before
+checking the archive resource pointer, and the archive allocator size conversion
+did not explicitly reject output larger than `u32`.
+
+The final path is fail closed at each boundary: both loader and archive-delete
+hooks must exist; the current heap must equal the resource archive heap; archive,
+file name, source size, and source hash must match; the bounded transformer must
+reparse successfully; allocation must succeed; and the loaded topology must
+match the rebuilt fingerprint before normals change. A single optional record
+prevents duplicate processing and avoids tracking allocations. The replacement
+is archive-owned, while MidnaFX retains only non-owning pointers until the
+archive pre-delete callback. Normal bytes are restored before that record is
+cleared. Mod shutdown restores normal bytes before removing lifecycle hooks;
+the archive-owned rebuilt data safely remains with any live model.
+
+The pass checked malformed GX input, index and allocation bounds, zero-area
+triangles, finite normal encoding, strip winding, material separation,
+normal-index aliasing, shared instances, unload/reload, in-process disable, and
+graceful shutdown. Runtime unload/reload used a new archive heap and rebuilt
+exactly once per observed resource lifetime. Remaining risk is limited to the
+unvalidated skinned-model path and broader model coverage; only the exact rigid
+pot is enabled, and the setting remains off by default.

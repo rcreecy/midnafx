@@ -161,8 +161,32 @@ Link is
 `4d8681d59e6240f033a4e184294be0ae31a6ecea3b136bbd6fc2246e692b60ee`.
 Portable tests cover the successful rebuild, alternating strip winding,
 input immutability, degenerate removal, unsupported index width, invalid normal
-indices, and malformed GX commands. The transformer is compiled into the mod
-but has no runtime entry point yet; runtime behavior remains unchanged.
+indices, and malformed GX commands.
+
+The default-off pot smoothing path now invokes this transformer from the
+`dRes_info_c::loadResource` pre-hook. It accepts only the exact
+`OBJ_GM.arc/k_kumo_tubo01.bmd` source (12,896 bytes, FNV-1a
+`a9efd2ace652b900`), allocates the 17,600-byte validated output in the current
+archive solid heap, and substitutes that pointer in a
+`J3DModelLoaderDataBase::load` pre-hook. All other resources and all failed
+checks retain their original pointer. The smoothing post-hook then requires
+the rebuilt topology fingerprint before writing normals.
+
+A source-matched live run decoded 174 triangles, wrote 879 normals into a
+capacity of 880, and completed the rebuild and archive copy in 184 microseconds.
+The rebuilt runtime topology contained 90 positions, 880 normals, 522 referenced
+normal indices, 129 smoothing groups, 450 changed normals, and zero index
+conflicts. Five instances shared the processed model data. Graceful shutdown
+restored original normal values.
+
+An isolated room-19 to room-0 transition then restored the active normal backup,
+released replacement tracking before archive destruction, and rebuilt the fresh
+resource in a different archive heap. The two measured rebuilds took 191 and
+235 microseconds. No assertion, fatal error, GPU validation error, stale pointer,
+or double processing was observed. The transition hook was removed and the
+ordinary mod package restored. Local ignored evidence is under
+`build/runtime-smoke/inprocess-rebuild-1` and
+`build/runtime-smoke/inprocess-rebuild-lifecycle`.
 
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper
