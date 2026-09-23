@@ -108,6 +108,28 @@ Link identity-split visual A/B was recorded. A production
 transaction still needs owned resource lifetime, a real smoothing-group
 assignment, fail-closed validation, and animation/visual comparison.
 
+## Archive-heap ownership checkpoint (2026-09-18)
+
+A second temporary branch tested the intended replacement lifetime. During
+`Bmdl` loading, it allocated the validated 273,216-byte Link replacement from
+`JKRHeap::getCurrentHeap()`, copied the rebuilt BMD, and passed that pointer to
+`J3DModelLoaderDataBase::load`. The archive's `mDataHeap`, current heap, and
+`JKRHeap::findFromRoot(replacement)` all reported the same `JKRSolidHeap`
+(`SLID`). The resulting `J3DModelData::getRawData()` equaled the replacement
+pointer. The game reached the loaded scene and frame 30 without an assertion or
+GPU validation error. The ignored local evidence is
+`build/runtime-smoke/stdout-owned-link{,-long}.log`.
+
+This establishes that the existing loader call runs while the archive resource
+heap is current and that an early replacement can share the archive's lifetime.
+`dRes_info_c` destroys that solid heap only after `deleteArchiveRes`; therefore
+the replacement does not need mod-owned storage and cannot become dangling only
+because the native mod reloads. The test used the long-lived player archive, so
+it did not directly observe replacement destruction during archive unload. A
+room-scoped resource still needs an unload/reload run before this ownership
+contract is considered complete. The temporary host diagnostics were removed,
+the pinned checkout is clean, and the ordinary host was rebuilt.
+
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper
 to visit zero corners while returning success, and its GameCube branch reads
@@ -124,13 +146,12 @@ The current source path is `dRes_info_c::loadResource` obtaining raw bytes
 from `JKRArchive::getIdxResource`, then calling either
 `dRes_info_c::loaderBasicBmd` or `J3DModelLoaderDataBase::load` before
 `J3DModelLoader` reads VTX1/SHP1. The mod hook dispatcher passes arguments by
-reference to pre-hooks, so a pre-hook on `J3DModelLoaderDataBase::load` could
+reference to pre-hooks, so a pre-hook on `J3DModelLoaderDataBase::load` can
 substitute a validated input pointer early enough for the existing loader and
-Aurora optimizer. This is a timing opportunity, not an ownership contract:
-the model retains `mpRawData`, while the mod can unload before its models and
-archive do. A mod-owned temporary buffer would therefore be unsafe. The next
-implementation needs a host-owned replacement associated with the archive's
-resource lifetime, with failure leaving the original pointer untouched.
+Aurora optimizer. The archive-heap checkpoint confirms the replacement can use
+the current archive solid heap rather than mod-owned storage. The remaining
+ownership proof is a mod pre-hook on a room-scoped resource followed by archive
+unload/reload, with failure leaving the original pointer untouched.
 
 The preferred next experiment is an engine-owned transaction on a validated
 copy of the BMD before `J3DModelLoader` reads VTX1 and SHP1. It should accept
@@ -166,9 +187,11 @@ defer a new preprocessing choice until the next resource load.
    identity split with indices assigned by the intended smoothing groups.
    Require identical ordered triangle positions, shape/material/matrix
    groups, and all non-normal attributes after the transform.
-3. Add an engine-owned, fail-closed replacement API only after the offline
-   transform proves feasible. Test allocation failure, index-width limits,
-   malformed lists, multiple instances, archive unload/reload, and mod reload.
+3. Test an archive-heap-owned replacement from a mod pre-hook on a room-scoped
+   resource. If unload/reload proves that lifetime, no new host allocation API
+   is needed. Otherwise add the smallest engine-owned, fail-closed replacement
+   API. Test allocation failure, index-width limits, malformed lists, multiple
+   instances, archive unload/reload, and mod reload.
 4. In the source-matched game, compare a close original/smoothed view through
    several animations. Check silhouette and hard edges, skinning motion,
    inverted/exploding lighting, Twilight and normal-world lighting, and
