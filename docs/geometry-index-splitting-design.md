@@ -124,11 +124,25 @@ This establishes that the existing loader call runs while the archive resource
 heap is current and that an early replacement can share the archive's lifetime.
 `dRes_info_c` destroys that solid heap only after `deleteArchiveRes`; therefore
 the replacement does not need mod-owned storage and cannot become dangling only
-because the native mod reloads. The test used the long-lived player archive, so
-it did not directly observe replacement destruction during archive unload. A
-room-scoped resource still needs an unload/reload run before this ownership
-contract is considered complete. The temporary host diagnostics were removed,
+because the native mod reloads. The temporary host diagnostics were removed,
 the pinned checkout is clean, and the ordinary host was rebuilt.
+
+A follow-up on 2026-09-23 moved the same transaction into a temporary MidnaFX
+pre-hook and used the room-scoped Forest Temple pot. The hook matched the exact
+12,896-byte source BMD, copied the validated 17,600-byte identity-split rebuild
+into the current archive heap, and replaced the loader argument. Runtime logs
+showed that `JKRHeap::findFromRoot(replacement)` equaled the current heap. At
+frame 300, an automated room-19 to room-0 transition destroyed that exact heap.
+The resource then loaded again into a different archive heap and received a new
+replacement. The game continued without an assertion, GPU validation error, or
+stale-pointer failure. Evidence is in ignored local log
+`build/runtime-smoke/owned-pot-logs-4/dusklight-20260923-112406.log`.
+
+Archive-heap replacement ownership therefore passes for load, unload, and
+reload. A new host allocation API is not needed for this boundary. Production
+code still needs an in-process validated transformer; the temporary hook read
+an offline-generated identity-split file only to isolate lifetime behavior. All
+temporary mod code was removed after the run.
 
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper
@@ -148,10 +162,10 @@ from `JKRArchive::getIdxResource`, then calling either
 `J3DModelLoader` reads VTX1/SHP1. The mod hook dispatcher passes arguments by
 reference to pre-hooks, so a pre-hook on `J3DModelLoaderDataBase::load` can
 substitute a validated input pointer early enough for the existing loader and
-Aurora optimizer. The archive-heap checkpoint confirms the replacement can use
-the current archive solid heap rather than mod-owned storage. The remaining
-ownership proof is a mod pre-hook on a room-scoped resource followed by archive
-unload/reload, with failure leaving the original pointer untouched.
+Aurora optimizer. The archive-heap checkpoints confirm the replacement can use
+the current archive solid heap rather than mod-owned storage and survives the
+required load/unload/reload lifecycle. Failure must leave the original pointer
+untouched.
 
 The preferred next experiment is an engine-owned transaction on a validated
 copy of the BMD before `J3DModelLoader` reads VTX1 and SHP1. It should accept
@@ -187,11 +201,11 @@ defer a new preprocessing choice until the next resource load.
    identity split with indices assigned by the intended smoothing groups.
    Require identical ordered triangle positions, shape/material/matrix
    groups, and all non-normal attributes after the transform.
-3. Test an archive-heap-owned replacement from a mod pre-hook on a room-scoped
-   resource. If unload/reload proves that lifetime, no new host allocation API
-   is needed. Otherwise add the smallest engine-owned, fail-closed replacement
-   API. Test allocation failure, index-width limits, malformed lists, multiple
-   instances, archive unload/reload, and mod reload.
+3. Port the validated rebuild into a fail-closed in-process transformer. Allocate
+   its committed output from the current archive heap. Test allocation failure,
+   index-width limits, malformed lists, multiple instances, archive
+   unload/reload, and mod reload. The room-scoped runtime proof established that
+   no new host allocation API is needed.
 4. In the source-matched game, compare a close original/smoothed view through
    several animations. Check silhouette and hard edges, skinning motion,
    inverted/exploding lighting, Twilight and normal-world lighting, and
