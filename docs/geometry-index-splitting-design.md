@@ -144,6 +144,26 @@ code still needs an in-process validated transformer; the temporary hook read
 an offline-generated identity-split file only to isolate lifetime behavior. All
 temporary mod code was removed after the run.
 
+## In-process transformer checkpoint (2026-09-23)
+
+`src/game/bmd_rebuild.cpp` now ports the validated identity-split rebuild to
+bounded C++. It parses VTX1/SHP1, expands triangles, strips, fans, and quads into
+three-corner strips, skips zero-area triangles, appends unique 16-bit normal
+indices, rebuilds affected offsets and draw tables, and independently reparses
+the result before returning bytes. Unsupported encodings, direct or 8-bit normal
+indices, malformed commands, bad bounds, duplicate draw entries, overflow, and
+topology mismatches return an error without publishing output.
+
+The C++ output is byte-for-byte identical to the Python proof for both sampled
+resources. The pot SHA-256 is
+`530543fbe46a43e23247853cce5d588fcb0419afacd9d2f8151e16894512525e`;
+Link is
+`4d8681d59e6240f033a4e184294be0ae31a6ecea3b136bbd6fc2246e692b60ee`.
+Portable tests cover the successful rebuild, alternating strip winding,
+input immutability, degenerate removal, unsupported index width, invalid normal
+indices, and malformed GX commands. The transformer is compiled into the mod
+but has no runtime entry point yet; runtime behavior remains unchanged.
+
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper
 to visit zero corners while returning success, and its GameCube branch reads
