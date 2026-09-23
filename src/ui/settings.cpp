@@ -40,7 +40,8 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"},
     auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
-    geometry_smoothing{"geometry_smoothing"};
+    geometry_smoothing{"geometry_smoothing"},
+    geometry_skinned_smoothing{"geometry_skinned_smoothing"};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -230,7 +231,8 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
         static_cast<Toggle*>(user)->value = value->bool_value;
         if (user == &geometry_mutation_test && !value->bool_value)
             geometry_probe::restore_mutation();
-        if (user == &geometry_smoothing && !value->bool_value)
+        if ((user == &geometry_smoothing || user == &geometry_skinned_smoothing) &&
+            !value->bool_value)
             geometry_probe::restore_smoothing();
         if (user == &detail_toggle && !applying_preset) {
             mark_custom();
@@ -812,6 +814,7 @@ bool initialize() {
     register_toggle(topology_diagnostics);
     register_toggle(geometry_mutation_test);
     register_toggle(geometry_smoothing);
+    register_toggle(geometry_skinned_smoothing);
     register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
@@ -839,6 +842,7 @@ bool geometry_diagnostics_enabled() { return geometry_diagnostics.value; }
 bool topology_diagnostics_enabled() { return topology_diagnostics.value; }
 bool geometry_mutation_test_enabled() { return geometry_mutation_test.value; }
 bool geometry_smoothing_enabled() { return geometry_smoothing.value; }
+bool geometry_skinned_smoothing_enabled() { return geometry_skinned_smoothing.value; }
 float geometry_smoothing_angle() { return static_cast<float>(smoothing_angle_setting.value); }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }

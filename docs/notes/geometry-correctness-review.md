@@ -131,4 +131,19 @@ normal-index aliasing, shared instances, unload/reload, in-process disable, and
 graceful shutdown. Runtime unload/reload used a new archive heap and rebuilt
 exactly once per observed resource lifetime. Remaining risk is limited to the
 unvalidated skinned-model path and broader model coverage; only the exact rigid
-pot is enabled, and the setting remains off by default.
+pot is user-facing, and the setting remains off by default.
+
+The follow-up skinned checkpoint uses a separate hidden default-off switch and
+an exact `Kmdl.arc/al.bmd` size/hash allowlist. Review verified that the same
+bounded transformer, archive-heap ownership, rebuilt corner hash, S16 codec,
+conflict-free plan, single active backup, disable callback, and shutdown restore
+guard the write. The live model ran 3,600 frames and restored 60,384 bytes at
+shutdown. No stale pointer or double mutation was observed.
+
+Two limits remain deliberate. The implementation retains one replacement and
+one active mutation, so the hidden Link experiment and pot experiment are not
+supported concurrently. More importantly, the run did not capture the rendered
+Link or instrument transformed normals. It proves that an enveloped model loads,
+runs, and restores safely; it does not yet prove improved animated shading or
+rule out subtle hard-edge damage. The Link switch remains hidden and off by
+default.

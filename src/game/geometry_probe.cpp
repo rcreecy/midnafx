@@ -42,6 +42,7 @@ bool create_registered = false;
 bool model_load_registered = false;
 
 struct Replacement {
+    enum class Kind { Pot, LinkBody } kind = Kind::Pot;
     dRes_info_c* owner = nullptr;
     const void* source = nullptr;
     void* data = nullptr;
@@ -72,13 +73,30 @@ HookAction use_rebuilt_model(ModContext*, void* args, void*, void*) {
 }
 
 HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
-    if (!args || !model_load_registered || !delete_registered || replacement ||
-        !settings::geometry_smoothing_enabled())
+    if (!args || !model_load_registered || !delete_registered || replacement)
         return HOOK_CONTINUE;
     auto* info = mods::arg<dRes_info_c*>(args, 0);
-    if (!info || !info->mArchive || !info->mDataHeap ||
-        std::strcmp(info->mArchiveName, "OBJ_GM") != 0 ||
+    if (!info || !info->mArchive || !info->mDataHeap || !info->mArchiveName ||
         JKRHeap::getCurrentHeap() != info->mDataHeap)
+        return HOOK_CONTINUE;
+    struct Target {
+        Replacement::Kind kind;
+        const char* file;
+        u32 size;
+        std::uint64_t hash;
+        const char* label;
+    };
+    std::optional<Target> target;
+    if (settings::geometry_skinned_smoothing_enabled() &&
+        std::strcmp(info->mArchiveName, "Kmdl") == 0)
+        target = Target{Replacement::Kind::LinkBody, "al.bmd", 140448,
+                        0xc00c6d9abd5d79bcULL,
+                        "Kmdl.arc/al.bmd"};
+    else if (settings::geometry_smoothing_enabled() &&
+             std::strcmp(info->mArchiveName, "OBJ_GM") == 0)
+        target = Target{Replacement::Kind::Pot, "k_kumo_tubo01.bmd", 12896,
+                        0xa9efd2ace652b900ULL, "OBJ_GM.arc/k_kumo_tubo01.bmd"};
+    if (!target)
         return HOOK_CONTINUE;
     const u32 count = static_cast<u32>(info->mArchive->countFile());
     for (u32 index = 0; index < count; ++index) {
@@ -89,7 +107,7 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
             continue;
         const char* name = info->mArchive->mStringTable +
                            (entry->type_flags_and_name_offset & 0xFFFFFF);
-        if (std::strcmp(name, "k_kumo_tubo01.bmd") != 0)
+        if (std::strcmp(name, target->file) != 0)
             continue;
         const void* source = info->mArchive->getIdxResource(index);
         if (!source) {
@@ -97,9 +115,9 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
             return HOOK_CONTINUE;
         }
         const u32 size = info->mArchive->getExpandedResSize(source);
-        if (size != 12896 ||
-            fnv1a(static_cast<const std::byte*>(source), size) != 0xa9efd2ace652b900ULL) {
-            svc_log->info(mod_ctx, "Geometry rebuild: pot source fingerprint rejected");
+        if (size != target->size ||
+            fnv1a(static_cast<const std::byte*>(source), size) != target->hash) {
+            svc_log->info(mod_ctx, "Geometry rebuild: source fingerprint rejected");
             return HOOK_CONTINUE;
         }
         const auto begin = std::chrono::steady_clock::now();
@@ -122,14 +140,16 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
             return HOOK_CONTINUE;
         }
         std::memcpy(owned, rebuilt.bytes.data(), rebuilt.bytes.size());
-        replacement = Replacement{info, source, owned, static_cast<u32>(rebuilt.bytes.size())};
+        replacement = Replacement{target->kind, info, source, owned,
+                                  static_cast<u32>(rebuilt.bytes.size())};
         const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                                  std::chrono::steady_clock::now() - begin)
                                  .count();
         char message[300];
         std::snprintf(message, sizeof(message),
-                      "Geometry rebuild: OBJ_GM.arc/k_kumo_tubo01.bmd bytes=%u normals=%u/%u "
+                      "Geometry rebuild: %s bytes=%u normals=%u/%u "
                       "triangles=%u us=%lld",
+                      target->label,
                       static_cast<unsigned>(rebuilt.bytes.size()),
                       rebuilt.evidence.written_normals,
                       rebuilt.evidence.rebuilt_normal_capacity, rebuilt.evidence.triangles,
@@ -221,8 +241,15 @@ bool is_topology_target(const dRes_info_c& info, const char* name) {
 }
 
 bool is_smoothing_target(const dRes_info_c& info, const char* name) {
-    return info.mArchiveName && std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
-           std::strcmp(name, "k_kumo_tubo01.bmd") == 0;
+    const auto* rebuilt = replacement ? &*replacement : nullptr;
+    if (!rebuilt || rebuilt->owner != &info || !info.mArchiveName)
+        return false;
+    if (rebuilt->kind == Replacement::Kind::Pot)
+        return settings::geometry_smoothing_enabled() &&
+               std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
+               std::strcmp(name, "k_kumo_tubo01.bmd") == 0;
+    return settings::geometry_skinned_smoothing_enabled() &&
+           std::strcmp(info.mArchiveName, "Kmdl") == 0 && std::strcmp(name, "al.bmd") == 0;
 }
 
 bool array_in_resource(const dRes_info_c& info, const J3DModelData& model, const void* array,
@@ -250,7 +277,7 @@ template <class T> std::uint64_t nested_vector_bytes(const std::vector<std::vect
 
 void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& model) {
     const bool target = is_smoothing_target(info, name);
-    const bool apply = settings::geometry_smoothing_enabled() && target && !mutation.owner;
+    const bool apply = target && !mutation.owner;
     if ((!settings::topology_diagnostics_enabled() || !is_topology_target(info, name)) && !apply)
         return;
     const auto begin = std::chrono::steady_clock::now();
@@ -374,11 +401,15 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         smooth.error = "unsupported normal array or topology";
     }
     if (apply) {
-        const bool rebuilt = replacement_for(model.getRawData()) != nullptr;
-        const bool exact = rebuilt && result.corner_hash == 0xc25e3fbcbca371d2ULL &&
-                           pos_count == 90 && normal_count == 880 && model.getWEvlpMtxNum() == 0 &&
-                           normal_type == GX_S16 && normal_stride == 6 &&
-                           vertex.getVtxNrmFrac() == 14;
+        const auto* rebuilt = replacement_for(model.getRawData());
+        const bool pot_exact = rebuilt && rebuilt->kind == Replacement::Kind::Pot &&
+                               result.corner_hash == 0xc25e3fbcbca371d2ULL && pos_count == 90 &&
+                               normal_count == 880 && model.getWEvlpMtxNum() == 0;
+        const bool link_exact = rebuilt && rebuilt->kind == Replacement::Kind::LinkBody &&
+                                result.corner_hash == 0x6ed5b0df43c35b63ULL && pos_count == 1560 &&
+                                normal_count == 10064 && model.getWEvlpMtxNum() == 110;
+        const bool exact = (pot_exact || link_exact) && normal_type == GX_S16 &&
+                           normal_stride == 6 && vertex.getVtxNrmFrac() == 14;
         if (exact && smooth.safe() && smooth.changed_indices > 0 && delete_registered) {
             const u32 bytes_count = normal_count * normal_stride;
             std::unique_ptr<std::byte[]> backup{new (std::nothrow) std::byte[bytes_count]};
@@ -403,7 +434,9 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 mutation.bytes = bytes_count;
                 mutation.instances = 0;
                 mutation.original = std::move(backup);
-                svc_log->info(mod_ctx, "Geometry smoothing: applied OBJ_GM.arc/k_kumo_tubo01.bmd");
+                svc_log->info(mod_ctx, pot_exact ?
+                    "Geometry smoothing: applied OBJ_GM.arc/k_kumo_tubo01.bmd" :
+                    "Geometry smoothing: applied Kmdl.arc/al.bmd");
             }
         } else {
             svc_log->info(mod_ctx, "Geometry smoothing: target rejected by safety checks");

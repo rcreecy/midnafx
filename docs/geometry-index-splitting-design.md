@@ -188,6 +188,33 @@ ordinary mod package restored. Local ignored evidence is under
 `build/runtime-smoke/inprocess-rebuild-1` and
 `build/runtime-smoke/inprocess-rebuild-lifecycle`.
 
+## Skinned Link-body checkpoint (2026-09-23)
+
+A separate hidden `geometry_skinned_smoothing` switch, also default off,
+allowlists the exact currently loaded Link body `Kmdl.arc/al.bmd` (140,448
+bytes, FNV-1a `c00c6d9abd5d79bc`). The in-process transformer produced a
+222,688-byte archive-owned resource with 10,064 per-corner normal entries and
+2,777 triangles. The source-matched loader and Aurora optimizer accepted it.
+
+Runtime reconstruction reported 1,560 position-array entries, 18 shapes, 110
+envelopes, 39 optimized indexed draws, 2,777 triangles, 8,331 referenced normal
+indices, corner hash `6ed5b0df43c35b63`, 3,358 smoothing groups, 6,855 changed
+normals, and zero normal-index conflicts. The measured rebuild was 2.306 ms;
+runtime decode plus smoothing and mutation was 2.336 ms; tracked working vectors
+peaked at 788,168 bytes and the restoration backup used 60,384 bytes. One live
+model instance used the processed model. The game ran through 3,600 logged
+frames and shut down cleanly, restoring original normal values. No assertion,
+fatal error, or GPU validation error appeared. Evidence is the ignored local
+`build/runtime-smoke/stdout-link-smoothing-live.log`.
+
+This passes resource ownership, topology, index-conflict, sustained execution,
+and graceful restoration for one enveloped model. It does not yet prove visual
+normal quality or animation behavior: the desktop automation provider did not
+expose the Dusklight window, so no matched original/smoothed capture was made,
+and no transformed-normal buffer was instrumented. Keep the switch hidden and
+off by default until those observations pass. The rigid pot remains the only
+user-facing smoothing experiment.
+
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper
 to visit zero corners while returning success, and its GameCube branch reads
