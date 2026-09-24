@@ -233,7 +233,7 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
             geometry_probe::restore_mutation();
         if ((user == &geometry_smoothing || user == &geometry_skinned_smoothing) &&
             !value->bool_value)
-            geometry_probe::restore_smoothing();
+            geometry_probe::restore_smoothing(user == &geometry_skinned_smoothing);
         if (user == &detail_toggle && !applying_preset) {
             mark_custom();
             update_grade();
@@ -347,7 +347,7 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
     if (&toggle == &geometry_mutation_test && !toggle.value)
         geometry_probe::restore_mutation();
     if (&toggle == &geometry_smoothing && !toggle.value)
-        geometry_probe::restore_smoothing();
+        geometry_probe::restore_smoothing(false);
     if (&toggle == &detail_toggle) {
         mark_custom();
         update_grade();
@@ -783,7 +783,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
     add_toggle(panel, "Log topology for loaded models (developer)", topology_diagnostics);
     add_toggle(panel, "Mutation test: metal box only", geometry_mutation_test);
-    add_toggle(panel, "Experimental smoothing: Forest Temple hanging pot", geometry_smoothing);
+    add_toggle(panel, "Experimental smoothing: validated Forest Temple objects",
+               geometry_smoothing);
     add_number(panel, smoothing_angle_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,

@@ -161,7 +161,8 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
 }
 
 struct MutationBackup {
-    enum class Kind { None, Diagnostic, Smoothing } kind = Kind::None;
+    enum class Kind { None, Diagnostic, RigidSmoothing, SkinnedSmoothing } kind = Kind::None;
+    const char* label = "unknown";
     dRes_info_c* owner = nullptr;
     J3DModelData* model_data = nullptr;
     void* normals = nullptr;
@@ -169,22 +170,45 @@ struct MutationBackup {
     u32 instances = 0;
     std::unique_ptr<std::byte[]> original;
 };
-MutationBackup mutation;
+std::vector<MutationBackup> mutations;
 
-void restore_active_mutation() {
-    if (!mutation.owner)
-        return;
-    std::memcpy(mutation.normals, mutation.original.get(), mutation.bytes);
-    const auto kind = mutation.kind;
-    mutation = {};
-    svc_log->info(mod_ctx, kind == MutationBackup::Kind::Smoothing
-                               ? "Geometry smoothing: original normals restored"
-                               : "Geometry mutation test: original normals restored");
+bool is_smoothing(MutationBackup::Kind kind) {
+    return kind == MutationBackup::Kind::RigidSmoothing ||
+           kind == MutationBackup::Kind::SkinnedSmoothing;
+}
+
+auto find_mutation(J3DModelData* model) {
+    return std::find_if(mutations.begin(), mutations.end(),
+                        [model](const MutationBackup& item) {
+                            return item.model_data == model;
+                        });
+}
+
+bool has_mutation_kind(MutationBackup::Kind kind) {
+    return std::any_of(mutations.begin(), mutations.end(), [kind](const MutationBackup& item) {
+        return item.kind == kind;
+    });
+}
+
+void restore_mutations(MutationBackup::Kind kind = MutationBackup::Kind::None,
+                       dRes_info_c* owner = nullptr) {
+    for (auto it = mutations.begin(); it != mutations.end();) {
+        if ((kind != MutationBackup::Kind::None && it->kind != kind) ||
+            (owner && it->owner != owner)) {
+            ++it;
+            continue;
+        }
+        std::memcpy(it->normals, it->original.get(), it->bytes);
+        svc_log->info(mod_ctx, is_smoothing(it->kind)
+                                   ? "Geometry smoothing: original normals restored"
+                                   : "Geometry mutation test: original normals restored");
+        it = mutations.erase(it);
+    }
 }
 
 void maybe_mutate(dRes_info_c& info, const char* file_name, J3DModelData& model) {
     // One exact game-owned BMD, verified offline from the USA GZ2E01 disc.
-    if (!delete_registered || !settings::geometry_mutation_test_enabled() || mutation.owner ||
+    if (!delete_registered || !settings::geometry_mutation_test_enabled() || !mutations.empty() ||
         std::strcmp(info.mArchiveName, "L_mbox_00") != 0 ||
         std::strcmp(file_name, "l_metabox_00.bmd") != 0)
         return;
@@ -218,12 +242,9 @@ void maybe_mutate(dRes_info_c& info, const char* file_name, J3DModelData& model)
     if (!original)
         return;
     std::memcpy(original.get(), normals, bytes);
-    mutation.owner = &info;
-    mutation.model_data = &model;
-    mutation.kind = MutationBackup::Kind::Diagnostic;
-    mutation.normals = normals;
-    mutation.bytes = bytes;
-    mutation.original = std::move(original);
+    mutations.push_back({MutationBackup::Kind::Diagnostic,
+                         "L_mbox_00.arc/l_metabox_00.bmd", &info, &model, normals, bytes, 0,
+                         std::move(original)});
     for (u32 i = 0; i < count * 3; ++i)
         normals[i] = -normals[i];
     svc_log->info(mod_ctx,
@@ -241,8 +262,14 @@ bool is_topology_target(const dRes_info_c& info, const char* name) {
 }
 
 bool is_smoothing_target(const dRes_info_c& info, const char* name) {
+    if (!info.mArchiveName)
+        return false;
+    if (settings::geometry_smoothing_enabled() &&
+        std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
+        std::strcmp(name, "k_kumo_iwa00.bmd") == 0)
+        return true;
     const auto* rebuilt = replacement ? &*replacement : nullptr;
-    if (!rebuilt || rebuilt->owner != &info || !info.mArchiveName)
+    if (!rebuilt || rebuilt->owner != &info)
         return false;
     if (rebuilt->kind == Replacement::Kind::Pot)
         return settings::geometry_smoothing_enabled() &&
@@ -277,10 +304,19 @@ template <class T> std::uint64_t nested_vector_bytes(const std::vector<std::vect
 
 void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& model) {
     const bool target = is_smoothing_target(info, name);
-    const bool apply = target && !mutation.owner;
+    const bool apply = target && !has_mutation_kind(MutationBackup::Kind::Diagnostic) &&
+                       find_mutation(&model) == mutations.end();
     if ((!settings::topology_diagnostics_enabled() || !is_topology_target(info, name)) && !apply)
         return;
     const auto begin = std::chrono::steady_clock::now();
+    const auto* owned_replacement = replacement_for(model.getRawData());
+    const u32 resource_size = owned_replacement
+                                  ? owned_replacement->size
+                                  : info.mArchive->getExpandedResSize(model.getRawData());
+    const std::uint64_t resource_hash =
+        resource_size != static_cast<u32>(-1)
+            ? fnv1a(static_cast<const std::byte*>(model.getRawData()), resource_size)
+            : 0;
     const J3DVertexData& vertex = model.getVertexData();
     const u32 pos_count = vertex.getVtxArrNum(GX_VA_POS);
     const u32 normal_count = vertex.getNrmNum();
@@ -408,8 +444,16 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         const bool link_exact = rebuilt && rebuilt->kind == Replacement::Kind::LinkBody &&
                                 result.corner_hash == 0x6ed5b0df43c35b63ULL && pos_count == 1560 &&
                                 normal_count == 10064 && model.getWEvlpMtxNum() == 110;
-        const bool exact = (pot_exact || link_exact) && normal_type == GX_S16 &&
-                           normal_stride == 6 && vertex.getVtxNrmFrac() == 14;
+        const bool rock_exact = !rebuilt && std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
+                                std::strcmp(name, "k_kumo_iwa00.bmd") == 0 &&
+                                resource_size == 13856 &&
+                                resource_hash == 0xaae14e74c4cca0b8ULL &&
+                                result.corner_hash == 0x4905bff69be3ae64ULL && pos_count == 40 &&
+                                normal_count == 197 && model.getWEvlpMtxNum() == 0;
+        const unsigned normal_fraction = vertex.getVtxNrmFrac();
+        const bool exact = normal_type == GX_S16 && normal_stride == 6 &&
+                           (((pot_exact || link_exact) && normal_fraction == 14) ||
+                            (rock_exact && normal_fraction == 15));
         if (exact && smooth.safe() && smooth.changed_indices > 0 && delete_registered) {
             const u32 bytes_count = normal_count * normal_stride;
             std::unique_ptr<std::byte[]> backup{new (std::nothrow) std::byte[bytes_count]};
@@ -420,23 +464,26 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                     std::int16_t encoded[3];
                     // Source values are S16, and the plan only returns finite originals or
                     // normalized weighted faces; the checked codec rejects any regression.
-                    if (!smoothing::encode_s16_xyz(smooth.normals[i], 14, encoded)) {
+                    if (!smoothing::encode_s16_xyz(smooth.normals[i], normal_fraction, encoded)) {
                         std::memcpy(destination, backup.get(), bytes_count);
                         svc_log->info(mod_ctx, "Geometry smoothing: normal encoding rejected");
                         return;
                     }
                     std::memcpy(destination + i * 6, encoded, 6);
                 }
-                mutation.kind = MutationBackup::Kind::Smoothing;
-                mutation.owner = const_cast<dRes_info_c*>(&info);
-                mutation.model_data = &model;
-                mutation.normals = destination;
-                mutation.bytes = bytes_count;
-                mutation.instances = 0;
-                mutation.original = std::move(backup);
-                svc_log->info(mod_ctx, pot_exact ?
-                    "Geometry smoothing: applied OBJ_GM.arc/k_kumo_tubo01.bmd" :
-                    "Geometry smoothing: applied Kmdl.arc/al.bmd");
+                const char* label = pot_exact   ? "OBJ_GM.arc/k_kumo_tubo01.bmd"
+                                    : link_exact ? "Kmdl.arc/al.bmd"
+                                                 : "OBJ_GM.arc/k_kumo_iwa00.bmd";
+                mutations.push_back({link_exact ? MutationBackup::Kind::SkinnedSmoothing
+                                                : MutationBackup::Kind::RigidSmoothing,
+                                     label, const_cast<dRes_info_c*>(&info), &model, destination,
+                                     bytes_count, 0, std::move(backup)});
+                svc_log->info(
+                    mod_ctx,
+                    pot_exact ? "Geometry smoothing: applied OBJ_GM.arc/k_kumo_tubo01.bmd"
+                              : link_exact ? "Geometry smoothing: applied Kmdl.arc/al.bmd"
+                                           : "Geometry smoothing: applied "
+                                             "OBJ_GM.arc/k_kumo_iwa00.bmd");
             }
         } else {
             svc_log->info(mod_ctx, "Geometry smoothing: target rejected by safety checks");
@@ -448,8 +495,10 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     char report[850];
     std::snprintf(
         report, sizeof(report),
-        "Topology JSON: {\"archive\":\"%s\",\"file\":\"%s\",\"positions\":%u,"
+        "Topology JSON: {\"archive\":\"%s\",\"file\":\"%s\",\"resourceBytes\":%u,"
+        "\"resourceHash\":\"%016llx\",\"positions\":%u,"
         "\"normals\":%u,\"shapes\":%u,\"envelopes\":%u,\"primitives\":%u,"
+        "\"normalType\":%d,\"normalStride\":%u,\"normalFrac\":%u,"
         "\"strips\":%u,\"fans\":%u,\"indexed\":%u,\"triangles\":%zu,"
         "\"degenerate\":%u,\"uniquePositions\":%u,\"uniqueNormals\":%u,"
         "\"positionNormalSplits\":%u,\"cornerHash\":\"%016llx\","
@@ -458,8 +507,11 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         "\"ambiguousFaces\":%u,\"normalDecodeUs\":%lld,\"adjacencyUs\":%llu,"
         "\"smoothUs\":%lld,\"totalUs\":%lld,\"peakTrackedVectorBytes\":%llu,\"backupBytes\":%u,"
         "\"cacheEntries\":%u,\"smoothError\":\"%s\"}",
-        info.mArchiveName, name, pos_count, normal_count, model.getShapeNum(),
-        model.getWEvlpMtxNum(), result.primitive_count, result.strip_count, result.fan_count,
+        info.mArchiveName, name, resource_size,
+        static_cast<unsigned long long>(resource_hash), pos_count, normal_count,
+        model.getShapeNum(),
+        model.getWEvlpMtxNum(), result.primitive_count, normal_type, normal_stride,
+        vertex.getVtxNrmFrac(), result.strip_count, result.fan_count,
         result.indexed_count, result.triangles.size(), result.degenerate_count,
         result.unique_positions, result.unique_normals, result.position_normal_splits,
         static_cast<unsigned long long>(result.corner_hash), static_cast<long long>(elapsed),
@@ -467,8 +519,12 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         smooth.changed_indices, smooth.index_conflicts, smooth.ambiguous_faces, normal_decode_us,
         static_cast<unsigned long long>(smooth.adjacency_us), smooth_us,
         static_cast<long long>(total_us), static_cast<unsigned long long>(peak_vector_bytes),
-        mutation.kind == MutationBackup::Kind::Smoothing ? mutation.bytes : 0,
-        mutation.owner ? 1u : 0u, smooth.error ? smooth.error : "");
+        find_mutation(&model) != mutations.end() ? find_mutation(&model)->bytes : 0,
+        static_cast<unsigned>(std::count_if(
+            mutations.begin(), mutations.end(), [](const MutationBackup& item) {
+                return is_smoothing(item.kind);
+            })),
+        smooth.error ? smooth.error : "");
     svc_log->info(mod_ctx, report);
 }
 
@@ -537,11 +593,14 @@ void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
 
 HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
     auto* owner = args ? mods::arg<dRes_info_c*>(args, 0) : nullptr;
-    if (owner == mutation.owner) {
-        if (mutation.kind == MutationBackup::Kind::Smoothing)
-            svc_log->info(mod_ctx, "Geometry smoothing: archive pre-delete restoration");
-        restore_active_mutation();
-    }
+    if (!owner)
+        return HOOK_CONTINUE;
+    if (std::any_of(mutations.begin(), mutations.end(),
+                    [owner](const MutationBackup& item) {
+                        return item.owner == owner && is_smoothing(item.kind);
+                    }))
+        svc_log->info(mod_ctx, "Geometry smoothing: archive pre-delete restoration");
+    restore_mutations(MutationBackup::Kind::None, owner);
     if (replacement && replacement->owner == owner) {
         replacement.reset();
         svc_log->info(mod_ctx, "Geometry rebuild: archive replacement released");
@@ -550,13 +609,14 @@ HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
 }
 
 void on_model_created(ModContext*, void* args, void* retval, void*) {
-    if (!args || !retval || !*static_cast<J3DModel**>(retval) ||
-        mutation.kind != MutationBackup::Kind::Smoothing ||
-        mods::arg<J3DModelData*>(args, 0) != mutation.model_data)
+    if (!args || !retval || !*static_cast<J3DModel**>(retval))
         return;
-    char message[100];
-    std::snprintf(message, sizeof(message), "Geometry smoothing: shared model instance %u",
-                  ++mutation.instances);
+    auto found = find_mutation(mods::arg<J3DModelData*>(args, 0));
+    if (found == mutations.end() || !is_smoothing(found->kind))
+        return;
+    char message[160];
+    std::snprintf(message, sizeof(message), "Geometry smoothing: %s instance %u", found->label,
+                  ++found->instances);
     svc_log->info(mod_ctx, message);
 }
 } // namespace
@@ -567,7 +627,7 @@ void initialize() {
     create_registered = false;
     model_load_registered = false;
     replacement.reset();
-    mutation = {};
+    mutations.clear();
     if (!svc_hook)
         return;
     if (mods::hook::add_pre<ModelLoad>(use_rebuilt_model) == MOD_OK)
@@ -593,7 +653,7 @@ void initialize() {
 void shutdown() {
     if (load_registered)
         (void)mods::hook::uninstall<ResourceLoad>();
-    restore_active_mutation();
+    restore_mutations();
     if (delete_registered)
         (void)mods::hook::uninstall<ResourceDelete>();
     if (create_registered)
@@ -606,11 +666,10 @@ void shutdown() {
 }
 
 void restore_mutation() {
-    if (mutation.kind == MutationBackup::Kind::Diagnostic)
-        restore_active_mutation();
+    restore_mutations(MutationBackup::Kind::Diagnostic);
 }
-void restore_smoothing() {
-    if (mutation.kind == MutationBackup::Kind::Smoothing)
-        restore_active_mutation();
+void restore_smoothing(bool skinned) {
+    restore_mutations(skinned ? MutationBackup::Kind::SkinnedSmoothing
+                              : MutationBackup::Kind::RigidSmoothing);
 }
 } // namespace midnafx::geometry_probe

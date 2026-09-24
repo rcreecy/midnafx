@@ -12,8 +12,8 @@ Optional CPU diagnostics report stage p50/p95, layout/resolve call time, snapsho
 requests, and pipeline counts. An opt-in Twilight prototype can blend from the
 general look toward a user-captured target when Dusklight reports active
 Twilight. It is disabled until configured and has not been observed in-game.
-Windows builds have not been tested in
-the game; Intel Mac/Metal validation is still required.
+The grading and geometry paths have been tested in a source-matched Windows
+D3D11 host. Intel Mac/Metal validation is still required.
 
 Download platform-specific packages from the latest successful
 [Build MidnaFX workflow](https://github.com/rcreecy/midnafx/actions/workflows/build.yml):
@@ -29,3 +29,4 @@ Detail design and sample costs: [docs/detail.md](docs/detail.md).
 One-session Intel Mac checklist: [docs/runtime-validation.md](docs/runtime-validation.md).
 Twilight source audit and M6 decision: [docs/m5-m6-investigation.md](docs/m5-m6-investigation.md).
 CameraService source audit and safe-override gate: [docs/camera-investigation.md](docs/camera-investigation.md).
+Geometry coverage checkpoint: [docs/m8-geometry-coverage.md](docs/m8-geometry-coverage.md).
