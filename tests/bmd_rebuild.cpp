@@ -97,9 +97,12 @@ std::vector<std::byte> fixture() {
 
 std::uint64_t hash_expected(bool rebuilt) {
     std::uint64_t hash = 14695981039346656037ULL;
+    const auto normal = [rebuilt](std::uint16_t rebuilt_value, std::uint16_t original_value) {
+        return rebuilt ? rebuilt_value : original_value;
+    };
     const std::uint16_t values[] = {
-        0, 0, 0, rebuilt ? 2u : 0u, 1, rebuilt ? 3u : 0u, 2, rebuilt ? 4u : 1u,
-        0, 0, 2, rebuilt ? 5u : 1u, 1, rebuilt ? 6u : 0u, 3, rebuilt ? 7u : 1u};
+        0, 0, 0, normal(2, 0), 1, normal(3, 0), 2, normal(4, 1),
+        0, 0, 2, normal(5, 1), 1, normal(6, 0), 3, normal(7, 1)};
     for (const auto value : values)
         for (unsigned shift : {0u, 8u}) {
             hash ^= (value >> shift) & 0xff;
