@@ -154,7 +154,20 @@ Link used flags `0x00080000`, no CPU skin flag, no `J3DSkinDeform`, and 134
 normal matrices. Their hash changed at draws 30 and 120 while the rebuilt source
 normal array remained the vertex buffer's current normal pointer. This proves
 that existing animated GPU transforms consume the smoothed normals. The probe
-was removed and the ordinary host rebuilt. The remaining correctness risk is
-visual: no matched rendered Link capture exists, so improved shading and subtle
-hard-edge preservation remain unproven. The Link switch remains hidden and off
-by default.
+was removed and the ordinary host rebuilt.
+
+The final matched runtime pass used the same source-matched D3D11 host, save,
+scene, camera, pose, resolution, and dialogue state for original and smoothed
+`Kmdl.arc/al.bmd`. Evidence is retained locally under `build/m7-evidence/` as
+`link-skinned-off.jpg`, `link-skinned-on.jpg`,
+`link-skinned-comparison.jpg`, and their logs. The enabled log records 6,855
+changed normals, zero index conflicts, one shared instance, and graceful
+original-normal restoration. The comparison shows stable skinning, silhouette,
+shield rim, clothing seams, and no exploding or inverted lighting. Link's
+shading change is subtle in this pose, so broader art-quality review remains a
+release risk. The hidden switch remains off by default.
+
+No new correctness defect was found in this pass. The downloaded NTSC-U
+practice save was used only as runtime test input. Temporary input bindings,
+test save state, and both local and application geometry toggles were restored
+after capture.

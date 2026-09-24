@@ -218,12 +218,29 @@ source pointer remained current. Thus the existing GPU matrix path consumes the
 smoothed source normals through animation. The temporary host probe was removed;
 local evidence is `build/runtime-smoke/stdout-link-transform-host-2.log`.
 
-Visual normal quality is still unproven: the desktop automation provider did
-not expose the Dusklight window, so no matched original/smoothed capture was
-made. Matrix movement proves animated consumption, not improved shading or
-preserved hard edges. Keep the switch hidden and off by default until visual
-comparison passes. The rigid pot remains the only user-facing smoothing
-experiment.
+The restored desktop session allowed a matched skinned-model comparison. Both
+runs loaded save-pack file `02- Post Faron, FT, FT2.gci`, slot 1, through
+`--load-save 1` in the source-matched D3D11 host. The original and smoothed
+captures use the same Faron scene, camera, dialogue page, pose, resolution, and
+lighting. Local evidence is `build/m7-evidence/link-skinned-off.jpg`,
+`link-skinned-on.jpg`, and the Link crop `link-skinned-comparison.jpg`; logs are
+`link-skinned-off.log` and `link-skinned-on.log`.
+
+The enabled run rebuilt and smoothed exact allowlisted `Kmdl.arc/al.bmd`: 2,777
+triangles, 3,358 groups, 6,855 changed normals, zero conflicts, and zero
+ambiguous faces. Decode took 814 us, adjacency 419 us, smoothing 1,391 us, and
+total analysis/mutation 2,395 us; the preceding BMD rebuild took 2,838 us.
+Tracked vector capacity was 788,168 bytes and the restoration backup was
+60,384 bytes. One shared instance used the model. Graceful shutdown restored
+the original normals.
+
+The paired image shows stable skinning, silhouette, shield rim, clothing seams,
+and other intentional hard edges. The shading change on Link is subtle in this
+pose and is not strong art-quality evidence by itself. It does show no
+exploding/inverted lighting or visible hard-edge regression. Combined with the
+changing GPU normal-matrix proof and the earlier rigid-pot improvement, this
+completes the narrow M7 runtime safety proof. Keep the Link switch hidden and
+off by default pending broader scene, lighting, and animation review.
 
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper

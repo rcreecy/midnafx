@@ -408,3 +408,40 @@ reported vector bytes are not presented as a whole-process allocation peak.
 Remaining risks are small-scale visual evidence and unresolved skinned
 normal-index conflicts. All eight Windows Release tests pass for the current
 prototype.
+
+## Final skinned-model proof (September 2026)
+
+Subsequent identity splitting resolved the previously documented Link
+normal-index conflicts without changing triangle positions, primitive order,
+materials, matrix groups, or non-normal corner attributes. The exact
+`Kmdl.arc/al.bmd` allowlist rebuilt to 10,064 S16 XYZ normal entries and decoded
+2,777 runtime triangles with the same ordered corner hash. Its smoothing plan
+created 3,358 groups, changed 6,855 normals, and reported zero index conflicts
+or ambiguous faces.
+
+A matched D3D11 runtime comparison used save-pack file
+`02- Post Faron, FT, FT2.gci`, slot 1, through `--load-save 1`. Original and
+smoothed captures share the Faron scene, camera, dialogue page, pose,
+resolution, and lighting. Local files are
+`build/m7-evidence/link-skinned-off.jpg`, `link-skinned-on.jpg`, and
+`link-skinned-comparison.jpg`; corresponding logs are in the same directory.
+The images show stable skinning, silhouette, shield rim, clothing seams, and no
+exploding or inverted lighting. The visual change is subtle in this pose, so
+the capture establishes runtime safety more strongly than art-quality gain.
+The earlier rigid-pot comparison remains the clearer proof of improved curved
+surface shading.
+
+The enabled Link sample measured 814 us topology decode, 18 us normal decode,
+419 us adjacency construction, 1,391 us smoothing, and 2,395 us total
+analysis/mutation. The BMD rebuild took 2,838 us. Tracked working-vector
+capacity peaked at 788,168 bytes, plus a 60,384-byte restoration backup. One
+shared model instance was observed, and graceful shutdown restored original
+normal bytes. A separate live GPU probe observed 134 changing normal matrices
+across draws 1, 30, and 120 while the rebuilt source normal pointer remained
+current. Together these runs prove that animated GPU skinning consumes the
+smoothed normals and that the resource lifecycle restores cleanly.
+
+Gate 2 remains PASS. M7's conservative prototype is complete for its exact pot
+and Link allowlists. Both switches remain default off; the Link switch remains
+hidden. Broader model coverage and art review belong to the next geometry
+milestone, not this foundation gate.
