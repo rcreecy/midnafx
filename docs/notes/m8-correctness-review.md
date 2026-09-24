@@ -17,3 +17,11 @@ completed without new faceting, corruption, stale pointers, or shutdown failure.
 The substitution was removed and the source-matched host rebuilt cleanly. No
 error, fatal, assertion, or GPU validation line appeared. The existing Link
 algorithm, exact allowlist, topology checks, and default-off state are unchanged.
+
+A follow-up decoded the ACT/SCO records in all 305 extracted room archives. None
+of the 25 `Obj_gm` placements selects rock type 3, so natural-placement proof is
+unavailable rather than merely undiscovered in the Forest Temple layer scan.
+The multi-entry lifecycle then passed a controlled room-19 to room-0 transition:
+both entries restored before archive deletion, both fresh resources were
+processed once after reload, and both restored once more at shutdown. The
+temporary transition trigger was removed and the clean host rebuilt.

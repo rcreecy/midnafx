@@ -38,6 +38,14 @@ was removed and the clean host rebuilt after capture. This proves safe rendering
 of the new allowlist entry, but it is not strong art-quality evidence of a visible
 improvement under varied lighting.
 
+A read-only scan then decoded all 305 extracted room archives and inspected
+their ACT/SCO actor records. It found 25 `Obj_gm` placements: Forest Temple uses
+types 0, 1, and 5, while the remaining placements use type 15, which the actor
+maps back to type 0. No room contains type 3, the only actor type that selects
+`k_kumo_iwa00.bmd`. A natural placement therefore does not exist in the official
+USA disc data available for this test. Future visual grading of this exact model
+must remain an explicitly controlled substitution test.
+
 ## Lifecycle and safety review
 
 Each mutation entry owns its model pointer, resource owner, original byte copy,
@@ -53,13 +61,26 @@ multi-entry restoration, and model-instance lookup after vector reallocation.
 No per-frame work was added. Portable tests passed 7/7 and Windows Release tests
 passed 9/9.
 
+The two-entry lifecycle was exercised in the source-matched D3D11 host with a
+temporary host-only room-19 to room-0 transition after 300 gameplay frames. In
+room 19, the rock and pot produced cache entries one and two, and five pot
+instances shared the processed resource. Before archive deletion, one pre-delete
+event restored both backups and released the rebuilt pot resource. Room 0 then
+loaded a fresh archive: the rock and pot were each processed once again, cache
+entries returned to one and two, and two pot instances were created. Graceful
+shutdown restored both fresh backups. The run therefore recorded two
+applications per model, four restorations total, and no error, fatal, assertion,
+GPU-validation, stale-pointer, or double-processing report. The transition
+trigger was removed and the clean source-matched host rebuilt afterward.
+
 ## Boundary
 
 This checkpoint does not qualify the other scanned Forest Temple objects, add a
 second character, or make the control user-facing beyond renaming the existing
-experimental rigid toggle. The next checkpoint should find a natural placement
-or controlled lighting view that gives strong art evidence for this rock, then
-exercise a live archive unload/reload with both rigid entries active. The second
-rock variant remains a later exact allowlist candidate. Broader character
-coverage still requires a separately fingerprinted identity split and close
-visual review.
+experimental rigid toggle. Natural-placement proof for this rock is impossible
+with the inspected official room data, and the controlled rendering proof is
+intentionally classified as safety evidence rather than strong art evidence.
+The next checkpoint should select a naturally instantiated static/environmental
+model with useful curved adjacency and validate it under distinct lighting. The
+unused second rock variant is a poor next target. Broader character coverage
+still requires a separately fingerprinted identity split and close visual review.
