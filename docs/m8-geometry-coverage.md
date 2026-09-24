@@ -46,6 +46,46 @@ maps back to type 0. No room contains type 3, the only actor type that selects
 USA disc data available for this test. Future visual grading of this exact model
 must remain an explicitly controlled substitution test.
 
+## Second checkpoint: natural Ordon beehive
+
+The next static target is the naturally placed Ordon beehive
+`E_nest.arc/o_hachinosu_01.bmd`. The official `F_SP103` room data instantiates
+this actor; the source-matched host created one model instance through its normal
+actor and render path. The original resource is 12,576 bytes with source FNV-1a
+`de8546d0a1fd387d`, runtime topology hash `ae27261b1928e1f5`, 61 positions, 64
+normals, one shape, no envelopes, and 111 triangles. Its normals are S16 XYZ,
+six-byte stride, with 15 fractional bits.
+
+The original display list aliases normal indices across incompatible smoothing
+groups and reports 28 conflicts. MidnaFX therefore fails closed on the original
+resource. The identity-split rebuild preserved all non-normal corner attributes
+and expanded 397 referenced normal entries into a capacity of 400. Its exact
+runtime topology hash is `d107e10bca9ec9d0`. The runtime decoder found 111
+triangles, zero degenerates, 59 referenced positions, 333 referenced normal
+indices, 75 smoothing groups, zero conflicts, and zero ambiguous faces.
+
+At 55 degrees with the conservative 25% blend, smoothing changed 62 normals.
+The final instrumented sample used 114 us for decode and 203 us total for decode,
+adjacency, planning, and mutation. Peak tracked vector capacity was 31,064 bytes;
+the restoration backup was 2,400 bytes. Exact resource and topology fingerprints,
+counts, envelope state, and normal encoding all gate mutation.
+
+The natural nest hangs outside the spawn camera view. A temporary host-only probe
+forced its saved broken-state switch off, enlarged it, and kept it in front of
+Link for matched default-off/default-on captures. The same natural actor and real
+render path remained in use. The enlarged comparison showed a small, coherent
+reduction in faceted lighting across the curved shell with no new triangle
+outlines, silhouette change, texture corruption, or hard-edge loss. Local
+evidence is in `build/m8-evidence/nest-off.jpg`, `nest-on.jpg`, and
+`nest-comparison.jpg`. The visibility probe was removed afterward.
+
+Three launches rebuilt and processed the resource once each. Graceful shutdown
+restored its 2,400-byte normal backup each time. The final run used the clean
+source-matched host after removal of all visibility instrumentation. This proves
+the production actor path and restoration behavior for the new target. Existing
+multi-entry room-transition evidence continues to cover concurrent backup
+ownership; concurrent rebuilt-resource ownership remains a source-reviewed path.
+
 ## Lifecycle and safety review
 
 Each mutation entry owns its model pointer, resource owner, original byte copy,
@@ -75,12 +115,11 @@ trigger was removed and the clean source-matched host rebuilt afterward.
 
 ## Boundary
 
-This checkpoint does not qualify the other scanned Forest Temple objects, add a
-second character, or make the control user-facing beyond renaming the existing
-experimental rigid toggle. Natural-placement proof for this rock is impossible
-with the inspected official room data, and the controlled rendering proof is
-intentionally classified as safety evidence rather than strong art evidence.
-The next checkpoint should select a naturally instantiated static/environmental
-model with useful curved adjacency and validate it under distinct lighting. The
-unused second rock variant is a poor next target. Broader character coverage
-still requires a separately fingerprinted identity split and close visual review.
+M8 now covers a naturally instantiated curved static actor as well as the
+controlled Forest Temple rock. It does not qualify other scanned objects, add a
+second character, or enable smoothing by default. The enlarged beehive capture
+is useful safety and directional art evidence, but varied natural lighting still
+needs broader grading. The next checkpoint should validate another natural
+static/environment target without visibility relocation, preferably one large
+enough for close matched captures. Broader character coverage still requires a
+separately fingerprinted identity split and close visual review.

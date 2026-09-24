@@ -42,13 +42,13 @@ bool create_registered = false;
 bool model_load_registered = false;
 
 struct Replacement {
-    enum class Kind { Pot, LinkBody } kind = Kind::Pot;
+    enum class Kind { Pot, LinkBody, Nest } kind = Kind::Pot;
     dRes_info_c* owner = nullptr;
     const void* source = nullptr;
     void* data = nullptr;
     u32 size = 0;
 };
-std::optional<Replacement> replacement;
+std::vector<Replacement> replacements;
 
 std::uint64_t fnv1a(const std::byte* data, std::size_t size) {
     std::uint64_t hash = 14695981039346656037ULL;
@@ -60,20 +60,28 @@ std::uint64_t fnv1a(const std::byte* data, std::size_t size) {
 }
 
 const Replacement* replacement_for(const void* data) {
-    return replacement && replacement->data == data ? &*replacement : nullptr;
+    const auto found = std::find_if(replacements.begin(), replacements.end(),
+                                    [data](const Replacement& item) {
+                                        return item.data == data;
+                                    });
+    return found == replacements.end() ? nullptr : &*found;
 }
 
 HookAction use_rebuilt_model(ModContext*, void* args, void*, void*) {
     if (!args)
         return HOOK_CONTINUE;
     const void* source = mods::arg<const void*>(args, 0);
-    if (replacement && replacement->source == source)
-        mods::arg_ref<const void*>(args, 0) = replacement->data;
+    const auto found = std::find_if(replacements.begin(), replacements.end(),
+                                    [source](const Replacement& item) {
+                                        return item.source == source;
+                                    });
+    if (found != replacements.end())
+        mods::arg_ref<const void*>(args, 0) = found->data;
     return HOOK_CONTINUE;
 }
 
 HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
-    if (!args || !model_load_registered || !delete_registered || replacement)
+    if (!args || !model_load_registered || !delete_registered)
         return HOOK_CONTINUE;
     auto* info = mods::arg<dRes_info_c*>(args, 0);
     if (!info || !info->mArchive || !info->mDataHeap || !info->mArchiveName ||
@@ -96,7 +104,16 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
              std::strcmp(info->mArchiveName, "OBJ_GM") == 0)
         target = Target{Replacement::Kind::Pot, "k_kumo_tubo01.bmd", 12896,
                         0xa9efd2ace652b900ULL, "OBJ_GM.arc/k_kumo_tubo01.bmd"};
+    else if (settings::geometry_smoothing_enabled() &&
+             std::strcmp(info->mArchiveName, "E_nest") == 0)
+        target = Target{Replacement::Kind::Nest, "o_hachinosu_01.bmd", 12576,
+                        0xde8546d0a1fd387dULL, "E_nest.arc/o_hachinosu_01.bmd"};
     if (!target)
+        return HOOK_CONTINUE;
+    if (std::any_of(replacements.begin(), replacements.end(),
+                    [info, &target](const Replacement& item) {
+                        return item.owner == info && item.kind == target->kind;
+                    }))
         return HOOK_CONTINUE;
     const u32 count = static_cast<u32>(info->mArchive->countFile());
     for (u32 index = 0; index < count; ++index) {
@@ -111,13 +128,22 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
             continue;
         const void* source = info->mArchive->getIdxResource(index);
         if (!source) {
-            svc_log->info(mod_ctx, "Geometry rebuild: pot source unavailable");
+            svc_log->info(mod_ctx, "Geometry rebuild: source unavailable");
             return HOOK_CONTINUE;
         }
         const u32 size = info->mArchive->getExpandedResSize(source);
-        if (size != target->size ||
-            fnv1a(static_cast<const std::byte*>(source), size) != target->hash) {
-            svc_log->info(mod_ctx, "Geometry rebuild: source fingerprint rejected");
+        const std::uint64_t source_hash =
+            size != static_cast<u32>(-1)
+                ? fnv1a(static_cast<const std::byte*>(source), size)
+                : 0;
+        if (size != target->size || source_hash != target->hash) {
+            char message[240];
+            std::snprintf(message, sizeof(message),
+                          "Geometry rebuild: source fingerprint rejected for %s "
+                          "bytes=%u hash=%016llx",
+                          target->label, size,
+                          static_cast<unsigned long long>(source_hash));
+            svc_log->info(mod_ctx, message);
             return HOOK_CONTINUE;
         }
         const auto begin = std::chrono::steady_clock::now();
@@ -140,8 +166,8 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
             return HOOK_CONTINUE;
         }
         std::memcpy(owned, rebuilt.bytes.data(), rebuilt.bytes.size());
-        replacement = Replacement{target->kind, info, source, owned,
-                                  static_cast<u32>(rebuilt.bytes.size())};
+        replacements.push_back(Replacement{target->kind, info, source, owned,
+                                           static_cast<u32>(rebuilt.bytes.size())});
         const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                                  std::chrono::steady_clock::now() - begin)
                                  .count();
@@ -268,13 +294,20 @@ bool is_smoothing_target(const dRes_info_c& info, const char* name) {
         std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
         std::strcmp(name, "k_kumo_iwa00.bmd") == 0)
         return true;
-    const auto* rebuilt = replacement ? &*replacement : nullptr;
-    if (!rebuilt || rebuilt->owner != &info)
+    const auto rebuilt = std::find_if(replacements.begin(), replacements.end(),
+                                      [&info](const Replacement& item) {
+                                          return item.owner == &info;
+                                      });
+    if (rebuilt == replacements.end())
         return false;
     if (rebuilt->kind == Replacement::Kind::Pot)
         return settings::geometry_smoothing_enabled() &&
                std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
                std::strcmp(name, "k_kumo_tubo01.bmd") == 0;
+    if (rebuilt->kind == Replacement::Kind::Nest)
+        return settings::geometry_smoothing_enabled() &&
+               std::strcmp(info.mArchiveName, "E_nest") == 0 &&
+               std::strcmp(name, "o_hachinosu_01.bmd") == 0;
     return settings::geometry_skinned_smoothing_enabled() &&
            std::strcmp(info.mArchiveName, "Kmdl") == 0 && std::strcmp(name, "al.bmd") == 0;
 }
@@ -444,6 +477,9 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         const bool link_exact = rebuilt && rebuilt->kind == Replacement::Kind::LinkBody &&
                                 result.corner_hash == 0x6ed5b0df43c35b63ULL && pos_count == 1560 &&
                                 normal_count == 10064 && model.getWEvlpMtxNum() == 110;
+        const bool nest_exact = rebuilt && rebuilt->kind == Replacement::Kind::Nest &&
+                                result.corner_hash == 0xd107e10bca9ec9d0ULL && pos_count == 61 &&
+                                normal_count == 400 && model.getWEvlpMtxNum() == 0;
         const bool rock_exact = !rebuilt && std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
                                 std::strcmp(name, "k_kumo_iwa00.bmd") == 0 &&
                                 resource_size == 13856 &&
@@ -453,6 +489,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         const unsigned normal_fraction = vertex.getVtxNrmFrac();
         const bool exact = normal_type == GX_S16 && normal_stride == 6 &&
                            (((pot_exact || link_exact) && normal_fraction == 14) ||
+                            (nest_exact && normal_fraction == 15) ||
                             (rock_exact && normal_fraction == 15));
         if (exact && smooth.safe() && smooth.changed_indices > 0 && delete_registered) {
             const u32 bytes_count = normal_count * normal_stride;
@@ -471,8 +508,9 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                     }
                     std::memcpy(destination + i * 6, encoded, 6);
                 }
-                const char* label = pot_exact   ? "OBJ_GM.arc/k_kumo_tubo01.bmd"
+                const char* label = pot_exact    ? "OBJ_GM.arc/k_kumo_tubo01.bmd"
                                     : link_exact ? "Kmdl.arc/al.bmd"
+                                    : nest_exact ? "E_nest.arc/o_hachinosu_01.bmd"
                                                  : "OBJ_GM.arc/k_kumo_iwa00.bmd";
                 mutations.push_back({link_exact ? MutationBackup::Kind::SkinnedSmoothing
                                                 : MutationBackup::Kind::RigidSmoothing,
@@ -482,6 +520,8 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                     mod_ctx,
                     pot_exact ? "Geometry smoothing: applied OBJ_GM.arc/k_kumo_tubo01.bmd"
                               : link_exact ? "Geometry smoothing: applied Kmdl.arc/al.bmd"
+                              : nest_exact ? "Geometry smoothing: applied "
+                                             "E_nest.arc/o_hachinosu_01.bmd"
                                            : "Geometry smoothing: applied "
                                              "OBJ_GM.arc/k_kumo_iwa00.bmd");
             }
@@ -601,10 +641,12 @@ HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
                     }))
         svc_log->info(mod_ctx, "Geometry smoothing: archive pre-delete restoration");
     restore_mutations(MutationBackup::Kind::None, owner);
-    if (replacement && replacement->owner == owner) {
-        replacement.reset();
+    const auto old_size = replacements.size();
+    std::erase_if(replacements, [owner](const Replacement& item) {
+        return item.owner == owner;
+    });
+    if (replacements.size() != old_size)
         svc_log->info(mod_ctx, "Geometry rebuild: archive replacement released");
-    }
     return HOOK_CONTINUE;
 }
 
@@ -626,7 +668,7 @@ void initialize() {
     delete_registered = false;
     create_registered = false;
     model_load_registered = false;
-    replacement.reset();
+    replacements.clear();
     mutations.clear();
     if (!svc_hook)
         return;
@@ -662,7 +704,7 @@ void shutdown() {
         (void)mods::hook::uninstall<ModelLoad>();
     load_registered = delete_registered = create_registered = false;
     model_load_registered = false;
-    replacement.reset();
+    replacements.clear();
 }
 
 void restore_mutation() {
