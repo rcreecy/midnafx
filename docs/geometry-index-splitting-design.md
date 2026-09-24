@@ -208,12 +208,22 @@ fatal error, or GPU validation error appeared. Evidence is the ignored local
 `build/runtime-smoke/stdout-link-smoothing-live.log`.
 
 This passes resource ownership, topology, index-conflict, sustained execution,
-and graceful restoration for one enveloped model. It does not yet prove visual
-normal quality or animation behavior: the desktop automation provider did not
-expose the Dusklight window, so no matched original/smoothed capture was made,
-and no transformed-normal buffer was instrumented. Keep the switch hidden and
-off by default until those observations pass. The rigid pot remains the only
-user-facing smoothing experiment.
+and graceful restoration for one enveloped model. A follow-up host-only probe
+also established the active skinning path. The model used flags `0x00080000`,
+both CPU skin flags were clear, `getSkinDeform()` was null, and the rebuilt
+source normal array remained the current vertex-buffer normal pointer. Across
+draws 1, 30, and 120, its 134 GPU normal matrices changed from hash
+`2e2b294129dc7c70` to `c5956fd5277c0f29` and `bb4995530c60a3aa`, while the
+source pointer remained current. Thus the existing GPU matrix path consumes the
+smoothed source normals through animation. The temporary host probe was removed;
+local evidence is `build/runtime-smoke/stdout-link-transform-host-2.log`.
+
+Visual normal quality is still unproven: the desktop automation provider did
+not expose the Dusklight window, so no matched original/smoothed capture was
+made. Matrix movement proves animated consumption, not improved shading or
+preserved hard edges. Keep the switch hidden and off by default until visual
+comparison passes. The rigid pot remains the only user-facing smoothing
+experiment.
 
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper

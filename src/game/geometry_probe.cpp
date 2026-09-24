@@ -513,7 +513,8 @@ void describe_model(const dRes_info_c& info, u32 type, u32 file_index) {
 
 void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
     if ((!settings::geometry_diagnostics_enabled() && !settings::geometry_mutation_test_enabled() &&
-         !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled()) ||
+         !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled() &&
+         !settings::geometry_skinned_smoothing_enabled()) ||
         !args || !retval || *static_cast<int*>(retval) < 0)
         return;
     auto* info = mods::arg<dRes_info_c*>(args, 0);

@@ -130,8 +130,8 @@ triangles, finite normal encoding, strip winding, material separation,
 normal-index aliasing, shared instances, unload/reload, in-process disable, and
 graceful shutdown. Runtime unload/reload used a new archive heap and rebuilt
 exactly once per observed resource lifetime. Remaining risk is limited to the
-unvalidated skinned-model path and broader model coverage; only the exact rigid
-pot is user-facing, and the setting remains off by default.
+broader model coverage and visual quality on the hidden skinned path; only the
+exact rigid pot is user-facing, and the setting remains off by default.
 
 The follow-up skinned checkpoint uses a separate hidden default-off switch and
 an exact `Kmdl.arc/al.bmd` size/hash allowlist. Review verified that the same
@@ -142,8 +142,19 @@ shutdown. No stale pointer or double mutation was observed.
 
 Two limits remain deliberate. The implementation retains one replacement and
 one active mutation, so the hidden Link experiment and pot experiment are not
-supported concurrently. More importantly, the run did not capture the rendered
-Link or instrument transformed normals. It proves that an enveloped model loads,
-runs, and restores safely; it does not yet prove improved animated shading or
-rule out subtle hard-edge damage. The Link switch remains hidden and off by
-default.
+supported concurrently. The dedicated activation review found one defect: the
+resource hook's early-return condition omitted the hidden skinned switch, so it
+only ran when an unrelated diagnostic or rigid-smoothing switch was enabled.
+The condition now includes `geometry_skinned_smoothing_enabled()`. A live run
+with both geometry diagnostics and topology diagnostics disabled rebuilt and
+smoothed Link, used one instance, restored the normals, and unloaded cleanly.
+
+A temporary host-only draw probe then confirmed the live GPU skinning path.
+Link used flags `0x00080000`, no CPU skin flag, no `J3DSkinDeform`, and 134
+normal matrices. Their hash changed at draws 30 and 120 while the rebuilt source
+normal array remained the vertex buffer's current normal pointer. This proves
+that existing animated GPU transforms consume the smoothed normals. The probe
+was removed and the ordinary host rebuilt. The remaining correctness risk is
+visual: no matched rendered Link capture exists, so improved shading and subtle
+hard-edge preservation remain unproven. The Link switch remains hidden and off
+by default.
