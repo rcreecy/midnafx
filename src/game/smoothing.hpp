@@ -13,6 +13,8 @@ struct Options {
     float face_angle_degrees = 55.0f;
     float original_split_degrees = 20.0f;
     float index_conflict_degrees = 1.0f;
+    // Retain authored shaping; full geometric replacement exposed character facets.
+    float geometric_weight = 0.25f;
 };
 
 struct Result {

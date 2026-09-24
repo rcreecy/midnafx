@@ -59,7 +59,8 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     if (!mesh.ok() || originals.empty() || originals.size() > 65536 ||
         !(options.face_angle_degrees > 0 && options.face_angle_degrees <= 90) ||
         !(options.original_split_degrees > 0 && options.original_split_degrees <= 90) ||
-        !(options.index_conflict_degrees > 0 && options.index_conflict_degrees <= 45)) {
+        !(options.index_conflict_degrees > 0 && options.index_conflict_degrees <= 45) ||
+        !(options.geometric_weight > 0 && options.geometric_weight <= 1)) {
         result.error = "invalid smoothing input";
         return result;
     }
@@ -198,7 +199,12 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
             for (const Ref ref : group) {
                 const auto& tri = mesh.triangles[ref.triangle];
                 const auto index = tri.corners[ref.corner].normal;
-                const Vec3 target = blend ? replacement : original_unit[index];
+                const Vec3 target = blend
+                                        ? normalize(add(mul(original_unit[index],
+                                                            1.0f - options.geometric_weight),
+                                                        mul(replacement,
+                                                            options.geometric_weight)))
+                                        : original_unit[index];
                 candidate[index] = true;
                 if (assigned[index] && dot(desired[index], target) < conflict_limit)
                     ++result.index_conflicts;

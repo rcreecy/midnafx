@@ -55,8 +55,8 @@ int main() {
     permissive.original_split_degrees = 40;
     result = smoothing::plan(mesh, normals, permissive);
     check(result.safe() && result.changed_indices == 2);
-    check(result.normals[0].y > 0.2f && result.normals[0].y < 0.3f);
-    check(std::abs(result.normals[0].y - result.normals[1].y) < 1e-5f);
+    check(result.normals[0].y > 0.05f && result.normals[0].y < 0.1f);
+    check(result.normals[1].y > 0.4f && result.normals[1].y < 0.48f);
 
     mesh.triangles[1].material = 1;
     result = smoothing::plan(mesh, normals, permissive);
@@ -73,6 +73,24 @@ int main() {
     check(result.safe() && result.changed_indices == 2);
     check(result.normals[0].y < 0.2f); // Corner-angle weighting favors the first face.
     mesh.triangles[0].corner_angles[0] = 1;
+
+    // Keep authored smooth normals close to their source direction. Replacing
+    // them outright with raw face averages causes visible character triangles.
+    const Vec3 authored{0, 0.15f, 0.988686f};
+    auto authored_normals = normals;
+    authored_normals[0] = authored;
+    authored_normals[1] = authored;
+    result = smoothing::plan(mesh, authored_normals, permissive);
+    check(result.safe());
+    check(result.changed_indices == 2);
+    check(result.normals[0].y > authored.y);
+    check(result.normals[0].y < 0.19f);
+
+    auto invalid_weight = permissive;
+    invalid_weight.geometric_weight = 0;
+    check(!smoothing::plan(mesh, authored_normals, invalid_weight).safe());
+    invalid_weight.geometric_weight = 1.01f;
+    check(!smoothing::plan(mesh, authored_normals, invalid_weight).safe());
 
     mesh.triangles[1].face_normal = {0, 0, -1};
     result = smoothing::plan(mesh, normals, permissive);

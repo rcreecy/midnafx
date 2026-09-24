@@ -416,8 +416,7 @@ normal-index conflicts without changing triangle positions, primitive order,
 materials, matrix groups, or non-normal corner attributes. The exact
 `Kmdl.arc/al.bmd` allowlist rebuilt to 10,064 S16 XYZ normal entries and decoded
 2,777 runtime triangles with the same ordered corner hash. Its smoothing plan
-created 3,358 groups, changed 6,855 normals, and reported zero index conflicts
-or ambiguous faces.
+created 3,358 groups and reported zero index conflicts or ambiguous faces.
 
 A matched D3D11 runtime comparison used save-pack file
 `02- Post Faron, FT, FT2.gci`, slot 1, through `--load-save 1`. Original and
@@ -425,15 +424,21 @@ smoothed captures share the Faron scene, camera, dialogue page, pose,
 resolution, and lighting. Local files are
 `build/m7-evidence/link-skinned-off.jpg`, `link-skinned-on.jpg`, and
 `link-skinned-comparison.jpg`; corresponding logs are in the same directory.
-The images show stable skinning, silhouette, shield rim, clothing seams, and no
-exploding or inverted lighting. The visual change is subtle in this pose, so
-the capture establishes runtime safety more strongly than art-quality gain.
-The earlier rigid-pot comparison remains the clearer proof of improved curved
-surface shading.
+The initial 100% geometric result changed 6,855 normals and proved stable
+skinning, but user review found clear triangle-shaped shading on Link's upper
+arm. The cause was full replacement of authored character normals with raw
+angle-weighted face averages. That image is retained as negative evidence.
 
-The enabled Link sample measured 814 us topology decode, 18 us normal decode,
-419 us adjacency construction, 1,391 us smoothing, and 2,395 us total
-analysis/mutation. The BMD rebuild took 2,838 us. Tracked working-vector
+The corrected plan preserves 75% of each authored direction and moves it 25%
+toward the compatible group's geometric average. It changed 5,547 normals with
+zero conflicts. `link-arm-fix-comparison.jpg` compares original, rejected, and
+corrected results; the corrected upper arm no longer shows the prominent
+triangle pattern. The rigid pot still changes 450 normals across 129 groups,
+so the correction retains useful curved-surface smoothing.
+
+The corrected Link sample measured 841 us topology decode, 18 us normal decode,
+403 us adjacency construction, 1,412 us smoothing, and 2,444 us total
+analysis/mutation. The BMD rebuild took 2,501 us. Tracked working-vector
 capacity peaked at 788,168 bytes, plus a 60,384-byte restoration backup. One
 shared model instance was observed, and graceful shutdown restored original
 normal bytes. A separate live GPU probe observed 134 changing normal matrices

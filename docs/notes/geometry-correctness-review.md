@@ -156,18 +156,28 @@ normal array remained the vertex buffer's current normal pointer. This proves
 that existing animated GPU transforms consume the smoothed normals. The probe
 was removed and the ordinary host rebuilt.
 
-The final matched runtime pass used the same source-matched D3D11 host, save,
+The first matched runtime pass used the same source-matched D3D11 host, save,
 scene, camera, pose, resolution, and dialogue state for original and smoothed
-`Kmdl.arc/al.bmd`. Evidence is retained locally under `build/m7-evidence/` as
-`link-skinned-off.jpg`, `link-skinned-on.jpg`,
-`link-skinned-comparison.jpg`, and their logs. The enabled log records 6,855
-changed normals, zero index conflicts, one shared instance, and graceful
-original-normal restoration. The comparison shows stable skinning, silhouette,
-shield rim, clothing seams, and no exploding or inverted lighting. Link's
-shading change is subtle in this pose, so broader art-quality review remains a
-release risk. The hidden switch remains off by default.
+`Kmdl.arc/al.bmd`. It proved stable skinning and restoration, but user review
+correctly identified triangle-shaped shading on Link's upper arm. The planner
+was replacing authored normals completely with geometric face averages.
 
-No new correctness defect was found in this pass. The downloaded NTSC-U
+The fix preserves 75% of each authored normal and moves it 25% toward the
+angle-weighted group average. The regression test bounds the movement of an
+authored smooth normal. A matched live rerun changed 5,547 normals, reported
+zero index conflicts, restored the originals on shutdown, and materially
+reduced the arm faceting. Evidence is `link-skinned-off.jpg`, the rejected
+`link-skinned-on.jpg`, the corrected `link-skinned-on-blended.jpg`, and
+`link-arm-fix-comparison.jpg` under `build/m7-evidence/`.
+
+The corrected rigid-pot run still performed useful work: 174 triangles, 129
+groups, 450 changed normals, zero conflicts, five shared instances, 197 us
+total analysis/mutation, and graceful restoration. This rules out the
+authored-normal-only alternative, which removed the character regression but
+made no pot changes. Broader art-quality validation remains a release risk;
+both switches remain off by default.
+
+The downloaded NTSC-U
 practice save was used only as runtime test input. Temporary input bindings,
 test save state, and both local and application geometry toggles were restored
 after capture.

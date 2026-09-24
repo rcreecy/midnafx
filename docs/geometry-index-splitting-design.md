@@ -198,9 +198,10 @@ bytes, FNV-1a `c00c6d9abd5d79bc`). The in-process transformer produced a
 
 Runtime reconstruction reported 1,560 position-array entries, 18 shapes, 110
 envelopes, 39 optimized indexed draws, 2,777 triangles, 8,331 referenced normal
-indices, corner hash `6ed5b0df43c35b63`, 3,358 smoothing groups, 6,855 changed
-normals, and zero normal-index conflicts. The measured rebuild was 2.306 ms;
-runtime decode plus smoothing and mutation was 2.336 ms; tracked working vectors
+indices, corner hash `6ed5b0df43c35b63`, 3,358 smoothing groups, and zero
+normal-index conflicts. The initial full geometric replacement changed 6,855
+normals. The measured rebuild was 2.306 ms; runtime decode plus smoothing and
+mutation was 2.336 ms; tracked working vectors
 peaked at 788,168 bytes and the restoration backup used 60,384 bytes. One live
 model instance used the processed model. The game ran through 3,600 logged
 frames and shut down cleanly, restoring original normal values. No assertion,
@@ -234,13 +235,22 @@ Tracked vector capacity was 788,168 bytes and the restoration backup was
 60,384 bytes. One shared instance used the model. Graceful shutdown restored
 the original normals.
 
-The paired image shows stable skinning, silhouette, shield rim, clothing seams,
-and other intentional hard edges. The shading change on Link is subtle in this
-pose and is not strong art-quality evidence by itself. It does show no
-exploding/inverted lighting or visible hard-edge regression. Combined with the
-changing GPU normal-matrix proof and the earlier rigid-pot improvement, this
-completes the narrow M7 runtime safety proof. Keep the Link switch hidden and
-off by default pending broader scene, lighting, and animation review.
+The first paired image showed stable skinning and no exploding or inverted
+lighting, but subsequent user review found clear triangle-shaped shading on
+Link's upper arm. The original planner replaced authored character normals
+entirely with the raw angle-weighted geometric average. That was a visual
+regression even though topology, skinning, and index ownership were correct.
+
+The corrected planner moves each authored normal only 25% toward its group's
+geometric average. A matched rerun changed 5,547 normals with zero conflicts or
+ambiguous faces. Decode took 841 us, adjacency 403 us, smoothing 1,412 us, and
+total analysis/mutation 2,444 us; the rebuild took 2,501 us. The three-way crop
+`build/m7-evidence/link-arm-fix-comparison.jpg` shows the original, rejected
+100% geometric result, and corrected 25% blend. The corrected arm is close to
+the original and no longer has the prominent triangle pattern. The rejected
+`link-skinned-on.jpg` is retained as negative evidence; the corrected capture
+is `link-skinned-on-blended.jpg`. Keep the Link switch hidden and off by default
+pending broader art review.
 
 The separate CPU check in `docs/notes/cpu-skinning-check.md` found two pinned
 host blockers: Aurora's optimized PC draw commands cause the CPU normal mapper
