@@ -86,11 +86,20 @@ Both retained the same native/effective tangent-space scale
 (`61.25/75.16` degrees), remained finite, and exited normally. This validates
 startup aspect changes; live resizing still needs an interactive pass.
 
+A temporary MidnaFX harness also forced an enabled, disabled, then re-enabled
+sequence within one process while the native camera stayed in mode 0. Runtime
+diagnostics recorded `61.38/75.31`, then immediate native fallback at
+`61.59/61.59`, then resumed modification at `61.63/75.58`. The process exited
+normally. The harness was removed, the release package rebuilt, and a final
+launch again recorded normal active output. This proves callback state handoff
+without stale output; the real UI/config control still needs an interactive
+toggle pass.
+
 Live targeting, aiming, dialogue/cutscene activation, production detached-camera
-activation, live resize, and in-process setting toggle remain validation work
-before this can become a default-on camera profile. Automated runtime evidence
-now covers normal exploration, forced detached, forced demo, forced non-normal,
-and two startup aspect ratios.
+activation, live resize, and the real UI/config setting toggle remain validation
+work before this can become a default-on camera profile. Automated runtime
+evidence now covers normal exploration, forced detached, forced demo, forced
+non-normal, forced in-process disable/re-enable, and two startup aspect ratios.
 
 ## Scope and next step
 
