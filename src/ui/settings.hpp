@@ -15,6 +15,8 @@ float geometry_smoothing_angle();
 bool camera_enabled();
 float camera_fov_scale();
 float camera_transition_seconds();
+bool camera_lower_angle_enabled();
+float camera_angle_reduction();
 bool passthrough_test();
 std::int64_t split_percent();
 grade::Prepared prepared_grade();

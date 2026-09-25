@@ -41,7 +41,8 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
     geometry_smoothing{"geometry_smoothing"},
-    geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"};
+    geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
+    camera_lower_angle{"camera_lower_angle"};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -54,6 +55,8 @@ NumberSetting camera_fov_setting{
     "camera_fov_percent", "Exploration FOV scale (%)", 80, 140, 110, 110, false};
 NumberSetting camera_transition_setting{
     "camera_transition_cs", "Camera transition (0.01 s)", 0, 200, 35, 35, false};
+NumberSetting camera_angle_setting{
+    "camera_angle_degrees", "Camera elevation reduction (degrees)", 0, 15, 6, 6, false};
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
     "Final",           "Passthrough", "A/B Split", "Luminance", "Highlight Clipping",
@@ -695,28 +698,38 @@ void refresh_status() {
     check_ui(svc_ui->elem_set_text(mod_ctx, detail_element, detail));
     if (camera_element) {
         const auto camera = camera_probe::snapshot();
-        char camera_text[512];
+        char camera_text[768];
         if (!camera.registered)
             std::snprintf(camera_text, sizeof(camera_text),
                           "Camera probe unavailable | MidnaFX override: OFF");
         else if (!camera.valid)
             std::snprintf(camera_text, sizeof(camera_text),
-                          "No recent perspective scene | FOV API: %s | Override: OFF",
-                          camera.modifier_registered ? "ready" : "unavailable");
+                          "No recent perspective scene | FOV API: %s | Chase API: %s | "
+                          "Overrides: OFF",
+                          camera.modifier_registered ? "ready" : "unavailable",
+                          camera.chase_modifier_registered ? "ready" : "unavailable");
         else
             std::snprintf(camera_text, sizeof(camera_text),
-                          "Camera type/mode: %d/%d | FOV API: %s | Override: %s\n"
-                          "Native/requested/observed vertical FOV: %.2f / %.2f / %.2f deg | "
-                          "Aspect: %.3f | Near/far: %.2f / %.2f\n"
-                          "Eye: %.2f, %.2f, %.2f | Probe: %.2f us | Samples: %llu / %llu",
+                           "Camera type/mode: %d/%d | FOV API: %s | Override: %s\n"
+                           "Native/requested/observed vertical FOV: %.2f / %.2f / %.2f deg | "
+                           "Aspect: %.3f | Near/far: %.2f / %.2f\n"
+                           "Chase API: %s | Lower angle: %s | Native latitude far/near: "
+                           "%.2f / %.2f deg | "
+                           "Offset: %.2f deg\n"
+                           "Eye: %.2f, %.2f, %.2f | Probe: %.2f us | Samples: %llu / %llu / %llu",
                           camera.camera_type, camera.camera_mode,
                           camera.modifier_registered ? "ready" : "unavailable",
                           camera.modifier_active ? "ON" : "OFF", camera.native_fovy,
-                          camera.effective_fovy, camera.observed_fovy, camera.aspect,
-                          camera.near_plane, camera.far_plane,
-                          camera.eye[0], camera.eye[1], camera.eye[2], camera.callback_us,
-                          static_cast<unsigned long long>(camera.samples),
-                          static_cast<unsigned long long>(camera.modifier_samples));
+                           camera.effective_fovy, camera.observed_fovy, camera.aspect,
+                           camera.near_plane, camera.far_plane,
+                           camera.chase_modifier_registered ? "ready" : "unavailable",
+                           camera.chase_modifier_active ? "ON" : "OFF",
+                           camera.native_latitude_far, camera.native_latitude_near,
+                           camera.latitude_offset,
+                           camera.eye[0], camera.eye[1], camera.eye[2], camera.callback_us,
+                           static_cast<unsigned long long>(camera.samples),
+                           static_cast<unsigned long long>(camera.modifier_samples),
+                           static_cast<unsigned long long>(camera.chase_modifier_samples));
         check_ui(svc_ui->elem_set_text(mod_ctx, camera_element, camera_text));
     }
 }
@@ -789,10 +802,13 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Modern exploration FOV", camera_toggle);
     add_number(panel, camera_fov_setting);
     add_number(panel, camera_transition_setting);
+    add_toggle(panel, "Lower exploration camera", camera_lower_angle);
+    add_number(panel, camera_angle_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
         "Default off. Changes vertical FOV only in native camera mode 0; demo, detached, "
-        "targeting, aiming, and other nonzero camera modes keep native FOV.",
+        "targeting, aiming, and other nonzero camera modes keep native framing. The angle "
+        "control changes native chase-controller latitude before smoothing and collision.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
@@ -841,6 +857,7 @@ bool initialize() {
     register_toggle(geometry_smoothing);
     register_toggle(geometry_skinned_smoothing);
     register_toggle(camera_toggle);
+    register_toggle(camera_lower_angle);
     register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
@@ -848,6 +865,7 @@ bool initialize() {
     register_number(twilight_transition);
     register_number(camera_fov_setting);
     register_number(camera_transition_setting);
+    register_number(camera_angle_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -877,6 +895,8 @@ float camera_fov_scale() { return static_cast<float>(camera_fov_setting.value) /
 float camera_transition_seconds() {
     return static_cast<float>(camera_transition_setting.value) / 100.0f;
 }
+bool camera_lower_angle_enabled() { return camera_lower_angle.value; }
+float camera_angle_reduction() { return static_cast<float>(camera_angle_setting.value); }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {

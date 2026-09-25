@@ -16,10 +16,10 @@ small exact allowlist of validated game models. Grading, active/normal Twilight
 detection, rigid geometry, and skinned geometry have been exercised in a
 source-matched Windows D3D11 host. Twilight-spot behavior has deterministic test
 coverage but no live capture. The development build also has a default-off
-exploration FOV prototype for Dusklight builds carrying MidnaFX's CameraService
-1.2 host patch; it changes only vertical FOV and has an immediate native
-fallback outside camera mode 0. Intel Mac/Metal runtime validation is still
-required.
+exploration-camera prototype for Dusklight builds carrying MidnaFX's
+CameraService 1.3 host patch. Independent default-off controls widen vertical
+FOV and lower native chase-controller latitude, with native fallback outside
+camera mode 0. Intel Mac/Metal runtime validation is still required.
 
 Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
 [latest release](https://github.com/rcreecy/midnafx/releases/latest), then put that file

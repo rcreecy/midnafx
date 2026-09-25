@@ -147,8 +147,10 @@ validation gate rather than upstream parameter writes. See
 
 ## Camera API gate
 
-The pinned CameraService's accepting operator replaces the native camera
-controller for that tick. MidnaFX therefore registers only a read-only scene
-camera probe, which copies FOV, aspect, near/far, and eye into diagnostics.
-No camera FOV or composition override is active. See `camera-investigation.md`
-for the required post-controller API contract.
+The pinned CameraService's original accepting operator replaces the native
+camera controller for that tick, so MidnaFX does not use it. The candidate
+CameraService 1.3 patch instead provides a post-controller vertical-FOV modifier
+and a chase-controller latitude modifier. The latter changes native near/far
+latitude targets before camera smoothing, eye construction, and collision.
+Both MidnaFX controls are default off and require active mode-0 gameplay. See
+`camera-investigation.md` for runtime evidence and remaining validation.

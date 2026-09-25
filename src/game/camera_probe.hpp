@@ -8,6 +8,9 @@ struct Snapshot {
     bool modifier_supported = false;
     bool modifier_registered = false;
     bool modifier_active = false;
+    bool chase_modifier_supported = false;
+    bool chase_modifier_registered = false;
+    bool chase_modifier_active = false;
     bool valid = false;
     float native_fovy = 0.0f;
     float effective_fovy = 0.0f;
@@ -19,9 +22,13 @@ struct Snapshot {
     double callback_us = 0.0;
     std::uint64_t samples = 0;
     std::uint64_t modifier_samples = 0;
+    std::uint64_t chase_modifier_samples = 0;
     std::uint32_t context_flags = 0;
     std::int32_t camera_type = 0;
     std::int32_t camera_mode = 0;
+    float native_latitude_far = 0.0f;
+    float native_latitude_near = 0.0f;
+    float latitude_offset = 0.0f;
 };
 
 void initialize();

@@ -9,7 +9,7 @@ CameraService 1.1 cannot safely implement a FOV-only feature. Its full-camera
 operator runs before `dCamera_c::Run()` and skips the native controller when a
 mod accepts. MidnaFX therefore does not use that operator.
 
-M9 adds a candidate CameraService 1.2 host patch at
+M9 adds a candidate CameraService 1.3 host patch at
 `patches/dusklight-camera-fov-modifier.patch`. The appended API runs after the
 current camera result is stored and PC wide-screen correction is applied, but
 before frame-interpolation recording and `camera_draw`. It can change only the
@@ -44,6 +44,15 @@ fall back to the current native FOV immediately. Disabling the setting also
 restores native FOV immediately. No camera position or orientation is changed.
 The interpolation helper assumes TP's 30 Hz simulation clock and caps one
 update to four ticks so a long stall cannot jump the transition unexpectedly.
+
+The UI also contains **Lower exploration camera**, default OFF, with a 0–15
+degree reduction (default 6 degrees). CameraService 1.3 applies this as an
+offset to the native chase controller's near/far latitude targets after TP has
+selected contextual values. Native smoothing, eye construction, and collision
+then run normally. The host accepts the offset only during active mode-0
+gameplay outside demo and detached-camera ownership. The feature does not write
+the final eye or center and does not alter targeting, dialogue, cutscenes, or
+controllers that do not use the chase algorithm.
 
 ## Runtime evidence
 
@@ -101,11 +110,27 @@ work before this can become a default-on camera profile. Automated runtime
 evidence now covers normal exploration, forced detached, forced demo, forced
 non-normal, forced in-process disable/re-enable, and two startup aspect ratios.
 
+The first matched lower-angle experiment used the same `F_SP103,0,27,0` scene,
+1216×896 window, native FOV, and startup timing. Baseline diagnostics reported
+native chase latitudes `10.00/25.00` degrees with offset `0.00`; the enabled run
+reported the same native inputs with offset `-6.00`. Both processes exited
+normally. The enabled capture shows less foreground ground and more forward
+scene while retaining TP's native player-relative center and collision path.
+Evidence is stored locally as `build/m9-evidence/angle-baseline.png`,
+`angle-low.png`, and corresponding logs. Traversal near walls, ceilings, slopes,
+doors, and confined rooms remains required before broader use.
+
+A combined candidate using 110% tangent-space FOV and the 6-degree reduction
+also ran cleanly. Diagnostics recorded `61.25/66.14` degrees for FOV and the
+same `-6.00` chase offset. `build/m9-evidence/modern-camera.png` shows the
+intended wider, more forward-facing exploration composition without the
+aggressive 130% FOV used for the earlier isolation proof.
+
 ## Scope and next step
 
-This checkpoint intentionally contains only a vertical-FOV foundation. It does
-not change distance, height, pitch, lateral framing, collision, targeting,
-camera shake, or authored cameras. Next, validate every blocked camera context
-with controller input and matched captures. Only then design a separate native
-controller-parameter API for distance/height; final-eye offsets are not an
-acceptable substitute because they would bypass collision policy.
+This checkpoint contains vertical-FOV and native chase-latitude foundations. It
+does not change distance, lateral framing, collision policy, targeting, camera
+shake, or authored cameras. Next, validate every blocked camera context and the
+lower angle near obstructing geometry with controller input and matched
+captures. Distance/height changes need separate native controller parameters;
+final-eye offsets remain unacceptable because they bypass collision policy.
