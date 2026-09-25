@@ -24,6 +24,8 @@ bool logged_active = false;
 bool logged_endpoint = false;
 std::int32_t logged_type = 0;
 std::int32_t logged_mode = 0;
+std::uint32_t logged_flags = 0;
+float logged_aspect = 0.0f;
 
 bool modify_fov(ModContext*, CameraFovModifierState* state, void*) {
     if (!state || state->struct_size < sizeof(CameraFovModifierState))
@@ -41,20 +43,25 @@ bool modify_fov(ModContext*, CameraFovModifierState* state, void*) {
             return;
         }
         if (!svc_log || (log_initialized && active == logged_active && endpoint == logged_endpoint &&
-             state->camera_type == logged_type && state->camera_mode == logged_mode))
+             state->camera_type == logged_type && state->camera_mode == logged_mode &&
+             state->context_flags == logged_flags &&
+             std::abs(state->aspect - logged_aspect) < 0.001f))
             return;
-        char message[208];
+        char message[224];
         std::snprintf(message, sizeof(message),
-                      "Camera FOV: type=%d mode=%d flags=0x%02x active=%s native=%.2f "
-                      "effective=%.2f",
+                      "Camera FOV: type=%d mode=%d flags=0x%02x active=%s aspect=%.3f "
+                      "native=%.2f effective=%.2f",
                       state->camera_type, state->camera_mode, state->context_flags,
-                      active ? "yes" : "no", state->native_fovy, current.effective_fovy);
+                      active ? "yes" : "no", state->aspect, state->native_fovy,
+                      current.effective_fovy);
         svc_log->info(mod_ctx, message);
         log_initialized = true;
         logged_active = active;
         logged_endpoint = endpoint;
         logged_type = state->camera_type;
         logged_mode = state->camera_mode;
+        logged_flags = state->context_flags;
+        logged_aspect = state->aspect;
     };
 
     const bool safe = (state->context_flags & CAMERA_FOV_CONTEXT_CAN_MODIFY) != 0 &&

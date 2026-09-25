@@ -59,10 +59,25 @@ active and produced `61.38/75.31` degrees.
 The process shut down normally in both runs. Device-destroyed warnings occur
 after window closure and are also present in baseline runs. A direct
 `D_MN08,0,0,-1` launch stayed in mode 0, so it did not supply the required
-nonzero/demo runtime case. The host-side rejection and MidnaFX branch are
-source-reviewed and deterministic, but live targeting, aiming, dialogue,
-cutscene, detached camera, aspect change, and in-process toggle handoff remain
-validation work before this can become a default-on camera profile.
+nonzero/demo runtime case.
+
+A temporary, uncommitted host validation harness then forced only the detached
+context input at the real post-controller callback. The same `F_SP103` launch
+reported flags `0x0b` (active, normal mode, detached), `active=no`, and exact
+native/effective pairs `61.25/61.25` and `61.38/61.38`. The process exited
+normally. The harness was removed and the normal patched host rebuilt. This
+proves the complete host rejection and MidnaFX fallback path; it does not
+replace controller-driven proof that the production detach command supplies
+the flag.
+
+Separate 1024×768 and 1600×720 launches reported aspect `1.333` and `2.221`.
+Both retained the same native/effective tangent-space scale
+(`61.25/75.16` degrees), remained finite, and exited normally. This validates
+startup aspect changes; live resizing still needs an interactive pass.
+
+Live targeting, aiming, dialogue, cutscene, production detached-camera
+activation, live resize, and in-process toggle handoff remain validation work
+before this can become a default-on camera profile.
 
 ## Scope and next step
 
