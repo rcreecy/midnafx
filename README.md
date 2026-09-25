@@ -11,15 +11,16 @@ highlight/shadow clipping, and amplified difference using the same scene snapsho
 Optional CPU diagnostics report stage p50/p95, layout/resolve call time, snapshot
 requests, and pipeline counts. An opt-in Twilight prototype can blend from the
 general look toward a user-captured target when Dusklight reports active
-Twilight. It is disabled until configured and has not been observed in-game.
-The grading and geometry paths have been tested in a source-matched Windows
-D3D11 host. Intel Mac/Metal validation is still required.
+Twilight. Conservative, default-off adaptive normal smoothing is available for a
+small exact allowlist of validated game models. Grading, active/normal Twilight
+detection, rigid geometry, and skinned geometry have been exercised in a
+source-matched Windows D3D11 host. Twilight-spot behavior has deterministic test
+coverage but no live capture. Intel Mac/Metal runtime validation is still required.
 
-Download platform-specific packages from the latest successful
-[Build MidnaFX workflow](https://github.com/rcreecy/midnafx/actions/workflows/build.yml):
-`midnafx-windows-amd64` or `midnafx-macos-x86_64`. Extract the artifact ZIP to obtain
-`midnafx.dusk`, then put that `.dusk` in Dusklight's mods folder. Each CI package contains
-one platform's native library. A CI build does not establish in-game visual behavior.
+Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
+[latest release](https://github.com/rcreecy/midnafx/releases/latest), then put that file
+in Dusklight's mods folder. Each package contains one platform's native library.
+The macOS package is CI-built but has not received an Intel Mac runtime pass.
 
 Research and exact source revision: [docs/research.md](docs/research.md).
 Architecture and limits: [docs/architecture.md](docs/architecture.md).
