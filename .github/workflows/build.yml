@@ -48,6 +48,10 @@ jobs:
         shell: bash
         run: python tools/host-patch.py --dusklight-dir upstream/dusklight
 
+      - name: Apply camera FOV host patch
+        shell: bash
+        run: python tools/camera-host-patch.py --dusklight-dir upstream/dusklight --apply
+
       - name: Configure
         shell: bash
         run: cmake --preset "${{ matrix.preset }}"
