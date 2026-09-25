@@ -11,7 +11,7 @@
 DEFINE_MOD();
 IMPORT_OPTIONAL_SERVICE_VERSION(GfxService, svc_gfx, 2);
 IMPORT_OPTIONAL_SERVICE(ConfigService, svc_config);
-IMPORT_OPTIONAL_SERVICE(CameraService, svc_camera);
+IMPORT_OPTIONAL_SERVICE_VERSION(CameraService, svc_camera, 1);
 IMPORT_OPTIONAL_SERVICE(HookService, svc_hook);
 IMPORT_OPTIONAL_SERVICE(UiService, svc_ui);
 IMPORT_SERVICE(LogService, svc_log);

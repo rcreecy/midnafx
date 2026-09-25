@@ -15,7 +15,11 @@ Twilight. Conservative, default-off adaptive normal smoothing is available for a
 small exact allowlist of validated game models. Grading, active/normal Twilight
 detection, rigid geometry, and skinned geometry have been exercised in a
 source-matched Windows D3D11 host. Twilight-spot behavior has deterministic test
-coverage but no live capture. Intel Mac/Metal runtime validation is still required.
+coverage but no live capture. The development build also has a default-off
+exploration FOV prototype for Dusklight builds carrying MidnaFX's CameraService
+1.2 host patch; it changes only vertical FOV and has an immediate native
+fallback outside camera mode 0. Intel Mac/Metal runtime validation is still
+required.
 
 Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
 [latest release](https://github.com/rcreecy/midnafx/releases/latest), then put that file
@@ -29,5 +33,5 @@ Performance instrumentation and Mac capture plan: [docs/performance.md](docs/per
 Detail design and sample costs: [docs/detail.md](docs/detail.md).
 One-session Intel Mac checklist: [docs/runtime-validation.md](docs/runtime-validation.md).
 Twilight source audit and M6 decision: [docs/m5-m6-investigation.md](docs/m5-m6-investigation.md).
-CameraService source audit and safe-override gate: [docs/camera-investigation.md](docs/camera-investigation.md).
+Camera foundation, host patch, and runtime evidence: [docs/camera-investigation.md](docs/camera-investigation.md).
 Geometry coverage checkpoint: [docs/m8-geometry-coverage.md](docs/m8-geometry-coverage.md).

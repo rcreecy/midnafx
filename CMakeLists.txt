@@ -24,7 +24,7 @@ if(MIDNAFX_BUILD_MOD)
     add_subdirectory("${DUSKLIGHT_DIR}/sdk" dusklight-sdk EXCLUDE_FROM_ALL)
     add_mod(midnafx
         FEATURES game webgpu
-        SOURCES src/mod.cpp src/config/grade.cpp src/config/presets.cpp src/config/visual.cpp src/game/bmd_rebuild.cpp src/game/camera_probe.cpp src/game/game_state.cpp src/game/geometry_probe.cpp src/game/topology.cpp src/game/smoothing.cpp src/game/twilight.cpp src/render/renderer.cpp src/ui/settings.cpp
+        SOURCES src/mod.cpp src/config/grade.cpp src/config/presets.cpp src/config/visual.cpp src/game/bmd_rebuild.cpp src/game/camera_fov.cpp src/game/camera_probe.cpp src/game/game_state.cpp src/game/geometry_probe.cpp src/game/topology.cpp src/game/smoothing.cpp src/game/twilight.cpp src/render/renderer.cpp src/ui/settings.cpp
         MOD_JSON mod.json
         RES_DIR res
     )
