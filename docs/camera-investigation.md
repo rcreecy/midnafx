@@ -70,14 +70,27 @@ proves the complete host rejection and MidnaFX fallback path; it does not
 replace controller-driven proof that the production detach command supplies
 the flag.
 
+Two further temporary, uncommitted host harnesses exercised the remaining
+machine-reachable ownership guards at the real callback. Forcing demo ownership
+produced flags `0x07` (active, normal mode, demo), `active=no`, and exact
+native/effective pairs `61.25/61.25` and `61.38/61.38`. Forcing a non-normal
+classification produced flags `0x11` (active, can modify), `active=no`, and the
+same exact native/effective pairs. Both processes exited normally. Each harness
+changed only its context classification, was removed after capture, and was
+followed by a normal patched-host rebuild. These runs prove fail-closed handoff
+behavior for demo and non-normal contexts, but controller-driven production
+transitions still need interactive confirmation.
+
 Separate 1024×768 and 1600×720 launches reported aspect `1.333` and `2.221`.
 Both retained the same native/effective tangent-space scale
 (`61.25/75.16` degrees), remained finite, and exited normally. This validates
 startup aspect changes; live resizing still needs an interactive pass.
 
-Live targeting, aiming, dialogue, cutscene, production detached-camera
-activation, live resize, and in-process toggle handoff remain validation work
-before this can become a default-on camera profile.
+Live targeting, aiming, dialogue/cutscene activation, production detached-camera
+activation, live resize, and in-process setting toggle remain validation work
+before this can become a default-on camera profile. Automated runtime evidence
+now covers normal exploration, forced detached, forced demo, forced non-normal,
+and two startup aspect ratios.
 
 ## Scope and next step
 
