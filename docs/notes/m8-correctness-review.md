@@ -51,3 +51,30 @@ triangle outlines or corruption. Graceful shutdown restored the normal backup.
 Final review found no buffer overrun, invalid index, NaN/Inf output, double
 mutation, ownership leak, material-boundary leak, hard-edge loss, or unsupported
 format write in this checkpoint.
+
+## Natural pumpkin checkpoint
+
+Initial review found that `pumpkin.arc` is a packed child archive and therefore
+has no `mDataHeap`. Treating that null pointer as an allocation failure would
+silently skip the rebuild. Dusklight source shows that packed children load
+synchronously while the parent archive's solid heap is current. The loader hook
+now associates nested J3D loads with their exact `dRes_info_c` owner and allocates
+the rebuilt bytes in that current heap. This is the same heap used by the child's
+J3D allocations and it survives for the required parent-resource lifetime.
+
+The hook accepts only owner `pumpkin`, the exact 17,824-byte J3D header and
+source FNV-1a `9b2ddb5ecbd95421`. Mutation then requires the exact rebuilt
+topology hash, 306 positions, 1,818 normal slots, no envelopes, and S16 XYZ
+normals with six-byte stride and 15 fractional bits. Duplicate source replacement
+is rejected by pointer lookup. The nested owner stack is removed by the matching
+resource-load post hook, including non-target and failed loads, and is cleared on
+mod shutdown.
+
+Live validation reported 495 triangles, zero degenerate triangles, zero normal
+index conflicts, zero ambiguous faces, finite output, and 1,066 changed normals.
+Twelve instances shared one rebuilt model. Default-off runtime performed no
+rebuild or mutation. Matched natural captures showed no new faceting, silhouette
+change, texture corruption, material-boundary leakage, or hard-edge loss.
+Graceful shutdown restored the 10,908-byte backup before mod unload. Review found
+no buffer overrun, invalid index, unsupported-format write, stale owner, double
+processing, explicit-free mismatch, or regression in existing allowlisted paths.

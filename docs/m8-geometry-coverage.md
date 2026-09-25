@@ -86,6 +86,50 @@ the production actor path and restoration behavior for the new target. Existing
 multi-entry room-transition evidence continues to cover concurrent backup
 ownership; concurrent rebuilt-resource ownership remains a source-reviewed path.
 
+## Third checkpoint: natural Ordon pumpkins
+
+The next target is the naturally visible Ordon pumpkin
+`pumpkin.arc/pumpkin.bmd`. Spawn `F_SP103,0,27,0` places several instances in the
+camera view without actor relocation, scale changes, or host instrumentation.
+The official resource is 17,824 bytes with source FNV-1a
+`9b2ddb5ecbd95421`. Its original runtime form has 306 positions, 330 normals,
+two shapes, no envelopes, 495 triangles, and topology hash
+`2e5b98d2bbc10f66`. Normals use S16 XYZ, six-byte stride, and 15 fractional
+bits. The original indices report 514 smoothing conflicts, so direct mutation
+remains prohibited.
+
+The identity-split rebuild preserves all non-normal corner attributes and writes
+1,815 referenced normals into a capacity of 1,818. Its exact runtime topology
+hash is `2b808b13bc7ab6e8`; the rebuilt resource hash observed after loading is
+`2058ca886be0a019`. Runtime analysis found 495 triangles, zero degenerates, 305
+referenced positions, 1,485 referenced normals, 604 smoothing groups, zero
+conflicts, and zero ambiguous faces. Exact source and rebuilt fingerprints,
+counts, envelope state, and normal encoding gate every write.
+
+This resource is a packed child archive. Dusklight loads it synchronously with
+`dRes_info_c::setRes(JKRArchive*, JKRHeap*)`, which intentionally leaves
+`mDataHeap` null while the parent archive's solid heap remains current. MidnaFX
+now tracks the nested resource-load owner and allocates the rebuilt bytes in that
+same current heap. The rebuilt bytes therefore share the lifetime and allocation
+domain of the J3D data that points into them; no separate free or engine change is
+required.
+
+At 55 degrees with the 25% conservative blend, smoothing changed 1,066 normal
+entries. Rebuild took 427 us. Runtime decode took 172 us, and decode, adjacency,
+planning, and mutation took 466 us total. Peak tracked vector capacity was
+145,200 bytes, the replacement resource was 32,448 bytes, and the restoration
+backup was 10,908 bytes. Twelve natural actors shared the one processed model
+resource.
+
+Matched default-off and default-on captures are in
+`build/m8-evidence/pumpkin-off.png`, `pumpkin-on.png`, and
+`pumpkin-comparison.png`. The camera, spawn, backend, resolution, resource, and
+lighting state match; Link and the chicken continued their idle animations. The
+curved pumpkin lobes show a coherent shading change with no new triangle
+outlines, silhouette change, texture corruption, or hard-edge loss. Default-off
+runtime loaded the same twelve actors without rebuilding or smoothing. Graceful
+shutdown of the enabled run restored the original normal backup.
+
 ## Lifecycle and safety review
 
 Each mutation entry owns its model pointer, resource owner, original byte copy,
@@ -115,11 +159,11 @@ trigger was removed and the clean source-matched host rebuilt afterward.
 
 ## Boundary
 
-M8 now covers a naturally instantiated curved static actor as well as the
-controlled Forest Temple rock. It does not qualify other scanned objects, add a
-second character, or enable smoothing by default. The enlarged beehive capture
-is useful safety and directional art evidence, but varied natural lighting still
-needs broader grading. The next checkpoint should validate another natural
-static/environment target without visibility relocation, preferably one large
-enough for close matched captures. Broader character coverage still requires a
-separately fingerprinted identity split and close visual review.
+M8 now covers two naturally instantiated curved static actors as well as the
+controlled Forest Temple rock. Pumpkin proof uses an unmodified camera-visible
+placement and is stronger visual evidence than the relocated beehive test. M8
+does not qualify other scanned objects, add a second character, or enable
+smoothing by default. The next checkpoint should grade these allowlisted models
+under additional natural lighting and room transitions before expanding static
+coverage. Broader character coverage still requires a separately fingerprinted
+identity split and close visual review.

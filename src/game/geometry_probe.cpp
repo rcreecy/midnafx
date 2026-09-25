@@ -42,13 +42,14 @@ bool create_registered = false;
 bool model_load_registered = false;
 
 struct Replacement {
-    enum class Kind { Pot, LinkBody, Nest } kind = Kind::Pot;
+    enum class Kind { Pot, LinkBody, Nest, Pumpkin } kind = Kind::Pot;
     dRes_info_c* owner = nullptr;
     const void* source = nullptr;
     void* data = nullptr;
     u32 size = 0;
 };
 std::vector<Replacement> replacements;
+thread_local std::vector<dRes_info_c*> loading_owners;
 
 std::uint64_t fnv1a(const std::byte* data, std::size_t size) {
     std::uint64_t hash = 14695981039346656037ULL;
@@ -71,10 +72,60 @@ HookAction use_rebuilt_model(ModContext*, void* args, void*, void*) {
     if (!args)
         return HOOK_CONTINUE;
     const void* source = mods::arg<const void*>(args, 0);
-    const auto found = std::find_if(replacements.begin(), replacements.end(),
-                                    [source](const Replacement& item) {
-                                        return item.source == source;
-                                    });
+    auto found = std::find_if(replacements.begin(), replacements.end(),
+                              [source](const Replacement& item) {
+                                  return item.source == source;
+                              });
+    if (found == replacements.end() && delete_registered &&
+        settings::geometry_smoothing_enabled() && !loading_owners.empty() &&
+        source && std::memcmp(source, "J3D2bmd3", 8) == 0) {
+        auto* owner = loading_owners.back();
+        const auto* bytes = static_cast<const std::byte*>(source);
+        const u32 declared_size =
+            (static_cast<u32>(std::to_integer<u8>(bytes[8])) << 24) |
+            (static_cast<u32>(std::to_integer<u8>(bytes[9])) << 16) |
+            (static_cast<u32>(std::to_integer<u8>(bytes[10])) << 8) |
+            static_cast<u32>(std::to_integer<u8>(bytes[11]));
+        JKRHeap* allocation_heap = JKRHeap::getCurrentHeap();
+        if (owner && allocation_heap && owner->mArchiveName &&
+            std::strcmp(owner->mArchiveName, "pumpkin") == 0 &&
+            declared_size == 17824 && fnv1a(bytes, declared_size) == 0x9b2ddb5ecbd95421ULL) {
+            const auto begin = std::chrono::steady_clock::now();
+            auto rebuilt = bmd_rebuild::split_normals({bytes, declared_size});
+            if (rebuilt.ok() && rebuilt.bytes.size() <= std::numeric_limits<u32>::max()) {
+                // Packed child archives have no mDataHeap. They load synchronously
+                // into the parent's current solid heap, alongside their J3D data.
+                void* owned = JKRHeap::alloc(static_cast<u32>(rebuilt.bytes.size()), 0x20,
+                                             allocation_heap);
+                if (owned) {
+                    std::memcpy(owned, rebuilt.bytes.data(), rebuilt.bytes.size());
+                    replacements.push_back({Replacement::Kind::Pumpkin, owner, source, owned,
+                                            static_cast<u32>(rebuilt.bytes.size())});
+                    found = std::prev(replacements.end());
+                    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+                                             std::chrono::steady_clock::now() - begin)
+                                             .count();
+                    char message[240];
+                    std::snprintf(message, sizeof(message),
+                                  "Geometry rebuild: pumpkin.arc/pumpkin.bmd bytes=%u "
+                                  "normals=%u/%u triangles=%u us=%lld",
+                                  static_cast<unsigned>(rebuilt.bytes.size()),
+                                  rebuilt.evidence.written_normals,
+                                  rebuilt.evidence.rebuilt_normal_capacity,
+                                  rebuilt.evidence.triangles,
+                                  static_cast<long long>(elapsed));
+                    svc_log->info(mod_ctx, message);
+                } else
+                    svc_log->info(mod_ctx, "Geometry rebuild: pumpkin allocation failed");
+            } else {
+                char message[240];
+                std::snprintf(message, sizeof(message),
+                              "Geometry rebuild: pumpkin lazy rebuild rejected: %.170s",
+                              rebuilt.error.c_str());
+                svc_log->info(mod_ctx, message);
+            }
+        }
+    }
     if (found != replacements.end())
         mods::arg_ref<const void*>(args, 0) = found->data;
     return HOOK_CONTINUE;
@@ -84,8 +135,9 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
     if (!args || !model_load_registered || !delete_registered)
         return HOOK_CONTINUE;
     auto* info = mods::arg<dRes_info_c*>(args, 0);
-    if (!info || !info->mArchive || !info->mDataHeap || !info->mArchiveName ||
-        JKRHeap::getCurrentHeap() != info->mDataHeap)
+    if (info)
+        loading_owners.push_back(info);
+    if (!info || !info->mArchive || !info->mDataHeap || !info->mArchiveName)
         return HOOK_CONTINUE;
     struct Target {
         Replacement::Kind kind;
@@ -109,6 +161,8 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
         target = Target{Replacement::Kind::Nest, "o_hachinosu_01.bmd", 12576,
                         0xde8546d0a1fd387dULL, "E_nest.arc/o_hachinosu_01.bmd"};
     if (!target)
+        return HOOK_CONTINUE;
+    if (JKRHeap::getCurrentHeap() != info->mDataHeap)
         return HOOK_CONTINUE;
     if (std::any_of(replacements.begin(), replacements.end(),
                     [info, &target](const Replacement& item) {
@@ -308,6 +362,10 @@ bool is_smoothing_target(const dRes_info_c& info, const char* name) {
         return settings::geometry_smoothing_enabled() &&
                std::strcmp(info.mArchiveName, "E_nest") == 0 &&
                std::strcmp(name, "o_hachinosu_01.bmd") == 0;
+    if (rebuilt->kind == Replacement::Kind::Pumpkin)
+        return settings::geometry_smoothing_enabled() &&
+               std::strcmp(info.mArchiveName, "pumpkin") == 0 &&
+               std::strcmp(name, "pumpkin.bmd") == 0;
     return settings::geometry_skinned_smoothing_enabled() &&
            std::strcmp(info.mArchiveName, "Kmdl") == 0 && std::strcmp(name, "al.bmd") == 0;
 }
@@ -480,6 +538,10 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         const bool nest_exact = rebuilt && rebuilt->kind == Replacement::Kind::Nest &&
                                 result.corner_hash == 0xd107e10bca9ec9d0ULL && pos_count == 61 &&
                                 normal_count == 400 && model.getWEvlpMtxNum() == 0;
+        const bool pumpkin_exact = rebuilt && rebuilt->kind == Replacement::Kind::Pumpkin &&
+                                   result.corner_hash == 0x2b808b13bc7ab6e8ULL &&
+                                   pos_count == 306 && normal_count == 1818 &&
+                                   model.getWEvlpMtxNum() == 0;
         const bool rock_exact = !rebuilt && std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
                                 std::strcmp(name, "k_kumo_iwa00.bmd") == 0 &&
                                 resource_size == 13856 &&
@@ -489,7 +551,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         const unsigned normal_fraction = vertex.getVtxNrmFrac();
         const bool exact = normal_type == GX_S16 && normal_stride == 6 &&
                            (((pot_exact || link_exact) && normal_fraction == 14) ||
-                            (nest_exact && normal_fraction == 15) ||
+                            ((nest_exact || pumpkin_exact) && normal_fraction == 15) ||
                             (rock_exact && normal_fraction == 15));
         if (exact && smooth.safe() && smooth.changed_indices > 0 && delete_registered) {
             const u32 bytes_count = normal_count * normal_stride;
@@ -511,6 +573,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 const char* label = pot_exact    ? "OBJ_GM.arc/k_kumo_tubo01.bmd"
                                     : link_exact ? "Kmdl.arc/al.bmd"
                                     : nest_exact ? "E_nest.arc/o_hachinosu_01.bmd"
+                                    : pumpkin_exact ? "pumpkin.arc/pumpkin.bmd"
                                                  : "OBJ_GM.arc/k_kumo_iwa00.bmd";
                 mutations.push_back({link_exact ? MutationBackup::Kind::SkinnedSmoothing
                                                 : MutationBackup::Kind::RigidSmoothing,
@@ -522,6 +585,8 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                               : link_exact ? "Geometry smoothing: applied Kmdl.arc/al.bmd"
                               : nest_exact ? "Geometry smoothing: applied "
                                              "E_nest.arc/o_hachinosu_01.bmd"
+                              : pumpkin_exact ? "Geometry smoothing: applied "
+                                                "pumpkin.arc/pumpkin.bmd"
                                            : "Geometry smoothing: applied "
                                              "OBJ_GM.arc/k_kumo_iwa00.bmd");
             }
@@ -608,12 +673,17 @@ void describe_model(const dRes_info_c& info, u32 type, u32 file_index) {
 }
 
 void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
+    auto* info = args ? mods::arg<dRes_info_c*>(args, 0) : nullptr;
+    if (info) {
+        const auto owner = std::find(loading_owners.rbegin(), loading_owners.rend(), info);
+        if (owner != loading_owners.rend())
+            loading_owners.erase(std::next(owner).base());
+    }
     if ((!settings::geometry_diagnostics_enabled() && !settings::geometry_mutation_test_enabled() &&
          !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled() &&
          !settings::geometry_skinned_smoothing_enabled()) ||
         !args || !retval || *static_cast<int*>(retval) < 0)
         return;
-    auto* info = mods::arg<dRes_info_c*>(args, 0);
     if (!info || !info->mArchive || !info->mRes)
         return;
     auto* archive = info->mArchive;
@@ -669,6 +739,7 @@ void initialize() {
     create_registered = false;
     model_load_registered = false;
     replacements.clear();
+    loading_owners.clear();
     mutations.clear();
     if (!svc_hook)
         return;
@@ -705,6 +776,7 @@ void shutdown() {
     load_registered = delete_registered = create_registered = false;
     model_load_registered = false;
     replacements.clear();
+    loading_owners.clear();
 }
 
 void restore_mutation() {
