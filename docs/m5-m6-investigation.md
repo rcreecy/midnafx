@@ -1,7 +1,7 @@
 # Twilight intelligence and upstream-rendering investigation
 
 Source audit against pinned Dusklight `edf42c6a7202647b56dd2fcdef02d17671bc814b`.
-This is a buildable prototype and an architecture decision, not an in-game or visual result.
+M5 also has a focused Windows runtime result. M6 remains an architecture decision.
 
 ## M5: semantic state and automatic profile
 
@@ -22,10 +22,17 @@ is configurable from 0 to 3 seconds. Each game update moves a bounded blend
 weight toward 1 for active Twilight and 0 for normal, spot, or unavailable
 state. The game-thread stage interpolates prepared uniforms; no shader variant,
 extra snapshot, or pipeline build is added. Diagnostics display sampled state,
-target availability, and blend weight. Scene changes, pause behavior, senses,
-Palace rooms, and alignment between `mod_update` and draw stages remain runtime
-validation items. There is no built-in claim that any chosen Twilight look is
-visually better.
+target availability, and blend weight, and optionally log state and endpoint
+changes. There is no built-in claim that any chosen Twilight look is visually better.
+
+On 2026-09-25, the source-matched Windows D3D11 host loaded `F_SP108` as Normal
+and held the automatic blend at 0%. It loaded `D_MN08` room 0 as Active Twilight,
+then logged a transition from 3% to 100%. Matched captures with the same direct-stage
+checkpoint showed the deliberately extreme test target was applied only when the
+automatic profile was enabled. This proves the runtime state feed, target decode,
+transition, and render application for normal and active states. State 2 (Twilight
+spot) remains covered by deterministic tests but has no live capture. Entry/exit,
+pause, unusual playerless scenes, and mod reload remain broader compatibility checks.
 
 The mod now declares the SDK `game` feature alongside `webgpu`, so the loader's
 game ABI epoch check applies. It is pinned to the researched Dusklight revision.

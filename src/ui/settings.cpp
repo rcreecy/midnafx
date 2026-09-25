@@ -71,6 +71,9 @@ bool has_twilight_target = false;
 ConfigVarHandle twilight_target_handle = 0;
 twilight::State twilight_state = twilight::State::Unavailable;
 float twilight_weight = 0.0f;
+twilight::State logged_twilight_state = twilight::State::Unavailable;
+int logged_twilight_endpoint = -1;
+bool twilight_log_initialized = false;
 UiElementHandle status_element = 0, detail_element = 0, camera_element = 0;
 std::chrono::steady_clock::time_point next_refresh{};
 bool warned_ui = false;
@@ -537,6 +540,9 @@ void register_twilight_target() {
     twilight_target_handle = 0;
     twilight_weight = 0.0f;
     twilight_state = twilight::State::Unavailable;
+    logged_twilight_state = twilight::State::Unavailable;
+    logged_twilight_endpoint = -1;
+    twilight_log_initialized = false;
     if (!svc_config)
         return;
     ConfigVarDesc desc = CONFIG_VAR_DESC_INIT;
@@ -859,10 +865,28 @@ void update_twilight(twilight::State state, float elapsed_seconds) {
     twilight_state = state;
     if (!auto_twilight.value || !has_twilight_target) {
         twilight_weight = 0.0f;
+        twilight_log_initialized = false;
         return;
     }
     twilight_weight = twilight::advance(twilight_weight, state, elapsed_seconds,
                                         static_cast<float>(twilight_transition.value) / 100.0f);
+    if (!diagnostics_toggle.value) {
+        twilight_log_initialized = false;
+        return;
+    }
+    const int endpoint = twilight_weight <= 0.0f ? 0 : (twilight_weight >= 1.0f ? 1 : -1);
+    if (svc_log != nullptr &&
+        (!twilight_log_initialized || state != logged_twilight_state ||
+         (endpoint >= 0 && endpoint != logged_twilight_endpoint))) {
+        char message[160];
+        std::snprintf(message, sizeof(message),
+                      "Twilight automation: state=%s blend=%.0f%% target=captured",
+                      twilight::label(state), 100.0f * twilight_weight);
+        svc_log->info(mod_ctx, message);
+        logged_twilight_state = state;
+        logged_twilight_endpoint = endpoint;
+        twilight_log_initialized = true;
+    }
 }
 void shutdown() { status_element = detail_element = camera_element = preset_control = 0; }
 } // namespace midnafx::settings
