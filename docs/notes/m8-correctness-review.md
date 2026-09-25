@@ -78,3 +78,19 @@ change, texture corruption, material-boundary leakage, or hard-edge loss.
 Graceful shutdown restored the 10,908-byte backup before mod unload. Review found
 no buffer overrun, invalid index, unsupported-format write, stale owner, double
 processing, explicit-free mismatch, or regression in existing allowlisted paths.
+
+Follow-up lifecycle review tested room 0, room 1, then room 0 again. One pumpkin
+rebuild and mutation served instances 1 through 24 across the cycle. No second
+decode or mutation occurred. Generic restoration and replacement-release lines
+during the transition belonged to `E_nest`, proven by its second application
+after the transition while pumpkin instance accounting continued. The initially
+suspected packed-child lifetime failure was therefore a log-attribution error,
+not a code defect.
+
+Native lighting review compared Ordon layers 0 and 1. Layer 1 created eight
+pumpkin instances under a much darker, green-biased environment while retaining
+the exact rebuilt topology fingerprint, zero conflicts, zero ambiguous faces,
+and stable curved-lobe shading. A layer-1 graceful shutdown restored the pumpkin
+backup. Direct time changes inside layer 0 did not cause a useful visual
+difference, so they were not accepted as evidence. Temporary room and lighting
+host probes were removed after capture.

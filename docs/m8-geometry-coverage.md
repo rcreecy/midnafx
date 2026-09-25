@@ -130,6 +130,18 @@ outlines, silhouette change, texture corruption, or hard-edge loss. Default-off
 runtime loaded the same twelve actors without rebuilding or smoothing. Graceful
 shutdown of the enabled run restored the original normal backup.
 
+Additional native-lighting coverage used Ordon layer 1 at
+`F_SP103,0,27,1`. That layer rendered the same fingerprinted model under a
+substantially darker, green-biased environment and created eight shared
+instances. Runtime topology remained unchanged: 495 triangles, zero
+degenerates, topology hash `2b808b13bc7ab6e8`, 1,066 changed normals, zero
+conflicts, and zero ambiguous faces. The curved lobes remained coherent without
+triangle outlines or hard-edge loss. Evidence is in
+`build/m8-evidence/pumpkin-layer1.png`; compare it with the layer-0
+`pumpkin-on.png`. A controlled time-of-day change within layer 0 produced little
+visible lighting change, so it is recorded only as a negative observation and
+is not used as visual proof.
+
 ## Lifecycle and safety review
 
 Each mutation entry owns its model pointer, resource owner, original byte copy,
@@ -157,13 +169,24 @@ applications per model, four restorations total, and no error, fatal, assertion,
 GPU-validation, stale-pointer, or double-processing report. The transition
 trigger was removed and the clean source-matched host rebuilt afterward.
 
+Pumpkin ownership also passed a host-only room-0 to room-1 to room-0 cycle in
+Ordon. The packed pumpkin resource was rebuilt and smoothed once. Twelve model
+instances were created before leaving room 0, then instances 13 through 24 used
+the same live mutation after returning. No second pumpkin rebuild, topology
+analysis, or mutation occurred. A nearby `E_nest` resource independently
+restored, released, and rebuilt during the transition; its generic cleanup log
+initially resembled pumpkin cleanup, but continued pumpkin instance accounting
+and the second beehive application distinguish the owners. A separate layer-1
+run closed gracefully and restored the pumpkin's 10,908-byte backup. Neither run
+reported an assertion, fatal error, stale pointer, or double processing.
+
 ## Boundary
 
 M8 now covers two naturally instantiated curved static actors as well as the
 controlled Forest Temple rock. Pumpkin proof uses an unmodified camera-visible
-placement and is stronger visual evidence than the relocated beehive test. M8
-does not qualify other scanned objects, add a second character, or enable
-smoothing by default. The next checkpoint should grade these allowlisted models
-under additional natural lighting and room transitions before expanding static
-coverage. Broader character coverage still requires a separately fingerprinted
-identity split and close visual review.
+placement, two native lighting layers, and a room round trip. M8 does not
+qualify other scanned objects, add a second character, or enable smoothing by
+default. The next checkpoint should select and fingerprint one additional
+naturally visible static model with a different topology profile. Broader
+character coverage still requires a separately fingerprinted identity split and
+close visual review.
