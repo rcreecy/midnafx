@@ -1,5 +1,5 @@
 diff --git a/sdk/include/mods/svc/camera.h b/sdk/include/mods/svc/camera.h
-index a901c2b..205cb09 100644
+index a901c2b..404a734 100644
 --- a/sdk/include/mods/svc/camera.h
 +++ b/sdk/include/mods/svc/camera.h
 @@ -8,7 +8,7 @@
@@ -7,11 +7,11 @@ index a901c2b..205cb09 100644
  #define CAMERA_SERVICE_ID DUSKLIGHT_SERVICE_ID_PREFIX "camera"
  #define CAMERA_SERVICE_MAJOR 1u
 -#define CAMERA_SERVICE_MINOR 1u
-+#define CAMERA_SERVICE_MINOR 2u
++#define CAMERA_SERVICE_MINOR 3u
  
  /*
   * Snapshot of a game camera for the frame currently being recorded.
-@@ -77,6 +77,48 @@ typedef struct CameraOperatorDesc {
+@@ -77,6 +77,82 @@ typedef struct CameraOperatorDesc {
  
  #define CAMERA_OPERATOR_DESC_INIT {sizeof(CameraOperatorDesc), NULL, 0, NULL, NULL}
  
@@ -57,10 +57,44 @@ index a901c2b..205cb09 100644
 +#define CAMERA_FOV_MODIFIER_DESC_INIT \
 +    {sizeof(CameraFovModifierDesc), NULL, 0, NULL, NULL}
 +
++/* 0 is never a valid handle. */
++typedef uint64_t CameraChaseModifierHandle;
++
++typedef struct CameraChaseModifierState {
++    uint32_t struct_size;
++
++    /* Host inputs from the native chase controller. */
++    uint64_t frame_counter;
++    uint64_t ticks;
++    int32_t camera_type;
++    int32_t camera_mode;
++    uint32_t context_flags;
++    float native_latitude_far_degrees;
++    float native_latitude_near_degrees;
++
++    /* Callback output. The host clamps this offset to -15 through 15 degrees. */
++    float latitude_offset_degrees;
++} CameraChaseModifierState;
++
++/* Return true to request the latitude offset for this frame. Game thread only. */
++typedef bool (*CameraModifyChaseFn)(
++    ModContext* ctx, CameraChaseModifierState* state, void* user_data);
++
++typedef struct CameraChaseModifierDesc {
++    uint32_t struct_size;
++    const char* debug_name;
++    int32_t priority;
++    CameraModifyChaseFn modify;
++    void* user_data;
++} CameraChaseModifierDesc;
++
++#define CAMERA_CHASE_MODIFIER_DESC_INIT \
++    {sizeof(CameraChaseModifierDesc), NULL, 0, NULL, NULL}
++
  typedef struct CameraService {
      ServiceHeader header;
  
-@@ -97,6 +139,20 @@ typedef struct CameraService {
+@@ -97,6 +173,32 @@ typedef struct CameraService {
      ModResult (*register_camera_operator)(
          ModContext* ctx, const CameraOperatorDesc* desc, CameraOperatorHandle* out_handle);
      ModResult (*unregister_camera_operator)(ModContext* ctx, CameraOperatorHandle handle);
@@ -78,14 +112,38 @@ index a901c2b..205cb09 100644
 +    ModResult (*register_fov_modifier)(
 +        ModContext* ctx, const CameraFovModifierDesc* desc, CameraFovModifierHandle* out_handle);
 +    ModResult (*unregister_fov_modifier)(ModContext* ctx, CameraFovModifierHandle handle);
++
++    /* Minor version 3 */
++
++    /*
++     * Register a native chase-controller latitude modifier. This runs after the game selects
++     * contextual near/far latitude targets and before native smoothing, eye construction, and
++     * collision correction. The host accepts output only for active mode-0 gameplay outside
++     * demos and detached-camera use. Modifiers use the same ordering rules as FOV modifiers.
++     */
++    ModResult (*register_chase_modifier)(ModContext* ctx, const CameraChaseModifierDesc* desc,
++                                        CameraChaseModifierHandle* out_handle);
++    ModResult (*unregister_chase_modifier)(ModContext* ctx, CameraChaseModifierHandle handle);
  } CameraService;
  
  MOD_DECLARE_SERVICE(
 diff --git a/src/d/d_camera.cpp b/src/d/d_camera.cpp
-index fe3bb91..7f62778 100644
+index fe3bb91..bd54eca 100644
 --- a/src/d/d_camera.cpp
 +++ b/src/d/d_camera.cpp
-@@ -11401,6 +11401,8 @@ static int camera_execute(camera_process_class* i_this) {
+@@ -3952,6 +3952,11 @@ bool dCamera_c::chaseCamera(s32 param_0) {
+         }
+     }
+ 
++#ifdef TARGET_PC
++    dusk::mods::camera_run_chase_modifiers(this, &val12, &val13,
++        dDemo_c::getCamera() != NULL, dusk::isCameraDetached());
++#endif
++
+     cXyz player_attention_pos = attentionPos(mpPlayerActor);
+     f32 sp1CC;
+     if (lineBGCheck(&player_attention_pos, &mViewCache.mEye, 0x40b7)) {
+@@ -11401,6 +11406,8 @@ static int camera_execute(camera_process_class* i_this) {
  
  #ifdef TARGET_PC
      widezoom_correction(i_this, i_this->mCamera.TrimHeight());
@@ -95,10 +153,10 @@ index fe3bb91..7f62778 100644
      if (dusk::interp::is_enabled()) {
          dusk::interp::add_interpolation_callback([](void* pUserWork) {
 diff --git a/src/dusk/camera_operators.hpp b/src/dusk/camera_operators.hpp
-index c4ba650..066f68a 100644
+index c4ba650..b4c1e4a 100644
 --- a/src/dusk/camera_operators.hpp
 +++ b/src/dusk/camera_operators.hpp
-@@ -1,9 +1,12 @@
+@@ -1,9 +1,14 @@
  #pragma once
  
  class dCamera_c;
@@ -109,10 +167,12 @@ index c4ba650..066f68a 100644
  bool camera_run_operators(dCamera_c* camera);
 +bool camera_run_fov_modifiers(
 +    dCamera_c* camera, view_class* view, bool demoActive, bool detached);
++bool camera_run_chase_modifiers(dCamera_c* camera, float* latitudeFar, float* latitudeNear,
++    bool demoActive, bool detached);
  
  }  // namespace dusk::mods
 diff --git a/src/dusk/mods/svc/camera.cpp b/src/dusk/mods/svc/camera.cpp
-index b93ea00..da8cb8c 100644
+index b93ea00..e4aa100 100644
 --- a/src/dusk/mods/svc/camera.cpp
 +++ b/src/dusk/mods/svc/camera.cpp
 @@ -14,6 +14,7 @@
@@ -123,7 +183,7 @@ index b93ea00..da8cb8c 100644
  #include <cstring>
  #include <exception>
  #include <fmt/format.h>
-@@ -139,6 +140,17 @@ struct CameraOperator {
+@@ -139,6 +140,28 @@ struct CameraOperator {
  SlotMap<CameraOperator> sOperators;
  uint64_t sNextOperatorSequence = 0;
  
@@ -138,10 +198,21 @@ index b93ea00..da8cb8c 100644
 +SlotMap<CameraFovModifier> sFovModifiers;
 +uint64_t sNextFovModifierSequence = 0;
 +
++struct CameraChaseModifier {
++    std::string debugName;
++    int32_t priority = 0;
++    uint64_t sequence = 0;
++    CameraModifyChaseFn modify = nullptr;
++    void* userData = nullptr;
++};
++
++SlotMap<CameraChaseModifier> sChaseModifiers;
++uint64_t sNextChaseModifierSequence = 0;
++
  ModResult camera_register_operator(
      ModContext* context, const CameraOperatorDesc* desc, CameraOperatorHandle* outHandle) {
      if (outHandle != nullptr) {
-@@ -171,6 +183,38 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
+@@ -171,6 +194,91 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
      return sOperators.erase_owned(handle, *mod) ? MOD_OK : MOD_INVALID_ARGUMENT;
  }
  
@@ -177,10 +248,63 @@ index b93ea00..da8cb8c 100644
 +    return sFovModifiers.erase_owned(handle, *mod) ? MOD_OK : MOD_INVALID_ARGUMENT;
 +}
 +
++ModResult camera_register_chase_modifier(ModContext* context, const CameraChaseModifierDesc* desc,
++    CameraChaseModifierHandle* outHandle) {
++    if (outHandle != nullptr) {
++        *outHandle = 0;
++    }
++
++    auto* mod = mod_from_context(context);
++    if (mod == nullptr || desc == nullptr || desc->struct_size < sizeof(CameraChaseModifierDesc) ||
++        desc->debug_name == nullptr || desc->debug_name[0] == '\0' || desc->modify == nullptr ||
++        outHandle == nullptr)
++    {
++        return MOD_INVALID_ARGUMENT;
++    }
++
++    *outHandle = sChaseModifiers.emplace(*mod, CameraChaseModifier{
++                                                  .debugName = desc->debug_name,
++                                                  .priority = desc->priority,
++                                                  .sequence = sNextChaseModifierSequence++,
++                                                  .modify = desc->modify,
++                                                  .userData = desc->user_data,
++                                              });
++    return MOD_OK;
++}
++
++ModResult camera_unregister_chase_modifier(ModContext* context, CameraChaseModifierHandle handle) {
++    auto* mod = mod_from_context(context);
++    if (mod == nullptr || handle == 0) {
++        return MOD_INVALID_ARGUMENT;
++    }
++    return sChaseModifiers.erase_owned(handle, *mod) ? MOD_OK : MOD_INVALID_ARGUMENT;
++}
++
++uint32_t camera_context_flags(
++    dCamera_c& camera, const bool demoActive, const bool detached) {
++    uint32_t flags = 0;
++    if (camera.Active()) {
++        flags |= CAMERA_FOV_CONTEXT_ACTIVE;
++    }
++    if (camera.Mode() == 0) {
++        flags |= CAMERA_FOV_CONTEXT_NORMAL_MODE;
++    }
++    if (demoActive) {
++        flags |= CAMERA_FOV_CONTEXT_DEMO;
++    }
++    if (detached) {
++        flags |= CAMERA_FOV_CONTEXT_DETACHED;
++    }
++    if (camera.Active() && !demoActive && !detached) {
++        flags |= CAMERA_FOV_CONTEXT_CAN_MODIFY;
++    }
++    return flags;
++}
++
  CameraOperatorState make_operator_state(const dCamera_c& camera) {
      return CameraOperatorState{
          .struct_size = sizeof(CameraOperatorState),
-@@ -238,8 +282,93 @@ bool run_operators(dCamera_c* camera) {
+@@ -238,8 +346,151 @@ bool run_operators(dCamera_c* camera) {
      return false;
  }
  
@@ -193,22 +317,7 @@ index b93ea00..da8cb8c 100644
 +        return false;
 +    }
 +
-+    uint32_t flags = 0;
-+    if (camera->Active()) {
-+        flags |= CAMERA_FOV_CONTEXT_ACTIVE;
-+    }
-+    if (camera->Mode() == 0) {
-+        flags |= CAMERA_FOV_CONTEXT_NORMAL_MODE;
-+    }
-+    if (demoActive) {
-+        flags |= CAMERA_FOV_CONTEXT_DEMO;
-+    }
-+    if (detached) {
-+        flags |= CAMERA_FOV_CONTEXT_DETACHED;
-+    }
-+    if (camera->Active() && !demoActive && !detached) {
-+        flags |= CAMERA_FOV_CONTEXT_CAN_MODIFY;
-+    }
++    const uint32_t flags = camera_context_flags(*camera, demoActive, detached);
 +
 +    struct PendingModifier {
 +        CameraFovModifierHandle handle;
@@ -268,22 +377,97 @@ index b93ea00..da8cb8c 100644
 +    return false;
 +}
 +
++bool run_chase_modifiers(dCamera_c* camera, float* latitudeFar, float* latitudeNear,
++    const bool demoActive, const bool detached) {
++    auto* mainCamera = dComIfGp_getCamera(0);
++    if (camera == nullptr || latitudeFar == nullptr || latitudeNear == nullptr ||
++        mainCamera == nullptr || &mainCamera->mCamera != camera || !std::isfinite(*latitudeFar) ||
++        !std::isfinite(*latitudeNear))
++    {
++        return false;
++    }
++
++    const uint32_t flags = camera_context_flags(*camera, demoActive, detached);
++    struct PendingModifier {
++        CameraChaseModifierHandle handle;
++        CameraChaseModifier value;
++        LoadedMod* owner;
++    };
++    std::vector<PendingModifier> modifiers;
++    sChaseModifiers.for_each([&](CameraChaseModifierHandle handle, const auto& entry) {
++        modifiers.push_back({.handle = handle, .value = entry.value, .owner = entry.owner});
++    });
++    std::ranges::sort(modifiers, [](const PendingModifier& lhs, const PendingModifier& rhs) {
++        if (lhs.value.priority != rhs.value.priority) {
++            return lhs.value.priority > rhs.value.priority;
++        }
++        return lhs.value.sequence < rhs.value.sequence;
++    });
++
++    const CameraChaseModifierState initialState{
++        .struct_size = sizeof(CameraChaseModifierState),
++        .frame_counter = camera->mFrameCounter,
++        .ticks = camera->mTicks,
++        .camera_type = camera->Type(),
++        .camera_mode = camera->Mode(),
++        .context_flags = flags,
++        .native_latitude_far_degrees = *latitudeFar,
++        .native_latitude_near_degrees = *latitudeNear,
++        .latitude_offset_degrees = 0.0f,
++    };
++    for (const auto& entry : modifiers) {
++        if (!entry.owner->active || sChaseModifiers.find(entry.handle) == nullptr) {
++            continue;
++        }
++
++        auto state = initialState;
++        bool useState = false;
++        try {
++            useState = entry.value.modify(
++                entry.owner->context.get(), &state, entry.value.userData);
++        } catch (const std::exception& e) {
++            fail_mod(*entry.owner, MOD_ERROR,
++                fmt::format("exception in camera chase modifier '{}': {}",
++                    entry.value.debugName, e.what()));
++        } catch (...) {
++            fail_mod(*entry.owner, MOD_ERROR,
++                fmt::format("unknown exception in camera chase modifier '{}'",
++                    entry.value.debugName));
++        }
++
++        if (!useState || (flags & CAMERA_FOV_CONTEXT_CAN_MODIFY) == 0 ||
++            (flags & CAMERA_FOV_CONTEXT_NORMAL_MODE) == 0 ||
++            !std::isfinite(state.latitude_offset_degrees))
++        {
++            continue;
++        }
++        const float offset = std::clamp(state.latitude_offset_degrees, -15.0f, 15.0f);
++        *latitudeFar = std::clamp(*latitudeFar + offset, -80.0f, 80.0f);
++        *latitudeNear = std::clamp(*latitudeNear + offset, -80.0f, 80.0f);
++        return true;
++    }
++    return false;
++}
++
  void camera_mod_detached(LoadedMod& mod) {
      sOperators.erase_all(mod);
 +    sFovModifiers.erase_all(mod);
++    sChaseModifiers.erase_all(mod);
  }
  
  constexpr CameraService s_cameraService{
-@@ -247,6 +376,8 @@ constexpr CameraService s_cameraService{
+@@ -247,6 +498,10 @@ constexpr CameraService s_cameraService{
      .get_camera = camera_get_camera_from_view,
      .register_camera_operator = camera_register_operator,
      .unregister_camera_operator = camera_unregister_operator,
 +    .register_fov_modifier = camera_register_fov_modifier,
 +    .unregister_fov_modifier = camera_unregister_fov_modifier,
++    .register_chase_modifier = camera_register_chase_modifier,
++    .unregister_chase_modifier = camera_unregister_chase_modifier,
  };
  
  }  // namespace
-@@ -264,3 +395,8 @@ constinit const ServiceModule g_cameraModule{
+@@ -264,3 +519,13 @@ constinit const ServiceModule g_cameraModule{
  bool dusk::mods::camera_run_operators(dCamera_c* camera) {
      return svc::run_operators(camera);
  }
@@ -291,4 +475,9 @@ index b93ea00..da8cb8c 100644
 +bool dusk::mods::camera_run_fov_modifiers(
 +    dCamera_c* camera, view_class* view, const bool demoActive, const bool detached) {
 +    return svc::run_fov_modifiers(camera, view, demoActive, detached);
++}
++
++bool dusk::mods::camera_run_chase_modifiers(dCamera_c* camera, float* latitudeFar,
++    float* latitudeNear, const bool demoActive, const bool detached) {
++    return svc::run_chase_modifiers(camera, latitudeFar, latitudeNear, demoActive, detached);
 +}

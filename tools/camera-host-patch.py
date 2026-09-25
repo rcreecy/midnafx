@@ -1,4 +1,4 @@
-"""Check or apply MidnaFX's post-controller camera FOV host patch."""
+"""Check or apply MidnaFX's camera modifier host patch."""
 
 import argparse
 import subprocess
