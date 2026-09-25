@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Complete the opt-in modern exploration camera with 110% tangent-space FOV,
+  a 6-degree lower native chase angle, and fail-closed event/algorithm ownership.
+
 ## 0.6.0 - 2026-09-25
 
 - Add fused pre-HUD grading, optional detail enhancement, presets, comparison views,

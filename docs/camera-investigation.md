@@ -16,8 +16,10 @@ before frame-interpolation recording and `camera_draw`. It can change only the
 vertical FOV. Eye, center, bank, aspect, near/far, collision, input, and the
 game's camera controller remain owned by Dusklight and TP.
 
-The API exposes active, normal-mode, demo, detached, and can-modify context
-flags plus camera type/mode. Modifiers run by priority and registration order;
+The API exposes active, normal-mode, authored-event, detached, and can-modify
+context flags plus camera type/mode. `CAN_MODIFY` is emitted only for the native
+chase algorithm in mode 0; numeric mode 0 alone is insufficient because TP
+reuses it across other camera styles. Modifiers run by priority and registration order;
 the first accepted finite result wins. The host rejects output in blocked
 contexts and clamps accepted FOV to 10–120 degrees. Callback exceptions fail
 the owning mod. Handles are owner-scoped and are erased on detach.
@@ -104,11 +106,24 @@ launch again recorded normal active output. This proves callback state handoff
 without stale output; the real UI/config control still needs an interactive
 toggle pass.
 
-Live targeting, aiming, dialogue/cutscene activation, production detached-camera
-activation, live resize, and the real UI/config setting toggle remain validation
-work before this can become a default-on camera profile. Automated runtime
-evidence now covers normal exploration, forced detached, forced demo, forced
-non-normal, forced in-process disable/re-enable, and two startup aspect ratios.
+The final ownership pass found that `dDemo_c::getCamera()` alone did not cover
+ordinary authored events. In the real `F_SP103,0,27,0` startup event, TP entered
+its event camera type while the original host still reported modification safe.
+The host now also checks `dComIfGp_event_runCheck()` and restricts
+`CAN_MODIFY` to native chase algorithm 1. A source-matched D3D11 rerun recorded
+event type 40 as flags `0x07`, inactive, native/effective FOV `61.25/61.25`, and
+zero latitude offset. When the event ended, type 41 recorded flags `0x13`,
+active, `61.38/66.28` at 110%, and `-6.00` degrees. This is production event
+state, not a forced classification harness.
+
+The algorithm gate rejects lock-on, talk/conversation, subject/aim, fixed
+position, fixed frame, ride/horseback, manual, event, hookshot, colosseum,
+observe, magnetic boots, rail, para-rail, one-sided, and test camera engines.
+Detached ownership and every nonzero mode remain independent fail-closed guards.
+The patch contract test preserves the authored-event, chase-algorithm, and
+detached predicates. Controller-driven spot checks and live resize remain useful
+compatibility coverage, but are no longer required to establish that unrelated
+native camera algorithms retain ownership.
 
 The first matched lower-angle experiment used the same `F_SP103,0,27,0` scene,
 1216×896 window, native FOV, and startup timing. Baseline diagnostics reported
@@ -126,11 +141,19 @@ same `-6.00` chase offset. `build/m9-evidence/modern-camera.png` shows the
 intended wider, more forward-facing exploration composition without the
 aggressive 130% FOV used for the earlier isolation proof.
 
-## Scope and next step
+## Completion decision
 
-This checkpoint contains vertical-FOV and native chase-latitude foundations. It
-does not change distance, lateral framing, collision policy, targeting, camera
-shake, or authored cameras. Next, validate every blocked camera context and the
-lower angle near obstructing geometry with controller input and matched
-captures. Distance/height changes need separate native controller parameters;
-final-eye offsets remain unacceptable because they bypass collision policy.
+M9 camera foundation is complete as a conservative opt-in feature. The shipped
+candidate is 110% tangent-space FOV plus a 6-degree lower chase latitude. Both
+remain default OFF. Native smoothing and collision receive the changed latitude
+before constructing the eye, while every other camera algorithm and authored
+event retains native framing. The feature does not change distance, lateral
+framing, collision policy, targeting, camera shake, or authored cameras.
+
+A default-on profile remains a product-validation decision: it needs extended
+controller-driven traversal near walls, ceilings, slopes, doors, and confined
+rooms plus live-resize and user-setting interaction checks. Those checks may
+change the recommended values, but no further camera architecture milestone is
+required. Any future distance/height work needs a separate native-controller
+parameter API; final-eye offsets remain unacceptable because they bypass
+collision policy.

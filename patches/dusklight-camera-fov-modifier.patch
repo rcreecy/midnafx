@@ -1,5 +1,17 @@
+diff --git a/include/d/d_camera.h b/include/d/d_camera.h
+index 6c95d1c..2f38522 100644
+--- a/include/d/d_camera.h
++++ b/include/d/d_camera.h
+@@ -1094,6 +1094,7 @@ public:
+     f32 TrimHeight() { return mTrimHeight; }
+     int Type() { return mCurType; }
+     int Mode() { return mCurMode; }
++    int Algorithm() { return mCamParam.Algorythmn(mCamStyle); }
+     f32 Fovy() { return mFovy + mShake.field_0x3c; }
+     bool isModeOK() { return mStyleSettle.mFinished; }
+     bool push_any_key() { return mCameraInputActive; }
 diff --git a/sdk/include/mods/svc/camera.h b/sdk/include/mods/svc/camera.h
-index a901c2b..404a734 100644
+index a901c2b..dafbeb5 100644
 --- a/sdk/include/mods/svc/camera.h
 +++ b/sdk/include/mods/svc/camera.h
 @@ -8,7 +8,7 @@
@@ -11,7 +23,7 @@ index a901c2b..404a734 100644
  
  /*
   * Snapshot of a game camera for the frame currently being recorded.
-@@ -77,6 +77,82 @@ typedef struct CameraOperatorDesc {
+@@ -77,6 +77,83 @@ typedef struct CameraOperatorDesc {
  
  #define CAMERA_OPERATOR_DESC_INIT {sizeof(CameraOperatorDesc), NULL, 0, NULL, NULL}
  
@@ -21,6 +33,7 @@ index a901c2b..404a734 100644
 +typedef enum CameraFovContextFlag {
 +    CAMERA_FOV_CONTEXT_ACTIVE = 1u << 0,
 +    CAMERA_FOV_CONTEXT_NORMAL_MODE = 1u << 1,
++    /* An authored event, conversation, item-get, or demo owns camera presentation. */
 +    CAMERA_FOV_CONTEXT_DEMO = 1u << 2,
 +    CAMERA_FOV_CONTEXT_DETACHED = 1u << 3,
 +    CAMERA_FOV_CONTEXT_CAN_MODIFY = 1u << 4,
@@ -29,7 +42,7 @@ index a901c2b..404a734 100644
 +typedef struct CameraFovModifierState {
 +    uint32_t struct_size;
 +
-+    /* Host inputs. Unknown camera type/mode values must be treated conservatively. */
++    /* Host inputs. CAN_MODIFY is limited to active mode-0 native chase-camera output. */
 +    uint64_t frame_counter;
 +    uint64_t ticks;
 +    float aspect;
@@ -94,7 +107,7 @@ index a901c2b..404a734 100644
  typedef struct CameraService {
      ServiceHeader header;
  
-@@ -97,6 +173,32 @@ typedef struct CameraService {
+@@ -97,6 +174,32 @@ typedef struct CameraService {
      ModResult (*register_camera_operator)(
          ModContext* ctx, const CameraOperatorDesc* desc, CameraOperatorHandle* out_handle);
      ModResult (*unregister_camera_operator)(ModContext* ctx, CameraOperatorHandle handle);
@@ -128,7 +141,7 @@ index a901c2b..404a734 100644
  
  MOD_DECLARE_SERVICE(
 diff --git a/src/d/d_camera.cpp b/src/d/d_camera.cpp
-index fe3bb91..bd54eca 100644
+index fe3bb91..8df46f0 100644
 --- a/src/d/d_camera.cpp
 +++ b/src/d/d_camera.cpp
 @@ -3952,6 +3952,11 @@ bool dCamera_c::chaseCamera(s32 param_0) {
@@ -137,7 +150,7 @@ index fe3bb91..bd54eca 100644
  
 +#ifdef TARGET_PC
 +    dusk::mods::camera_run_chase_modifiers(this, &val12, &val13,
-+        dDemo_c::getCamera() != NULL, dusk::isCameraDetached());
++        dDemo_c::getCamera() != NULL || dComIfGp_event_runCheck(), dusk::isCameraDetached());
 +#endif
 +
      cXyz player_attention_pos = attentionPos(mpPlayerActor);
@@ -148,7 +161,7 @@ index fe3bb91..bd54eca 100644
  #ifdef TARGET_PC
      widezoom_correction(i_this, i_this->mCamera.TrimHeight());
 +    dusk::mods::camera_run_fov_modifiers(&i_this->mCamera, &i_this->view,
-+        dDemo_c::getCamera() != NULL, dusk::isCameraDetached());
++        dDemo_c::getCamera() != NULL || dComIfGp_event_runCheck(), dusk::isCameraDetached());
  
      if (dusk::interp::is_enabled()) {
          dusk::interp::add_interpolation_callback([](void* pUserWork) {
@@ -172,7 +185,7 @@ index c4ba650..b4c1e4a 100644
  
  }  // namespace dusk::mods
 diff --git a/src/dusk/mods/svc/camera.cpp b/src/dusk/mods/svc/camera.cpp
-index b93ea00..e4aa100 100644
+index b93ea00..18d2926 100644
 --- a/src/dusk/mods/svc/camera.cpp
 +++ b/src/dusk/mods/svc/camera.cpp
 @@ -14,6 +14,7 @@
@@ -212,7 +225,7 @@ index b93ea00..e4aa100 100644
  ModResult camera_register_operator(
      ModContext* context, const CameraOperatorDesc* desc, CameraOperatorHandle* outHandle) {
      if (outHandle != nullptr) {
-@@ -171,6 +194,91 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
+@@ -171,6 +194,94 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
      return sOperators.erase_owned(handle, *mod) ? MOD_OK : MOD_INVALID_ARGUMENT;
  }
  
@@ -295,7 +308,10 @@ index b93ea00..e4aa100 100644
 +    if (detached) {
 +        flags |= CAMERA_FOV_CONTEXT_DETACHED;
 +    }
-+    if (camera.Active() && !demoActive && !detached) {
++    // The same numeric mode is reused by fixed, ride, event, and other camera styles.
++    // Restrict modification to engine slot 1, the native chase controller.
++    if (camera.Active() && camera.Mode() == 0 && camera.Algorithm() == 1 && !demoActive &&
++        !detached) {
 +        flags |= CAMERA_FOV_CONTEXT_CAN_MODIFY;
 +    }
 +    return flags;
@@ -304,7 +320,7 @@ index b93ea00..e4aa100 100644
  CameraOperatorState make_operator_state(const dCamera_c& camera) {
      return CameraOperatorState{
          .struct_size = sizeof(CameraOperatorState),
-@@ -238,8 +346,151 @@ bool run_operators(dCamera_c* camera) {
+@@ -238,8 +349,151 @@ bool run_operators(dCamera_c* camera) {
      return false;
  }
  
@@ -456,7 +472,7 @@ index b93ea00..e4aa100 100644
  }
  
  constexpr CameraService s_cameraService{
-@@ -247,6 +498,10 @@ constexpr CameraService s_cameraService{
+@@ -247,6 +501,10 @@ constexpr CameraService s_cameraService{
      .get_camera = camera_get_camera_from_view,
      .register_camera_operator = camera_register_operator,
      .unregister_camera_operator = camera_unregister_operator,
@@ -467,7 +483,7 @@ index b93ea00..e4aa100 100644
  };
  
  }  // namespace
-@@ -264,3 +519,13 @@ constinit const ServiceModule g_cameraModule{
+@@ -264,3 +522,13 @@ constinit const ServiceModule g_cameraModule{
  bool dusk::mods::camera_run_operators(dCamera_c* camera) {
      return svc::run_operators(camera);
  }

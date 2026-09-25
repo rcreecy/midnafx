@@ -31,6 +31,9 @@ add_executable(camera_fov camera_fov.cpp ../src/game/camera_fov.cpp)
 target_compile_features(camera_fov PRIVATE cxx_std_20)
 target_include_directories(camera_fov PRIVATE ../src)
 add_test(NAME camera_fov COMMAND camera_fov)
+add_test(NAME camera_patch_contract COMMAND "${Python3_EXECUTABLE}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/camera_patch_contract.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../patches/dusklight-camera-fov-modifier.patch")
 if(MIDNAFX_BUILD_MOD)
     add_executable(shader_compile shader_compile.cpp)
     target_compile_features(shader_compile PRIVATE cxx_std_20)

@@ -152,5 +152,7 @@ camera controller for that tick, so MidnaFX does not use it. The candidate
 CameraService 1.3 patch instead provides a post-controller vertical-FOV modifier
 and a chase-controller latitude modifier. The latter changes native near/far
 latitude targets before camera smoothing, eye construction, and collision.
-Both MidnaFX controls are default off and require active mode-0 gameplay. See
-`camera-investigation.md` for runtime evidence and remaining validation.
+Both MidnaFX controls are default off and require the active native chase
+algorithm in mode 0. Authored event state and detached ownership fail closed.
+See `camera-investigation.md` for runtime evidence and the default-on validation
+boundary.
