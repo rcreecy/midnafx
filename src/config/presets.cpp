@@ -124,6 +124,16 @@ bool decode(const std::string& text, std::vector<Entry>& output) {
     return true;
 }
 
+Snapshot vivid_realism() {
+    Snapshot result;
+    // Preserve the black floor and neutral white balance. A small midtone lift,
+    // restrained chroma boost and highlight shoulder retain the scene's lighting.
+    result.values = {0, 0, 100, 102, 108, 25, 0, 0};
+    result.detail_enabled = true;
+    result.detail_strength = 12;
+    return result;
+}
+
 Snapshot smoke_test() {
     Snapshot result;
     result.values = {120, 12, 145, 85, 0, 70, 85, -65};

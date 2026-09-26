@@ -38,4 +38,12 @@ int main() {
     CHECK(smoke.detail_enabled);
     CHECK(smoke.detail_strength <= 50);
     CHECK(!presets::encode({{"Smoke", smoke}}).empty());
+    const auto realism = presets::vivid_realism();
+    CHECK(presets::decode(presets::encode({{"Realism copy", realism}}), decoded));
+    CHECK(decoded[0].snapshot.values == realism.values);
+    CHECK(decoded[0].snapshot.active == realism.active);
+    CHECK(decoded[0].snapshot.detail_enabled);
+    CHECK(decoded[0].snapshot.detail_strength == realism.detail_strength);
+    // Built-in labels use a slash so existing saved names cannot collide.
+    CHECK(!presets::valid_name("Natural / Vivid Realism"));
 }

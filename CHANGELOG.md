@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add the built-in Natural / Vivid Realism preset with restrained saturation,
+  neutral white balance, highlight rolloff, and subtle detail enhancement.
+
 ## 0.7.0 - 2026-09-25
 
 - Complete the opt-in modern exploration camera with 110% tangent-space FOV,

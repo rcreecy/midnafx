@@ -57,6 +57,7 @@ NumberSetting camera_transition_setting{
     "camera_transition_cs", "Camera transition (0.01 s)", 0, 200, 35, 35, false};
 NumberSetting camera_angle_setting{
     "camera_angle_degrees", "Camera elevation reduction (degrees)", 0, 15, 6, 6, false};
+constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
     "Final",           "Passthrough", "A/B Split", "Luminance", "Highlight Clipping",
@@ -129,9 +130,11 @@ std::size_t preset_index() {
         return 0;
     if (selected_preset == SmokeName)
         return 2;
+    if (selected_preset == RealismName)
+        return 3;
     for (std::size_t i = 0; i < saved_presets.size(); ++i)
         if (saved_presets[i].name == selected_preset)
-            return i + 3;
+            return i + 4;
     return 1;
 }
 presets::Snapshot capture() {
@@ -158,6 +161,7 @@ void refresh_preset_options() {
     options.push_back({sizeof(UiControlOption), "Vanilla", true});
     options.push_back({sizeof(UiControlOption), "Custom", true});
     options.push_back({sizeof(UiControlOption), SmokeName, true});
+    options.push_back({sizeof(UiControlOption), RealismName, true});
     for (const auto& preset : saved_presets)
         options.push_back({sizeof(UiControlOption), preset.name.c_str(), true});
     check_ui(svc_ui->control_set_options(mod_ctx, preset_control, options.data(), options.size()));
@@ -470,14 +474,16 @@ void set_preset(ModContext*, void*, const UiControlValue* in) {
         apply_preset(custom_snapshot, "Custom");
     } else if (index == 2)
         apply_preset(presets::smoke_test(), SmokeName);
-    else if (index >= 3 && static_cast<std::size_t>(index - 3) < saved_presets.size()) {
-        const auto& preset = saved_presets[static_cast<std::size_t>(index - 3)];
+    else if (index == 3)
+        apply_preset(presets::vivid_realism(), RealismName);
+    else if (index >= 4 && static_cast<std::size_t>(index - 4) < saved_presets.size()) {
+        const auto& preset = saved_presets[static_cast<std::size_t>(index - 4)];
         apply_preset(preset.snapshot, preset.name);
     }
 }
 void save_preset(ModContext*, void*) {
     if (selected_preset != "Vanilla" && selected_preset != "Custom" &&
-        selected_preset != SmokeName) {
+        selected_preset != SmokeName && selected_preset != RealismName) {
         for (auto& preset : saved_presets)
             if (preset.name == selected_preset) {
                 preset.snapshot = capture();
@@ -516,8 +522,10 @@ void load_preset(ModContext*, void*) {
         apply_preset(presets::Snapshot{}, "Vanilla");
     else if (index == 2)
         apply_preset(presets::smoke_test(), SmokeName);
-    else if (index >= 3)
-        apply_preset(saved_presets[index - 3].snapshot, saved_presets[index - 3].name);
+    else if (index == 3)
+        apply_preset(presets::vivid_realism(), RealismName);
+    else if (index >= 4)
+        apply_preset(saved_presets[index - 4].snapshot, saved_presets[index - 4].name);
 }
 void capture_twilight_target(ModContext*, void*) {
     const auto snapshot = capture();
@@ -636,7 +644,7 @@ void register_presets() {
             if (svc_config->get_string(mod_ctx, selected_handle, name.data(), name.size(),
                                        nullptr) == MOD_OK) {
                 name.resize(length);
-                if (name == "Vanilla" || name == "Custom" || name == SmokeName)
+                if (name == "Vanilla" || name == "Custom" || name == SmokeName || name == RealismName)
                     selected_preset = name;
                 else
                     for (const auto& entry : saved_presets)
@@ -740,7 +748,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enable grading", master);
     add_toggle(panel, "Force passthrough comparison", passthrough);
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Presets"));
-    std::vector<const char*> labels{"Vanilla", "Custom", SmokeName};
+    std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName};
     for (const auto& preset : saved_presets)
         labels.push_back(preset.name.c_str());
     UiControlDesc choice = UI_CONTROL_DESC_INIT;

@@ -27,6 +27,13 @@ Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
 in Dusklight's mods folder. Each package contains one platform's native library.
 The macOS package is CI-built but has not received an Intel Mac runtime pass.
 
+The development build includes **Natural / Vivid Realism** in **Presets > Current
+preset**. Turn on **Enable grading** to use it. The look adds restrained color,
+a small midtone lift, softer highlights, and subtle detail while preserving neutral
+white balance and the black floor. Save or duplicate it to create an editable copy;
+select Vanilla to restore neutral grading. See [the preset notes](docs/vivid-realism.md)
+for exact settings, costs, and visual validation limits.
+
 Research and exact source revision: [docs/research.md](docs/research.md).
 Architecture and limits: [docs/architecture.md](docs/architecture.md).
 Build and Intel Mac validation: [docs/development.md](docs/development.md).

@@ -22,4 +22,5 @@ bool valid_name(const std::string& name);
 std::string encode(const std::vector<Entry>& entries);
 bool decode(const std::string& text, std::vector<Entry>& output);
 Snapshot smoke_test();
+Snapshot vivid_realism();
 } // namespace midnafx::presets
