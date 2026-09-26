@@ -169,7 +169,8 @@ void observe(ModContext*, const GfxStageContext* context, void*) {
             current.eye[i] = info.eye[i];
         current.target_valid = false;
         current.focus_distance = 0.0f;
-        if (current.target_supported && settings::dof_coc_view_enabled() &&
+        if (current.target_supported &&
+            (settings::dof_coc_view_enabled() || settings::dof_blur_enabled()) &&
             settings::dof_autofocus_enabled() && svc_camera->get_camera_target) {
             CameraTargetInfo target = CAMERA_TARGET_INFO_INIT;
             if (svc_camera->get_camera_target(mod_ctx, context->game_view, &target) == MOD_OK &&

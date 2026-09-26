@@ -114,6 +114,45 @@ bool validate(WGPUInstance instance, WGPUDevice device, const char* source, cons
     wgpuShaderModuleRelease(shader);
     return valid;
 }
+
+bool validate_compute(WGPUInstance instance, WGPUDevice device, const char* source,
+                      const char* label, const char* const* entry_points, size_t entry_count) {
+    WGPUShaderSourceWGSL wgsl = WGPU_SHADER_SOURCE_WGSL_INIT;
+    wgsl.code = {source, WGPU_STRLEN};
+    WGPUShaderModuleDescriptor desc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
+    desc.nextInChain = &wgsl.chain;
+    desc.label = {label, WGPU_STRLEN};
+    auto shader = wgpuDeviceCreateShaderModule(device, &desc);
+    if (!shader)
+        return false;
+    CompilationResult result;
+    WGPUCompilationInfoCallbackInfo callback = WGPU_COMPILATION_INFO_CALLBACK_INFO_INIT;
+    callback.mode = WGPUCallbackMode_WaitAnyOnly;
+    callback.callback = compilation_callback;
+    callback.userdata1 = &result;
+    const bool waited = wait(instance, wgpuShaderModuleGetCompilationInfo(shader, callback));
+    bool valid = waited && result.complete && result.valid;
+    for (size_t i = 0; valid && i < entry_count; ++i) {
+        wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
+        WGPUComputePipelineDescriptor pipeline_desc = WGPU_COMPUTE_PIPELINE_DESCRIPTOR_INIT;
+        pipeline_desc.compute.module = shader;
+        pipeline_desc.compute.entryPoint = {entry_points[i], WGPU_STRLEN};
+        auto pipeline = wgpuDeviceCreateComputePipeline(device, &pipeline_desc);
+        ScopeResult scope;
+        WGPUPopErrorScopeCallbackInfo scope_info = WGPU_POP_ERROR_SCOPE_CALLBACK_INFO_INIT;
+        scope_info.mode = WGPUCallbackMode_WaitAnyOnly;
+        scope_info.callback = scope_callback;
+        scope_info.userdata1 = &scope;
+        const bool scope_waited = wait(instance, wgpuDevicePopErrorScope(device, scope_info));
+        valid = pipeline != nullptr && scope_waited && scope.complete && scope.valid;
+        if (!valid)
+            std::fprintf(stderr, "Compute entry point failed: %s\n", entry_points[i]);
+        if (pipeline)
+            wgpuComputePipelineRelease(pipeline);
+    }
+    wgpuShaderModuleRelease(shader);
+    return valid;
+}
 } // namespace
 
 int main() {
@@ -147,6 +186,9 @@ int main() {
     constexpr const char* grade_entries[]{"fs_main", "fs_detail", "fs_debug", "fs_debug_detail"};
     constexpr const char* depth_entries[]{"fs_depth"};
     constexpr const char* dof_entries[]{"fs_coc"};
+    constexpr const char* dof_blur_entries[]{"cs_downsample", "cs_blur_horizontal",
+                                              "cs_blur_vertical"};
+    constexpr const char* dof_composite_entries[]{"fs_composite"};
     const bool pass = validate(instance, device.device, midnafx::render::passthrough_shader,
                                "MidnaFX passthrough", pass_entries, 1);
     const bool grade = validate(instance, device.device, midnafx::render::grading_shader,
@@ -156,8 +198,15 @@ int main() {
                                 "MidnaFX atmosphere depth diagnostic", depth_entries, 1);
     const bool dof = validate(instance, device.device, midnafx::render::dof_shader,
                               "MidnaFX depth of field diagnostic", dof_entries, 1);
+    const bool dof_blur = validate_compute(instance, device.device,
+                                           midnafx::render::dof_blur_compute_shader,
+                                           "MidnaFX depth of field blur", dof_blur_entries, 3);
+    const bool dof_composite = validate(instance, device.device,
+                                        midnafx::render::dof_blur_composite_shader,
+                                        "MidnaFX depth of field composite",
+                                        dof_composite_entries, 1);
     wgpuDeviceRelease(device.device);
     wgpuAdapterRelease(adapter.adapter);
     wgpuInstanceRelease(instance);
-    return pass && grade && depth && dof ? 0 : 1;
+    return pass && grade && depth && dof && dof_blur && dof_composite ? 0 : 1;
 }

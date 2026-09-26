@@ -24,7 +24,7 @@ if(MIDNAFX_BUILD_MOD)
     add_subdirectory("${DUSKLIGHT_DIR}/sdk" dusklight-sdk EXCLUDE_FROM_ALL)
     add_mod(midnafx
         FEATURES game webgpu
-        SOURCES src/mod.cpp src/config/grade.cpp src/config/presets.cpp src/config/visual.cpp src/game/bmd_rebuild.cpp src/game/camera_fov.cpp src/game/camera_probe.cpp src/game/game_state.cpp src/game/geometry_probe.cpp src/game/topology.cpp src/game/smoothing.cpp src/game/twilight.cpp src/render/renderer.cpp src/ui/settings.cpp
+        SOURCES src/mod.cpp src/config/grade.cpp src/config/presets.cpp src/config/visual.cpp src/game/bmd_rebuild.cpp src/game/camera_fov.cpp src/game/camera_probe.cpp src/game/game_state.cpp src/game/geometry_probe.cpp src/game/topology.cpp src/game/smoothing.cpp src/game/twilight.cpp src/render/dof_blur.cpp src/render/renderer.cpp src/ui/settings.cpp
         MOD_JSON mod.json
         RES_DIR res
     )
@@ -36,6 +36,10 @@ if(MIDNAFX_BUILD_MOD)
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/atmosphere_depth.wgsl" MIDNAFX_ATMOSPHERE_DEPTH_SHADER)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/depth_of_field.wgsl")
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/depth_of_field.wgsl" MIDNAFX_DOF_SHADER)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/dof_blur_compute.wgsl")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/dof_blur_compute.wgsl" MIDNAFX_DOF_BLUR_COMPUTE_SHADER)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/dof_blur_composite.wgsl")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/dof_blur_composite.wgsl" MIDNAFX_DOF_BLUR_COMPOSITE_SHADER)
     configure_file(src/render/shader.hpp.in generated/midnafx_shader.hpp @ONLY)
     target_include_directories(midnafx PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src" "${CMAKE_CURRENT_BINARY_DIR}/generated")
     if(MSVC)

@@ -44,6 +44,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
+    dof_blur{"dof_blur"},
     dof_autofocus{"dof_autofocus"};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
@@ -846,14 +847,16 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Depth of field research"));
     add_toggle(panel, "Visualize focus mask", dof_coc_view);
+    add_toggle(panel, "Experimental depth of field blur", dof_blur);
     add_toggle(panel, "Use camera target focus", dof_autofocus);
     add_number(panel, dof_focus_distance_setting);
     add_number(panel, dof_focus_range_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
-        "Developer diagnostic only. Cyan is nearer than focus, orange is farther, black is in "
-        "focus, and magenta is invalid. Camera target focus replaces the manual distance and "
-        "fails closed when unavailable. This view overrides the atmosphere depth view.",
+        "Default off. Focus view: cyan is nearer, orange is farther, black is focused, and "
+        "magenta is invalid. Experimental blur uses a half-resolution near/far chain. Camera "
+        "target focus replaces manual distance and fails closed when unavailable. Diagnostics "
+        "override blur. Visual quality validation remains pending.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
@@ -906,6 +909,7 @@ bool initialize() {
     register_toggle(atmosphere_depth_probe);
     register_toggle(atmosphere_depth_view);
     register_toggle(dof_coc_view);
+    register_toggle(dof_blur);
     register_toggle(dof_autofocus);
     register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
@@ -955,6 +959,7 @@ float atmosphere_depth_distance() {
     return static_cast<float>(atmosphere_distance_setting.value);
 }
 bool dof_coc_view_enabled() { return dof_coc_view.value; }
+bool dof_blur_enabled() { return dof_blur.value; }
 bool dof_autofocus_enabled() { return dof_autofocus.value; }
 float dof_focus_distance() { return static_cast<float>(dof_focus_distance_setting.value); }
 float dof_focus_range() { return static_cast<float>(dof_focus_range_setting.value); }

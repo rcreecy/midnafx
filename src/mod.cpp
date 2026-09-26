@@ -1,6 +1,7 @@
 #include "game/camera_probe.hpp"
 #include "game/game_state.hpp"
 #include "game/geometry_probe.hpp"
+#include "render/dof_blur.hpp"
 #include "render/renderer.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -25,6 +26,7 @@ MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
     midnafx::render::initialize();
     midnafx::camera_probe::initialize();
+    midnafx::render::dof_blur::initialize();
     midnafx::geometry_probe::initialize();
     last_update = std::chrono::steady_clock::now();
     svc_log->info(mod_ctx,
@@ -37,11 +39,13 @@ MOD_EXPORT ModResult mod_update(ModError*) {
     last_update = now;
     midnafx::settings::update_twilight(midnafx::game_state::sample(), elapsed);
     midnafx::render::update();
+    midnafx::render::dof_blur::update();
     midnafx::settings::update_diagnostics();
     return MOD_OK;
 }
 MOD_EXPORT ModResult mod_shutdown(ModError*) {
     // Dusklight deactivates/drains draw callbacks before invoking this export.
+    midnafx::render::dof_blur::shutdown();
     midnafx::render::shutdown();
     midnafx::camera_probe::shutdown();
     midnafx::geometry_probe::shutdown();

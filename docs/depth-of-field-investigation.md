@@ -89,3 +89,34 @@ A source-matched Windows D3D11 run then exercised the new service and opt-in dia
 units, 256/256 submitted/encoded draws at 1216x896, and 11.60/23.20 microseconds median/p95 CPU
 callback time. The process remained responsive for the 25-second bounded run, and logs contained
 no MidnaFX, WebGPU, or validation error. Visual capture remains deferred.
+
+## Half-resolution blur prototype
+
+Visual capture remains deferred by request. Development therefore advances only as a default-off
+prototype; no image-quality claim is made.
+
+The first blur path resolves scene color and depth once before the HUD. It downsamples into
+separate premultiplied near and far `RGBA16Float` targets, applies a separable nine-tap Gaussian,
+then composites at full resolution using the original pixel depth. Near blur can dilate across
+foreground silhouettes; far blur applies only behind the current focus plane. Focus uses the
+manual distance or the CameraService camera target. Missing or stale autofocus data skips the
+frame.
+
+The four half-resolution textures are recreated on size changes. Old sets remain alive for four
+frames because queued render-worker payloads borrow their views. A layout-keyed composite
+pipeline supports host layout changes. Focus-mask and atmosphere-depth diagnostics take priority
+over blur. Registration order places blur after MidnaFX grading at the same pre-HUD stage, so its
+color snapshot includes the graded scene. Disabled mode performs no resolve, allocation, uniform
+upload, compute, or draw work.
+
+Current prototype uses a fixed nominal 12-pixel blur radius. It has no bokeh-shape model, temporal
+accumulation, motion blur, center-depth autofocus, or quality controls. Windows shader validation
+compiles all three compute entries and the composite entry. Required visual gate remains matched
+captures with manual and camera-target focus, foreground/background transitions, HUD sharpness,
+camera movement, room reload, resize, and grading both enabled and disabled.
+
+A source-matched Windows D3D11 run in `F_SP103,0,27,0` exercised camera-target autofocus with
+grading and diagnostic views disabled. The host reached gameplay, queued the blur, and confirmed
+both compute and composite callbacks executed. Logs contained no MidnaFX, WebGPU, or validation
+error. A matched default-off run reached the same camera states and recorded no blur activation or
+execution. Both tests were bounded process runs; visual inspection remains deferred.
