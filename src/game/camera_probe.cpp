@@ -167,6 +167,19 @@ void observe(ModContext*, const GfxStageContext* context, void*) {
         current.far_plane = info.far_plane;
         for (unsigned i = 0; i < 3; ++i)
             current.eye[i] = info.eye[i];
+        current.target_valid = false;
+        current.focus_distance = 0.0f;
+        if (current.target_supported && settings::dof_coc_view_enabled() &&
+            settings::dof_autofocus_enabled() && svc_camera->get_camera_target) {
+            CameraTargetInfo target = CAMERA_TARGET_INFO_INIT;
+            if (svc_camera->get_camera_target(mod_ctx, context->game_view, &target) == MOD_OK &&
+                std::isfinite(target.focus_distance) && target.focus_distance > 0.0f) {
+                current.target_valid = true;
+                current.focus_distance = target.focus_distance;
+                for (unsigned i = 0; i < 3; ++i)
+                    current.target[i] = target.center[i];
+            }
+        }
         last_sample = std::chrono::steady_clock::now();
         ++current.samples;
     } else
@@ -214,6 +227,8 @@ void initialize() {
         current.chase_modifier_registered =
             svc_camera->register_chase_modifier(mod_ctx, &chase_desc, &chase_modifier) == MOD_OK;
     }
+    current.target_supported = SERVICE_HAS(svc_camera, CameraService, get_camera_target) &&
+                               svc_camera->get_camera_target;
 }
 
 void shutdown() {
@@ -259,5 +274,13 @@ bool latest_camera_info(CameraInfo& out) {
         return false;
     out = latest_info;
     return true;
+}
+
+bool latest_focus_distance(float& out) {
+    if (!current.valid || !current.target_valid ||
+        std::chrono::steady_clock::now() - last_sample > std::chrono::milliseconds(500))
+        return false;
+    out = current.focus_distance;
+    return std::isfinite(out) && out > 0.0f;
 }
 } // namespace midnafx::camera_probe

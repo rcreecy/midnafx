@@ -386,6 +386,14 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                                                 : (detail_enabled ? DebugDetail : Debug);
     prepared.uniforms.split_x =
         visual::split_boundary(current.color_attachments[0].width, settings::split_percent());
+    float active_focus_distance = settings::dof_focus_distance();
+    bool camera_target_focus = false;
+    if (dof_debug && settings::dof_autofocus_enabled()) {
+        if (!camera_probe::latest_focus_distance(active_focus_distance) ||
+            !std::isfinite(active_focus_distance) || active_focus_distance <= 0.0f)
+            return;
+        camera_target_focus = true;
+    }
     GfxRange uniform_range{0, 0};
     if (depth_based_debug) {
         CameraInfo camera = CAMERA_INFO_INIT;
@@ -398,7 +406,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                         sizeof(uniforms.view_from_proj));
             uniforms.near_plane = camera.near_plane;
             uniforms.far_plane = camera.far_plane;
-            uniforms.focus_distance = settings::dof_focus_distance();
+            uniforms.focus_distance = active_focus_distance;
             uniforms.focus_range = settings::dof_focus_range();
             uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
             uniform_result =
@@ -493,9 +501,10 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         char message[224];
         if (dof_debug)
             std::snprintf(message, sizeof(message),
-                          "Depth of field focus diagnostic active: size=%ux%u focus=%.0f range=%.0f reversed_z=%s",
+                          "Depth of field focus diagnostic active: size=%ux%u focus=%.0f source=%s range=%.0f reversed_z=%s",
                           snapshot.width, snapshot.height,
-                          static_cast<double>(settings::dof_focus_distance()),
+                          static_cast<double>(active_focus_distance),
+                          camera_target_focus ? "camera-target" : "manual",
                           static_cast<double>(settings::dof_focus_range()),
                           device.uses_reversed_z ? "yes" : "no");
         else

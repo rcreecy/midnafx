@@ -67,3 +67,25 @@ pass: a WGSL `vec3f` padding member would align the uniform block to 112 bytes w
 Remaining gate is visual only: confirm screen orientation, cyan/orange direction, black focus
 band, background classification, and no magenta samples. No blur implementation is justified
 until that evidence exists.
+
+## Camera-target autofocus checkpoint
+
+The next source-only checkpoint adds CameraService 1.4 `get_camera_target`. It snapshots the
+rendered `view_class::lookat.center` and computes its positive axial view-space distance on the
+game thread. This keeps MidnaFX out of camera ownership and avoids GPU readback. MidnaFX samples
+the value beside `CameraInfo` at scene begin and can use it for the default-off focus-mask view.
+When camera-target focus is requested but unavailable or stale, the diagnostic skips the frame
+instead of silently using manual focus.
+
+Dusklight's AO mod establishes the required future blur ownership pattern: half-resolution
+storage textures, one queued compute chain, render-size recreation, and four-frame retirement of
+old targets whose views may remain in render-worker payloads. A production blur should reuse that
+pattern with separate near and far color targets before an edge-aware full-resolution composite.
+Implementation remains blocked on the deferred focus-mask visual gate; this checkpoint adds no
+blur and performs no extra work while the focus diagnostic is disabled.
+
+A source-matched Windows D3D11 run then exercised the new service and opt-in diagnostic in
+`F_SP103,0,27,0`. MidnaFX reported `source=camera-target`, an axial focus distance of 300 game
+units, 256/256 submitted/encoded draws at 1216x896, and 11.60/23.20 microseconds median/p95 CPU
+callback time. The process remained responsive for the 25-second bounded run, and logs contained
+no MidnaFX, WebGPU, or validation error. Visual capture remains deferred.

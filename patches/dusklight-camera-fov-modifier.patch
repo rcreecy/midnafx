@@ -11,7 +11,7 @@ index 6c95d1c..2f38522 100644
      bool isModeOK() { return mStyleSettle.mFinished; }
      bool push_any_key() { return mCameraInputActive; }
 diff --git a/sdk/include/mods/svc/camera.h b/sdk/include/mods/svc/camera.h
-index a901c2b..dafbeb5 100644
+index a901c2b..e5c3bd5 100644
 --- a/sdk/include/mods/svc/camera.h
 +++ b/sdk/include/mods/svc/camera.h
 @@ -8,7 +8,7 @@
@@ -19,11 +19,26 @@ index a901c2b..dafbeb5 100644
  #define CAMERA_SERVICE_ID DUSKLIGHT_SERVICE_ID_PREFIX "camera"
  #define CAMERA_SERVICE_MAJOR 1u
 -#define CAMERA_SERVICE_MINOR 1u
-+#define CAMERA_SERVICE_MINOR 3u
++#define CAMERA_SERVICE_MINOR 4u
  
  /*
   * Snapshot of a game camera for the frame currently being recorded.
-@@ -77,6 +77,83 @@ typedef struct CameraOperatorDesc {
+@@ -46,6 +46,14 @@ typedef struct CameraInfo {
+ 
+ #define CAMERA_INFO_INIT {sizeof(CameraInfo)}
+ 
++typedef struct CameraTargetInfo {
++    uint32_t struct_size;
++    float center[3];       /* rendered look-at target in world space */
++    float focus_distance;  /* positive axial view-space distance to center */
++} CameraTargetInfo;
++
++#define CAMERA_TARGET_INFO_INIT {sizeof(CameraTargetInfo)}
++
+ /* 0 is never a valid handle. */
+ typedef uint64_t CameraOperatorHandle;
+ 
+@@ -77,6 +85,83 @@ typedef struct CameraOperatorDesc {
  
  #define CAMERA_OPERATOR_DESC_INIT {sizeof(CameraOperatorDesc), NULL, 0, NULL, NULL}
  
@@ -107,7 +122,7 @@ index a901c2b..dafbeb5 100644
  typedef struct CameraService {
      ServiceHeader header;
  
-@@ -97,6 +174,32 @@ typedef struct CameraService {
+@@ -97,6 +182,41 @@ typedef struct CameraService {
      ModResult (*register_camera_operator)(
          ModContext* ctx, const CameraOperatorDesc* desc, CameraOperatorHandle* out_handle);
      ModResult (*unregister_camera_operator)(ModContext* ctx, CameraOperatorHandle handle);
@@ -137,6 +152,15 @@ index a901c2b..dafbeb5 100644
 +    ModResult (*register_chase_modifier)(ModContext* ctx, const CameraChaseModifierDesc* desc,
 +                                        CameraChaseModifierHandle* out_handle);
 +    ModResult (*unregister_chase_modifier)(ModContext* ctx, CameraChaseModifierHandle handle);
++
++    /* Minor version 4 */
++
++    /*
++     * Snapshots the rendered camera look-at target and its axial focus distance. game_view has
++     * the same ownership and thread restrictions as get_camera.
++     */
++    ModResult (*get_camera_target)(
++        ModContext* ctx, const void* game_view, CameraTargetInfo* out_info);
  } CameraService;
  
  MOD_DECLARE_SERVICE(
@@ -185,7 +209,7 @@ index c4ba650..b4c1e4a 100644
  
  }  // namespace dusk::mods
 diff --git a/src/dusk/mods/svc/camera.cpp b/src/dusk/mods/svc/camera.cpp
-index b93ea00..18d2926 100644
+index b93ea00..a243a3b 100644
 --- a/src/dusk/mods/svc/camera.cpp
 +++ b/src/dusk/mods/svc/camera.cpp
 @@ -14,6 +14,7 @@
@@ -196,7 +220,46 @@ index b93ea00..18d2926 100644
  #include <cstring>
  #include <exception>
  #include <fmt/format.h>
-@@ -139,6 +140,28 @@ struct CameraOperator {
+@@ -128,6 +129,38 @@ ModResult camera_get_camera_from_view(
+     return snapshot_view(static_cast<const view_class*>(gameView), outInfo);
+ }
+ 
++ModResult camera_get_target_from_view(
++    ModContext* context, const void* gameView, CameraTargetInfo* outInfo) {
++    if (outInfo == nullptr || outInfo->struct_size < sizeof(CameraTargetInfo) ||
++        mod_from_context(context) == nullptr || gameView == nullptr)
++    {
++        return MOD_INVALID_ARGUMENT;
++    }
++    const auto* view = static_cast<const view_class*>(gameView);
++    if (!(view->near_ > 0.0f) || !(view->far_ > view->near_) || !(view->fovy > 0.0f) ||
++        view->fovy >= 180.0f || !(view->aspect > 0.0f))
++    {
++        return MOD_UNAVAILABLE;
++    }
++    const auto& center = view->lookat.center;
++    const float viewZ = view->viewMtx[2][0] * center.x + view->viewMtx[2][1] * center.y +
++                        view->viewMtx[2][2] * center.z + view->viewMtx[2][3];
++    const float focusDistance = -viewZ;
++    if (!std::isfinite(center.x) || !std::isfinite(center.y) || !std::isfinite(center.z) ||
++        !std::isfinite(focusDistance) || focusDistance <= 0.0f)
++    {
++        return MOD_UNAVAILABLE;
++    }
++    const uint32_t structSize = outInfo->struct_size;
++    std::memset(outInfo, 0, sizeof(CameraTargetInfo));
++    outInfo->struct_size = structSize;
++    outInfo->center[0] = center.x;
++    outInfo->center[1] = center.y;
++    outInfo->center[2] = center.z;
++    outInfo->focus_distance = focusDistance;
++    return MOD_OK;
++}
++
+ struct CameraOperator {
+     std::string debugName;
+     int32_t priority = 0;
+@@ -139,6 +172,28 @@ struct CameraOperator {
  SlotMap<CameraOperator> sOperators;
  uint64_t sNextOperatorSequence = 0;
  
@@ -225,7 +288,7 @@ index b93ea00..18d2926 100644
  ModResult camera_register_operator(
      ModContext* context, const CameraOperatorDesc* desc, CameraOperatorHandle* outHandle) {
      if (outHandle != nullptr) {
-@@ -171,6 +194,94 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
+@@ -171,6 +226,94 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
      return sOperators.erase_owned(handle, *mod) ? MOD_OK : MOD_INVALID_ARGUMENT;
  }
  
@@ -320,7 +383,7 @@ index b93ea00..18d2926 100644
  CameraOperatorState make_operator_state(const dCamera_c& camera) {
      return CameraOperatorState{
          .struct_size = sizeof(CameraOperatorState),
-@@ -238,8 +349,151 @@ bool run_operators(dCamera_c* camera) {
+@@ -238,8 +381,151 @@ bool run_operators(dCamera_c* camera) {
      return false;
  }
  
@@ -472,7 +535,7 @@ index b93ea00..18d2926 100644
  }
  
  constexpr CameraService s_cameraService{
-@@ -247,6 +501,10 @@ constexpr CameraService s_cameraService{
+@@ -247,6 +533,11 @@ constexpr CameraService s_cameraService{
      .get_camera = camera_get_camera_from_view,
      .register_camera_operator = camera_register_operator,
      .unregister_camera_operator = camera_unregister_operator,
@@ -480,10 +543,11 @@ index b93ea00..18d2926 100644
 +    .unregister_fov_modifier = camera_unregister_fov_modifier,
 +    .register_chase_modifier = camera_register_chase_modifier,
 +    .unregister_chase_modifier = camera_unregister_chase_modifier,
++    .get_camera_target = camera_get_target_from_view,
  };
  
  }  // namespace
-@@ -264,3 +522,13 @@ constinit const ServiceModule g_cameraModule{
+@@ -264,3 +555,13 @@ constinit const ServiceModule g_cameraModule{
  bool dusk::mods::camera_run_operators(dCamera_c* camera) {
      return svc::run_operators(camera);
  }

@@ -21,6 +21,7 @@ bool atmosphere_depth_probe_enabled();
 bool atmosphere_depth_view_enabled();
 float atmosphere_depth_distance();
 bool dof_coc_view_enabled();
+bool dof_autofocus_enabled();
 float dof_focus_distance();
 float dof_focus_range();
 bool passthrough_test();

@@ -19,3 +19,7 @@ require("camera.Mode() == 0 && camera.Algorithm() == 1")
 require("int Algorithm() { return mCamParam.Algorythmn(mCamStyle); }")
 require("CAMERA_FOV_CONTEXT_CAN_MODIFY")
 require("dusk::isCameraDetached()")
+# Depth-of-field autofocus reads the rendered look-at target without taking camera ownership.
+require("#define CAMERA_SERVICE_MINOR 4u")
+require("ModResult (*get_camera_target)(")
+require("outInfo->focus_distance = focusDistance")
