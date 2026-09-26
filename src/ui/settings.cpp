@@ -42,7 +42,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
     geometry_smoothing{"geometry_smoothing"},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
-    camera_lower_angle{"camera_lower_angle"};
+    camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -823,6 +823,13 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "targeting, aiming, and other nonzero camera modes keep native framing. The angle "
         "control changes native chase-controller latitude before smoothing and collision.",
         nullptr));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Atmosphere research"));
+    add_toggle(panel, "Run one-shot depth/camera probe", atmosphere_depth_probe);
+    check_ui(svc_ui->pane_add_text(
+        mod_ctx, panel,
+        "Developer diagnostic only. Records depth availability and matching camera metadata once; "
+        "it does not change the image. Toggle off and on to run again.",
+        nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
     button.label = "Reset CPU timing samples";
@@ -871,6 +878,7 @@ bool initialize() {
     register_toggle(geometry_skinned_smoothing);
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
+    register_toggle(atmosphere_depth_probe);
     register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
@@ -910,6 +918,7 @@ float camera_transition_seconds() {
 }
 bool camera_lower_angle_enabled() { return camera_lower_angle.value; }
 float camera_angle_reduction() { return static_cast<float>(camera_angle_setting.value); }
+bool atmosphere_depth_probe_enabled() { return atmosphere_depth_probe.value; }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {

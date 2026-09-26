@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mods/svc/camera.h>
+
 #include <cstdint>
 
 namespace midnafx::camera_probe {
@@ -34,4 +36,5 @@ struct Snapshot {
 void initialize();
 void shutdown();
 Snapshot snapshot();
+bool latest_camera_info(CameraInfo& out);
 } // namespace midnafx::camera_probe

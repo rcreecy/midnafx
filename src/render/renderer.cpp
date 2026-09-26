@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 #include "config/visual.hpp"
+#include "game/camera_probe.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -9,6 +10,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -75,6 +77,7 @@ struct SampleWindow {
 };
 SampleWindow active_times, disabled_times;
 bool warned = false;
+bool depth_probe_completed = false;
 std::chrono::steady_clock::time_point next_init_retry{};
 std::chrono::steady_clock::time_point next_layout_retry{};
 
@@ -118,6 +121,66 @@ bool supported(const GfxRenderTargetLayout& target) {
         return false;
     auto format = target.color_attachments[0].format;
     return format == WGPUTextureFormat_RGBA8Unorm || format == WGPUTextureFormat_BGRA8Unorm;
+}
+
+const char* invalid_camera_field(const CameraInfo& camera) {
+    const char* names[] = {"view_from_world", "world_from_view", "proj_from_view",
+                           "view_from_proj", "proj_from_world", "world_from_proj"};
+    const float* matrices[] = {camera.view_from_world, camera.world_from_view,
+                               camera.proj_from_view, camera.view_from_proj,
+                               camera.proj_from_world, camera.world_from_proj};
+    for (unsigned matrix_index = 0; matrix_index < 6; ++matrix_index)
+        for (unsigned i = 0; i < 16; ++i)
+            if (!std::isfinite(matrices[matrix_index][i]))
+                return names[matrix_index];
+    if (!std::isfinite(camera.eye[0]) || !std::isfinite(camera.eye[1]) ||
+        !std::isfinite(camera.eye[2]))
+        return "eye";
+    if (!std::isfinite(camera.fovy))
+        return "fovy";
+    if (!std::isfinite(camera.aspect))
+        return "aspect";
+    if (!std::isfinite(camera.near_plane))
+        return "near_plane";
+    if (!std::isfinite(camera.far_plane))
+        return "far_plane";
+    return nullptr;
+}
+
+void run_depth_probe(const GfxStageContext* stage_ctx) {
+    if (!settings::atmosphere_depth_probe_enabled()) {
+        depth_probe_completed = false;
+        return;
+    }
+    if (depth_probe_completed || svc_log == nullptr)
+        return;
+    CameraInfo camera = CAMERA_INFO_INIT;
+    if (!camera_probe::latest_camera_info(camera))
+        return;
+    const auto* invalid_field = invalid_camera_field(camera);
+    if (invalid_field != nullptr) {
+        char message[160];
+        std::snprintf(message, sizeof(message),
+                      "Atmosphere depth probe: invalid camera snapshot field=%s", invalid_field);
+        svc_log->warn(mod_ctx, message);
+        depth_probe_completed = true;
+        return;
+    }
+    GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
+    request.color = false;
+    request.depth = true;
+    GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
+    const auto resolve_result = svc_gfx->resolve_pass(mod_ctx, &request, &snapshot);
+    char message[512];
+    std::snprintf(message, sizeof(message),
+                  "Atmosphere depth probe: depth=%s size=%ux%u reversed_z=%s fovy=%.2f "
+                  "aspect=%.3f near=%.3f far=%.1f eye=[%.2f,%.2f,%.2f] matrices=finite",
+                  resolve_result == MOD_OK && snapshot.depth != nullptr ? "available" : "unavailable",
+                  snapshot.width, snapshot.height, device.uses_reversed_z ? "yes" : "no",
+                  camera.fovy, camera.aspect, camera.near_plane, camera.far_plane, camera.eye[0],
+                  camera.eye[1], camera.eye[2]);
+    svc_log->info(mod_ctx, message);
+    depth_probe_completed = true;
 }
 
 void release_pair(PipelinePair& pair);
@@ -212,6 +275,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     if ((current_state != 1 && current_state != 3) || stage_ctx == nullptr ||
         stage_ctx->stage != GFX_STAGE_FRAME_BEFORE_HUD)
         return;
+    run_depth_probe(stage_ctx);
     const bool timing = settings::diagnostics_enabled();
     const auto start =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
@@ -404,6 +468,7 @@ void initialize() {
     state.store(0);
     reset_timing_samples();
     warned = false;
+    depth_probe_completed = false;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
     next_layout_retry = std::chrono::steady_clock::now();
     if (svc_gfx == nullptr)

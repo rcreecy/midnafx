@@ -17,6 +17,7 @@ GfxStageHookHandle hook = 0;
 CameraFovModifierHandle modifier = 0;
 CameraChaseModifierHandle chase_modifier = 0;
 Snapshot current;
+CameraInfo latest_info = CAMERA_INFO_INIT;
 std::chrono::steady_clock::time_point last_sample{};
 std::chrono::steady_clock::time_point last_chase_sample{};
 std::uint64_t last_ticks = 0;
@@ -154,6 +155,7 @@ void observe(ModContext*, const GfxStageContext* context, void*) {
     const auto start = std::chrono::steady_clock::now();
     CameraInfo info = CAMERA_INFO_INIT;
     if (svc_camera->get_camera(mod_ctx, context->game_view, &info) == MOD_OK) {
+        latest_info = info;
         current.valid = true;
         current.observed_fovy = info.fovy;
         if (!current.modifier_registered) {
@@ -176,6 +178,7 @@ void observe(ModContext*, const GfxStageContext* context, void*) {
 
 void initialize() {
     current = {};
+    latest_info = CAMERA_INFO_INIT;
     last_sample = {};
     last_chase_sample = {};
     hook = 0;
@@ -228,6 +231,7 @@ void shutdown() {
     chase_modifier = 0;
     hook = 0;
     current = {};
+    latest_info = CAMERA_INFO_INIT;
     last_sample = {};
     last_chase_sample = {};
     last_ticks = 0;
@@ -247,5 +251,13 @@ Snapshot snapshot() {
         result.latitude_offset = 0.0f;
     }
     return result;
+}
+
+bool latest_camera_info(CameraInfo& out) {
+    if (!current.valid || std::chrono::steady_clock::now() - last_sample >
+                              std::chrono::milliseconds(500))
+        return false;
+    out = latest_info;
+    return true;
 }
 } // namespace midnafx::camera_probe

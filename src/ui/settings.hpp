@@ -17,6 +17,7 @@ float camera_fov_scale();
 float camera_transition_seconds();
 bool camera_lower_angle_enabled();
 float camera_angle_reduction();
+bool atmosphere_depth_probe_enabled();
 bool passthrough_test();
 std::int64_t split_percent();
 grade::Prepared prepared_grade();
