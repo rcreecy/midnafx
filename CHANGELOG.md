@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.0 - 2026-09-25
 
 - Complete the opt-in modern exploration camera with 110% tangent-space FOV,
   a 6-degree lower native chase angle, and fail-closed event/algorithm ownership.
