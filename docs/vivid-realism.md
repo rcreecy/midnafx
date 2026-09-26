@@ -43,6 +43,23 @@ two existing outdoor captures measured a 0.83-0.84% mean absolute channel change
 reduced pixels at or above 0.98 from 0.06%/0.58% to zero. This establishes restrained
 tonal behavior and highlight headroom; it is not a matched live visual comparison.
 
+After the 0.7.1 release, the same replay was expanded to seven existing real-game
+captures covering bright foliage, a dark forest interior, Link, a hard-surface dungeon
+object, and active Twilight. Mean absolute channel change remained 0.61-0.83% for the
+general-look captures; optional detail contributed 0.019-0.173%. The highlight shoulder
+reduced pixels at or above 0.98 from 0.07-3.82% to at most 0.01%. Saturation produced no
+upper-gamut excursion, while 0.009-0.834% of sampled channels crossed below zero before
+the shader's existing nonnegative gamma guard. The largest value occurred in the dark
+Link capture and remains a specific item for matched visual inspection; these data do
+not justify changing the shipped 108% saturation without live A/B evidence.
+
+The source-matched Windows D3D11 host also loaded the 0.7.1 package in normal
+`F_SP103` and active-Twilight `D_MN08` command-line runs at 1216x896. Both processes
+remained responsive through the observation interval with the preset values forced.
+They were force-stopped after the smoke interval, so these runs provide no graceful
+shutdown or perceptual evidence. Windows screenshot automation was unavailable for
+this pass.
+
 Before calling this look visually validated, compare Vanilla and this preset at the
 same camera position in daylight, foliage, interiors, night, and active Twilight.
 Check skin tones, sky gradients, dark texture detail, bright effects, and the HUD.
