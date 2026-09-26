@@ -146,6 +146,7 @@ int main() {
     constexpr const char* pass_entries[]{"fs_main"};
     constexpr const char* grade_entries[]{"fs_main", "fs_detail", "fs_debug", "fs_debug_detail"};
     constexpr const char* depth_entries[]{"fs_depth"};
+    constexpr const char* dof_entries[]{"fs_coc"};
     const bool pass = validate(instance, device.device, midnafx::render::passthrough_shader,
                                "MidnaFX passthrough", pass_entries, 1);
     const bool grade = validate(instance, device.device, midnafx::render::grading_shader,
@@ -153,8 +154,10 @@ int main() {
     const bool depth = validate(instance, device.device,
                                 midnafx::render::atmosphere_depth_shader,
                                 "MidnaFX atmosphere depth diagnostic", depth_entries, 1);
+    const bool dof = validate(instance, device.device, midnafx::render::dof_shader,
+                              "MidnaFX depth of field diagnostic", dof_entries, 1);
     wgpuDeviceRelease(device.device);
     wgpuAdapterRelease(adapter.adapter);
     wgpuInstanceRelease(instance);
-    return pass && grade && depth ? 0 : 1;
+    return pass && grade && depth && dof ? 0 : 1;
 }

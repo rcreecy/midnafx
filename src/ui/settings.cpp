@@ -43,7 +43,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     geometry_smoothing{"geometry_smoothing"},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
-    atmosphere_depth_view{"atmosphere_depth_view"};
+    atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -60,6 +60,10 @@ NumberSetting camera_angle_setting{
     "camera_angle_degrees", "Camera elevation reduction (degrees)", 0, 15, 6, 6, false};
 NumberSetting atmosphere_distance_setting{
     "atmosphere_depth_distance", "Depth diagnostic range", 100, 20000, 5000, 5000, false};
+NumberSetting dof_focus_distance_setting{
+    "dof_focus_distance", "Focus distance", 100, 20000, 1200, 1200, false};
+NumberSetting dof_focus_range_setting{
+    "dof_focus_range", "Focus transition range", 10, 10000, 500, 500, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
@@ -836,6 +840,15 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "the image; toggle it off and on to run again. The depth view replaces scene color with "
         "linear camera distance and stays default off.",
         nullptr));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Depth of field research"));
+    add_toggle(panel, "Visualize focus mask", dof_coc_view);
+    add_number(panel, dof_focus_distance_setting);
+    add_number(panel, dof_focus_range_setting);
+    check_ui(svc_ui->pane_add_text(
+        mod_ctx, panel,
+        "Developer diagnostic only. Cyan is nearer than focus, orange is farther, black is in "
+        "focus, and magenta is invalid. This view overrides the atmosphere depth view.",
+        nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
     button.label = "Reset CPU timing samples";
@@ -886,6 +899,7 @@ bool initialize() {
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
     register_toggle(atmosphere_depth_view);
+    register_toggle(dof_coc_view);
     register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
@@ -895,6 +909,8 @@ bool initialize() {
     register_number(camera_transition_setting);
     register_number(camera_angle_setting);
     register_number(atmosphere_distance_setting);
+    register_number(dof_focus_distance_setting);
+    register_number(dof_focus_range_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -931,6 +947,9 @@ bool atmosphere_depth_view_enabled() { return atmosphere_depth_view.value; }
 float atmosphere_depth_distance() {
     return static_cast<float>(atmosphere_distance_setting.value);
 }
+bool dof_coc_view_enabled() { return dof_coc_view.value; }
+float dof_focus_distance() { return static_cast<float>(dof_focus_distance_setting.value); }
+float dof_focus_range() { return static_cast<float>(dof_focus_range_setting.value); }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {
@@ -971,7 +990,7 @@ void update_diagnostics() {
         "samples(active/disabled/neutral)=%llu/%llu/%llu draws(submitted/encoded)=%llu/%llu "
         "cpu_us(active_p50/p95/latest)=%.2f/%.2f/%.2f "
         "cpu_us(disabled_p50/p95/latest)=%.2f/%.2f/%.2f layout_us=%.2f resolve_us=%.2f "
-        "config_us=%.2f atmosphere_depth=%s/%.0f",
+        "config_us=%.2f atmosphere_depth=%s/%.0f dof_coc=%s/%.0f/%.0f",
         selected_preset.c_str(), master.value ? "on" : "off",
         static_cast<long long>(current.values[0]), static_cast<long long>(current.values[1]),
         static_cast<long long>(current.values[2]), static_cast<long long>(current.values[3]),
@@ -987,7 +1006,10 @@ void update_diagnostics() {
         data.callback_us, data.disabled_p50_us, data.disabled_p95_us, data.disabled_us,
         data.layout_us, data.resolve_us, config_update_us,
         atmosphere_depth_view.value ? "on" : "off",
-        static_cast<double>(atmosphere_distance_setting.value));
+        static_cast<double>(atmosphere_distance_setting.value),
+        dof_coc_view.value ? "on" : "off",
+        static_cast<double>(dof_focus_distance_setting.value),
+        static_cast<double>(dof_focus_range_setting.value));
     svc_log->info(mod_ctx, message);
     diagnostics_log_written = true;
 }

@@ -45,3 +45,4 @@ Twilight source audit and M6 decision: [docs/m5-m6-investigation.md](docs/m5-m6-
 Camera foundation, host patch, and runtime evidence: [docs/camera-investigation.md](docs/camera-investigation.md).
 Geometry coverage checkpoint: [docs/m8-geometry-coverage.md](docs/m8-geometry-coverage.md).
 Atmosphere depth/camera gate: [docs/atmosphere-investigation.md](docs/atmosphere-investigation.md).
+Depth of field focus gate: [docs/depth-of-field-investigation.md](docs/depth-of-field-investigation.md).
