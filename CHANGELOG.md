@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 - 2026-09-26
+
+- Add default-off atmosphere depth-reconstruction diagnostics with one-shot
+  camera/depth probes and load-time timing evidence.
+- Add a default-off depth-of-field focus-mask diagnostic with manual focus
+  distance and range controls.
+- Harden frustum-corner validation and GPU uniform layout correctness.
+
 ## 0.7.1 - 2026-09-26
 
 - Add the built-in Natural / Vivid Realism preset with restrained saturation,
