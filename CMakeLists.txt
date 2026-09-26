@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(MidnaFX VERSION 0.7.0 LANGUAGES CXX)
+project(MidnaFX VERSION 0.7.1 LANGUAGES CXX)
 
 option(MIDNAFX_BUILD_MOD "Build the native Dusklight mod and .dusk package" ON)
 option(MIDNAFX_ALLOW_UNVERIFIED_SDK "Allow a Dusklight checkout other than the researched revision" OFF)

@@ -13,7 +13,7 @@ with zipfile.ZipFile(archive_path) as package:
     names = set(package.namelist())
     manifest = json.loads(package.read("mod.json"))
     assert manifest["id"] == "com.midnafx.midnafx"
-    assert manifest["version"] == "0.7.0"
+    assert manifest["version"] == "0.7.1"
     native = [name for name in names if name.startswith("lib/") and name.endswith(("mod.dll", "mod.so"))]
     assert len(native) == 1, native
     binary = package.read(native[0])

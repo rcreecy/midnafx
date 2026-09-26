@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "MidnaFX contributors",
   "description": "Modern visual grading, detail, Twilight profiles, adaptive normals, and opt-in exploration camera"
 }

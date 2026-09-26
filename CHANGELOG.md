@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.1 - 2026-09-26
 
 - Add the built-in Natural / Vivid Realism preset with restrained saturation,
   neutral white balance, highlight rolloff, and subtle detail enhancement.
