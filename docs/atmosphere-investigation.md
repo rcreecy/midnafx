@@ -60,7 +60,43 @@ Gate 1 **passes**. A source-matched Windows D3D11 run on Dusklight
 MidnaFX, WebGPU, or validation error during the observation interval. It was force-stopped,
 so graceful shutdown was not tested by this run.
 
-The next narrow prototype is a default-off depth reconstruction diagnostic that visualizes
-linear distance and rejects background, invalid, and non-finite samples. Actual fog color,
-density, height falloff, environment automation, and default-on behavior remain out of scope
-until matched visual inspection is available.
+## Depth reconstruction diagnostic
+
+The default-off **Visualize reconstructed depth** setting now replaces scene color with
+grayscale radial camera distance. It samples the resolved `R32Float` depth texture, maps the
+pixel center into WebGPU NDC, multiplies by `view_from_proj`, divides by homogeneous W, and
+scales distance by the configurable diagnostic range. Background is dark blue; a magenta
+sample means the reconstruction was non-finite, had an invalid W, or fell outside the
+camera's axial near/far interval. Axial depth is used for clip validation because radial
+distance at the corners legitimately exceeds the projection's far-plane distance.
+
+The view replaces MidnaFX grading rather than stacking a second fullscreen effect. Each
+active frame performs one depth resolve/copy, one 80-byte uniform upload, and one fullscreen
+draw. It performs no color copy. Disabling the setting restores the ordinary grading path;
+unsupported depth and submission failures preserve the original frame and log once.
+
+A source-matched D3D11 run in `F_SP103,0,27,0` queued and encoded 258/258 diagnostic draws at
+1216x896, with reversed Z and a 5000-unit display range. Median/p95 pre-HUD CPU callback time
+was 13.40/32.00 microseconds; the latest depth resolve call took 15.50 microseconds. The process
+remained responsive, closed gracefully, unloaded the mod, and logged no MidnaFX, WebGPU, or
+validation error. This proves the shader pipeline, depth binding, camera uniform, and draw
+submission path in the live renderer. Visual interpretation of the grayscale output remains
+deferred by request until a controllable desktop session is available.
+
+Actual fog color, density, height falloff, environment automation, and default-on behavior
+remain out of scope until that visual inspection is complete.
+
+## Correctness review
+
+The pass validates the C++/WGSL uniform size, camera finiteness, homogeneous W, reconstructed
+coordinates, texture dimensions, render-target layout, frame-scoped snapshot, and draw result.
+One review finding was fixed: radial distance was originally compared directly with the
+projection far plane, which could falsely mark valid corner pixels magenta. Clip validation
+now uses absolute view-space Z while grayscale output remains radial distance. Unsupported
+depth, stale/invalid camera data, and service failures fail closed without latching the normal
+grading renderer into a failed state.
+
+The diagnostic adds one pipeline at renderer initialization even while the view is off; it
+adds no depth copy or fullscreen draw until enabled. Remaining proof is visual inspection for
+orientation, monotonic distance, background classification, and absence of magenta samples.
+Metal compilation is covered by CI, but live Metal output remains untested.

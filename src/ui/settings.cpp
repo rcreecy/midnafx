@@ -42,7 +42,8 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
     geometry_smoothing{"geometry_smoothing"},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
-    camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"};
+    camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
+    atmosphere_depth_view{"atmosphere_depth_view"};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -57,6 +58,8 @@ NumberSetting camera_transition_setting{
     "camera_transition_cs", "Camera transition (0.01 s)", 0, 200, 35, 35, false};
 NumberSetting camera_angle_setting{
     "camera_angle_degrees", "Camera elevation reduction (degrees)", 0, 15, 6, 6, false};
+NumberSetting atmosphere_distance_setting{
+    "atmosphere_depth_distance", "Depth diagnostic range", 100, 20000, 5000, 5000, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
@@ -825,10 +828,13 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Atmosphere research"));
     add_toggle(panel, "Run one-shot depth/camera probe", atmosphere_depth_probe);
+    add_toggle(panel, "Visualize reconstructed depth", atmosphere_depth_view);
+    add_number(panel, atmosphere_distance_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
-        "Developer diagnostic only. Records depth availability and matching camera metadata once; "
-        "it does not change the image. Toggle off and on to run again.",
+        "Developer diagnostics only. The one-shot probe records availability without changing "
+        "the image; toggle it off and on to run again. The depth view replaces scene color with "
+        "linear camera distance and stays default off.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
@@ -879,6 +885,7 @@ bool initialize() {
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
+    register_toggle(atmosphere_depth_view);
     register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
@@ -887,6 +894,7 @@ bool initialize() {
     register_number(camera_fov_setting);
     register_number(camera_transition_setting);
     register_number(camera_angle_setting);
+    register_number(atmosphere_distance_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -919,6 +927,10 @@ float camera_transition_seconds() {
 bool camera_lower_angle_enabled() { return camera_lower_angle.value; }
 float camera_angle_reduction() { return static_cast<float>(camera_angle_setting.value); }
 bool atmosphere_depth_probe_enabled() { return atmosphere_depth_probe.value; }
+bool atmosphere_depth_view_enabled() { return atmosphere_depth_view.value; }
+float atmosphere_depth_distance() {
+    return static_cast<float>(atmosphere_distance_setting.value);
+}
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {
@@ -959,7 +971,7 @@ void update_diagnostics() {
         "samples(active/disabled/neutral)=%llu/%llu/%llu draws(submitted/encoded)=%llu/%llu "
         "cpu_us(active_p50/p95/latest)=%.2f/%.2f/%.2f "
         "cpu_us(disabled_p50/p95/latest)=%.2f/%.2f/%.2f layout_us=%.2f resolve_us=%.2f "
-        "config_us=%.2f",
+        "config_us=%.2f atmosphere_depth=%s/%.0f",
         selected_preset.c_str(), master.value ? "on" : "off",
         static_cast<long long>(current.values[0]), static_cast<long long>(current.values[1]),
         static_cast<long long>(current.values[2]), static_cast<long long>(current.values[3]),
@@ -973,7 +985,9 @@ void update_diagnostics() {
         static_cast<unsigned long long>(data.submitted_draws),
         static_cast<unsigned long long>(data.encoded_draws), data.active_p50_us, data.active_p95_us,
         data.callback_us, data.disabled_p50_us, data.disabled_p95_us, data.disabled_us,
-        data.layout_us, data.resolve_us, config_update_us);
+        data.layout_us, data.resolve_us, config_update_us,
+        atmosphere_depth_view.value ? "on" : "off",
+        static_cast<double>(atmosphere_distance_setting.value));
     svc_log->info(mod_ctx, message);
     diagnostics_log_written = true;
 }

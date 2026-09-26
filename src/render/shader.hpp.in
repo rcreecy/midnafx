@@ -2,4 +2,5 @@
 namespace midnafx::render {
 inline constexpr char passthrough_shader[] = R"midnafx(@MIDNAFX_SHADER@)midnafx";
 inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_GRADING_SHADER@)midnafx";
+inline constexpr char atmosphere_depth_shader[] = R"midnafx(@MIDNAFX_ATMOSPHERE_DEPTH_SHADER@)midnafx";
 }

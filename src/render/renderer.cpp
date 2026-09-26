@@ -26,10 +26,20 @@ enum PipelineKind : std::uint32_t {
     Detail = 2,
     Debug = 3,
     DebugDetail = 4,
-    PipelineCount = 5,
+    DepthDiagnostic = 5,
+    PipelineCount = 6,
 };
+struct DepthUniforms {
+    float view_from_proj[16];
+    float near_plane;
+    float far_plane;
+    float max_distance;
+    float background_depth;
+};
+static_assert(sizeof(DepthUniforms) == 80);
 struct Payload {
     WGPUTextureView scene;
+    WGPUTextureView depth;
     const PipelinePair* pair;
     std::uint64_t layout_key;
     std::uint32_t kind;
@@ -45,7 +55,7 @@ struct Pipeline {
 };
 struct PipelinePair {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
-    WGPUShaderModule shaders[2]{};
+    WGPUShaderModule shaders[3]{};
     Pipeline pipelines[PipelineCount];
 };
 // Pairs stay alive until the host has drained draw callbacks at shutdown.
@@ -78,6 +88,8 @@ struct SampleWindow {
 SampleWindow active_times, disabled_times;
 bool warned = false;
 bool depth_probe_completed = false;
+bool depth_view_warned = false;
+bool depth_view_active_logged = false;
 std::chrono::steady_clock::time_point next_init_retry{};
 std::chrono::steady_clock::time_point next_layout_retry{};
 
@@ -147,8 +159,9 @@ const char* invalid_camera_field(const CameraInfo& camera) {
     return nullptr;
 }
 
-void run_depth_probe(const GfxStageContext* stage_ctx) {
-    if (!settings::atmosphere_depth_probe_enabled()) {
+void run_depth_probe() {
+    if (!settings::atmosphere_depth_probe_enabled() ||
+        settings::atmosphere_depth_view_enabled()) {
         depth_probe_completed = false;
         return;
     }
@@ -195,7 +208,9 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
     wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
     create_shader(next->shaders[0], passthrough_shader, "MidnaFX passthrough shader");
     create_shader(next->shaders[1], grading_shader, "MidnaFX grading and detail shader");
-    if (next->shaders[0] && next->shaders[1]) {
+    create_shader(next->shaders[2], atmosphere_depth_shader,
+                  "MidnaFX atmosphere depth diagnostic shader");
+    if (next->shaders[0] && next->shaders[1] && next->shaders[2]) {
         build_pipeline(next->pipelines[Passthrough], next->shaders[0], "fs_main",
                        "MidnaFX passthrough", layout);
         build_pipeline(next->pipelines[Grade], next->shaders[1], "fs_main", "MidnaFX grading",
@@ -206,6 +221,8 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
                        "MidnaFX visual diagnostic", layout);
         build_pipeline(next->pipelines[DebugDetail], next->shaders[1], "fs_debug_detail",
                        "MidnaFX detail diagnostic", layout);
+        build_pipeline(next->pipelines[DepthDiagnostic], next->shaders[2], "fs_depth",
+                       "MidnaFX depth reconstruction diagnostic", layout);
     }
     const bool validation_ok = pop_scope(device.device, device.instance);
     const bool internal_ok = pop_scope(device.device, device.instance);
@@ -233,14 +250,17 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     const auto& selected = payload.pair->pipelines[payload.kind];
     if (selected.pipeline == nullptr || selected.bind_layout == nullptr)
         return;
-    if (payload.scene == nullptr || payload.layout_key != ctx->layout.key ||
+    if ((payload.kind == DepthDiagnostic ? payload.depth == nullptr : payload.scene == nullptr) ||
+        payload.layout_key != ctx->layout.key ||
         payload.layout_key != payload.pair->layout.key || ctx->layout.sample_count != 1)
         return;
     WGPUBindGroupEntry entries[2] = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     entries[0].binding = 0;
-    entries[0].textureView = payload.scene;
+    entries[0].textureView = payload.kind == DepthDiagnostic ? payload.depth : payload.scene;
     if (payload.kind != Passthrough) {
-        if (payload.uniform_size != sizeof(grade::Uniforms))
+        const auto expected_size = payload.kind == DepthDiagnostic ? sizeof(DepthUniforms)
+                                                                    : sizeof(grade::Uniforms);
+        if (payload.uniform_size != expected_size)
             return;
         entries[1].binding = 1;
         entries[1].buffer = ctx->uniform_buffer;
@@ -275,11 +295,16 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     if ((current_state != 1 && current_state != 3) || stage_ctx == nullptr ||
         stage_ctx->stage != GFX_STAGE_FRAME_BEFORE_HUD)
         return;
-    run_depth_probe(stage_ctx);
+    run_depth_probe();
+    const bool depth_debug = settings::atmosphere_depth_view_enabled();
+    if (!depth_debug) {
+        depth_view_warned = false;
+        depth_view_active_logged = false;
+    }
     const bool timing = settings::diagnostics_enabled();
     const auto start =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-    if (!settings::enabled()) {
+    if (!settings::enabled() && !depth_debug) {
         if (timing) {
             disabled_samples.fetch_add(1, std::memory_order_relaxed);
             const auto elapsed =
@@ -295,7 +320,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const bool passthrough_test =
         settings::passthrough_test() || mode == visual::DebugMode::Passthrough;
     const bool detail_enabled = prepared.uniforms.detail_strength > 0.0f;
-    if (prepared.neutral && !detail_enabled && !passthrough_test &&
+    if (!depth_debug && prepared.neutral && !detail_enabled && !passthrough_test &&
         mode == visual::DebugMode::Final) {
         if (timing)
             neutral_samples.fetch_add(1, std::memory_order_relaxed);
@@ -335,14 +360,37 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     (void)state.compare_exchange_strong(skipped, 1, std::memory_order_acq_rel);
     if (state.load(std::memory_order_acquire) != 1)
         return;
-    std::uint32_t kind = Passthrough;
-    if (!passthrough_test)
+    std::uint32_t kind = depth_debug ? DepthDiagnostic : Passthrough;
+    if (!depth_debug && !passthrough_test)
         kind = mode == visual::DebugMode::Final ? (detail_enabled ? Detail : Grade)
                                                 : (detail_enabled ? DebugDetail : Debug);
     prepared.uniforms.split_x =
         visual::split_boundary(current.color_attachments[0].width, settings::split_percent());
     GfxRange uniform_range{0, 0};
-    if (!passthrough_test) {
+    if (depth_debug) {
+        CameraInfo camera = CAMERA_INFO_INIT;
+        if (!camera_probe::latest_camera_info(camera) || invalid_camera_field(camera) != nullptr)
+            return;
+        DepthUniforms uniforms{};
+        std::memcpy(uniforms.view_from_proj, camera.view_from_proj,
+                    sizeof(uniforms.view_from_proj));
+        uniforms.near_plane = camera.near_plane;
+        uniforms.far_plane = camera.far_plane;
+        uniforms.max_distance = settings::atmosphere_depth_distance();
+        uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
+        const auto uniform_result =
+            svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &uniform_range);
+        if (uniform_result == MOD_UNAVAILABLE)
+            return;
+        if (uniform_result != MOD_OK) {
+            if (!depth_view_warned && svc_log != nullptr) {
+                svc_log->warn(mod_ctx,
+                              "Atmosphere depth diagnostic uniform upload failed; original frame retained");
+                depth_view_warned = true;
+            }
+            return;
+        }
+    } else if (!passthrough_test) {
         const auto uniform_result = svc_gfx->push_uniform(
             mod_ctx, &prepared.uniforms, sizeof(prepared.uniforms), &uniform_range);
         if (uniform_result == MOD_UNAVAILABLE)
@@ -353,8 +401,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         }
     }
     GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
-    request.color = true;
-    request.depth = false;
+    request.color = !depth_debug;
+    request.depth = depth_debug;
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
     const auto before_resolve =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
@@ -366,11 +414,20 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                          std::memory_order_relaxed);
     if (resolve_result == MOD_UNAVAILABLE)
         return;
-    if (resolve_result != MOD_OK || snapshot.color == nullptr) {
+    if (resolve_result != MOD_OK || (depth_debug ? snapshot.depth == nullptr
+                                                 : snapshot.color == nullptr)) {
+        if (depth_debug) {
+            if (!depth_view_warned && svc_log != nullptr) {
+                svc_log->warn(mod_ctx,
+                              "Atmosphere depth diagnostic unavailable; original frame retained");
+                depth_view_warned = true;
+            }
+            return;
+        }
         state.store(2, std::memory_order_release);
         return;
     }
-    if (snapshot.color_format != current.color_attachments[0].format ||
+    if ((!depth_debug && snapshot.color_format != current.color_attachments[0].format) ||
         snapshot.width != current.color_attachments[0].width ||
         snapshot.height != current.color_attachments[0].height) {
         state.store(3, std::memory_order_release);
@@ -380,16 +437,34 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         snapshot_requests.fetch_add(1, std::memory_order_relaxed);
     width.store(snapshot.width, std::memory_order_relaxed);
     height.store(snapshot.height, std::memory_order_relaxed);
-    const Payload payload{snapshot.color,    pair, current.key, kind, uniform_range.offset,
-                          uniform_range.size};
+    const Payload payload{snapshot.color, snapshot.depth, pair, current.key, kind,
+                          uniform_range.offset, uniform_range.size};
     const auto push_result = svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload));
     if (push_result == MOD_UNAVAILABLE)
         return;
     if (push_result != MOD_OK) {
+        if (depth_debug) {
+            if (!depth_view_warned && svc_log != nullptr) {
+                svc_log->warn(mod_ctx,
+                              "Atmosphere depth diagnostic draw submission failed; original frame retained");
+                depth_view_warned = true;
+            }
+            return;
+        }
         state.store(2, std::memory_order_release);
         return;
     }
     submitted.fetch_add(1, std::memory_order_relaxed);
+    if (depth_debug && !depth_view_active_logged && svc_log != nullptr) {
+        char message[192];
+        std::snprintf(message, sizeof(message),
+                      "Atmosphere depth diagnostic active: size=%ux%u range=%.0f reversed_z=%s",
+                      snapshot.width, snapshot.height,
+                      static_cast<double>(settings::atmosphere_depth_distance()),
+                      device.uses_reversed_z ? "yes" : "no");
+        svc_log->info(mod_ctx, message);
+        depth_view_active_logged = true;
+    }
     if (timing) {
         const auto elapsed =
             std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start)
@@ -469,6 +544,8 @@ void initialize() {
     reset_timing_samples();
     warned = false;
     depth_probe_completed = false;
+    depth_view_warned = false;
+    depth_view_active_logged = false;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
     next_layout_retry = std::chrono::steady_clock::now();
     if (svc_gfx == nullptr)
@@ -510,12 +587,15 @@ void initialize() {
 
 void update() {
     const auto current_state = state.load(std::memory_order_acquire);
-    if ((current_state == 4 || current_state == 5) && settings::enabled()) {
+    const bool graphics_requested = settings::enabled() ||
+                                    settings::atmosphere_depth_view_enabled() ||
+                                    settings::atmosphere_depth_probe_enabled();
+    if ((current_state == 4 || current_state == 5) && graphics_requested) {
         const auto now = std::chrono::steady_clock::now();
         if (now >= next_init_retry)
             initialize();
     }
-    if (current_state == 3 && settings::enabled() && svc_gfx != nullptr) {
+    if (current_state == 3 && graphics_requested && svc_gfx != nullptr) {
         const auto now = std::chrono::steady_clock::now();
         if (now >= next_layout_retry) {
             next_layout_retry = now + std::chrono::milliseconds(250);
