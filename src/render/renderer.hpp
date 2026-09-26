@@ -16,5 +16,6 @@ void initialize();
 void update();
 void shutdown();
 void reset_timing_samples();
+std::uint64_t timing_sample_count();
 Diagnostics diagnostics();
 } // namespace midnafx::render

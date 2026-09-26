@@ -86,6 +86,8 @@ UiElementHandle status_element = 0, detail_element = 0, camera_element = 0;
 std::chrono::steady_clock::time_point next_refresh{};
 bool warned_ui = false;
 double config_update_us = 0.0;
+bool diagnostics_log_written = false;
+bool diagnostics_sampling_enabled = false;
 void warn(const char* message);
 void check_ui(ModResult result);
 void update_grade();
@@ -549,7 +551,10 @@ void clear_twilight_target(ModContext*, void*) {
     has_twilight_target = false;
     twilight_weight = 0.0f;
 }
-void reset_timing(ModContext*, void*) { render::reset_timing_samples(); }
+void reset_timing(ModContext*, void*) {
+    render::reset_timing_samples();
+    diagnostics_log_written = false;
+}
 void register_twilight_target() {
     has_twilight_target = false;
     twilight_target_handle = 0;
@@ -914,6 +919,54 @@ grade::Prepared prepared_grade() {
     result.uniforms.debug_mode = prepared.uniforms.debug_mode;
     result.uniforms.difference_gain = prepared.uniforms.difference_gain;
     return result;
+}
+void update_diagnostics() {
+    if (!diagnostics_toggle.value) {
+        if (diagnostics_sampling_enabled)
+            render::reset_timing_samples();
+        diagnostics_sampling_enabled = false;
+        diagnostics_log_written = false;
+        return;
+    }
+    if (!diagnostics_sampling_enabled) {
+        render::reset_timing_samples();
+        diagnostics_sampling_enabled = true;
+        diagnostics_log_written = false;
+        return;
+    }
+    if (diagnostics_log_written || svc_log == nullptr || render::timing_sample_count() < 256)
+        return;
+    const auto data = render::diagnostics();
+    const auto current = capture();
+    unsigned active_mask = 0;
+    for (unsigned i = 0; i < grade::Count; ++i)
+        if (current.active[i])
+            active_mask |= 1u << i;
+    char message[1024];
+    std::snprintf(
+        message, sizeof(message),
+        "Diagnostics sample: preset=%s grading=%s values=[%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld] "
+        "active=0x%02x detail=%s/%lld%% status=%s size=%ux%u "
+        "samples(active/disabled/neutral)=%llu/%llu/%llu draws(submitted/encoded)=%llu/%llu "
+        "cpu_us(active_p50/p95/latest)=%.2f/%.2f/%.2f "
+        "cpu_us(disabled_p50/p95/latest)=%.2f/%.2f/%.2f layout_us=%.2f resolve_us=%.2f "
+        "config_us=%.2f",
+        selected_preset.c_str(), master.value ? "on" : "off",
+        static_cast<long long>(current.values[0]), static_cast<long long>(current.values[1]),
+        static_cast<long long>(current.values[2]), static_cast<long long>(current.values[3]),
+        static_cast<long long>(current.values[4]), static_cast<long long>(current.values[5]),
+        static_cast<long long>(current.values[6]), static_cast<long long>(current.values[7]),
+        active_mask, current.detail_enabled ? "on" : "off",
+        static_cast<long long>(current.detail_strength), data.status, data.width, data.height,
+        static_cast<unsigned long long>(data.snapshot_requests),
+        static_cast<unsigned long long>(data.disabled_samples),
+        static_cast<unsigned long long>(data.neutral_samples),
+        static_cast<unsigned long long>(data.submitted_draws),
+        static_cast<unsigned long long>(data.encoded_draws), data.active_p50_us, data.active_p95_us,
+        data.callback_us, data.disabled_p50_us, data.disabled_p95_us, data.disabled_us,
+        data.layout_us, data.resolve_us, config_update_us);
+    svc_log->info(mod_ctx, message);
+    diagnostics_log_written = true;
 }
 void update_twilight(twilight::State state, float elapsed_seconds) {
     twilight_state = state;

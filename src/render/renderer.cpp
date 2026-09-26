@@ -496,6 +496,12 @@ void reset_timing_samples() {
     snapshot_requests.store(0, std::memory_order_relaxed);
 }
 
+std::uint64_t timing_sample_count() {
+    return std::max({disabled_samples.load(std::memory_order_relaxed),
+                     neutral_samples.load(std::memory_order_relaxed),
+                     snapshot_requests.load(std::memory_order_relaxed)});
+}
+
 Diagnostics diagnostics() {
     const char* status_text = "Graphics service unavailable";
     switch (state.load(std::memory_order_acquire)) {

@@ -20,6 +20,7 @@ float camera_angle_reduction();
 bool passthrough_test();
 std::int64_t split_percent();
 grade::Prepared prepared_grade();
+void update_diagnostics();
 void update_twilight(twilight::State state, float elapsed_seconds);
 void shutdown();
 } // namespace midnafx::settings

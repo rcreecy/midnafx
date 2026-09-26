@@ -1,8 +1,8 @@
 # M4 performance instrumentation and measurement
 
-The native Windows package and portable tests have been run. Neither a Dusklight runtime
-nor the target Intel Mac GPU is available in this workspace, so **GPU timings at 1080p,
-1440p, and 4K have not been measured**. The basic grading target remains less than
+The native Windows package, portable tests, and a source-matched Windows runtime have
+been run. The target Intel Mac GPU is not available, so **GPU timings at 1080p, 1440p,
+and 4K have not been measured**. The basic grading target remains less than
 0.25 ms GPU time at 4K, excluding optional sharpening. It is a target, not a result.
 No 4K performance claim should be made until a trace on the target hardware supports it.
 
@@ -42,8 +42,11 @@ and storage, so it is deferred until a trace indicates arithmetic is limiting.
 - Diagnostics show latest active and disabled stage CPU time, rolling p50/p95 over 256
   samples, latest layout-query and `resolve_pass` **CPU call** time, latest grading
   configuration-update time, snapshot request count, and pipeline/bind-group counts.
-  The reset button clears timing windows before each test. Percentile sorting happens
-  only when the settings panel updates, never in a render-stage callback.
+  The reset button clears timing windows before each test. Enabling diagnostics starts a
+  fresh window and emits one machine-readable log summary after 256 active, disabled, or
+  neutral samples, including effective controls, counters, resolution, and CPU timings.
+  This also works when the settings panel is closed. Percentile sorting never runs in the
+  render-stage callback.
 - There is no per-frame heap allocation in MidnaFX's steady-state stage path. A new
   layout allocates a cached pair during `mod_update`. The host's stage dispatcher and
   WebGPU bind-group implementation may allocate internally; this needs an allocator
@@ -61,6 +64,22 @@ GfxService 1.2 has no timestamp-query API; GPU pass/copy duration requires a pla
 GPU capture. The disabled callback timer excludes the host's dispatch and surrounding
 `AuroraGXSync()` calls, so total disabled-state overhead still needs an external CPU
 trace. The counters report queued/encoded work, not completed GPU work.
+
+## Windows runtime checkpoint
+
+A source-matched Dusklight build at `edf42c6a7202647b56dd2fcdef02d17671bc814b`
+ran the Windows package on D3D11 at 1216x896 in `F_SP103,0,27,0`. The host used an
+Intel Core i7-10700 and Intel UHD Graphics 630. Both 12-second runs stayed responsive
+and logged no MidnaFX, WebGPU, or validation error. Processes were force-stopped after
+sampling, so this checkpoint does not prove graceful shutdown.
+
+With the Natural / Vivid Realism values forced (`0,0,100,102,108,25,0,0`, detail 12%),
+259 active frames produced 20.20 us p50 and 51.40 us p95 stage time. The latest layout
+query took 3.50 us and the `resolve_pass` CPU call took 18.20 us. Submitted and encoded
+draw counts both reached 259. With grading disabled, 268 frames produced 0.10 us p50
+and 0.30 us p95 callback time, with zero submitted draws. A third run recorded 267
+neutral-bypass frames with zero submitted draws. These CPU measurements do not measure
+copy, shader, draw, or whole-frame GPU time.
 
 ## Target Mac measurement procedure
 

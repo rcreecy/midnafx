@@ -37,6 +37,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
     last_update = now;
     midnafx::settings::update_twilight(midnafx::game_state::sample(), elapsed);
     midnafx::render::update();
+    midnafx::settings::update_diagnostics();
     return MOD_OK;
 }
 MOD_EXPORT ModResult mod_shutdown(ModError*) {
