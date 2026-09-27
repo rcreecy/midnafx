@@ -20,7 +20,11 @@ modern exploration camera for Dusklight builds carrying MidnaFX's CameraService
 1.3 host patch. Independent controls widen vertical FOV and lower native
 chase-controller latitude. Only active mode-0 chase output is modified;
 authored events, detached cameras, and all other native camera algorithms keep
-their original framing. Intel Mac/Metal runtime validation is still required.
+their original framing. A default-off depth-of-field prototype separates near
+and far blur at half resolution, then composites against full-resolution depth
+before the HUD. Manual focus works with the base camera service. Camera-target
+focus requires MidnaFX's CameraService 1.4 host extension. Blur image quality and
+Intel Mac/Metal runtime validation remain deferred.
 
 Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
 [latest release](https://github.com/rcreecy/midnafx/releases/latest), then put that file

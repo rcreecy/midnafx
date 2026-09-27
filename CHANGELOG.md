@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0 - 2026-09-26
+
+- Add a default-off half-resolution depth-of-field blur prototype with separate
+  near and far layers and full-resolution depth-aware compositing.
+- Add manual and camera-target focus sources. Camera-target focus requires the
+  source-matched CameraService 1.4 host extension and fails closed when absent.
+- Add resize-safe intermediate target retirement and shader validation for the
+  compute and composite pipelines.
+
 ## 0.8.0 - 2026-09-26
 
 - Add default-off atmosphere depth-reconstruction diagnostics with one-shot
