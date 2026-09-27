@@ -144,3 +144,17 @@ silhouette edges remains a known quality limitation. Because target autofocus
 gave the only acceptable first-use result, it is now the default focus source;
 users can still disable it for manual focus. Extended controller-driven motion,
 rapid target changes, room transitions, and live Metal output remain open.
+
+## Movement recheck (2026-09-27)
+
+A temporary host-only input harness supplied sustained movement in the outdoor
+`F_SP103,0,27,0` spawn and the confined `D_MN04,7,0,-1` room. Camera-target
+autofocus kept Link sharp while the background remained blurred during movement,
+native camera rotation, and collision against the room wall. Focus did not jump
+to the foreground door frame or wall, and no stale frame, invalid color, or GPU
+validation error appeared. Outdoor movement also triggered an authored Midna
+prompt; the scene retained stable player focus and native event framing.
+
+The input harness was removed and the clean host rebuilt. This is a positive
+movement spot check, not rapid target-change, room-transition, combat, or Metal
+coverage.

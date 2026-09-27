@@ -173,3 +173,26 @@ from native toward the configured 110% tangent-space scale.
 This confirms the intended static framing in the live game. Collision-heavy
 controller traversal, targeting transitions, confined rooms, and interactive
 toggle coverage remain required before considering either control default on.
+
+## Confined traversal recheck (2026-09-27)
+
+A temporary host-only input harness supplied sustained forward and right-stick
+input in `D_MN04,7,0,-1`. It moved Link from the room-7 spawn into the nearby
+wall and rotated the native camera inside the narrow space. The 110% FOV and
+6-degree lower-angle controls remained enabled throughout. Link stayed visible,
+native collision stopped forward movement, and the view produced no wall
+penetration, camera inversion, discontinuity, or unstable framing.
+
+Diagnostics first reported startup camera type 40 as inactive with flags `0x07`.
+Native mode-0 chase then became active for camera types 96 and 99 with flags
+`0x13`. The lower-angle offset remained `-6.00` degrees. Effective FOV values
+tracked changing native FOV values without becoming non-finite: `60.00/64.84`,
+`55.17/59.77`, and `67.67/72.81` degrees. The source-matched Windows D3D12 run
+closed gracefully and unloaded all mods. Its ignored runtime log is
+`build/visual-validation-v090/logs/dusklight-20260927-103736.log`.
+
+The harness modified only Aurora input for this test. It was removed afterward,
+and the clean source-matched host was rebuilt. This closes one confined-room
+collision traversal spot check. Targeting, combat, aiming, first person,
+horseback, swimming, climbing, scene transitions, and interactive toggle tests
+remain open before any default-on decision.

@@ -62,8 +62,11 @@ pixels but no 0.98 clipping pixels; dark surfaces retained texture in Final. See
 
 Still open: controller-driven camera traversal and focus transitions, broader
 geometry art review, night scenes, broader interior and Twilight gameplay,
-Twilight transitions, and live Intel Mac/Metal output. Do not convert the static
-Windows spot checks into those broader claims.
+Twilight transitions, and live Intel Mac/Metal output. A temporary host-only
+input harness has supplied positive outdoor and confined-room movement spot
+checks for camera collision and autofocus, but targeting, combat, special camera
+modes, scene transitions, and interactive toggles remain open. Do not convert
+these Windows spot checks into broader claims.
 
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and
