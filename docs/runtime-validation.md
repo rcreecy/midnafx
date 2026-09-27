@@ -60,9 +60,16 @@ interior view of Link, stone, and metal. Highlight diagnostics found warning-ban
 pixels but no 0.98 clipping pixels; dark surfaces retained texture in Final. See
 `vivid-realism.md` for the exact limits.
 
-Still open: controller-driven camera traversal and focus transitions, broader
-geometry art review, night scenes, broader interior and Twilight gameplay,
-Twilight transitions, and live Intel Mac/Metal output. A temporary host-only
+The same 2026-09-27 host also forced `F_SP103,0,27,0` to game time 300 and
+captured grading/detail disabled versus Natural / Vivid Realism Final. The cool
+night scene retained readable character and terrain detail; a central crop had
+no 0.90/0.98 highlight samples and the same three <=2% luminance samples in both
+captures. This closes one static night-lighting spot check; see
+`vivid-realism.md` for paths and limits.
+
+Still open: broader geometry art review, broader interior and Twilight gameplay,
+Twilight transitions, combat/effects-heavy scenes, and live Intel Mac/Metal output.
+A temporary host-only
 input harness has supplied positive outdoor and confined-room movement spot
 checks for camera collision and autofocus, but targeting, combat, special camera
 modes, scene transitions, and interactive toggles remain open. Do not convert

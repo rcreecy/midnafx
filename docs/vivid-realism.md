@@ -119,3 +119,27 @@ identified deep recesses and parts of the door frame, while the Final view retai
 visible texture across those surfaces. HUD colors remained unchanged. This closes
 one static normal-world interior spot check, but not night lighting, traversal,
 combat effects, or broad interior coverage.
+
+## Night desktop recheck (2026-09-27)
+
+The source-matched Windows D3D12 host loaded `F_SP103,0,27,0` at 1216x896 and
+used Dusklight's developer `time 300` command to force the live environment to
+night. Separate command-line launches kept the stage, spawn, camera, lower-angle
+camera option, camera-target depth of field, resolution, and native environment
+fixed while selecting either grading/detail disabled or Natural / Vivid Realism
+with 20% detail. Captures are
+`build/visual-validation-v090/night-time300-disabled.jpg`,
+`night-time300-final.jpg`, and `night-time300-comparison.jpg`.
+
+The night state changed the scene to cool green-blue ambient lighting with deep
+foliage and terrain shadows. Final retained Link's skin, cloth, pumpkin, rock,
+and ground texture without a visible halo, color discontinuity, or crushed large
+shadow region. A sampled central scene crop found no 0.90 or 0.98 highlight
+samples in either capture and only three <=2% luminance samples out of 25,944 in
+each; mean sampled luminance changed conservatively from 0.23 disabled to 0.22
+Final. The ordinary HUD remained visually unchanged. Idle animation prevents
+pixel-identical subtraction, so these measurements are clipping/readability
+evidence rather than exact image parity.
+
+This closes one static night-lighting spot check. Night traversal, combat effects,
+weather, scene transitions, and Intel Mac/Metal remain open.
