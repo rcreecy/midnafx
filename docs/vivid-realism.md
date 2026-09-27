@@ -103,3 +103,19 @@ observed.
 This closes the static active-Twilight spot check. It does not cover traversal,
 Twilight entry or exit, effects-heavy combat, normal dark interiors, night scenes,
 or Metal.
+
+## Dark-interior desktop recheck (2026-09-27)
+
+A second matched Windows D3D12 sequence used `D_MN04,7,0,-1`. The fixed spawn
+placed Link beside a dark stone wall and a red metal door, providing close views
+of skin, hair, cloth, stone, metal, and the HUD. Grading-disabled and Natural /
+Vivid Realism Final views retained the same readable surface structure. The preset
+added a small color and texture lift without an obvious skin-tone shift, halo, or
+loss of detail.
+
+Highlight Clipping marked exposed hair, skin, and cloth only in the 0.90 warning
+band; no inspected scene pixel reached the 0.98 clipping band. Shadow Clipping
+identified deep recesses and parts of the door frame, while the Final view retained
+visible texture across those surfaces. HUD colors remained unchanged. This closes
+one static normal-world interior spot check, but not night lighting, traversal,
+combat effects, or broad interior coverage.

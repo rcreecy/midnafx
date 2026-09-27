@@ -55,12 +55,15 @@ The 2026-09-27 Windows D3D12 pass added a matched static active-Twilight check i
 shadow, and difference diagnostics. Bright portals were primarily in the 0.90
 warning band, only small emissive rune details reached the 0.98 clipping band,
 dark nearby surfaces remained readable in Final, and the HUD stayed outside the
-effect. See `vivid-realism.md` for the exact limits.
+effect. A second matched sequence in `D_MN04,7,0,-1` checked a close normal-world
+interior view of Link, stone, and metal. Highlight diagnostics found warning-band
+pixels but no 0.98 clipping pixels; dark surfaces retained texture in Final. See
+`vivid-realism.md` for the exact limits.
 
 Still open: controller-driven camera traversal and focus transitions, broader
-geometry art review, matched normal interiors/night scenes, broader Twilight
-gameplay and transitions, and live Intel Mac/Metal output. Do not convert the
-static Windows spot checks into those broader claims.
+geometry art review, night scenes, broader interior and Twilight gameplay,
+Twilight transitions, and live Intel Mac/Metal output. Do not convert the static
+Windows spot checks into those broader claims.
 
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and
