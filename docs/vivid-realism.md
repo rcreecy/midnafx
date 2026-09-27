@@ -66,3 +66,17 @@ Check skin tones, sky gradients, dark texture detail, bright effects, and the HU
 Use A/B Split plus highlight/shadow clipping views, then return to Final. Record
 host revision, backend, resolution, bloom, and texture packs. Live scene evaluation
 and Intel Mac/Metal validation remain outstanding for this preset.
+
+## Desktop visual recheck (2026-09-26)
+
+The source-matched Windows D3D11 host rendered `F_SP103,0,27,0` with the exact
+Natural / Vivid Realism values forced at startup. Compared with the neutral
+launch from the same spawn, foliage, clothing, pumpkins, and terrain gained a
+small visible color and texture lift while highlights remained ordered. No
+obvious halo, clipped sky, crushed shadow, skin-tone shift, HUD corruption, or
+GPU validation error was observed. The same look composed correctly before the
+camera-target depth-of-field blur and survived a live resize.
+
+This is a positive daylight gameplay spot check, not full perceptual sign-off.
+Matched interior, night, active-Twilight, effects-heavy, and live Metal scenes
+remain open.

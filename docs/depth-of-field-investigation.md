@@ -120,3 +120,27 @@ grading and diagnostic views disabled. The host reached gameplay, queued the blu
 both compute and composite callbacks executed. Logs contained no MidnaFX, WebGPU, or validation
 error. A matched default-off run reached the same camera states and recorded no blur activation or
 execution. Both tests were bounded process runs; visual inspection remains deferred.
+
+## Live visual validation (2026-09-26)
+
+A controllable source-matched Windows D3D11 session in `F_SP103,0,27,0`
+closed the focus-mask gate. At 1216x896, nearer geometry was cyan, distant
+geometry was orange, and the focus transition was black. The ordering was
+monotonic across the scene, background handling was stable, no magenta invalid
+samples appeared, and the pre-HUD pass left the HUD in its original colors.
+
+The 1200/500 manual focus defaults produced a technically correct but poor
+gameplay composition: Link and most nearby geometry were strongly blurred.
+Camera-target autofocus kept Link sharp while separating the background and
+near foreground. The HUD remained sharp. The same result survived a live
+resize to a maximized ultrawide window, and combining the effect with Natural /
+Vivid Realism preserved the expected grading-before-blur order. Logs confirmed
+the compute and composite callbacks executed and contained no MidnaFX, WebGPU,
+or validation error.
+
+The focus-mask gate therefore **passes**. The blur remains experimental and
+default off. Fixed 12-pixel blur is visually strong, and foreground dilation at
+silhouette edges remains a known quality limitation. Because target autofocus
+gave the only acceptable first-use result, it is now the default focus source;
+users can still disable it for manual focus. Extended controller-driven motion,
+rapid target changes, room transitions, and live Metal output remain open.

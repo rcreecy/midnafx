@@ -25,6 +25,7 @@ struct Setting {
 };
 struct Toggle {
     const char* name;
+    bool initial = false;
     bool value = false;
     ConfigVarHandle handle = 0;
 };
@@ -45,7 +46,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
-    dof_autofocus{"dof_autofocus"};
+    dof_autofocus{"dof_autofocus", true};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -310,13 +311,14 @@ void on_effect_config(ModContext*, ConfigVarHandle variable, const ConfigVarValu
     }
 }
 void register_toggle(Toggle& toggle) {
-    toggle.value = false;
+    toggle.value = toggle.initial;
     toggle.handle = 0;
     if (!svc_config)
         return;
     ConfigVarDesc desc = CONFIG_VAR_DESC_INIT;
     desc.name = toggle.name;
     desc.type = CONFIG_VAR_BOOL;
+    desc.default_bool = toggle.initial;
     if (svc_config->register_var(mod_ctx, &desc, &toggle.handle) != MOD_OK) {
         warn("MidnaFX setting could not be registered.");
         return;

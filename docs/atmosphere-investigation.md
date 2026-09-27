@@ -100,3 +100,17 @@ The diagnostic adds one pipeline at renderer initialization even while the view 
 adds no depth copy or fullscreen draw until enabled. Remaining proof is visual inspection for
 orientation, monotonic distance, background classification, and absence of magenta samples.
 Metal compilation is covered by CI, but live Metal output remains untested.
+
+## Live visual validation (2026-09-26)
+
+The source-matched Windows D3D11 host rendered the diagnostic in
+`F_SP103,0,27,0` at 1216x896 and after a live resize to a maximized ultrawide
+window. Link and nearby ground were dark, successively distant terrain became
+brighter, and the sky/background reached white. The HUD retained its original
+colors because the diagnostic ran before HUD composition. No magenta invalid
+samples, inversion, discontinuity, resize failure, MidnaFX error, or WebGPU
+validation error was observed.
+
+The visual depth-reconstruction gate therefore **passes** on Windows D3D11.
+This validates the input needed for a future atmosphere effect; it does not add
+fog or establish atmosphere tuning. Live Metal output remains open.

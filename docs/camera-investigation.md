@@ -157,3 +157,19 @@ change the recommended values, but no further camera architecture milestone is
 required. Any future distance/height work needs a separate native-controller
 parameter API; final-eye offsets remain unacceptable because they bypass
 collision policy.
+
+## Desktop visual recheck (2026-09-26)
+
+A source-matched Windows D3D11 launch returned directly to
+`F_SP103,0,27,0` with an exactly quoted disc path. The native baseline, 110%
+FOV-only candidate, and combined 110% FOV plus 6-degree lower candidate were
+observed from the same spawn. The wider view clearly increased peripheral
+scene coverage. The lower-angle change was subtler and moved the composition
+forward without changing the player-relative center or producing a visible
+jump. Runtime diagnostics reported the startup event inactive at native FOV,
+then native chase active with `-6.00` degrees and the effective FOV converging
+from native toward the configured 110% tangent-space scale.
+
+This confirms the intended static framing in the live game. Collision-heavy
+controller traversal, targeting transitions, confined rooms, and interactive
+toggle coverage remain required before considering either control default on.

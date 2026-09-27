@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.1 - 2026-09-27
+
+- Make camera-target autofocus the default focus source when the still
+  default-off depth-of-field blur is enabled.
+- Record live Windows D3D11 visual validation for the focus mask, autofocus
+  blur, atmosphere depth, Natural / Vivid Realism, modern camera framing, HUD
+  exclusion, grading order, and resize lifecycle.
+- Keep manual focus available while documenting its scene-dependent tuning
+  requirement and the prototype's remaining silhouette limitations.
+
 ## 0.9.0 - 2026-09-26
 
 - Add a default-off half-resolution depth-of-field blur prototype with separate
