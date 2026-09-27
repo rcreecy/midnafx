@@ -77,6 +77,29 @@ obvious halo, clipped sky, crushed shadow, skin-tone shift, HUD corruption, or
 GPU validation error was observed. The same look composed correctly before the
 camera-target depth-of-field blur and survived a live resize.
 
-This is a positive daylight gameplay spot check, not full perceptual sign-off.
-Matched interior, night, active-Twilight, effects-heavy, and live Metal scenes
-remain open.
+This was a positive daylight gameplay spot check, not full perceptual sign-off.
+At that point, matched interior, night, active-Twilight, effects-heavy, and live
+Metal scenes remained open.
+
+## Active-Twilight desktop recheck (2026-09-27)
+
+The source-matched Windows host rendered `D_MN08,0,0,-1` with MidnaFX 0.9.1 in
+five matched command-line launches: grading disabled, Natural / Vivid Realism in
+Final view, Highlight Clipping, Shadow Clipping, and Difference. The host selected
+D3D12 at 1216x896. The fixed spawn included Link, Midna, bright Twilight portals,
+deep environmental shadows, particles, dialogue, hearts, and the action prompt.
+
+The final view retained readable dark surfaces and stable skin, cloth, stone, and
+portal color. The highlight view classified most bright portal regions as the
+0.90 warning band; only small emissive rune details reached the 0.98 clipping band.
+The shadow view exposed expected near-black letterbox/background regions and some
+deep world shadows, while the final view retained visible texture in the nearby
+terrain and characters. Difference view showed a restrained scene grade,
+with the largest change around emissive portals. HUD and dialogue retained their
+source colors in every diagnostic view, confirming the pre-HUD boundary in this
+scene. No invalid-color pattern, obvious banding, halo, or unstable output was
+observed.
+
+This closes the static active-Twilight spot check. It does not cover traversal,
+Twilight entry or exit, effects-heavy combat, normal dark interiors, night scenes,
+or Metal.

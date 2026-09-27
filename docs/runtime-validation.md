@@ -50,10 +50,17 @@ focus defaults were visibly unsuitable for this spawn, so autofocus now
 defaults on while blur remains default off. See the feature investigation
 documents for exact observations and remaining limits.
 
+The 2026-09-27 Windows D3D12 pass added a matched static active-Twilight check in
+`D_MN08,0,0,-1`: disabled and Natural / Vivid Realism Final views plus highlight,
+shadow, and difference diagnostics. Bright portals were primarily in the 0.90
+warning band, only small emissive rune details reached the 0.98 clipping band,
+dark nearby surfaces remained readable in Final, and the HUD stayed outside the
+effect. See `vivid-realism.md` for the exact limits.
+
 Still open: controller-driven camera traversal and focus transitions, broader
-geometry art review, matched interiors/night/Twilight captures, and live Intel
-Mac/Metal output. Do not convert the static Windows spot checks into those
-broader claims.
+geometry art review, matched normal interiors/night scenes, broader Twilight
+gameplay and transitions, and live Intel Mac/Metal output. Do not convert the
+static Windows spot checks into those broader claims.
 
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and
