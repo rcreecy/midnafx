@@ -17,6 +17,13 @@ runtime logs, and the pinned Dusklight camera controller at
    emits `CAN_MODIFY` only when `dCamParam_c` selects engine algorithm 1, the
    native chase controller, while mode is 0. Lock-on, talk, subject, fixed,
    ride, manual, event, rail, and other algorithms therefore fail closed.
+3. **Lock state was implicit in mode and algorithm classification.** The host
+   now rejects modification when `dAttention_c` reports lock-on, when either
+   camera target pointer is populated, or while the camera's L-lock state is
+   active. This prevents a transition frame from inheriting exploration output
+   if mode or camera-style values have not changed yet. A live L-trigger run
+   entered mode 1 and kept native FOV and latitude; stable mode-2 enemy lock was
+   not obtained at the command-console spawn point.
 
 ## Review result
 
@@ -28,7 +35,8 @@ features unavailable. Disabling FOV immediately returns native output; chase
 changes stop at the next native chase sample. The source retains native camera
 smoothing, eye construction, collision, shake, interpolation, and rendering.
 
-The remaining risk is visual tuning across the full game. The 110% / 6-degree
-candidate is therefore default OFF. Extended controller traversal and live
+The remaining risks are visual tuning across the full game and a live mode-2
+enemy-lock transition. The 110% / 6-degree candidate is therefore default OFF.
+Extended controller traversal and live
 resize are required before a later release may enable it by default, but they do
 not block the opt-in M9 architecture or implementation.

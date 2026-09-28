@@ -288,7 +288,7 @@ index b93ea00..a243a3b 100644
  ModResult camera_register_operator(
      ModContext* context, const CameraOperatorDesc* desc, CameraOperatorHandle* outHandle) {
      if (outHandle != nullptr) {
-@@ -171,6 +226,94 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
+@@ -171,6 +226,98 @@ ModResult camera_unregister_operator(ModContext* context, CameraOperatorHandle h
      return sOperators.erase_owned(handle, *mod) ? MOD_OK : MOD_INVALID_ARGUMENT;
  }
  
@@ -373,8 +373,12 @@ index b93ea00..a243a3b 100644
 +    }
 +    // The same numeric mode is reused by fixed, ride, event, and other camera styles.
 +    // Restrict modification to engine slot 1, the native chase controller.
-+    if (camera.Active() && camera.Mode() == 0 && camera.Algorithm() == 1 && !demoActive &&
-+        !detached) {
++    auto* attention = dComIfGp_getAttention();
++    const bool lockOnActive = (attention != nullptr && attention->Lockon()) ||
++                              camera.mpLockonTarget != nullptr || camera.mpLockOnActor != nullptr ||
++                              camera.mLockLActive;
++    if (camera.Active() && camera.Mode() == 0 && camera.Algorithm() == 1 && !lockOnActive &&
++        !demoActive && !detached) {
 +        flags |= CAMERA_FOV_CONTEXT_CAN_MODIFY;
 +    }
 +    return flags;
@@ -383,7 +387,7 @@ index b93ea00..a243a3b 100644
  CameraOperatorState make_operator_state(const dCamera_c& camera) {
      return CameraOperatorState{
          .struct_size = sizeof(CameraOperatorState),
-@@ -238,8 +381,151 @@ bool run_operators(dCamera_c* camera) {
+@@ -238,8 +385,151 @@ bool run_operators(dCamera_c* camera) {
      return false;
  }
  
@@ -535,7 +539,7 @@ index b93ea00..a243a3b 100644
  }
  
  constexpr CameraService s_cameraService{
-@@ -247,6 +533,11 @@ constexpr CameraService s_cameraService{
+@@ -247,6 +537,11 @@ constexpr CameraService s_cameraService{
      .get_camera = camera_get_camera_from_view,
      .register_camera_operator = camera_register_operator,
      .unregister_camera_operator = camera_unregister_operator,
@@ -547,7 +551,7 @@ index b93ea00..a243a3b 100644
  };
  
  }  // namespace
-@@ -264,3 +555,13 @@ constinit const ServiceModule g_cameraModule{
+@@ -264,3 +559,13 @@ constinit const ServiceModule g_cameraModule{
  bool dusk::mods::camera_run_operators(dCamera_c* camera) {
      return svc::run_operators(camera);
  }

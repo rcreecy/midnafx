@@ -196,3 +196,23 @@ and the clean source-matched host was rebuilt. This closes one confined-room
 collision traversal spot check. Targeting, combat, aiming, first person,
 horseback, swimming, climbing, scene transitions, and interactive toggle tests
 remain open before any default-on decision.
+
+## Target-hold recheck (2026-09-27)
+
+A temporary host-only input harness held TP's actual lock input: digital L plus
+the analog left trigger. An earlier attempt used the displayed Z prompt and did
+not enter the game's `dAttention_c` lock path; that run is not targeting
+evidence. With L held in `F_SP103,0,27,0`, the production camera changed from
+type/mode `41/0` to `41/1`. Diagnostics changed from flags `0x13`, active FOV
+and `-6.00` degrees to flags `0x01`, inactive modifiers, native/effective FOV
+`61.63/61.63`, and zero latitude offset. Spawned `E_BA` and `E_OC` actors loaded,
+but their default command-console placement did not produce a stable target
+selection from this spawn, so mode-2 combat lock remains unvalidated.
+
+The host predicate now also rejects explicit attention lock state, camera lock
+targets, forced lock actors, and active L-lock state. These checks protect
+transition frames where mode and chase algorithm values may lag the lock state.
+The patch contract covers every predicate. The input harness was removed and
+the clean source-matched host rebuilt. This closes sustained target-button
+fallback, but stable enemy lock-on, combat, aiming, and target-release recovery
+remain open before any default-on decision.
