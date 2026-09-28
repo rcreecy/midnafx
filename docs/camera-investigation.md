@@ -207,12 +207,23 @@ type/mode `41/0` to `41/1`. Diagnostics changed from flags `0x13`, active FOV
 and `-6.00` degrees to flags `0x01`, inactive modifiers, native/effective FOV
 `61.63/61.63`, and zero latitude offset. Spawned `E_BA` and `E_OC` actors loaded,
 but their default command-console placement did not produce a stable target
-selection from this spawn, so mode-2 combat lock remains unvalidated.
+selection from this spawn.
+
+A follow-up in `F_SP116,3,13,2` spawned `E_BA` actor 490 at explicit coordinates
+`3150,-650,5900`, then generated distinct L release/press edges after the actor
+was active. The target arrow was visible over the bat. Diagnostics repeatedly
+transitioned from type/mode `196/0` to `196/2`; every mode-2 sample reported
+flags `0x01`, inactive modifiers, and identical native/effective FOV
+`45.00/45.00`. This is positive live proof that stable enemy lock-on preserves
+native framing. The ignored evidence is
+`build/visual-validation-v090/lock-pulse.jpg` and
+`build/visual-validation-v090/logs/dusklight-20260927-204720.log`.
 
 The host predicate now also rejects explicit attention lock state, camera lock
 targets, forced lock actors, and active L-lock state. These checks protect
 transition frames where mode and chase algorithm values may lag the lock state.
-The patch contract covers every predicate. The input harness was removed and
-the clean source-matched host rebuilt. This closes sustained target-button
-fallback, but stable enemy lock-on, combat, aiming, and target-release recovery
-remain open before any default-on decision.
+The patch contract covers every predicate. Each input harness was removed and
+the clean source-matched host rebuilt. This closes sustained target-button and
+stable enemy-lock fallback. Aiming, broader combat, special camera modes, and
+target-release recovery into active exploration remain open before any
+default-on decision.

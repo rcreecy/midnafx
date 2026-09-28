@@ -22,8 +22,9 @@ runtime logs, and the pinned Dusklight camera controller at
    camera target pointer is populated, or while the camera's L-lock state is
    active. This prevents a transition frame from inheriting exploration output
    if mode or camera-style values have not changed yet. A live L-trigger run
-   entered mode 1 and kept native FOV and latitude; stable mode-2 enemy lock was
-   not obtained at the command-console spawn point.
+   entered mode 1 and kept native FOV and latitude. A follow-up explicit enemy
+   spawn produced a visible target arrow and repeated mode-2 samples with flags
+   `0x01`, inactive modifiers, and native/effective FOV `45.00/45.00`.
 
 ## Review result
 
@@ -35,8 +36,8 @@ features unavailable. Disabling FOV immediately returns native output; chase
 changes stop at the next native chase sample. The source retains native camera
 smoothing, eye construction, collision, shake, interpolation, and rendering.
 
-The remaining risks are visual tuning across the full game and a live mode-2
-enemy-lock transition. The 110% / 6-degree candidate is therefore default OFF.
-Extended controller traversal and live
+The remaining risks are visual tuning across the full game, aiming, broader
+combat, special camera modes, and target-release recovery into active
+exploration. The 110% / 6-degree candidate is therefore default OFF. Extended controller traversal and live
 resize are required before a later release may enable it by default, but they do
 not block the opt-in M9 architecture or implementation.

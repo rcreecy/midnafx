@@ -73,11 +73,13 @@ A temporary host-only
 input harness has supplied positive outdoor and confined-room movement spot
 checks for camera collision and autofocus. A separate L-trigger harness proved
 native fallback in camera mode 1: modifiers became inactive, effective FOV
-equaled native FOV, and lower-angle offset became zero. Spawned enemies did not
-yield stable mode-2 selection at the test spawn. Combat lock-on, aiming, special
-camera modes, scene transitions, target-release recovery, and interactive
-toggles remain open. Do not convert these Windows spot checks into broader
-claims.
+equaled native FOV, and lower-angle offset became zero. A later explicit `E_BA`
+spawn in `F_SP116,3,13,2` produced a visible target arrow and repeated mode-2
+lock transitions; mode-2 reported flags `0x01`, inactive modifiers, and
+native/effective FOV `45.00/45.00`. Aiming, broader combat, special camera
+modes, scene transitions, target-release recovery into active exploration, and
+interactive toggles remain open. Do not convert these Windows spot checks into
+broader claims.
 
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and
