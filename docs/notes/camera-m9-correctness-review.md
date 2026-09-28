@@ -37,6 +37,13 @@ runtime logs, and the pinned Dusklight camera controller at
    and preserved native framing. Reattachment restored `0x13` and restarted
    the FOV blend from native. The native chase callback did not modify latitude
    while the detached controller owned the camera.
+6. **Bow aiming needed live exclusion proof.** A temporary deterministic
+   loadout and input harness equipped the Hero's Bow and held X in
+   `F_SP103,0,27,0`. The camera changed from active type/mode `41/0`, flags
+   `0x13`, to bow-aim mode `41/7`, flags `0x01`. MidnaFX preserved native FOV at
+   `60.68/60.68`; the captured frame visibly shows the drawn bow and reticle.
+   The harness had no physical controller mapping, so bow-release recovery was
+   not claimed from this run.
 
 ## Review result
 
@@ -48,8 +55,8 @@ features unavailable. Disabling FOV immediately returns native output; chase
 changes stop at the next native chase sample. The source retains native camera
 smoothing, eye construction, collision, shake, interpolation, and rendering.
 
-The remaining risks are visual tuning across the full game, aiming, broader
-combat, other special camera modes, and interactive toggle coverage. The 110% /
-6-degree candidate is therefore default OFF. Extended controller traversal and
-live resize are required before a later release may enable it by default, but
-they do not block the opt-in M9 architecture or implementation.
+The remaining risks are visual tuning across the full game, broader combat,
+other special camera modes, scene transitions, and interactive toggle coverage.
+The 110% / 6-degree candidate is therefore default OFF. Extended controller
+traversal and live resize are required before a later release may enable it by
+default, but they do not block the opt-in M9 architecture or implementation.

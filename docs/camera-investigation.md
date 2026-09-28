@@ -276,3 +276,26 @@ is `build/visual-validation-v090/logs/dusklight-20260928-054739.log`.
 This closes detached/free-camera fallback and recovery. Aiming, broader combat,
 other special camera modes, and interactive toggle coverage remain open before
 any default-on decision.
+
+## Bow-aim fallback recheck (2026-09-28)
+
+A source-matched Windows D3D12 run equipped the Hero's Bow on X and supplied a
+temporary held-X input in `F_SP103,0,27,0`. Before aiming, type-41 mode-0 chase
+reported flags `0x13`, active modifiers, a `-6.00`-degree latitude offset, and
+FOV convergence from `61.43` to `66.33` degrees. Drawing the bow entered
+type/mode `41/7`. The service reported flags `0x01`, MidnaFX became inactive,
+and native/effective FOV matched at `60.68/60.68`. The live frame shows Link's
+drawn bow, arrow, aiming reticle, 30-arrow count, and first-person framing.
+
+The ignored evidence is
+`build/visual-validation-v090/camera-bow-aim-final.jpg` and
+`build/visual-validation-v090/logs/dusklight-20260928-110836.log`. The isolated
+test user had no physical controller mapping, so this harness proves entry and
+native fallback during bow aim, not an independent bow-release recovery path.
+Target-release and detached-camera recovery remain separately proven above.
+The temporary loadout and input harnesses were removed afterward and the clean
+source-matched host rebuilt.
+
+This closes bow-aim fallback. Broader combat, other special camera modes, scene
+transitions, and interactive toggle coverage remain open before any default-on
+decision.
