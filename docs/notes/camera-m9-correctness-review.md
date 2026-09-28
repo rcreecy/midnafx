@@ -44,6 +44,12 @@ runtime logs, and the pinned Dusklight camera controller at
    `60.68/60.68`; the captured frame visibly shows the drawn bow and reticle.
    The harness had no physical controller mapping, so bow-release recovery was
    not claimed from this run.
+7. **Locked melee combat needed live lifecycle proof.** A deterministic harness
+   equipped the Master Sword, spawned one `E_BA`, held L, and supplied repeated
+   B attacks. Lock mode 2 used flags `0x01` and native FOV `62.00/62.00`. Enemy
+   death passed through inactive mode-0 and mode-1 transition states. Native
+   chase then recovered flags `0x13`, the `-6.00`-degree latitude offset, and a
+   fresh FOV blend. No stale modified frame appeared during combat exit.
 
 ## Review result
 
@@ -55,8 +61,9 @@ features unavailable. Disabling FOV immediately returns native output; chase
 changes stop at the next native chase sample. The source retains native camera
 smoothing, eye construction, collision, shake, interpolation, and rendering.
 
-The remaining risks are visual tuning across the full game, broader combat,
-other special camera modes, scene transitions, and interactive toggle coverage.
+The remaining risks are visual tuning across the full game, bosses and
+effects-heavy combat, other special camera modes, scene transitions, and
+interactive toggle coverage.
 The 110% / 6-degree candidate is therefore default OFF. Extended controller
 traversal and live resize are required before a later release may enable it by
 default, but they do not block the opt-in M9 architecture or implementation.

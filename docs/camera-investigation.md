@@ -299,3 +299,30 @@ source-matched host rebuilt.
 This closes bow-aim fallback. Broader combat, other special camera modes, scene
 transitions, and interactive toggle coverage remain open before any default-on
 decision.
+
+## Locked melee-combat recheck (2026-09-28)
+
+A source-matched Windows D3D12 run equipped the Master Sword, spawned one
+`E_BA` at the previously validated `F_SP103,0,27,0` target position, held L,
+and supplied repeated B attacks. Exploration began in type/mode `41/0` with
+flags `0x13`, active modifiers, a `-6.00`-degree latitude offset, and effective
+FOV converging to `66.33` degrees. Enemy lock entered mode 2 with flags `0x01`;
+MidnaFX became inactive and preserved native/effective FOV at `62.00/62.00`.
+
+Sword attacks killed the enemy and created its native disappearance actor. The
+camera then passed through fail-closed mode-0 flags `0x03` and mode-1 flags
+`0x01`, preserving native FOV at `57.97/57.97` and `58.82/58.82`. After combat
+and lock state cleared, mode-0 chase returned with flags `0x13`; the latitude
+offset returned to `-6.00` degrees and FOV blended from `60.81/61.29` to
+`60.82/65.70`. Captures show the sword drawn during combat and the stable
+post-combat frame.
+
+The ignored evidence is `build/visual-validation-v090/camera-combat-active.jpg`,
+`build/visual-validation-v090/camera-combat-recovery.jpg`, and
+`build/visual-validation-v090/logs/dusklight-20260928-113250.log`. The temporary
+enemy, loadout, and input harnesses were removed afterward and the clean host
+rebuilt.
+
+This closes one locked melee-combat lifecycle spot check. Bosses,
+effects-heavy combat, other special camera modes, scene transitions, and
+interactive toggle coverage remain open before any default-on decision.
