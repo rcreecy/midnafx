@@ -256,3 +256,23 @@ The logging and input harness were removed afterward, and the clean
 source-matched host was rebuilt. This closes target-release recovery into active
 exploration. Aiming, broader combat, special camera modes, and interactive
 toggle coverage remain open before any default-on decision.
+
+## Detached-camera recheck (2026-09-28)
+
+A source-matched Windows D3D12 run used Dusklight's command console to detach
+and reattach the camera in `F_SP103,0,27,0`. Before detachment, type-41
+algorithm-1 chase reported flags `0x13`, active modifiers, a `-6.00`-degree
+latitude offset, and FOV convergence from `61.43` to `66.33` degrees. While
+detached, the FOV callback reported flags `0x0b`, stayed inactive, and preserved
+native/effective FOV at `61.63/61.63`. No native chase callback applied a
+latitude change while the detached camera owned the view.
+
+Reattachment returned flags to `0x13`. The FOV modifier restarted its blend
+from native, moving from `61.63/62.11` to `61.63/66.54`, while native chase
+resumed the configured latitude offset. The transition showed no stale detached
+state or one-frame modified output during detachment. The ignored runtime log
+is `build/visual-validation-v090/logs/dusklight-20260928-054739.log`.
+
+This closes detached/free-camera fallback and recovery. Aiming, broader combat,
+other special camera modes, and interactive toggle coverage remain open before
+any default-on decision.

@@ -80,9 +80,11 @@ native/effective FOV `45.00/45.00`. A later `F_SP103,0,27,0` run released L,
 deleted an explicitly spawned `E_BA`, and returned through fail-closed native
 transition states to algorithm-1 mode-0 chase. Flags returned to `0x13`, FOV
 converged from `61.33` to `66.23`, and the latitude offset returned to
-`-6.00` degrees. Aiming, broader combat, special camera modes, scene
-transitions, and interactive toggles remain open. Do not convert these Windows
-spot checks into broader claims.
+`-6.00` degrees. A detached-camera run then changed flags from active `0x13` to
+detached `0x0b`, preserved native/effective FOV at `61.63/61.63`, and returned
+to active chase with a fresh blend after reattachment. Aiming, broader combat,
+other special camera modes, scene transitions, and interactive toggles remain
+open. Do not convert these Windows spot checks into broader claims.
 
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and

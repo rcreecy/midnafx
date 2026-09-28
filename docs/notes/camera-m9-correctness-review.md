@@ -32,6 +32,11 @@ runtime logs, and the pinned Dusklight camera controller at
    cleared, flags returned to `0x13`, both modifiers reactivated, and FOV and
    latitude resumed configured exploration output. This confirms the explicit
    lock guards fail closed without preventing normal recovery.
+5. **Detached-camera recovery needed live proof.** Dusklight command-console
+   detachment changed flags from `0x13` to `0x0b`, disabled FOV modification,
+   and preserved native framing. Reattachment restored `0x13` and restarted
+   the FOV blend from native. The native chase callback did not modify latitude
+   while the detached controller owned the camera.
 
 ## Review result
 
@@ -44,7 +49,7 @@ changes stop at the next native chase sample. The source retains native camera
 smoothing, eye construction, collision, shake, interpolation, and rendering.
 
 The remaining risks are visual tuning across the full game, aiming, broader
-combat, special camera modes, and interactive toggle coverage. The 110% /
+combat, other special camera modes, and interactive toggle coverage. The 110% /
 6-degree candidate is therefore default OFF. Extended controller traversal and
 live resize are required before a later release may enable it by default, but
 they do not block the opt-in M9 architecture or implementation.
