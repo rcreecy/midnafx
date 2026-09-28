@@ -227,3 +227,32 @@ the clean source-matched host rebuilt. This closes sustained target-button and
 stable enemy-lock fallback. Aiming, broader combat, special camera modes, and
 target-release recovery into active exploration remain open before any
 default-on decision.
+
+## Target-release recovery recheck (2026-09-28)
+
+A source-matched Windows D3D12 run returned to `F_SP103,0,27,0`, where native
+mode-0 chase uses engine algorithm 1. A temporary Aurora harness held digital L
+and the analog left trigger after an explicit `E_BA` spawn at
+`1904,250,1500`, released L, and then supplied brief forward movement after the
+enemy was deleted. Before lock, diagnostics reported type/mode `41/0`, flags
+`0x13`, active modifiers, a `-6.00`-degree latitude offset, and FOV convergence
+from `61.43` to `66.33` degrees. Stable enemy lock changed the camera to mode 2
+with flags `0x01`; modifiers became inactive and native/effective FOV matched at
+`62.00/62.00`.
+
+Release recovery remained fail-closed through native transition state. The
+camera first returned to mode 0 with flags `0x03` while the native L-lock flag
+was still set, then briefly entered mode 1 with flags `0x01`. Both states kept
+native framing. When all lock state cleared, the same type-41 algorithm-1 chase
+camera returned to mode 0 with flags `0x13`; both modifiers became active again,
+the latitude offset returned to `-6.00` degrees, and FOV converged from
+`61.33` to `66.23` degrees. No stale widened or lowered frame occurred during
+release.
+
+The ignored runtime evidence is
+`build/visual-validation-v090/logs/dusklight-20260928-053319.log`. Temporary
+camera-gate logging classified the transition but did not change camera state.
+The logging and input harness were removed afterward, and the clean
+source-matched host was rebuilt. This closes target-release recovery into active
+exploration. Aiming, broader combat, special camera modes, and interactive
+toggle coverage remain open before any default-on decision.
