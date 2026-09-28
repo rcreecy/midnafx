@@ -326,3 +326,30 @@ rebuilt.
 This closes one locked melee-combat lifecycle spot check. Bosses,
 effects-heavy combat, other special camera modes, scene transitions, and
 interactive toggle coverage remain open before any default-on decision.
+
+## Scene-transition recheck (2026-09-28)
+
+A source-matched Windows D3D12 run began in `F_SP103,0,27,0`, then used the
+native next-stage path to load `D_MN04` room 7, point 0. Before the warp,
+type-41 mode-0 chase reported flags `0x13`, active modifiers, a
+`-6.00`-degree latitude offset, and FOV convergence to `66.33` degrees. During
+the new room's authored establishing view, type-40 mode-0 reported flags
+`0x07`; MidnaFX stayed inactive and native/effective FOV matched at
+`57.83/57.83`.
+
+When the establishing view released control, native type-96 mode-0 chase
+reported flags `0x13`. The latitude offset resumed at `-6.00` degrees and FOV
+started a fresh blend from `60.00/60.47` to `60.00/64.84`. Captures show the
+authored quarry overview and the later player-controlled room view. No stale
+FOV or lower-angle output appeared in the authored view, and no stale camera
+ownership survived the stage unload/load cycle.
+
+The ignored evidence is
+`build/visual-validation-v090/camera-scene-transition.jpg`,
+`build/visual-validation-v090/camera-scene-recovery.jpg`, and
+`build/visual-validation-v090/logs/dusklight-20260928-120412.log`. The temporary
+warp harness was removed afterward and the clean host rebuilt.
+
+This closes one cross-stage transition and authored-view recovery check.
+Bosses, effects-heavy combat, other special camera modes, and interactive
+toggle coverage remain open before any default-on decision.

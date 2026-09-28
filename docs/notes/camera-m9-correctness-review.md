@@ -50,6 +50,12 @@ runtime logs, and the pinned Dusklight camera controller at
    death passed through inactive mode-0 and mode-1 transition states. Native
    chase then recovered flags `0x13`, the `-6.00`-degree latitude offset, and a
    fresh FOV blend. No stale modified frame appeared during combat exit.
+8. **Stage changes needed live ownership proof.** A native next-stage warp from
+   `F_SP103` to `D_MN04` unloaded and loaded scene state. The destination's
+   authored type-40 establishing view used flags `0x07` and native FOV
+   `57.83/57.83`. Type-96 chase later recovered flags `0x13`, the configured
+   latitude offset, and a fresh FOV blend. No stale callback state survived the
+   transition.
 
 ## Review result
 
@@ -62,8 +68,8 @@ changes stop at the next native chase sample. The source retains native camera
 smoothing, eye construction, collision, shake, interpolation, and rendering.
 
 The remaining risks are visual tuning across the full game, bosses and
-effects-heavy combat, other special camera modes, scene transitions, and
-interactive toggle coverage.
+effects-heavy combat, other special camera modes, additional scripted
+transitions, and interactive toggle coverage.
 The 110% / 6-degree candidate is therefore default OFF. Extended controller
 traversal and live resize are required before a later release may enable it by
 default, but they do not block the opt-in M9 architecture or implementation.

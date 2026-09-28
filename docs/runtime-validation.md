@@ -90,8 +90,16 @@ locked melee run equipped the Master Sword, spawned one `E_BA`, and supplied B
 attacks. Lock mode 2 preserved native FOV at `62.00/62.00`; enemy death passed
 through fail-closed modes before exploration recovered flags `0x13`, the
 `-6.00`-degree offset, and a fresh FOV blend to `65.70`. Bosses, effects-heavy
-combat, other special camera modes, scene transitions, and interactive toggles
-remain open. Do not convert these Windows spot checks into broader claims.
+combat, other special camera modes, additional scripted transitions, and
+interactive toggles remain open. Do not convert these Windows spot checks into
+broader claims.
+
+A cross-stage camera run then warped from `F_SP103,0,27,0` to `D_MN04` room 7.
+The new room's authored establishing view reported type/mode `40/0`, flags
+`0x07`, and native/effective FOV `57.83/57.83`. Native type-96 chase later
+recovered flags `0x13`, the `-6.00`-degree offset, and a fresh FOV blend from
+`60.00/60.47` to `60.00/64.84`. This closes one stage unload/load transition,
+not every door, wipe, scripted transition, or save load.
 
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and
