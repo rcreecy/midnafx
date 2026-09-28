@@ -51,5 +51,6 @@ if(MIDNAFX_BUILD_MOD)
     set_tests_properties(shader_compile PROPERTIES SKIP_RETURN_CODE 77)
     add_test(NAME package_contract COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/package_contract.py"
-        "${CMAKE_BINARY_DIR}/mods/midnafx.dusk")
+        "${CMAKE_BINARY_DIR}/mods/midnafx.dusk"
+        "${PROJECT_VERSION}")
 endif()

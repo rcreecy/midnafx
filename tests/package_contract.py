@@ -8,12 +8,13 @@ import zipfile
 
 
 archive_path = Path(sys.argv[1])
+expected_version = sys.argv[2]
 assert archive_path.is_file(), f"missing package: {archive_path}"
 with zipfile.ZipFile(archive_path) as package:
     names = set(package.namelist())
     manifest = json.loads(package.read("mod.json"))
     assert manifest["id"] == "com.midnafx.midnafx"
-    assert manifest["version"] == "0.9.1"
+    assert manifest["version"] == expected_version
     native = [name for name in names if name.startswith("lib/") and name.endswith(("mod.dll", "mod.so"))]
     assert len(native) == 1, native
     binary = package.read(native[0])
