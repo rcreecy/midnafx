@@ -1,0 +1,188 @@
+# M12 water modernization investigation
+
+M12 starts after the immutable `v1.0.0` tag. Its first objective is to identify
+Twilight Princess water without changing gameplay, geometry, or unrelated
+translucent materials. This document separates source evidence from runtime
+evidence. A source match or successful build does not pass a runtime gate.
+
+## Gate status
+
+| Gate | Status | Evidence still required |
+| --- | --- | --- |
+| 1: classify water | In progress | Obvious default-off diagnostic on representative outdoor, dungeon, shallow/current, and underwater scenes; nearby non-water translucency must remain unchanged. |
+| 2: pre-water scene color | In progress | Runtime proof that a snapshot contains opaque submerged geometry, excludes the water draw itself, survives resize, and produces no WebGPU validation errors. |
+| 3: optical thickness | Not started | Stable shallow-to-deep diagnostic on several scenes after Gates 1 and 2 pass. |
+
+No optical replacement is enabled. Absorption, animated normal detail,
+refraction, Fresnel, reflection, shoreline treatment, specular, and SSR remain
+behind these gates.
+
+## Observed render classes
+
+### Lakebed Temple surface actors
+
+`daLv3Water_c` is the broadest explicit dungeon-water actor. It selects one of
+21 archives (`Kr10water`, `Kr10wat01`, `Kr02wat00` through `Kr13wat02`, plus
+`Kr03wat05` and `Kr03wat06`). Most variants load a primary surface model and a
+second projected-texture model, with independent BTK animation. Types 19 and 20
+omit the second model. Actor position supplies a semantic water height while
+switch-controlled animation raises or lowers that height.
+
+The primary model enters `DB_XLU_LIST_DARK_BG`. The projected model enters
+`DB_*_LIST_INVISIBLE` after receiving a camera projection texture matrix.
+`daLv3Water2_c` is a distinct moving Lakebed path using `Kr03wat04`; it draws a
+projected animated model only in the invisible list. `daObj_Lv3waterB` uses
+`L3_bwater` for Morpheel's arena and also draws through the invisible list. Its
+breakable floor is a separate opaque background model and must not be classified
+as water.
+
+These actors provide strong identity: actor type, archive, exact model resource,
+draw phase, and semantic surface height. They also prove that one visible water
+surface may span two J3D models and two draw buffers.
+
+### Generic movable water
+
+`daGrdWater_c` uses archive `Water`, models 17 and 18, two BTKs, two BRKs, and
+multiple BCKs. The first model draws through `DB_XLU_LIST_DARK_BG`; the second
+uses a projected texture matrix and the invisible list. Its MoveBG collision and
+actor position preserve gameplay water-level behavior independently of optical
+rendering.
+
+`daObjRotStair_c` follows the same paired-model pattern while its water is
+enabled: one dark-background translucent model and one projected invisible
+model. This is another useful moving-water classification case.
+
+### Hot springs
+
+`daObjOnsen_c` selects `H_Onsen` or `H_KaOnsen`. Resource 5 is its ordinary
+surface/collision model; resource 6 is its BTK-animated projected model. The
+second model enters the invisible list. Both pass through TP's background
+material processor.
+
+Hot springs are water, but may need a separate visual profile because their
+authored color and steam effects differ from ordinary water.
+
+### Stage and background water
+
+Large outdoor bodies such as Lake Hylia are not fully represented by one
+water-specific actor. Stage/background J3D materials pass through
+`dKy_bg_MAxx_proc`. TP assigns behavior through material-name control codes:
+
+* `MA03`, `MA09`, `MA17`, and `MA19` alter background list selection and fog;
+  selected suffixes enter the invisible list.
+* `MA10` and `MA02` enter the invisible list and receive camera-projected texture
+  matrices.
+* `MA00`, `MA01`, `MA04`, and `MA16` alter alpha comparison and depth-write
+  behavior when the camera is underwater.
+* Other `MAxx` codes control mist, thunder, and environment effects. Therefore
+  an `MA` prefix alone is not a safe water classifier.
+
+Exact stage archive, material, shape, texture, blend, and depth-state tuples
+must be collected at runtime before this class can pass Gate 1. `F_SP115` room 0
+is the Lake Hylia test scene; room 1 is Lanayru Spring. `F_SP112` (Zora's River),
+`F_SP126` (Upper Zora's River), and `F_SP127` (Fishing Pond) provide current and
+shallow-water candidates.
+
+### Waterfalls, particles, and underwater presentation
+
+`daObjWaterFall` is gameplay collision and flow logic; its `draw()` does not
+submit a model. Waterfall visuals therefore belong to stage geometry, another
+actor, or particles and cannot be classified from this actor alone.
+
+`daLv3WaterEff_c` owns Lakebed bubble/flow particles. It has no water-surface
+model. Existing splash, ripple, bubble, spray, and waterfall particles must stay
+outside surface replacement so their actor and scene logic remain intact.
+
+Underwater presentation is also separate. `dKy_undwater_filter_draw` draws an
+animated screen-facing environment model when TP reports the camera underwater.
+Camera code derives that state from collision water height. Enhanced surface
+water must fail closed or use an explicitly defined underwater path; it must not
+classify the underwater overlay as a water surface.
+
+## Actual frame ordering
+
+On the PC path, Dusklight emits `GFX_STAGE_SCENE_AFTER_OPAQUE` after opaque
+background, dark-background, object, and packet lists. It then draws translucent
+background and dark-background lists, followed by ordinary translucent object
+lists. Invisible opaque/translucent lists are drawn later, after TP's native
+motion-blur and depth-of-field passes.
+
+This places explicit water components in two different parts of the frame:
+
+1. Primary water surfaces in `DB_XLU_LIST_DARK_BG` draw immediately after the
+   existing `SCENE_AFTER_OPAQUE` hook.
+2. Projected/invisible companion models draw much later.
+
+The public `SCENE_AFTER_OPAQUE` hook is therefore a promising pre-water capture
+boundary for primary surfaces. It is not yet sufficient proof for projected
+companion models, generic stage water, particles, or later transparent effects.
+Gate 2 needs runtime inspection of the sampled result and exact surface draw
+ownership.
+
+## Classification design
+
+Initial classification must use positive semantic evidence. Accepted evidence
+can include exact actor type, archive/resource identity, exact material name,
+shape association, and observed draw buffer. Blend mode or translucency alone is
+insufficient. Framebuffer color matching is prohibited.
+
+The first diagnostic will use a small exact allowlist. It will record one
+machine-readable row per classified model/material with:
+
+* stage, room, layer, and actor class where available;
+* archive and model resource identity;
+* material and shape index/name;
+* blend mode and factors;
+* depth test, comparison, and write state;
+* texture indices and texture-matrix animation presence;
+* selected draw list;
+* semantic water height where available; and
+* diagnostic draw count and CPU cost.
+
+The visual proof will make only classified surface shapes unmistakably magenta.
+It must restore all temporary material state immediately after each draw and on
+shutdown. The feature remains developer-only and default off. Unknown resources,
+missing services, unexpected fingerprints, unsupported material layouts, and
+underwater-only overlays fail closed.
+
+## Test matrix for Gate 1
+
+| Class | Candidate | Required observation |
+| --- | --- | --- |
+| Large outdoor | `F_SP115`, room 0 | Lake surface marked; sky, mist, distant haze, particles, and other translucency unchanged. |
+| Shallow/current | `F_SP112`, `F_SP126`, or `F_SP127` | Moving/shallow surface marked without spray or shoreline effects. |
+| Dungeon | one `daLv3Water_c` Lakebed room | Primary and companion model relationship recorded; unrelated dungeon translucency unchanged. |
+| Moving water | `daGrdWater_c`, `daLv3Water2_c`, or rotating-stair water | Classification remains attached while water height/geometry moves. |
+| Boss water | `D_MN01A` / `L3_bwater` | Water marked; Morpheel arena floor remains unmarked. |
+| Underwater | any stable swimmable scene | Surface identity remains stable; underwater overlay and particles remain unmarked. |
+| Waterfall adjacent | stage with `daObjWaterFall` | Surface classification does not consume waterfall gameplay actor or unrelated spray. |
+
+## Smallest likely host contract
+
+Gate 1 can begin with HookService and exact resource/material identity. Gate 2
+should first use public `GFX_STAGE_SCENE_AFTER_OPAQUE` plus `resolve_pass`; this
+already provides frame-scoped color/depth snapshots with viewport ownership and
+resize handling.
+
+If runtime proof shows that a water component needs a capture after a narrower
+opaque sub-list or before an invisible companion draw, the smallest generally
+useful Dusklight extension is a documented scene stage between opaque completion
+and translucent-background submission, or a scoped draw-pass callback carrying
+draw-list and J3D model/material identity. MidnaFX must not retain borrowed views
+or use backend-specific framebuffer access.
+
+## Open questions
+
+* Exact Lake Hylia and other stage-water material/shape/resource identities.
+* Which `MAxx` suffixes identify water rather than other projected environment
+  materials in representative stages.
+* Per-class GX blend, depth test/write, textures, and animated texture state.
+* Whether primary and projected models can be replaced as one optical surface
+  without double composition.
+* Whether `SCENE_AFTER_OPAQUE` depth contains submerged opaque geometry for all
+  target scenes.
+* Correct treatment of invisible-list water relative to TP's native blur/DOF.
+* Whether semantic collision water planes align closely enough with rendered
+  geometry for stable thickness reconstruction.
+
+Until runtime diagnostics answer these questions, M12 Gate 1 remains incomplete.
