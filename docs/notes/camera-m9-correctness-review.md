@@ -61,6 +61,18 @@ runtime logs, and the pinned Dusklight camera controller at
    both. Disable restored native FOV and zero latitude immediately. FOV-only
    restarted its blend while latitude stayed inactive. Combined enable restored
    the latitude offset without corrupting FOV state. Shutdown remained clean.
+10. **Native special modes needed entry and recovery proof.** A forced native
+    first-person interval changed type-41 chase from mode 0/flags `0x13` to mode
+    4/flags `0x01`. MidnaFX preserved native FOV throughout mode 4. Releasing
+    the force returned to mode 0/flags `0x13` and restarted both modifiers from
+    native state.
+11. **Boss combat needed a real high-pressure camera sequence.** The source-
+    matched host loaded Fyrus's `D_MN04A` arena and used the game's own demo-skip
+    initialization before applying native lock and attack input. Lock mode 1,
+    boss-special type 75, and the following authored type-40 camera all remained
+    fail-closed with native/effective FOV equal and zero latitude offset. No
+    unsafe transition sample, non-finite output, crash, or validation error was
+    observed.
 
 ## Review result
 
@@ -72,9 +84,8 @@ features unavailable. Disabling FOV immediately returns native output; chase
 changes stop at the next native chase sample. The source retains native camera
 smoothing, eye construction, collision, shake, interpolation, and rendering.
 
-The remaining risks are visual tuning across the full game, bosses and
-effects-heavy combat, other special camera modes, additional scripted
-transitions, and wider gameplay tuning.
+The remaining risks are visual tuning across the full game, additional boss and
+special-camera classes, live Metal behavior, and wider gameplay tuning.
 The 110% / 6-degree candidate is therefore default OFF. Extended controller
 traversal and live resize are required before a later release may enable it by
 default, but they do not block the opt-in M9 architecture or implementation.

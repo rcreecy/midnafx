@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0 - 2026-10-03
+
+- Complete the opt-in modern camera qualification with native first-person,
+  lock-on, boss-special, authored-camera, recovery, toggle, and lifecycle proof.
+- Improve experimental depth of field with adjustable blur radius, temporal
+  camera-target autofocus, and silhouette-safe near-layer compositing.
+- Close the v1 geometry scope around exact fail-closed static and skinned model
+  allowlists with topology, lifecycle, restoration, and performance evidence.
+- Record M6 native environment controls as safely deferred because the pinned
+  host lacks mod-scoped ownership and restoration APIs.
+- Pass the final combined Windows runtime, 13 portable tests, package contract,
+  Dawn shader compilation, and Windows/Intel macOS CI builds.
+
 ## 0.9.1 - 2026-09-27
 
 - Make camera-target autofocus the default focus source when the still

@@ -379,3 +379,31 @@ validation driver was removed afterward, and the clean package was rebuilt.
 This closes in-process disable, independent FOV enable, and combined re-enable
 coverage. Bosses, effects-heavy combat, other special camera modes, and wider
 gameplay tuning remain open before any default-on decision.
+
+## Special-mode and Fyrus boss-combat qualification (2026-10-03)
+
+A source-matched Windows D3D12 run forced TP's native first-person mode in
+`F_SP103,0,27,0`, then released it through the native mode controller. Normal
+type/mode `41/0` chase began with flags `0x13`, active FOV/lower-angle modifiers,
+and a `-6.00`-degree latitude offset. First person changed to mode 4 with flags
+`0x01`; MidnaFX became inactive and preserved native/effective FOV at
+`59.97/59.97`. Release returned to mode 0 with flags `0x13`, restored the
+latitude modifier, and restarted the FOV blend from native. No modified special-
+mode frame or stale recovery state was observed.
+
+A second run loaded the real Fyrus arena at `D_MN04A,50,0,0`. The direct stage
+launch used Fyrus's existing demo-skip initialization to reach native combat,
+then TP's production pad conversion supplied lock and attack input. Free type-9
+mode-0 chase initially reported flags `0x13` and active FOV. Lock-on changed to
+mode 1 with flags `0x01`, native/effective FOV `50.00/50.00`, and zero latitude
+offset. Boss-special type 75 remained inactive in modes 1 and 0 with flags
+`0x01` and `0x03`; native/effective values stayed identical. The subsequent
+authored type-40 camera also remained inactive. No one-frame unsafe output,
+non-finite value, crash, or graphics validation error appeared. Graceful exit
+unloaded all mods.
+
+All first-person, demo-skip, and controller-input harnesses were removed. The
+clean source-matched host was rebuilt afterward. This closes the planned
+special-mode and boss-combat gates for the opt-in M9 camera feature. The feature
+remains default off because full-game visual tuning is release expansion rather
+than a safety prerequisite.

@@ -108,6 +108,22 @@ and native FOV `61.63/61.63`. FOV-only re-enable blended from `61.63/62.11` to
 `-6.00`-degree offset. This proves live independent control changes and clean
 re-entry; it does not replace wider gameplay tuning.
 
+The 2026-10-03 camera qualification forced TP's native first-person mode in
+`F_SP103` and then ran native lock/attack input in the real Fyrus arena
+`D_MN04A,50,0,0`. First person, lock-on, boss-special type 75, and authored
+type-40 camera ownership all reported fail-closed flags and identical native/
+effective FOV. Ordinary chase recovered flags `0x13`, the configured latitude
+offset, and a fresh FOV blend after first-person release. Temporary host
+harnesses were removed and the clean host rebuilt.
+
+The same day's depth-of-field quality build ran its revised 6-pixel Gaussian,
+0.20-second temporal autofocus, and silhouette-gated near composite on the
+source-matched Windows D3D12 host. Compute and composite callbacks executed,
+shutdown unloaded all mods, and no MidnaFX, WebGPU, validation, or fatal error
+was logged. The corrected edge behavior lacks a new matched capture because the
+automation surface could not access native windows; retain default-off status
+and this limitation in v1 release notes.
+
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and
 B before the scene changes. For C and D use identical smoke grading with detail OFF

@@ -158,3 +158,29 @@ prompt; the scene retained stable player focus and native event framing.
 The input harness was removed and the clean host rebuilt. This is a positive
 movement spot check, not rapid target-change, room-transition, combat, or Metal
 coverage.
+
+## Quality pass (2026-10-03)
+
+The prototype now exposes a conservative 2-12 pixel blur-radius control with a
+6-pixel default and a 0.00-1.00 second autofocus transition with a 0.20-second
+default. Autofocus uses bounded, frame-rate-independent exponential smoothing;
+invalid target data resets the temporal state and fails closed. The half-
+resolution Gaussian maps its fixed sample kernel to the selected full-resolution
+radius instead of silently retaining the previous 12-pixel footprint.
+
+Foreground compositing now gates dilated near color by the current full-
+resolution pixel's negative circle of confusion. This preserves useful near-
+field dilation without spreading foreground blur across in-focus silhouettes,
+the artifact found in the first visual pass. Focus smoothing, radius mapping,
+finite-value handling, and reset behavior have deterministic coverage.
+
+A source-matched Windows D3D12 run in `F_SP103,0,27,0` used camera-target
+autofocus, a 6-pixel radius, and a 0.20-second transition. The log confirmed the
+half-resolution compute and composite passes executed. The process exited
+cleanly, unloaded all mods, and reported no MidnaFX, WebGPU, validation, or
+fatal error. Previous live checks already cover focus orientation, HUD
+exclusion, grading order, movement, collision, and resize. Native screen capture
+was unavailable to this automation session, so the corrected silhouette edge
+has runtime execution proof but no new matched image. The feature remains
+default off and experimental; live Metal output is still an explicit platform
+risk.

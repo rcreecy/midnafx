@@ -24,12 +24,15 @@ below use the source-matched Windows host unless stated otherwise.
   fail closed outside their exact validated representations. Static and skinned smoothing remain
   default off. Another static topology class and another character are coverage expansion, not a
   prerequisite for shipping the existing allowlist.
-- **M9 camera:** implementation is opt-in. Final special-mode, boss-combat, and wider gameplay
-  validation are tracked by the camera qualification work.
+- **M9 camera:** complete for the opt-in v1 scope. Native first person and real Fyrus combat
+  proved fail-closed special-mode behavior and clean exploration recovery. Wider visual tuning
+  remains post-v1 coverage.
 - **M10 depth foundation:** Windows D3D11 depth availability and visual reconstruction passed,
   including HUD exclusion and live resize. No native environment state is changed.
-- **M11 depth of field:** remains default off. Final image-quality and lifecycle qualification are
-  tracked by the depth-of-field quality work.
+- **M11 depth of field:** complete for the default-off experimental v1 scope. The quality pass
+  added adjustable radius, temporal autofocus, and silhouette-safe near compositing; Windows
+  runtime execution, movement, resize, HUD exclusion, and clean shutdown pass. A fresh matched
+  image of the corrected silhouette and live Metal output remain explicit release-note limits.
 
 ## Geometry release boundary
 
@@ -49,13 +52,29 @@ in-process disable, mod reload, graceful shutdown, GPU skinning, two native ligh
 bounded load-time memory. Expanding the allowlist requires the same fingerprint, close visual,
 lifecycle, and performance proof; it is not a generic switch.
 
-## Remaining ship gates
+## Ship status
 
-The remaining Windows v1 work is limited to camera qualification, depth-of-field quality and
-lifecycle qualification, a final combined-feature regression run, package verification, and a
-release correctness review. Intel Mac packages are build- and contract-tested, but live Metal
-execution and GPU performance remain unvalidated hardware risks and must remain explicit in v1
-release notes unless that hardware pass occurs.
+The final combined-feature regression, package verification, and release
+correctness review are complete. Intel Mac packages are build- and
+contract-tested, but live Metal execution and GPU performance remain
+unvalidated hardware risks and are explicit in the v1 release notes.
+
+## Final combined pass (2026-10-03)
+
+The source-matched Windows D3D12 host ran grading, detail, exploration camera,
+6-pixel depth of field, and allowlisted static smoothing together at 1216x896.
+Grading submitted and encoded 256/256 draws with 11.80/26.10 microsecond
+median/p95 callback time. Pumpkin and beehive smoothing completed in 517 and
+120 microseconds with zero index conflicts. Camera modifiers reached their
+configured FOV and `-6.00`-degree latitude offset; depth-of-field compute and
+composite executed. Graceful shutdown restored both normal arrays and unloaded
+all mods. No MidnaFX, WebGPU, validation, fatal, or non-finite error appeared.
+
+Windows packaging, Dawn shader validation, and all 13 tests pass. The release
+correctness review is recorded in `docs/notes/v1-release-correctness-review.md`.
+The Windows v1 engineering gates are closed. Live Intel Mac/Metal behavior and
+the missing fresh screenshot of the final depth-of-field edge correction remain
+disclosed release risks, not claims of validation.
 
 Native M6 environment overrides, global geometry smoothing, additional character allowlists,
 subdivision, mesh replacement, and material replacement are post-v1 work. They are not hidden

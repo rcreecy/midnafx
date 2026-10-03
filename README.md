@@ -23,8 +23,11 @@ authored events, detached cameras, and all other native camera algorithms keep
 their original framing. A default-off depth-of-field prototype separates near
 and far blur at half resolution, then composites against full-resolution depth
 before the HUD. Manual focus works with the base camera service. Camera-target
-focus requires MidnaFX's CameraService 1.4 host extension. Blur image quality and
-Intel Mac/Metal runtime validation remain deferred.
+focus requires MidnaFX's CameraService 1.4 host extension. The quality pass adds
+an adjustable 2-12 pixel radius, smooth autofocus, and silhouette-gated near
+compositing. Windows runtime checks cover focus orientation, HUD exclusion,
+movement, resize, and clean shutdown. A fresh matched capture of the final
+silhouette correction and Intel Mac/Metal runtime validation remain deferred.
 
 Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
 [latest release](https://github.com/rcreecy/midnafx/releases/latest), then put that file
@@ -50,4 +53,4 @@ Camera foundation, host patch, and runtime evidence: [docs/camera-investigation.
 Geometry coverage checkpoint: [docs/m8-geometry-coverage.md](docs/m8-geometry-coverage.md).
 Atmosphere depth/camera gate: [docs/atmosphere-investigation.md](docs/atmosphere-investigation.md).
 Depth of field focus gate: [docs/depth-of-field-investigation.md](docs/depth-of-field-investigation.md).
-v1 milestone disposition and remaining gates: [docs/v1-readiness.md](docs/v1-readiness.md).
+v1 milestone disposition and ship status: [docs/v1-readiness.md](docs/v1-readiness.md).
