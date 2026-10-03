@@ -190,3 +190,10 @@ default. The next checkpoint should select and fingerprint one additional
 naturally visible static model with a different topology profile. Broader
 character coverage still requires a separately fingerprinted identity split and
 close visual review.
+
+For v1, this is a completed experimental-coverage milestone rather than an open
+global-coverage gate. The existing exact allowlist is bounded, independently
+switchable, default off, and backed by rigid and skinned lifecycle evidence.
+Another static topology profile and another character remain valuable post-v1
+coverage. They must not be generalized from the current fingerprints or treated
+as prerequisites for shipping the current allowlist.

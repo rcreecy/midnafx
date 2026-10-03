@@ -50,3 +50,4 @@ Camera foundation, host patch, and runtime evidence: [docs/camera-investigation.
 Geometry coverage checkpoint: [docs/m8-geometry-coverage.md](docs/m8-geometry-coverage.md).
 Atmosphere depth/camera gate: [docs/atmosphere-investigation.md](docs/atmosphere-investigation.md).
 Depth of field focus gate: [docs/depth-of-field-investigation.md](docs/depth-of-field-investigation.md).
+v1 milestone disposition and remaining gates: [docs/v1-readiness.md](docs/v1-readiness.md).

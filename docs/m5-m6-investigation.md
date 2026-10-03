@@ -74,3 +74,13 @@ for pass ordering and depth availability; and a documented ownership/restore
 interface for any native parameter that MidnaFX would change. A dedicated
 Dusklight service or upstream patch may be cleaner than a mod-side direct
 write. See `docs/notes/game.md` for the broader source map.
+
+## v1 disposition
+
+M6 is closed for v1 as a negative architecture gate. The missing ownership and
+restore contract makes native environment writes unsafe; broader runtime testing
+cannot repair that API boundary. MidnaFX therefore ships no direct fog, bloom,
+lighting, overlay, or particle writes. M10's validated depth reconstruction is a
+separate foundation for future additive atmosphere and does not weaken this
+decision. Native environment controls require a future Dusklight service or an
+equivalent reversible ownership contract.
