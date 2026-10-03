@@ -353,3 +353,29 @@ warp harness was removed afterward and the clean host rebuilt.
 This closes one cross-stage transition and authored-view recovery check.
 Bosses, effects-heavy combat, other special camera modes, and interactive
 toggle coverage remain open before any default-on decision.
+
+## In-process toggle recheck (2026-10-02)
+
+A source-matched Windows D3D12 run changed both camera configuration variables
+through Dusklight's `ConfigService`, the same path used by MidnaFX's settings
+controls. The fixed `F_SP103,0,27,0` view began with both controls enabled.
+Turning both controls off immediately changed active type-41 chase to inactive:
+latitude offset became `0.00` degrees and native/effective FOV matched at
+`61.63/61.63`.
+
+Enabling only exploration FOV kept the latitude modifier inactive and restarted
+the FOV blend from native, first reporting `61.63/62.11` and then
+`61.63/66.54`. Enabling the lower-angle control afterward restored the
+`-6.00`-degree latitude offset without resetting or corrupting FOV. Matched
+captures show native framing, FOV-only framing, and combined wide/lower
+framing. The process then shut down cleanly and unloaded all mods.
+
+The ignored evidence is `build/visual-validation-v090/camera-toggle-off.jpg`,
+`build/visual-validation-v090/camera-toggle-fov-only.jpg`,
+`build/visual-validation-v090/camera-toggle-both.jpg`, and
+`build/visual-validation-v090/logs/dusklight-20261002-181250.log`. The timed
+validation driver was removed afterward, and the clean package was rebuilt.
+
+This closes in-process disable, independent FOV enable, and combined re-enable
+coverage. Bosses, effects-heavy combat, other special camera modes, and wider
+gameplay tuning remain open before any default-on decision.

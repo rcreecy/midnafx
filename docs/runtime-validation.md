@@ -101,6 +101,13 @@ recovered flags `0x13`, the `-6.00`-degree offset, and a fresh FOV blend from
 `60.00/60.47` to `60.00/64.84`. This closes one stage unload/load transition,
 not every door, wipe, scripted transition, or save load.
 
+The 2026-10-02 in-process toggle run used `ConfigService` writes on the fixed
+`F_SP103,0,27,0` view. Turning both controls off produced zero latitude offset
+and native FOV `61.63/61.63`. FOV-only re-enable blended from `61.63/62.11` to
+`61.63/66.54` while latitude stayed inactive. Combined re-enable restored the
+`-6.00`-degree offset. This proves live independent control changes and clean
+re-entry; it does not replace wider gameplay tuning.
+
 For each A–H normal-world screenshot use the same save/camera, HUD state, display
 resolution, render scale, Dawnlight state, texture pack, and bloom mode. Capture A and
 B before the scene changes. For C and D use identical smoke grading with detail OFF

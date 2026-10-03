@@ -56,6 +56,11 @@ runtime logs, and the pinned Dusklight camera controller at
    `57.83/57.83`. Type-96 chase later recovered flags `0x13`, the configured
    latitude offset, and a fresh FOV blend. No stale callback state survived the
    transition.
+9. **Independent toggles needed live state-change proof.** Runtime
+   `ConfigService` writes disabled both controls, enabled FOV alone, then enabled
+   both. Disable restored native FOV and zero latitude immediately. FOV-only
+   restarted its blend while latitude stayed inactive. Combined enable restored
+   the latitude offset without corrupting FOV state. Shutdown remained clean.
 
 ## Review result
 
@@ -69,7 +74,7 @@ smoothing, eye construction, collision, shake, interpolation, and rendering.
 
 The remaining risks are visual tuning across the full game, bosses and
 effects-heavy combat, other special camera modes, additional scripted
-transitions, and interactive toggle coverage.
+transitions, and wider gameplay tuning.
 The 110% / 6-degree candidate is therefore default OFF. Extended controller
 traversal and live resize are required before a later release may enable it by
 default, but they do not block the opt-in M9 architecture or implementation.
