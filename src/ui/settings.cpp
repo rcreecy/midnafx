@@ -67,6 +67,10 @@ NumberSetting dof_focus_distance_setting{
     "dof_focus_distance", "Focus distance", 100, 20000, 1200, 1200, false};
 NumberSetting dof_focus_range_setting{
     "dof_focus_range", "Focus transition range", 10, 10000, 500, 500, false};
+NumberSetting dof_blur_radius_setting{
+    "dof_blur_radius", "Blur radius (pixels)", 2, 12, 6, 6, false};
+NumberSetting dof_focus_transition_setting{
+    "dof_focus_transition_cs", "Autofocus transition (0.01 s)", 0, 100, 20, 20, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
@@ -853,12 +857,14 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Use camera target focus", dof_autofocus);
     add_number(panel, dof_focus_distance_setting);
     add_number(panel, dof_focus_range_setting);
+    add_number(panel, dof_blur_radius_setting);
+    add_number(panel, dof_focus_transition_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
         "Default off. Focus view: cyan is nearer, orange is farther, black is focused, and "
         "magenta is invalid. Experimental blur uses a half-resolution near/far chain. Camera "
-        "target focus replaces manual distance and fails closed when unavailable. Diagnostics "
-        "override blur. Visual quality validation remains pending.",
+        "target focus replaces manual distance and fails closed when unavailable. Blur strength "
+        "and autofocus transition are configurable. Diagnostics override blur.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
@@ -924,6 +930,8 @@ bool initialize() {
     register_number(atmosphere_distance_setting);
     register_number(dof_focus_distance_setting);
     register_number(dof_focus_range_setting);
+    register_number(dof_blur_radius_setting);
+    register_number(dof_focus_transition_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -965,6 +973,10 @@ bool dof_blur_enabled() { return dof_blur.value; }
 bool dof_autofocus_enabled() { return dof_autofocus.value; }
 float dof_focus_distance() { return static_cast<float>(dof_focus_distance_setting.value); }
 float dof_focus_range() { return static_cast<float>(dof_focus_range_setting.value); }
+float dof_blur_radius() { return static_cast<float>(dof_blur_radius_setting.value); }
+float dof_focus_transition_seconds() {
+    return static_cast<float>(dof_focus_transition_setting.value) / 100.0f;
+}
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {

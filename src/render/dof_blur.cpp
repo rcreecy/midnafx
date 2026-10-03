@@ -1,4 +1,5 @@
 #include "dof_blur.hpp"
+#include "dof_quality.hpp"
 #include "game/camera_probe.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
@@ -7,6 +8,8 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <chrono>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <type_traits>
@@ -85,6 +88,9 @@ bool ready = false;
 bool warned = false;
 bool logged = false;
 bool execution_logged = false;
+bool focus_initialized = false;
+float filtered_focus = 0.0f;
+std::chrono::steady_clock::time_point focus_sample_time{};
 
 void warn_once(const char* message) {
     if (!warned && svc_log) {
@@ -320,19 +326,41 @@ bool valid_camera(const CameraInfo& camera) {
 
 void on_stage(ModContext*, const GfxStageContext* context, void*) {
     tick_retired_targets();
-    if (!ready || !settings::dof_blur_enabled())
+    if (!ready || !settings::dof_blur_enabled()) {
+        focus_initialized = false;
         return;
+    }
     if (!context || context->stage != GFX_STAGE_FRAME_BEFORE_HUD ||
         settings::dof_coc_view_enabled() || settings::atmosphere_depth_view_enabled())
         return;
     CameraInfo camera = CAMERA_INFO_INIT;
-    if (!camera_probe::latest_camera_info(camera) || !valid_camera(camera))
+    if (!camera_probe::latest_camera_info(camera) || !valid_camera(camera)) {
+        focus_initialized = false;
         return;
+    }
     float focus = settings::dof_focus_distance();
-    if (settings::dof_autofocus_enabled() && !camera_probe::latest_focus_distance(focus))
+    if (settings::dof_autofocus_enabled() && !camera_probe::latest_focus_distance(focus)) {
+        focus_initialized = false;
         return;
-    if (!std::isfinite(focus) || focus <= 0.0f)
+    }
+    if (!std::isfinite(focus) || focus <= 0.0f) {
+        focus_initialized = false;
         return;
+    }
+    const auto now = std::chrono::steady_clock::now();
+    if (settings::dof_autofocus_enabled()) {
+        const float elapsed = focus_initialized
+                                  ? std::chrono::duration<float>(now - focus_sample_time).count()
+                                  : 0.0f;
+        filtered_focus = dof_quality::advance_focus(
+            focus_initialized ? filtered_focus : 0.0f, focus, elapsed,
+            settings::dof_focus_transition_seconds());
+        focus = filtered_focus;
+        focus_initialized = true;
+        focus_sample_time = now;
+    } else {
+        focus_initialized = false;
+    }
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK || !supported(layout))
         return;
@@ -369,7 +397,7 @@ void on_stage(ModContext*, const GfxStageContext* context, void*) {
     uniforms.focus_distance = focus;
     uniforms.focus_range = std::max(settings::dof_focus_range(), 1.0f);
     uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
-    uniforms.blur_radius = 12.0f;
+    uniforms.blur_radius = settings::dof_blur_radius();
     GfxRange range{};
     if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &range) != MOD_OK)
         return;
@@ -383,8 +411,12 @@ void on_stage(ModContext*, const GfxStageContext* context, void*) {
     if (svc_gfx->push_draw(mod_ctx, draw_type, &draw, sizeof(draw)) != MOD_OK)
         return;
     if (!logged && svc_log) {
-        svc_log->info(mod_ctx,
-                      "Depth of field blur prototype active: half-resolution, radius=12px");
+        char message[160];
+        std::snprintf(message, sizeof(message),
+                      "Depth of field blur active: half-resolution, radius=%.0fpx, autofocus transition=%.2fs",
+                      static_cast<double>(uniforms.blur_radius),
+                      static_cast<double>(settings::dof_focus_transition_seconds()));
+        svc_log->info(mod_ctx, message);
         logged = true;
     }
 }
@@ -416,6 +448,9 @@ void initialize() {
     ready = warned = logged = execution_logged = false;
     encoded_compute.store(0);
     encoded_draw.store(0);
+    focus_initialized = false;
+    filtered_focus = 0.0f;
+    focus_sample_time = {};
     if (!svc_gfx || svc_gfx->get_device_info(mod_ctx, &device) != MOD_OK || !device.device)
         return;
     compute_shader = create_shader(dof_blur_compute_shader, "MidnaFX DOF compute shader");

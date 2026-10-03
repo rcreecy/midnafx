@@ -35,6 +35,10 @@ add_executable(camera_fov camera_fov.cpp ../src/game/camera_fov.cpp)
 target_compile_features(camera_fov PRIVATE cxx_std_20)
 target_include_directories(camera_fov PRIVATE ../src)
 add_test(NAME camera_fov COMMAND camera_fov)
+add_executable(dof_quality dof_quality.cpp ../src/render/dof_quality.cpp)
+target_compile_features(dof_quality PRIVATE cxx_std_20)
+target_include_directories(dof_quality PRIVATE ../src)
+add_test(NAME dof_quality COMMAND dof_quality)
 add_test(NAME camera_patch_contract COMMAND "${Python3_EXECUTABLE}"
     "${CMAKE_CURRENT_SOURCE_DIR}/camera_patch_contract.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/../patches/dusklight-camera-fov-modifier.patch")

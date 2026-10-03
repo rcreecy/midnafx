@@ -70,7 +70,10 @@ fn fs_composite(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let near_color = near_value.rgb / max(near_value.a, 0.0001);
     let far_color = far_value.rgb / max(far_value.a, 0.0001);
     let far_amount = clamp(max(coc, 0.0) * far_value.a, 0.0, 1.0);
-    let near_amount = clamp(near_value.a * 1.5, 0.0, 1.0);
+    // Apply foreground blur only to pixels that are themselves in front of the
+    // focus plane. This prevents half-resolution foreground alpha from dilating
+    // across an in-focus silhouette or distant background.
+    let near_amount = clamp(max(-coc, 0.0) * near_value.a, 0.0, 1.0);
     let far_composite = mix(source.rgb, far_color, far_amount);
     return vec4f(mix(far_composite, near_color, near_amount), source.a);
 }

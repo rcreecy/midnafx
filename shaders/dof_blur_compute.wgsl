@@ -69,11 +69,14 @@ const gaussian = array<f32, 5>(0.227027, 0.1945946, 0.1216216, 0.054054, 0.01621
 
 fn blur(coord: vec2i, horizontal: bool) {
     let dimensions = vec2i(params.half_size);
-    let radius_scale = max(i32(round(params.blur_radius / 8.0)), 1);
     var near_sum = textureLoad(input_near, coord, 0) * gaussian[0];
     var far_sum = textureLoad(input_far, coord, 0) * gaussian[0];
     for (var tap = 1; tap <= 4; tap++) {
-        let delta = select(vec2i(0, tap * radius_scale), vec2i(tap * radius_scale, 0), horizontal);
+        // Convert requested full-resolution radius into each Gaussian tap's
+        // half-resolution offset. Per-tap rounding preserves useful steps
+        // across the full 2-12 pixel control range.
+        let tap_offset = max(i32(round(f32(tap) * params.blur_radius / 8.0)), 1);
+        let delta = select(vec2i(0, tap_offset), vec2i(tap_offset, 0), horizontal);
         let low = clamp(coord - delta, vec2i(0), dimensions - vec2i(1));
         let high = clamp(coord + delta, vec2i(0), dimensions - vec2i(1));
         let weight = gaussian[tap];
