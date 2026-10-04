@@ -1,5 +1,13 @@
 # v1 readiness gate audit
 
+This is the historical **published v1.0.0 engineering audit**. The subsequent
+development pass adds automatic structural qualification and product profiles.
+Its stricter product acceptance status is **not complete**; see
+[the product-quality review](product-quality-review.md) and
+[automatic smoothing](automatic-smoothing.md). The exact-allowlist release
+boundary and completed gates below describe the released package, not the new
+development classifier or a completed product-quality validation pass.
+
 This audit separates completed engineering gates from optional coverage expansion. It does not
 convert a build, deterministic test, or source review into runtime evidence. The runtime results
 below use the source-matched Windows host unless stated otherwise.

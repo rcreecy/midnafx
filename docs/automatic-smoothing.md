@@ -79,3 +79,19 @@ must include class/reason, mutation, counts, conflicts, timings, memory, visual
 comparison and lifecycle outcome. Unknown skinned resources and any models
 requiring index splitting remain a disclosed coverage blocker. Default-on
 promotion requires representative visual and lifecycle proof on this classifier.
+
+## Implemented evidence and remaining boundary
+
+The implementation and deterministic adversarial tests are now in place. Three
+Windows scenes classified 196 distinct archive/file identities. Nineteen models
+outside exact fixtures qualified automatically; three changed normals. This is
+measurable expansion, not completion of the broad-coverage objective. The final
+Ordon run restored three arrays with byte-for-byte comparisons before shutdown.
+Fresh portable tests pass 12/12 and native Windows tests pass 14/14.
+
+See [product-quality-review.md](product-quality-review.md) for per-scene counts,
+timings, memory accounting limits, all model rows, platform details, screenshots,
+and unfulfilled lifecycle/visual requirements. The previous exact-only release
+audit is historical. Unknown matrix palettes and unresolved index conflicts
+remain blockers; neither classification thresholds nor restoration protections
+were relaxed to increase acceptance rate. Model shading remains default off.

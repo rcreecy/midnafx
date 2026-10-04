@@ -1,0 +1,332 @@
+scene,archive,file,classification,knownGood,reason,classificationUs,planningUs,applied,positions,normals,triangles,envelopes,indexConflicts,decodeUs,totalUs,peakTrackedVectorBytes,backupBytes,visual,lifecycle
+final-ordon,Always,o_g_hart.bmd,AMBIGUOUS,no,overlapping smoothing groups,76,0,no,58,58,110,0,0,45,135,15930,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,o_g_hutk.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,248,474,484,0,0,136,141,41994,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,o_g_hutu.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,248,474,484,0,0,127,131,41994,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,o_g_rupy.bmd,AMBIGUOUS,no,shared normal-index conflict,47,17,no,21,21,36,0,18,17,84,7600,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,breakwoodbox.bmd,SAFE,no,qualified,35,18,yes,18,80,32,0,0,19,81,10046,480,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,d_brockbrk.bmd,AMBIGUOUS,no,overlapping smoothing groups,10,0,no,10,16,16,0,0,9,23,2394,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,ef_mizubashira.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,53,13,50,0,0,27,30,5127,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,ef_screen_suityu.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,5,0,0,0,0,6,9,174,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,ef_thunder01.bmd,AMBIGUOUS,no,duplicated position identities,40,0,no,192,2,176,0,0,47,94,27202,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,ef_thunder02.bmd,AMBIGUOUS,no,duplicated position identities,47,0,no,224,2,208,0,0,55,112,30484,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,mpm_tubo.bmd,AMBIGUOUS,no,overlapping smoothing groups,30,0,no,32,42,56,0,0,20,54,7936,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,nv.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,16,0,0,1,0,6,7,423,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,o_g_arow.bmd,AMBIGUOUS,no,non-manifold edge,26,0,no,53,64,64,0,0,23,53,10814,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,o_g_arow_taba.bmd,AMBIGUOUS,no,non-manifold edge,236,0,no,421,496,528,0,0,159,411,85308,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,o_g_tane.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,296,0,0,0,0,14,16,3666,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,zelda_notice_cursor_red.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,72,0,0,0,0,10,11,1194,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Always,zelda_notice_cursor_yellow.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,21,21,10,0,0,17,19,1711,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,ef_setboom.bmd,AMBIGUOUS,no,duplicated position identities,96,0,no,288,112,512,0,0,96,204,74348,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_arrow.bmd,AMBIGUOUS,no,non-manifold edge,29,0,no,53,69,64,0,0,26,60,10866,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_arrowb.bmd,AMBIGUOUS,no,non-manifold edge,86,0,no,133,128,188,0,0,44,138,27270,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_bomb.bmd,AMBIGUOUS,no,overlapping smoothing groups,229,0,no,181,186,255,0,0,54,294,38578,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_boom.bmd,AMBIGUOUS,no,duplicated position identities,97,0,no,234,234,420,0,0,101,208,58444,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_pachi_nut.bmd,SAFE,no,no shading change,6,6,no,8,10,8,0,0,9,27,2104,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_sp.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,453,416,694,0,0,127,131,48671,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,crod_ball.bmd,SAFE,no,no shading change,16,8,no,18,5,16,0,0,11,39,3774,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,footmark.bmd,SAFE,no,no shading change,1,1,no,5,2,2,0,0,4,10,684,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,hk.bmd,AMBIGUOUS,no,overlapping smoothing groups,37,0,no,34,37,64,0,0,28,77,9800,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,inochidama.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,64,58,94,0,0,45,49,6915,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,pb.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,384,298,644,0,0,141,145,46269,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,pg.bmd,AMBIGUOUS,no,non-manifold edge,206,0,no,277,282,444,0,0,93,310,61988,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,rod_ukia.bmd,AMBIGUOUS,no,overlapping smoothing groups,8,0,no,13,16,15,0,0,11,26,2446,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,rod_ukib.bmd,AMBIGUOUS,no,shared normal-index conflict,7,7,no,10,5,10,0,20,7,25,2418,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,rod_ukic.bmd,AMBIGUOUS,no,shared normal-index conflict,5,5,no,10,5,10,0,20,7,21,2418,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,sango_fook.bmd,AMBIGUOUS,no,duplicated position identities,56,0,no,152,154,298,0,0,62,125,39878,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,sfook.bmd,AMBIGUOUS,no,overlapping smoothing groups,24,0,no,29,32,50,0,0,15,44,7280,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,uki.bmd,AMBIGUOUS,no,overlapping smoothing groups,30,0,no,29,32,46,0,0,18,53,7072,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,uki_saki.bmd,AMBIGUOUS,no,shared normal-index conflict,8,7,no,8,10,10,0,17,9,27,2534,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,wl_change.bmd,AMBIGUOUS,no,duplicated position identities,478,0,no,1306,1306,2496,0,0,399,915,377298,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,worm.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,74,64,144,9,0,39,43,12241,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,worm_hole.bmd,AMBIGUOUS,no,overlapping smoothing groups,12,0,no,13,16,12,0,0,10,47,1982,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,ef_shippu.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,528,397,912,4,0,177,183,67496,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_podm.bmd,AMBIGUOUS,no,overlapping smoothing groups,335,0,no,341,480,600,0,0,177,533,87100,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_swm.bmd,AMBIGUOUS,no,overlapping smoothing groups,417,0,no,322,501,540,0,0,145,577,82888,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_poda.bmd,AMBIGUOUS,no,overlapping smoothing groups,142,0,no,136,186,242,0,0,70,223,36158,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Alink,al_swa.bmd,AMBIGUOUS,no,overlapping smoothing groups,98,0,no,112,138,194,0,0,56,161,27062,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Stg_00,vrbox_kasumim.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,48,0,0,0,0,5,10,690,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Stg_00,vrbox_kumo.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,64,0,0,0,0,67,69,990,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Stg_00,vrbox_sora.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,98,0,0,0,0,14,17,1403,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Stg_00,vrbox_sun.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,13,0,0,0,0,13,15,486,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Stg_00,door-knob_00.bmd,AMBIGUOUS,no,overlapping smoothing groups,122,0,no,101,112,182,0,0,51,182,25670,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Stg_00,door-knob_01.bmd,AMBIGUOUS,no,overlapping smoothing groups,122,0,no,96,85,162,0,0,52,185,23852,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,R00_00,model.bmd,AMBIGUOUS,no,degenerate or nontriangle primitives,66,0,no,19770,13168,25323,0,0,6211,6333,1961984,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,R00_00,model1.bmd,AMBIGUOUS,no,overlapping smoothing groups,294,0,no,261,21,398,0,0,90,400,55384,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,R00_00,model2.bmd,AMBIGUOUS,no,shared normal-index conflict,75,43,no,74,64,83,0,75,25,149,19256,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,@bg0034,model0.bmd,AMBIGUOUS,no,shared normal-index conflict,119,58,no,80,80,120,0,156,44,229,26040,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,@bg004e,model0.bmd,AMBIGUOUS,no,shared normal-index conflict,16,10,no,16,10,20,0,16,12,43,4678,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,bou,bou.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,1200,1509,1986,60,0,469,479,152885,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,d_srock,d_srock.bmd,AMBIGUOUS,no,overlapping smoothing groups,21,0,no,26,26,42,0,0,14,40,5724,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,e_ga,ga.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,5,0,0,0,0,4,6,174,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,fr,fr.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,162,176,300,7,0,74,79,20371,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,hanjo,hanjo.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,1018,1173,1761,49,0,412,423,145373,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,hanjo1,hanjo_hare.bmd,AMBIGUOUS,no,overlapping smoothing groups,16,0,no,18,21,27,0,0,15,37,3814,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,hanjo1,hanjo_stone.bmd,AMBIGUOUS,no,overlapping smoothing groups,11,0,no,8,10,12,0,0,7,20,1742,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,jagar,jagar.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,1032,965,1866,42,0,392,400,145537,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_hatake,j_hatake00.bmd,AMBIGUOUS,no,overlapping smoothing groups,405,0,no,906,656,856,0,0,193,632,141212,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_hyosatu,j_hyousatu.bmd,AMBIGUOUS,no,overlapping smoothing groups,125,0,no,152,101,212,0,0,51,184,33806,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_kazami,arm.bmd,AMBIGUOUS,no,overlapping smoothing groups,13,0,no,21,21,23,0,0,11,29,3700,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_kazami,pole.bmd,AMBIGUOUS,no,ambiguous face orientation,20,17,no,32,5,30,0,0,12,53,7064,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_necktie,j_necktie.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,8,5,6,0,0,49,58,700,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_tobi,al_tobikusa.bmd,AMBIGUOUS,no,overlapping smoothing groups,28,0,no,32,26,44,0,0,26,59,7016,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_tobi,j_tobi.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,154,5,123,0,0,55,59,12196,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,j_tobi,j_tobi_c.bmd,AMBIGUOUS,no,duplicated position identities,14,0,no,82,10,42,0,0,52,71,7628,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,mg_f_cf,cf.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,152,181,228,4,0,79,84,19915,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,ni,ni.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,197,192,336,4,0,123,131,28505,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,npc_ne,ne.bmd,UNSUPPORTED,no,unsupported vertex layout,0,0,no,216,208,0,30,0,35,38,3013,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,npc_ne,ne_dish.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,64,64,108,0,0,28,31,8761,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,npc_tk,tk.bmd,UNSUPPORTED,no,unsupported vertex layout,0,0,no,429,496,760,45,0,109,111,53887,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,obj_lp,hasu.bmd,SAFE,no,no shading change,14,6,no,13,16,10,0,0,10,36,3102,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,obj_ndoor,m_nekodoor.bmd,AMBIGUOUS,no,shared normal-index conflict,9,6,no,8,10,10,0,15,8,27,2534,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,obj_sui,m_suisya.bmd,AMBIGUOUS,no,disconnected vertex fan,376,0,no,496,474,672,0,0,142,536,96898,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,pumpkin,pumpkin.bmd,SAFE,yes,qualified,86,294,yes,306,1818,495,0,0,237,674,186444,10908,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,static,door-knobdummy.bmd,SAFE,no,no shading change,2,2,no,5,5,1,0,0,6,18,646,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,static,door-pushdoubledummy.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,8,5,2,0,0,6,11,614,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,al_kantera.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,232,272,421,0,0,152,171,30021,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,ef_ktglow.bmd,SAFE,no,no shading change,5,3,no,5,2,2,0,0,7,18,684,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,al_bootsh.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,221,304,407,0,0,144,151,30171,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,al_face.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,296,261,514,35,0,165,170,43257,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,al_swb.bmd,AMBIGUOUS,no,degenerate or nontriangle primitives,0,0,no,104,101,184,0,0,56,60,13469,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,bl.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,2301,2282,3617,133,0,874,899,326645,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,bl_hands.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,1389,1104,2732,0,0,605,646,212407,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bmdl,bl_head.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,280,341,530,25,0,180,186,42307,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,T_Maki2,i_maki2.bmd,AMBIGUOUS,no,overlapping smoothing groups,111,0,no,133,96,198,0,0,60,182,27554,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Mg_f_bg,bg.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,125,154,178,4,0,56,60,14265,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00.bmd,AMBIGUOUS,no,shared normal-index conflict,51,39,no,24,26,38,0,53,46,153,8188,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_01.bmd,AMBIGUOUS,no,shared normal-index conflict,23,7,no,8,10,8,0,8,8,44,2104,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_02.bmd,AMBIGUOUS,no,shared normal-index conflict,7,7,no,8,10,8,0,5,8,27,2104,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_03.bmd,AMBIGUOUS,no,shared normal-index conflict,9,8,no,8,10,8,0,7,12,37,2136,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_04.bmd,AMBIGUOUS,no,shared normal-index conflict,7,6,no,8,10,8,0,7,8,26,2136,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_05.bmd,AMBIGUOUS,no,shared normal-index conflict,6,6,no,8,10,8,0,9,7,24,2136,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_06.bmd,AMBIGUOUS,no,shared normal-index conflict,6,5,no,8,10,8,0,5,6,21,2104,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_07.bmd,AMBIGUOUS,no,shared normal-index conflict,8,6,no,8,10,8,0,7,11,32,2136,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_08.bmd,AMBIGUOUS,no,shared normal-index conflict,6,6,no,8,10,8,0,6,7,22,2104,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_09.bmd,AMBIGUOUS,no,shared normal-index conflict,12,6,no,8,10,12,0,20,7,29,2710,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_10.bmd,AMBIGUOUS,no,shared normal-index conflict,10,6,no,8,10,12,0,20,7,27,2746,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_11.bmd,AMBIGUOUS,no,shared normal-index conflict,11,7,no,8,5,12,0,10,9,33,2590,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_12.bmd,AMBIGUOUS,no,shared normal-index conflict,11,7,no,8,5,12,0,15,9,31,2590,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_13.bmd,AMBIGUOUS,no,shared normal-index conflict,11,7,no,8,5,12,0,12,6,26,2582,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_14.bmd,AMBIGUOUS,no,shared normal-index conflict,9,8,no,8,5,12,0,8,6,26,2590,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_15.bmd,AMBIGUOUS,no,shared normal-index conflict,9,7,no,8,5,12,0,10,6,159,2590,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_16.bmd,AMBIGUOUS,no,shared normal-index conflict,10,7,no,8,5,12,0,15,8,31,2590,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_17.bmd,AMBIGUOUS,no,shared normal-index conflict,10,7,no,8,10,12,0,11,7,28,2798,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Obj_kn2,j_kanban00_18.bmd,AMBIGUOUS,no,shared normal-index conflict,10,7,no,8,10,12,0,13,6,27,2774,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,E_nest,o_hachinosu_01.bmd,SAFE,yes,qualified,20,78,yes,61,400,111,0,0,62,179,39992,2400,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,E_nest,o_hachinosu_02.bmd,AMBIGUOUS,no,shared normal-index conflict,46,19,no,21,26,36,0,28,22,94,7764,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Cow,cow.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,557,549,1012,28,0,238,246,68499,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Uri,uri.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,896,1152,1670,38,0,398,407,140937,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Uri1,uri_kago.bmd,AMBIGUOUS,no,duplicated position identities,51,0,no,154,154,216,0,0,69,132,34906,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,uri_kago,baby_kago.bmd,AMBIGUOUS,no,overlapping smoothing groups,146,0,no,157,181,288,0,0,62,217,39626,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,uri_kago,uri_kago_on.bmd,AMBIGUOUS,no,duplicated position identities,45,0,no,154,154,216,0,0,52,104,34906,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Bd,bd.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,85,90,146,0,0,54,61,12715,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Npc_ks,saru.bmd,UNSUPPORTED,no,unsupported vertex layout,0,0,no,736,730,976,40,0,216,222,57293,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Npc_ks,saru_bara.bmd,AMBIGUOUS,no,overlapping smoothing groups,74,0,no,40,74,74,0,0,22,101,11104,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Npc_ks,saru_stick.bmd,AMBIGUOUS,no,overlapping smoothing groups,22,0,no,16,26,24,0,0,16,61,3634,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,CWShd,al_shb.bmd,AMBIGUOUS,no,disconnected vertex fan,119,0,no,136,117,198,0,0,71,208,27934,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,E_bee,be01.bmd,AMBIGUOUS,no,duplicated position identities,24,0,no,77,58,74,0,0,27,61,12256,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,E_bee,be02.bmd,AMBIGUOUS,no,duplicated position identities,18,0,no,77,58,74,0,0,21,43,12256,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,E_bee,be03.bmd,AMBIGUOUS,no,duplicated position identities,16,0,no,77,58,74,0,0,20,42,12256,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,E_bee,be04.bmd,AMBIGUOUS,no,duplicated position identities,22,0,no,77,58,74,0,0,39,68,12256,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,J_Sentaku,j_sentaku.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,37,5,52,0,0,20,24,4308,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Midna,s_md_hands.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,290,293,628,0,0,141,149,42972,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Midna,s_md_mask.bmd,AMBIGUOUS,no,overlapping smoothing groups,316,0,no,322,336,559,0,0,134,466,82152,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Midna,s_md_gokou.bmd,SAFE,no,no shading change,2,3,no,5,5,2,0,0,7,16,812,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Midna,s_md.bmd,UNSUPPORTED,no,unsupported vertex layout,0,0,no,1269,1216,2035,83,0,360,363,125029,0,not individually compared,scene shutdown; per-model attribution unavailable
+final-ordon,Midna,s_md_hair_hand.bmd,AMBIGUOUS,no,duplicated position identities,134,0,no,349,304,684,0,0,127,275,90304,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,o_g_hart.bmd,AMBIGUOUS,no,overlapping smoothing groups,70,0,no,58,58,110,0,0,43,125,15930,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,o_g_hutk.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,248,474,484,0,0,128,132,41994,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,o_g_hutu.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,248,474,484,0,0,127,130,41994,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,o_g_rupy.bmd,AMBIGUOUS,no,shared normal-index conflict,46,21,no,21,21,36,0,18,16,87,7600,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,breakwoodbox.bmd,SAFE,no,qualified,35,19,yes,18,80,32,0,0,19,82,10046,480,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,d_brockbrk.bmd,AMBIGUOUS,no,overlapping smoothing groups,10,0,no,10,16,16,0,0,9,23,2394,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,ef_mizubashira.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,53,13,50,0,0,26,28,5127,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,ef_screen_suityu.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,5,0,0,0,0,5,6,174,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,ef_thunder01.bmd,AMBIGUOUS,no,duplicated position identities,40,0,no,192,2,176,0,0,48,97,27202,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,ef_thunder02.bmd,AMBIGUOUS,no,duplicated position identities,45,0,no,224,2,208,0,0,50,103,30484,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,mpm_tubo.bmd,AMBIGUOUS,no,overlapping smoothing groups,30,0,no,32,42,56,0,0,20,53,7936,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,nv.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,16,0,0,1,0,5,7,423,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,o_g_arow.bmd,AMBIGUOUS,no,non-manifold edge,27,0,no,53,64,64,0,0,22,53,10814,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,o_g_arow_taba.bmd,AMBIGUOUS,no,non-manifold edge,232,0,no,421,496,528,0,0,156,402,85308,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,o_g_tane.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,296,0,0,0,0,14,16,3666,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,zelda_notice_cursor_red.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,72,0,0,0,0,9,10,1194,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Always,zelda_notice_cursor_yellow.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,21,21,10,0,0,16,19,1711,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,ef_setboom.bmd,AMBIGUOUS,no,duplicated position identities,91,0,no,288,112,512,0,0,102,206,74348,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_arrow.bmd,AMBIGUOUS,no,non-manifold edge,28,0,no,53,69,64,0,0,23,55,10866,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_arrowb.bmd,AMBIGUOUS,no,non-manifold edge,89,0,no,133,128,188,0,0,58,156,27270,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_bomb.bmd,AMBIGUOUS,no,overlapping smoothing groups,219,0,no,181,186,255,0,0,62,294,38578,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_boom.bmd,AMBIGUOUS,no,duplicated position identities,77,0,no,234,234,420,0,0,90,178,58444,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_pachi_nut.bmd,SAFE,no,no shading change,6,6,no,8,10,8,0,0,7,22,2104,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_sp.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,453,416,694,0,0,121,125,48671,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,crod_ball.bmd,SAFE,no,no shading change,15,8,no,18,5,16,0,0,9,36,3774,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,footmark.bmd,SAFE,no,no shading change,1,1,no,5,2,2,0,0,4,10,684,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,hk.bmd,AMBIGUOUS,no,overlapping smoothing groups,38,0,no,34,37,64,0,0,25,69,9800,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,inochidama.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,64,58,94,0,0,31,34,6915,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,pb.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,384,298,644,0,0,131,136,46269,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,pg.bmd,AMBIGUOUS,no,non-manifold edge,206,0,no,277,282,444,0,0,88,310,61988,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,rod_ukia.bmd,AMBIGUOUS,no,overlapping smoothing groups,8,0,no,13,16,15,0,0,11,26,2446,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,rod_ukib.bmd,AMBIGUOUS,no,shared normal-index conflict,7,6,no,10,5,10,0,20,6,22,2418,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,rod_ukic.bmd,AMBIGUOUS,no,shared normal-index conflict,5,5,no,10,5,10,0,20,5,19,2418,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,sango_fook.bmd,AMBIGUOUS,no,duplicated position identities,53,0,no,152,154,298,0,0,56,115,39878,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,sfook.bmd,AMBIGUOUS,no,overlapping smoothing groups,23,0,no,29,32,50,0,0,16,45,7280,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,uki.bmd,AMBIGUOUS,no,overlapping smoothing groups,71,0,no,29,32,46,0,0,14,91,7072,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,uki_saki.bmd,AMBIGUOUS,no,shared normal-index conflict,8,6,no,8,10,10,0,17,8,25,2534,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,wl_change.bmd,AMBIGUOUS,no,duplicated position identities,439,0,no,1306,1306,2496,0,0,392,859,377298,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,worm.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,74,64,144,9,0,33,36,12241,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,worm_hole.bmd,AMBIGUOUS,no,overlapping smoothing groups,11,0,no,13,16,12,0,0,9,25,1982,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,ef_shippu.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,528,397,912,4,0,162,166,67496,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_podm.bmd,AMBIGUOUS,no,overlapping smoothing groups,320,0,no,341,480,600,0,0,136,467,87100,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_swm.bmd,AMBIGUOUS,no,overlapping smoothing groups,407,0,no,322,501,540,0,0,135,553,82888,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_poda.bmd,AMBIGUOUS,no,overlapping smoothing groups,135,0,no,136,186,242,0,0,91,236,36158,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Alink,al_swa.bmd,AMBIGUOUS,no,overlapping smoothing groups,94,0,no,112,138,194,0,0,54,154,27062,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Stg_00,vrbox_kasumim.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,26,0,0,0,0,5,9,426,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Stg_00,vrbox_kumo.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,48,0,0,0,0,67,74,798,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Stg_00,vrbox_sora.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,77,0,0,0,0,7,11,1151,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Stg_00,vrbox_sun.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,13,0,0,0,0,13,14,486,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Stg_00,door-shutter_00.bmd,AMBIGUOUS,no,shared normal-index conflict,172,79,no,74,53,144,0,202,43,300,30100,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Stg_00,door-stop.bmd,AMBIGUOUS,no,overlapping smoothing groups,405,0,no,685,368,920,0,0,212,637,133058,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,static,door-knobdummy.bmd,SAFE,no,no shading change,2,3,no,5,5,1,0,0,8,24,646,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,static,door-pushdoubledummy.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,8,5,2,0,0,7,11,614,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,R19_00,model.bmd,AMBIGUOUS,no,duplicated position identities,2004,0,no,6928,5381,10117,0,0,2250,4398,1479532,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,al_kantera.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,232,272,421,0,0,96,104,30021,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,ef_ktglow.bmd,SAFE,no,no shading change,2,2,no,5,2,2,0,0,5,12,684,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,al_bootsh.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,221,304,407,0,0,105,109,30171,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,al_face.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,296,261,514,35,0,162,168,43257,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,al_swb.bmd,AMBIGUOUS,no,degenerate or nontriangle primitives,0,0,no,104,101,184,0,0,58,63,13469,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,bl.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,2301,2282,3617,133,0,696,703,326645,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,bl_hands.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,1389,1104,2732,0,0,435,440,212407,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Bmdl,bl_head.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,280,341,530,25,0,123,142,42307,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Obj_web1,k_kum_yuka00.bmd,SAFE,no,no shading change,54,19,no,26,26,40,0,0,73,151,8656,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,E_st,st.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,509,512,834,0,0,165,171,66589,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,E_st,st2.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,541,544,892,0,0,170,175,67839,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,lv1cdl01,d_lv1candl_01.bmd,AMBIGUOUS,no,overlapping smoothing groups,113,0,no,53,48,94,0,0,32,150,12494,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,OBJ_GM,k_kumo_hasi00.bmd,AMBIGUOUS,no,overlapping smoothing groups,36,0,no,42,170,78,0,0,35,76,12520,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,OBJ_GM,k_kumo_iwa00.bmd,SAFE,yes,qualified,11,34,yes,40,197,67,0,0,38,93,22708,1182,not individually compared,scene shutdown; per-model attribution unavailable
+forest,OBJ_GM,k_kumo_iwa01.bmd,AMBIGUOUS,no,overlapping smoothing groups,33,0,no,40,197,67,0,0,34,71,12128,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,OBJ_GM,k_kumo_tubo00.bmd,AMBIGUOUS,no,overlapping smoothing groups,202,0,no,82,85,158,0,0,32,239,22968,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,OBJ_GM,k_kumo_tubo01.bmd,SAFE,yes,qualified,27,82,yes,90,880,174,0,0,64,195,73960,5280,not individually compared,scene shutdown; per-model attribution unavailable
+forest,E_DF,df.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,517,554,812,5,0,175,180,67321,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,J_doku00,j_doku_00.bmd,AMBIGUOUS,no,overlapping smoothing groups,79,0,no,101,101,170,0,0,36,121,24770,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Obj_so,k_saruori01.bmd,SAFE,no,no shading change,36,17,no,18,10,32,0,0,21,77,6742,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Obj_so,k_saruori02.bmd,AMBIGUOUS,no,shared normal-index conflict,52,26,no,29,32,50,0,80,23,108,10736,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Obj_so,k_saruori03.bmd,SAFE,no,no shading change,10,7,no,8,10,12,0,0,11,31,2746,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Obj_so,k_saru_ori00.bmd,AMBIGUOUS,no,overlapping smoothing groups,757,0,no,1117,730,1456,0,0,276,1061,211218,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Npc_ks,saru.bmd,UNSUPPORTED,no,unsupported vertex layout,0,0,no,736,730,976,40,0,164,168,57293,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Npc_ks,saru_bara.bmd,AMBIGUOUS,no,overlapping smoothing groups,68,0,no,40,74,74,0,0,23,96,11104,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Npc_ks,saru_stick.bmd,AMBIGUOUS,no,overlapping smoothing groups,21,0,no,16,26,24,0,0,16,43,3634,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,E_BI,bi.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,560,330,962,0,0,196,201,68803,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,E_BI,bi_home.bmd,AMBIGUOUS,no,overlapping smoothing groups,72,0,no,80,48,135,0,0,42,122,18064,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,OBJ_ITO,k_kumo_ito00.bmd,SAFE,no,qualified,21,12,yes,16,42,20,0,0,23,67,6158,252,not individually compared,scene shutdown; per-model attribution unavailable
+forest,CWShd,al_shb.bmd,AMBIGUOUS,no,disconnected vertex fan,104,0,no,136,117,198,0,0,59,174,27934,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Midna,s_md_hands.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,290,293,628,0,0,152,161,42972,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Midna,s_md_mask.bmd,AMBIGUOUS,no,overlapping smoothing groups,305,0,no,322,336,559,0,0,104,3796,82152,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Midna,s_md_gokou.bmd,SAFE,no,no shading change,3,3,no,5,5,2,0,0,15,27,812,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Midna,s_md.bmd,UNSUPPORTED,no,unsupported vertex layout,0,0,no,1269,1216,2035,83,0,369,375,125029,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,Midna,s_md_hair_hand.bmd,AMBIGUOUS,no,duplicated position identities,146,0,no,349,304,684,0,0,126,285,90304,0,not individually compared,scene shutdown; per-model attribution unavailable
+forest,R09_00,model.bmd,AMBIGUOUS,no,duplicated position identities,1989,0,no,7258,5104,9522,0,0,2180,4311,1451000,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,o_g_hart.bmd,AMBIGUOUS,no,overlapping smoothing groups,77,0,no,58,58,110,0,0,43,134,15930,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,o_g_hutk.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,248,474,484,0,0,133,137,41994,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,o_g_hutu.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,248,474,484,0,0,124,127,41994,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,o_g_rupy.bmd,AMBIGUOUS,no,shared normal-index conflict,48,26,no,21,21,36,0,18,17,97,7600,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,breakwoodbox.bmd,SAFE,no,qualified,34,21,yes,18,80,32,0,0,19,83,10046,480,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,d_brockbrk.bmd,AMBIGUOUS,no,overlapping smoothing groups,10,0,no,10,16,16,0,0,10,25,2394,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,ef_mizubashira.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,53,13,50,0,0,27,29,5127,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,ef_screen_suityu.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,5,0,0,0,0,5,6,174,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,ef_thunder01.bmd,AMBIGUOUS,no,duplicated position identities,40,0,no,192,2,176,0,0,46,93,27202,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,ef_thunder02.bmd,AMBIGUOUS,no,duplicated position identities,46,0,no,224,2,208,0,0,55,109,30484,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,mpm_tubo.bmd,AMBIGUOUS,no,overlapping smoothing groups,30,0,no,32,42,56,0,0,19,54,7936,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,nv.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,16,0,0,1,0,6,7,423,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,o_g_arow.bmd,AMBIGUOUS,no,non-manifold edge,26,0,no,53,64,64,0,0,22,53,10814,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,o_g_arow_taba.bmd,AMBIGUOUS,no,non-manifold edge,237,0,no,421,496,528,0,0,160,412,85308,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,o_g_tane.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,296,0,0,0,0,14,16,3666,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,zelda_notice_cursor_red.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,72,0,0,0,0,10,11,1194,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Always,zelda_notice_cursor_yellow.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,21,21,10,0,0,18,20,1711,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,ef_setboom.bmd,AMBIGUOUS,no,duplicated position identities,103,0,no,288,112,512,0,0,93,208,74348,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_arrow.bmd,AMBIGUOUS,no,non-manifold edge,31,0,no,53,69,64,0,0,24,62,10866,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_arrowb.bmd,AMBIGUOUS,no,non-manifold edge,85,0,no,133,128,188,0,0,51,143,27270,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_bomb.bmd,AMBIGUOUS,no,overlapping smoothing groups,214,0,no,181,186,255,0,0,54,276,38578,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_boom.bmd,AMBIGUOUS,no,duplicated position identities,82,0,no,234,234,420,0,0,114,204,58444,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_pachi_nut.bmd,SAFE,no,no shading change,6,7,no,8,10,8,0,0,8,26,2104,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_sp.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,453,416,694,0,0,124,127,48671,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,crod_ball.bmd,SAFE,no,no shading change,16,8,no,18,5,16,0,0,10,38,3774,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,footmark.bmd,SAFE,no,no shading change,2,2,no,5,2,2,0,0,5,14,684,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,hk.bmd,AMBIGUOUS,no,overlapping smoothing groups,39,0,no,34,37,64,0,0,19,64,9800,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,inochidama.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,64,58,94,0,0,31,34,6915,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,pb.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,384,298,644,0,0,145,149,46269,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,pg.bmd,AMBIGUOUS,no,non-manifold edge,199,0,no,277,282,444,0,0,88,297,61988,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,rod_ukia.bmd,AMBIGUOUS,no,overlapping smoothing groups,9,0,no,13,16,15,0,0,12,26,2446,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,rod_ukib.bmd,AMBIGUOUS,no,shared normal-index conflict,7,7,no,10,5,10,0,20,7,25,2418,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,rod_ukic.bmd,AMBIGUOUS,no,shared normal-index conflict,5,6,no,10,5,10,0,20,7,21,2418,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,sango_fook.bmd,AMBIGUOUS,no,duplicated position identities,57,0,no,152,154,298,0,0,57,120,39878,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,sfook.bmd,AMBIGUOUS,no,overlapping smoothing groups,26,0,no,29,32,50,0,0,14,44,7280,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,uki.bmd,AMBIGUOUS,no,overlapping smoothing groups,30,0,no,29,32,46,0,0,17,52,7072,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,uki_saki.bmd,AMBIGUOUS,no,shared normal-index conflict,8,7,no,8,10,10,0,17,8,26,2534,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,wl_change.bmd,AMBIGUOUS,no,duplicated position identities,480,0,no,1306,1306,2496,0,0,413,924,377298,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,worm.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,74,64,144,9,0,36,38,12241,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,worm_hole.bmd,AMBIGUOUS,no,overlapping smoothing groups,12,0,no,13,16,12,0,0,9,27,1982,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,ef_shippu.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,528,397,912,4,0,163,168,67496,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_podm.bmd,AMBIGUOUS,no,overlapping smoothing groups,325,0,no,341,480,600,0,0,138,475,87100,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_swm.bmd,AMBIGUOUS,no,overlapping smoothing groups,413,0,no,322,501,540,0,0,139,564,82888,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_poda.bmd,AMBIGUOUS,no,overlapping smoothing groups,137,0,no,136,186,242,0,0,65,211,36158,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Alink,al_swa.bmd,AMBIGUOUS,no,overlapping smoothing groups,104,0,no,112,138,194,0,0,54,166,27062,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Stg_00,vrbox_kasumim.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,26,0,0,0,0,5,9,426,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Stg_00,vrbox_kumo.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,48,0,0,0,0,65,69,798,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Stg_00,vrbox_sora.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,77,0,0,0,0,7,9,1151,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Stg_00,vrbox_sun.bmd,UNSUPPORTED,no,shared normal storage,0,0,no,13,0,0,0,0,12,13,486,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Stg_00,door-shutter_00.bmd,AMBIGUOUS,no,duplicated position identities,102,0,no,421,304,470,0,0,147,263,68896,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Stg_00,door-stop.bmd,AMBIGUOUS,no,non-manifold edge,159,0,no,245,170,385,0,0,105,276,55760,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,static,door-knobdummy.bmd,SAFE,no,no shading change,2,6,no,5,5,1,0,0,9,28,646,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,static,door-pushdoubledummy.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,8,5,2,0,0,8,12,614,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,R07_00,model.bmd,AMBIGUOUS,no,duplicated position identities,3404,0,no,11381,3360,15501,0,0,3458,7084,2216980,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,R07_00,model1.bmd,SAFE,no,no shading change,185,56,no,96,5,132,0,0,37,284,25380,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,al_kantera.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,232,272,421,0,0,101,108,30021,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,ef_ktglow.bmd,SAFE,no,no shading change,3,3,no,5,2,2,0,0,5,15,684,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,al_bootsh.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,221,304,407,0,0,104,107,30171,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,al_face.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,296,261,514,35,0,159,163,43257,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,al_swb.bmd,AMBIGUOUS,no,degenerate or nontriangle primitives,0,0,no,104,101,184,0,0,65,71,13469,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,bl.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,2301,2282,3617,133,0,716,731,326645,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,bl_hands.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,1389,1104,2732,0,0,443,448,212407,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Bmdl,bl_head.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,280,341,530,25,0,120,123,42307,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Obj_bm,bm.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,370,357,616,0,0,161,166,46429,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Obj_bm,ef_bimobeam.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,80,240,112,0,0,57,61,10044,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Obj_bm,p_bmf.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,96,42,168,51,0,53,56,13800,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,D_Hfsw00,d_hfswitch.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,90,37,117,0,0,37,72,9987,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Kkiba_00,j_hako_00.bmd,SAFE,no,no shading change,94,62,no,120,10,120,0,0,44,207,25886,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,L_mbox_00,l_metabox_00.bmd,SAFE,no,no shading change,13,7,no,8,8,12,0,0,41,65,2678,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,@bg0016,model0.bmd,AMBIGUOUS,no,overlapping smoothing groups,254,0,no,312,1290,492,0,0,191,460,88824,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,@bg0016,model1.bmd,SAFE,no,qualified,313,166,yes,173,794,300,0,0,123,628,93558,4764,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,K_ktar00,k_ktar00.bmd,AMBIGUOUS,no,overlapping smoothing groups,200,0,no,226,197,390,0,0,89,299,55488,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,D_Marm,d_marm_a.bmd,AMBIGUOUS,no,shared normal-index conflict,101,47,no,58,32,94,0,8,60,215,18370,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,D_Marm,d_marm_b.bmd,AMBIGUOUS,no,shared normal-index conflict,68,45,no,80,53,84,0,84,44,166,19324,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,D_Marm,d_marm_c.bmd,AMBIGUOUS,no,overlapping smoothing groups,186,0,no,170,96,245,0,0,83,277,36486,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,D_Marm,d_marm_d.bmd,AMBIGUOUS,no,shared normal-index conflict,145,78,no,144,58,160,0,216,66,296,36046,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,D_Marm,d_marm_e.bmd,AMBIGUOUS,no,overlapping smoothing groups,99,0,no,128,133,212,0,0,85,191,33250,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,D_Marm,d_marm_f.bmd,AMBIGUOUS,no,shared normal-index conflict,256,113,no,149,106,240,0,321,135,512,51126,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,L2candl,l_lv2candl.bmd,AMBIGUOUS,no,shared normal-index conflict,133,59,no,80,69,122,0,36,45,243,25860,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,E_RD,rd.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,624,624,1097,41,0,257,266,94807,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,E_RD,rd_arrow.bmd,AMBIGUOUS,no,shared normal-index conflict,48,29,no,34,37,44,0,43,17,99,10764,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,E_RD,rd_barrow.bmd,AMBIGUOUS,no,overlapping smoothing groups,44,0,no,53,42,56,0,0,18,69,8686,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,E_RD,rd_bow.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,32,37,46,0,0,19,24,4133,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,E_RD,rd_club.bmd,AMBIGUOUS,no,overlapping smoothing groups,67,0,no,66,69,126,0,0,31,104,17284,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,E_RD,rd_clubb.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,72,85,116,0,0,30,33,9095,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,E_RD,rd_eye.bmd,SAFE,no,no shading change,2,2,no,5,5,2,0,0,6,13,812,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,P_Rgate,p_rgate.bmd,AMBIGUOUS,no,shared normal-index conflict,99,32,no,42,48,70,0,6,55,192,15620,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,L_Ropest,l_ropest.bmd,AMBIGUOUS,no,shared normal-index conflict,44,21,no,32,26,44,0,84,17,88,10076,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,J_tubo_01,j_tubo_01.bmd,AMBIGUOUS,no,overlapping smoothing groups,179,0,no,82,85,158,0,0,37,223,22968,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,K_tubo02,k_tubo02.bmd,AMBIGUOUS,no,overlapping smoothing groups,201,0,no,82,85,158,0,0,35,242,22968,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,J_taru00,j_taru_00.bmd,AMBIGUOUS,no,shared normal-index conflict,325,136,no,221,154,300,0,140,75,548,62668,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Dalways,boxa.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,269,277,515,0,0,128,134,42279,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Dalways,boxb.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,397,378,718,0,0,188,193,63321,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Dalways,ef_boxb.bmd,AMBIGUOUS,no,disconnected vertex fan,283,0,no,309,362,576,0,0,139,436,82736,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Dalways,k_tboxn.bmd,SAFE,no,no shading change,3,2,no,5,5,2,0,0,6,14,812,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Obj_keyh,t_lockchain_normal.bmd,AMBIGUOUS,no,shared normal-index conflict,52,23,no,24,26,48,0,48,19,100,10004,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Obj_keyh,t_lock_normal.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,245,90,350,0,0,105,108,31101,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,L_RopeB_L,l_ropeb_l.bmd,AMBIGUOUS,no,overlapping smoothing groups,323,0,no,181,58,324,0,0,112,447,48198,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,CWShd,al_shb.bmd,AMBIGUOUS,no,disconnected vertex fan,98,0,no,136,117,198,0,0,59,168,27934,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,ef_MgnF_S,ef_mgnfield_s.bmd,AMBIGUOUS,no,non-manifold edge,27,0,no,26,10,64,0,0,26,58,9120,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Midna,s_md_hands.bmd,UNSUPPORTED,no,unproven skinning or matrix ownership,0,0,no,290,293,628,0,0,141,149,42972,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Midna,s_md_mask.bmd,AMBIGUOUS,no,overlapping smoothing groups,276,0,no,322,336,559,0,0,115,406,82152,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Midna,s_md_gokou.bmd,SAFE,no,no shading change,3,4,no,5,5,2,0,0,18,76,812,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Midna,s_md.bmd,UNSUPPORTED,no,unsupported vertex layout,0,0,no,1269,1216,2035,83,0,397,400,125029,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,Midna,s_md_hair_hand.bmd,AMBIGUOUS,no,duplicated position identities,130,0,no,349,304,684,0,0,131,275,90304,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,R06_00,model.bmd,AMBIGUOUS,no,degenerate or nontriangle primitives,9,0,no,6448,2965,10820,0,0,2612,2637,793538,0,not individually compared,scene shutdown; per-model attribution unavailable
+dungeon,R06_00,model1.bmd,SAFE,no,no shading change,38,15,no,26,5,29,0,0,13,71,6508,0,not individually compared,scene shutdown; per-model attribution unavailable
