@@ -304,13 +304,25 @@ shutdown. Missing services, views, camera matrices, or unsupported formats bypas
 the diagnostic.
 
 Gate 3 remains **PROVISIONAL**, not PASS. The execution evidence proves the GPU
-path and resource lifetime, but the current Windows automation surface could not
-capture the desktop image. We have not yet visibly confirmed that the grayscale
-field tracks shoreline/depth or that the native replay is pixel-correct. The
-initial path also captures only the first exact classified shape per frame. The
-validated Fishing Pond material is a single-shape case; multi-shape water and
-other water classes still require aggregation and visual proof. No absorption or
-other product optical effect has been added.
+path and resource lifetime. Direct Fishing Pond observation confirmed the water
+surface is isolated as grayscale, shallow/deep structure changes across the
+surface, the HUD remains live, and disabling the diagnostic restores native
+color. Local evidence is
+`build/m12-water-surface/fishing-pond-thickness-stable.png`.
+
+The first visual run exposed alternating grayscale/native-color frames. Stage
+background classification had run only on 30 Hz simulation ticks and was cleared
+after each presentation, so Dusklight's interpolated presentation frames lacked
+classification. Stage actors are now rescanned at `SCENE_AFTER_OPAQUE` on every
+presentation frame while a capture diagnostic is active. The follow-up ran
+10,006 captures with zero failures and no visible flicker; scan cost averaged
+about 24 microseconds and capture/replay CPU hook wall time about 139 microseconds
+per frame. It shut down cleanly without validation errors.
+
+Gate 3 remains provisional because the initial path captures only the first exact
+classified shape per frame. The validated Fishing Pond material is a single-shape
+case; multi-shape water and other water classes still require visual proof. No
+absorption or other product optical effect has been added.
 
 ## Test matrix for Gate 1
 

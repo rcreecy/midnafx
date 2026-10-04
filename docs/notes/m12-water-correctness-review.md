@@ -21,6 +21,11 @@ effects remain out of scope.
 * Missing services, targets, depth, matrices, unsupported formats, and failed
   allocations bypass the diagnostic. The shader rejects background depth,
   non-finite reconstruction, and opaque samples in front of the water surface.
+* Fixed visible grayscale/native-color flicker on stage water. Classification was
+  refreshed only on simulation ticks but cleared on every interpolated
+  presentation. Capture modes now rescan active stage actors at the pre-water
+  render stage on every presentation frame; classification-only mode retains its
+  simulation-tick scan.
 
 ## Remaining risks
 
@@ -45,4 +50,8 @@ effects remain out of scope.
 * Lake Hylia, generic moving/swimmable water, and Lakebed Temple each completed
   259-260 captures with zero failures, clean unload, and 94-100 microseconds of
   CPU hook wall time per capture. These runs prove execution, not pixels.
-* Gate 3 remains provisional until the visual checks above pass.
+* Fishing Pond visual proof shows a stable grayscale thickness field with live
+  HUD after the cadence fix. A 10,006-capture run had zero failures, no visible
+  flicker, clean unload, about 24 microseconds of classification scan time, and
+  about 139 microseconds of capture/replay CPU wall time per frame.
+* Gate 3 remains provisional until the remaining multi-class visual checks pass.

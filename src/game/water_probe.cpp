@@ -286,6 +286,18 @@ int inspect_stage_actor(void* raw_actor, void*) {
     return 0;
 }
 
+void scan_stage_actors() {
+    if (!diagnostic_active() || !is_stage_water_candidate(dComIfGp_getStartStageName()))
+        return;
+    const auto started = std::chrono::steady_clock::now();
+    (void)fopAcIt_Executor(inspect_stage_actor, nullptr);
+    stage_scan_ns +=
+        static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                       std::chrono::steady_clock::now() - started)
+                                       .count());
+    ++stage_scan_frames;
+}
+
 HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     if (!args || !diagnostic_active())
         return HOOK_CONTINUE;
@@ -415,6 +427,9 @@ void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*)
         (!settings::water_surface_capture_diagnostic_enabled() &&
          !settings::water_thickness_diagnostic_enabled()))
         return;
+    // Presentation can run between 30 Hz simulation ticks. Refresh stage-model
+    // identity here so interpolated frames do not lose exact water classification.
+    scan_stage_actors();
     const u16 width = static_cast<u16>(mDoGph_gInf_c::getWidth());
     const u16 height = static_cast<u16>(mDoGph_gInf_c::getHeight());
     if (width == 0 || height == 0)
@@ -626,15 +641,10 @@ void initialize() {
 void update() {
     update_stage_hooks();
     const bool enabled = diagnostic_active();
-    if (enabled && hooks_ready && is_stage_water_candidate(dComIfGp_getStartStageName())) {
-        const auto started = std::chrono::steady_clock::now();
-        (void)fopAcIt_Executor(inspect_stage_actor, nullptr);
-        stage_scan_ns +=
-            static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                           std::chrono::steady_clock::now() - started)
-                                           .count());
-        ++stage_scan_frames;
-    }
+    // Classification-only mode has no pre-water stage hook, so retain the
+    // simulation-tick scan there. Capture modes scan at render cadence instead.
+    if (enabled && hooks_ready && capture_hook == 0)
+        scan_stage_actors();
     if (!enabled) {
         if (diagnostic_was_enabled)
             log_summary("disabled");
