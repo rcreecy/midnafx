@@ -256,7 +256,7 @@ Combined with the matched 1216x896 pre-water screenshot above, this proves that
 the exact water draw consumes the opaque scene captured before water. Gate 2 is
 **PASS**.
 
-## Gate 3 provisional runtime evidence
+## Gate 3 runtime evidence
 
 The default-off `water_thickness_diagnostic` now creates an exact programmable
 surface representation without changing model data. At the first exact
@@ -303,8 +303,7 @@ private surface targets are recreated on resize and destroyed on disable or
 shutdown. Missing services, views, camera matrices, or unsupported formats bypass
 the diagnostic.
 
-Gate 3 remains **PROVISIONAL**, not PASS. The execution evidence proves the GPU
-path and resource lifetime. Direct Fishing Pond observation confirmed the water
+Direct Fishing Pond observation confirmed the water
 surface is isolated as grayscale, shallow/deep structure changes across the
 surface, the HUD remains live, and disabling the diagnostic restores native
 color. Local evidence is
@@ -319,10 +318,35 @@ presentation frame while a capture diagnostic is active. The follow-up ran
 about 24 microseconds and capture/replay CPU hook wall time about 139 microseconds
 per frame. It shut down cleanly without validation errors.
 
-Gate 3 remains provisional because the initial path captures only the first exact
-classified shape per frame. The validated Fishing Pond material is a single-shape
-case; multi-shape water and other water classes still require visual proof. No
-absorption or other product optical effect has been added.
+The first moving-water attempt selected `ee_MA03_ryusui_v_x(2)`, a current/overlay
+layer whose isolated shape produced no visible mask. Thickness capture now keeps
+the broader exact classifier for diagnostics while selecting only the base
+surface: material zero on explicit primary/surface actors, `MA06` stage water,
+or the exact Fishing Pond `cc_MA02_IndirectWater_v`. In `R_SP107` this selected
+`cc_MA06_nigori_v_x`. The corrected view shows a continuous grayscale thickness
+field on the visible moving water. Stone banks and Link are black because opaque
+depth in front of the water plane is rejected; no red or magenta reconstruction
+faults appear. Local evidence is
+`build/m12-water-surface/moving-water-thickness-occlusion-correct.png`. The run
+completed 6,471 captures with zero failures, about 90 microseconds of CPU hook
+wall time per frame, and clean unload.
+
+An unattended Lake Hylia run also displayed a stable water-local grayscale field
+with no red/magenta reconstruction faults, then unloaded cleanly after 688
+captures with zero failures. Lakebed Temple room 3 still provides execution-only
+evidence: its three valid spawn points do not present a useful visible water
+surface, so no visual claim is made for that scene.
+
+Gate 3 is **PASS** for deriving stable optical thickness on the validated
+single-base-shape path. Evidence now covers Fishing Pond stage water, large
+outdoor Lake Hylia water, and generic moving/swimmable actor water. Background
+depth is handled separately, invalid reconstruction is conspicuous, and opaque
+geometry in front of the classified plane cannot contaminate thickness. The
+pass does not establish general multi-shape aggregation: only the first exact
+base candidate drawn in a frame is captured. The first absorption prototype must
+therefore remain on the exact validated allowlist and fail closed for surfaces
+that need aggregation. No product absorption or other optical effect has been
+added yet.
 
 ## Test matrix for Gate 1
 

@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace midnafx::water_probe {
@@ -52,6 +53,11 @@ DEFINE_HOOK_SYMBOL("src/d/actor/d_a_obj_lv3WaterB.cpp#daObj_Lv3waterB_Draw",
 DEFINE_HOOK(&J3DShapePacket::drawFast, ShapeDrawFast);
 
 std::unordered_set<J3DMaterial*> frame_materials;
+struct MaterialIdentity {
+    const char* name = nullptr;
+    bool thickness_candidate = false;
+};
+std::unordered_map<J3DMaterial*, MaterialIdentity> frame_material_identities;
 std::unordered_set<J3DModelData*> frame_models;
 std::unordered_set<J3DModelData*> previous_models;
 std::unordered_set<J3DModelData*> frame_classified_models;
@@ -80,6 +86,7 @@ bool surface_sample_logged = false;
 bool thickness_capture_logged = false;
 bool thickness_capture_warned = false;
 bool thickness_depth_logged = false;
+bool thickness_target_logged = false;
 alignas(32) unsigned char pre_water_capture_key[32]{};
 GXTexObj pre_water_capture_texture{};
 u16 pre_water_capture_width = 0;
@@ -177,9 +184,16 @@ void classify(J3DModel* model, const char* water_class, const char* role, float 
     if (first_this_frame && !previous_models.contains(data))
         log_model(data, water_class, role, water_y);
     frame_classified_models.insert(data);
+    JUTNameTab* names = data->getMaterialName();
     for (u16 index = 0; index < data->getMaterialNum(); ++index) {
-        if (J3DMaterial* material = data->getMaterialNodePointer(index))
+        if (J3DMaterial* material = data->getMaterialNodePointer(index)) {
             frame_materials.insert(material);
+            frame_material_identities[material] = {
+                names ? names->getName(index) : nullptr,
+                index == 0 &&
+                    (std::strcmp(role, "primary") == 0 || std::strcmp(role, "surface") == 0),
+            };
+        }
     }
 }
 
@@ -198,6 +212,12 @@ void inspect(J3DModel* model, const char* water_class, const char* role) {
         if (is_allowed_stage_material(water_class, names->getName(index))) {
             if (J3DMaterial* material = data->getMaterialNodePointer(index)) {
                 frame_materials.insert(material);
+                const char* name = names->getName(index);
+                frame_material_identities[material] = {
+                    name,
+                    name && (std::strstr(name, "MA06") != nullptr ||
+                             std::strcmp(name, "cc_MA02_IndirectWater_v") == 0),
+                };
                 selected = true;
             }
         }
@@ -305,14 +325,30 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     J3DShape* shape = packet ? packet->getShape() : nullptr;
     J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
     const bool classified = material && frame_materials.contains(material);
-    if (classified && shape_post_hook && settings::water_thickness_diagnostic_enabled() &&
-        pre_water_depth_ready && !mask_capture_consumed && !mask_capture_active) {
+    const auto identity = frame_material_identities.find(material);
+    const bool thickness_candidate =
+        identity != frame_material_identities.end() && identity->second.thickness_candidate;
+    if (classified && thickness_candidate && shape_post_hook &&
+        settings::water_thickness_diagnostic_enabled() && pre_water_depth_ready &&
+        !mask_capture_consumed && !mask_capture_active) {
         const auto started = std::chrono::steady_clock::now();
         if (svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
             thickness_capture_started = started;
             mask_capture_active = true;
             mask_capture_consumed = true;
             capture_owner = CaptureOwner::Shape;
+            if (!thickness_target_logged && svc_log) {
+                char message[224];
+                std::snprintf(message, sizeof(message),
+                              "Water thickness target {material=%p name=%.96s shape=%p}",
+                              static_cast<void*>(material),
+                              identity != frame_material_identities.end() && identity->second.name
+                                  ? identity->second.name
+                                  : "<unknown>",
+                              static_cast<void*>(shape));
+                svc_log->info(mod_ctx, message);
+                thickness_target_logged = true;
+            }
         }
     }
     if (!classified)
@@ -487,6 +523,7 @@ void clear_after_frame(ModContext*, const GfxStageContext*, void*) {
     mask_capture_active = false;
     capture_owner = CaptureOwner::None;
     frame_materials.clear();
+    frame_material_identities.clear();
     previous_models = frame_models;
     frame_models.clear();
     previous_classified_models = frame_classified_models;
@@ -581,6 +618,7 @@ void uninstall_hooks() {
 
 void initialize() {
     frame_materials.clear();
+    frame_material_identities.clear();
     frame_models.clear();
     previous_models.clear();
     frame_classified_models.clear();
@@ -598,6 +636,7 @@ void initialize() {
     thickness_capture_logged = false;
     thickness_capture_warned = false;
     thickness_depth_logged = false;
+    thickness_target_logged = false;
     cleanup_hook = 0;
     capture_hook = 0;
     pre_water_depth = GFX_RESOLVED_TARGETS_INIT;
@@ -655,6 +694,7 @@ void update() {
         thickness_capture_failures = 0;
         thickness_capture_ns = 0;
         frame_materials.clear();
+        frame_material_identities.clear();
         frame_classified_models.clear();
     }
     diagnostic_was_enabled = enabled;
@@ -679,6 +719,7 @@ void shutdown() {
     log_summary("shutdown");
     hooks_ready = false;
     frame_materials.clear();
+    frame_material_identities.clear();
     frame_models.clear();
     previous_models.clear();
     frame_classified_models.clear();

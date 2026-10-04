@@ -41,13 +41,18 @@ fn fs_thickness(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let dimensions = vec2f(textureDimensions(scene_depth));
     let water_distance = view_distance(coord, water_depth, dimensions);
     if (water_distance < 0.0) {
-        return vec4f(1.0, 0.0, 1.0, 1.0);
+        return vec4f(1.0, 0.0, 0.0, 1.0);
     }
     if (abs(opaque_depth - params.background_depth) <= 0.000001) {
         return vec4f(0.0, 0.05, 0.2, 1.0);
     }
     let opaque_distance = view_distance(coord, opaque_depth, dimensions);
-    if (opaque_distance < 0.0 || opaque_distance <= water_distance) {
+    if (opaque_distance < 0.0) {
+        return vec4f(1.0, 0.0, 0.0, 1.0);
+    }
+    if (opaque_distance <= water_distance) {
+        // The classified water plane may continue behind banks, actors, and
+        // other opaque scene geometry. Those pixels are not visible water.
         return vec4f(0.0, 0.0, 0.0, 1.0);
     }
     let normalized = clamp((opaque_distance - water_distance) / params.max_thickness, 0.0, 1.0);

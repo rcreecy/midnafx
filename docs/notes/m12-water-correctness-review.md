@@ -26,18 +26,29 @@ effects remain out of scope.
   presentation. Capture modes now rescan active stage actors at the pre-water
   render stage on every presentation frame; classification-only mode retains its
   simulation-tick scan.
+* Prevented current/projected overlay shapes from owning optical thickness.
+  Explicit actor paths select material zero only on primary/surface models;
+  validated stage paths select their exact base-water material. Target identity
+  is logged once for audit.
+* Rejected opaque depth at or in front of the captured water plane. This removes
+  banks, actors, and other non-water foreground from the diagnostic instead of
+  displaying them as thickness or an error color.
+* Split malformed depth reconstruction from normal occlusion in the diagnostic:
+  invalid reconstruction remains red, while expected foreground occlusion is
+  black and fails closed.
 
 ## Remaining risks
 
 * Native replay correctness is not yet visually proven. The shape hook cannot
   invoke the enclosing material packet's complete draw call, so an authored state
   dependency could still differ despite replaying its observable setup.
-* Only the first exact classified shape is captured per frame. The current proof
-  target has one relevant shape; multi-shape surfaces need aggregation.
-* Shoreline/depth meaning is not visually proven. Runtime logs establish execution
-  and valid resources, not correct optical output.
-* Other water classes, underwater transitions, resize, reload, and diagnostic
-  disable need direct visual/lifecycle exercises with this new path.
+* The diagnostic captures the first exact base candidate drawn each frame. It
+  does not aggregate multiple simultaneously visible base shapes. Initial product
+  work must use the validated exact allowlist and fail closed when aggregation is
+  required.
+* Lakebed room 3 has execution proof but no useful surface-facing spawn for an
+  unattended visual proof. Underwater transitions and additional story-layer
+  states remain product-validation work.
 
 ## Verification
 
@@ -54,4 +65,13 @@ effects remain out of scope.
   HUD after the cadence fix. A 10,006-capture run had zero failures, no visible
   flicker, clean unload, about 24 microseconds of classification scan time, and
   about 139 microseconds of capture/replay CPU wall time per frame.
-* Gate 3 remains provisional until the remaining multi-class visual checks pass.
+* Generic moving water selected the exact `cc_MA06_nigori_v_x` base surface after
+  an overlay-selection failure was diagnosed. The corrected view contains a
+  continuous grayscale field with Link and stone banks rejected by foreground
+  depth, no red/magenta reconstruction faults, 6,471 successful captures, zero
+  failures, and clean unload.
+* Lake Hylia produced a stable water-local grayscale field without reconstruction
+  fault colors, then unloaded cleanly after 688 successful captures and zero
+  failures.
+* Gate 3 passes for the validated single-base-shape path. Multi-shape aggregation
+  remains outside this gate and constrains the first product allowlist.
