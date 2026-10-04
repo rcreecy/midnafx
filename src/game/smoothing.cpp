@@ -4,6 +4,8 @@
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <numeric>
+#include <tuple>
 #include <vector>
 
 namespace midnafx::smoothing {
@@ -66,6 +68,11 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     }
     std::vector<Vec3> original_unit(originals.size());
     for (std::size_t i = 0; i < originals.size(); ++i) {
+        if (!std::isfinite(originals[i].x) || !std::isfinite(originals[i].y) ||
+            !std::isfinite(originals[i].z)) {
+            result.error = "nonfinite original normal";
+            return result;
+        }
         original_unit[i] = normalize(originals[i]);
         if (!std::isfinite(original_unit[i].x) || !std::isfinite(original_unit[i].y) ||
             !std::isfinite(original_unit[i].z)) {
@@ -199,12 +206,11 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
             for (const Ref ref : group) {
                 const auto& tri = mesh.triangles[ref.triangle];
                 const auto index = tri.corners[ref.corner].normal;
-                const Vec3 target = blend
-                                        ? normalize(add(mul(original_unit[index],
-                                                            1.0f - options.geometric_weight),
-                                                        mul(replacement,
-                                                            options.geometric_weight)))
-                                        : original_unit[index];
+                const Vec3 target =
+                    blend
+                        ? normalize(add(mul(original_unit[index], 1.0f - options.geometric_weight),
+                                        mul(replacement, options.geometric_weight)))
+                        : original_unit[index];
                 candidate[index] = true;
                 if (assigned[index] && dot(desired[index], target) < conflict_limit)
                     ++result.index_conflicts;
@@ -230,5 +236,177 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
             ++result.changed_indices;
         }
     return result;
+}
+
+const char* label(Class classification) {
+    switch (classification) {
+    case Class::Safe:
+        return "SAFE";
+    case Class::Ambiguous:
+        return "AMBIGUOUS";
+    default:
+        return "UNSUPPORTED";
+    }
+}
+
+Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positions,
+                      std::span<const Vec3> originals, Representation representation,
+                      Options options) {
+    Qualification out;
+    const auto begin = std::chrono::steady_clock::now();
+    const auto elapsed = [](auto start) {
+        return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
+                                              std::chrono::steady_clock::now() - start)
+                                              .count());
+    };
+    const auto reject = [&](Class state, const char* reason) {
+        out.classification = state;
+        out.reason = reason;
+        out.classification_us = elapsed(begin);
+        return out;
+    };
+    if (representation.known_bad)
+        return reject(Class::Unsupported, "known-bad override");
+    if (!representation.supported_normals || !mesh.ok())
+        return reject(Class::Unsupported, mesh.error ? mesh.error : "unsupported normal layout");
+    if (!representation.known_good && !representation.single_matrix)
+        return reject(Class::Unsupported, "unproven skinning or matrix ownership");
+    if (positions.empty() || positions.size() > 65536 || originals.empty() ||
+        originals.size() > 65536 || mesh.triangles.empty() || mesh.triangles.size() > 100000)
+        return reject(Class::Unsupported, "classification dimensions or work budget");
+    for (const auto p : positions)
+        if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z))
+            return reject(Class::Unsupported, "nonfinite position");
+    for (const auto n : originals)
+        if (!std::isfinite(n.x) || !std::isfinite(n.y) || !std::isfinite(n.z))
+            return reject(Class::Unsupported, "nonfinite normal");
+    if (mesh.degenerate_count || mesh.ignored_nontriangles)
+        return reject(Class::Ambiguous, "degenerate or nontriangle primitives");
+
+    struct Edge {
+        std::uint16_t a, b;
+        std::uint32_t ca, cb;
+    };
+    std::vector<Edge> edges;
+    std::vector<std::uint32_t> parent(mesh.triangles.size() * 3);
+    std::iota(parent.begin(), parent.end(), 0);
+    std::vector<std::vector<std::uint32_t>> refs(positions.size());
+    edges.reserve(parent.size());
+    const auto root = [&](std::uint32_t i) {
+        while (parent[i] != i) {
+            parent[i] = parent[parent[i]];
+            i = parent[i];
+        }
+        return i;
+    };
+    for (std::uint32_t t = 0; t < mesh.triangles.size(); ++t) {
+        const auto& tri = mesh.triangles[t];
+        if (tri.material == 0xffff)
+            return reject(Class::Ambiguous, "missing material association");
+        if (!std::isfinite(magnitude(tri.face_normal)) || magnitude(tri.face_normal) < 0.5f)
+            return reject(Class::Ambiguous, "invalid face normal");
+        for (unsigned c = 0; c < 3; ++c) {
+            const auto corner = tri.corners[c];
+            if (corner.position >= positions.size() || corner.normal >= originals.size())
+                return reject(Class::Unsupported, "corner index outside array");
+            if (!std::isfinite(tri.corner_angles[c]) || tri.corner_angles[c] <= 0)
+                return reject(Class::Ambiguous, "invalid corner angle");
+            refs[corner.position].push_back(t * 3 + c);
+            if (refs[corner.position].size() > 64 && !representation.known_good)
+                return reject(Class::Unsupported, "automatic adjacency budget");
+            const unsigned next = (c + 1) % 3;
+            edges.push_back({corner.position, tri.corners[next].position, t * 3 + c, t * 3 + next});
+        }
+    }
+    out.working_vector_bytes =
+        vector_bytes(edges) + vector_bytes(parent) + nested_vector_bytes(refs);
+    if (!representation.known_good) {
+        std::vector<std::uint16_t> used;
+        for (std::size_t p = 0; p < refs.size(); ++p)
+            if (!refs[p].empty())
+                used.push_back(static_cast<std::uint16_t>(p));
+        out.working_vector_bytes += vector_bytes(used);
+        const auto key = [&](unsigned p) {
+            return std::tuple{positions[p].x, positions[p].y, positions[p].z};
+        };
+        std::sort(used.begin(), used.end(),
+                  [&](unsigned a, unsigned b) { return key(a) < key(b); });
+        for (std::size_t i = 1; i < used.size(); ++i)
+            if (key(used[i - 1]) == key(used[i]))
+                return reject(Class::Ambiguous, "duplicated position identities");
+        const auto edge_key = [](const Edge& e) { return std::minmax(e.a, e.b); };
+        std::sort(edges.begin(), edges.end(),
+                  [&](const Edge& a, const Edge& b) { return edge_key(a) < edge_key(b); });
+        for (std::size_t i = 0; i < edges.size();) {
+            std::size_t end = i + 1;
+            while (end < edges.size() && edge_key(edges[i]) == edge_key(edges[end]))
+                ++end;
+            if (edges[i].a == edges[i].b || end - i > 2)
+                return reject(Class::Ambiguous, "non-manifold edge");
+            if (end - i == 2) {
+                const auto a = edges[i], b = edges[i + 1];
+                if (a.a != b.b || a.b != b.a)
+                    return reject(Class::Ambiguous, "inconsistent edge winding");
+                parent[root(a.ca)] = root(b.cb);
+                parent[root(a.cb)] = root(b.ca);
+            }
+            i = end;
+        }
+        for (const auto& fan : refs) {
+            if (fan.empty())
+                continue;
+            for (const auto c : fan)
+                if (root(c) != root(fan.front()))
+                    return reject(Class::Ambiguous, "disconnected vertex fan");
+            // Threshold compatibility is not transitive. A-B and B-C can
+            // qualify while A-C does not; greedy grouping would then depend
+            // on primitive order. Reject overlapping groups instead.
+            std::array<unsigned, 64> component{};
+            std::iota(component.begin(), component.end(), 0);
+            const auto component_root = [&](unsigned i) {
+                while (component[i] != i)
+                    i = component[i];
+                return i;
+            };
+            const auto compatible = [&](unsigned a, unsigned b) {
+                const auto ca = fan[a], cb = fan[b];
+                const auto& ta = mesh.triangles[ca / 3];
+                const auto& tb = mesh.triangles[cb / 3];
+                const auto oriented = [&](const topology::Triangle& t) {
+                    float alignment = 0;
+                    for (const auto c : t.corners)
+                        alignment += dot(t.face_normal, normalize(originals[c.normal]));
+                    return std::abs(alignment) < 0.01f
+                               ? Vec3{}
+                               : mul(t.face_normal, alignment < 0 ? -1.0f : 1.0f);
+                };
+                return ta.material == tb.material &&
+                       dot(oriented(ta), oriented(tb)) >= cosine(options.face_angle_degrees) &&
+                       dot(normalize(originals[ta.corners[ca % 3].normal]),
+                           normalize(originals[tb.corners[cb % 3].normal])) >=
+                           cosine(options.original_split_degrees);
+            };
+            for (unsigned a = 0; a < fan.size(); ++a)
+                for (unsigned b = a + 1; b < fan.size(); ++b)
+                    if (compatible(a, b))
+                        component[component_root(a)] = component_root(b);
+            for (unsigned a = 0; a < fan.size(); ++a)
+                for (unsigned b = a + 1; b < fan.size(); ++b)
+                    if (component_root(a) == component_root(b) && !compatible(a, b))
+                        return reject(Class::Ambiguous, "overlapping smoothing groups");
+        }
+    }
+    out.classification_us = elapsed(begin);
+    const auto plan_begin = std::chrono::steady_clock::now();
+    out.smoothing = plan(mesh, originals, options);
+    out.smoothing_us = elapsed(plan_begin);
+    out.working_vector_bytes += out.smoothing.working_vector_bytes;
+    out.classification = out.smoothing.safe() ? Class::Safe : Class::Ambiguous;
+    out.reason = out.smoothing.error             ? out.smoothing.error
+                 : out.smoothing.index_conflicts ? "shared normal-index conflict"
+                 : out.smoothing.ambiguous_faces ? "ambiguous face orientation"
+                 : out.smoothing.changed_indices ? "qualified"
+                                                 : "no shading change";
+    return out;
 }
 } // namespace midnafx::smoothing

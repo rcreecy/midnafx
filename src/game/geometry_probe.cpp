@@ -62,9 +62,7 @@ std::uint64_t fnv1a(const std::byte* data, std::size_t size) {
 
 const Replacement* replacement_for(const void* data) {
     const auto found = std::find_if(replacements.begin(), replacements.end(),
-                                    [data](const Replacement& item) {
-                                        return item.data == data;
-                                    });
+                                    [data](const Replacement& item) { return item.data == data; });
     return found == replacements.end() ? nullptr : &*found;
 }
 
@@ -73,30 +71,27 @@ HookAction use_rebuilt_model(ModContext*, void* args, void*, void*) {
         return HOOK_CONTINUE;
     const void* source = mods::arg<const void*>(args, 0);
     auto found = std::find_if(replacements.begin(), replacements.end(),
-                              [source](const Replacement& item) {
-                                  return item.source == source;
-                              });
+                              [source](const Replacement& item) { return item.source == source; });
     if (found == replacements.end() && delete_registered &&
-        settings::geometry_smoothing_enabled() && !loading_owners.empty() &&
-        source && std::memcmp(source, "J3D2bmd3", 8) == 0) {
+        settings::geometry_smoothing_enabled() && !loading_owners.empty() && source &&
+        std::memcmp(source, "J3D2bmd3", 8) == 0) {
         auto* owner = loading_owners.back();
         const auto* bytes = static_cast<const std::byte*>(source);
-        const u32 declared_size =
-            (static_cast<u32>(std::to_integer<u8>(bytes[8])) << 24) |
-            (static_cast<u32>(std::to_integer<u8>(bytes[9])) << 16) |
-            (static_cast<u32>(std::to_integer<u8>(bytes[10])) << 8) |
-            static_cast<u32>(std::to_integer<u8>(bytes[11]));
+        const u32 declared_size = (static_cast<u32>(std::to_integer<u8>(bytes[8])) << 24) |
+                                  (static_cast<u32>(std::to_integer<u8>(bytes[9])) << 16) |
+                                  (static_cast<u32>(std::to_integer<u8>(bytes[10])) << 8) |
+                                  static_cast<u32>(std::to_integer<u8>(bytes[11]));
         JKRHeap* allocation_heap = JKRHeap::getCurrentHeap();
         if (owner && allocation_heap && owner->mArchiveName &&
-            std::strcmp(owner->mArchiveName, "pumpkin") == 0 &&
-            declared_size == 17824 && fnv1a(bytes, declared_size) == 0x9b2ddb5ecbd95421ULL) {
+            std::strcmp(owner->mArchiveName, "pumpkin") == 0 && declared_size == 17824 &&
+            fnv1a(bytes, declared_size) == 0x9b2ddb5ecbd95421ULL) {
             const auto begin = std::chrono::steady_clock::now();
             auto rebuilt = bmd_rebuild::split_normals({bytes, declared_size});
             if (rebuilt.ok() && rebuilt.bytes.size() <= std::numeric_limits<u32>::max()) {
                 // Packed child archives have no mDataHeap. They load synchronously
                 // into the parent's current solid heap, alongside their J3D data.
-                void* owned = JKRHeap::alloc(static_cast<u32>(rebuilt.bytes.size()), 0x20,
-                                             allocation_heap);
+                void* owned =
+                    JKRHeap::alloc(static_cast<u32>(rebuilt.bytes.size()), 0x20, allocation_heap);
                 if (owned) {
                     std::memcpy(owned, rebuilt.bytes.data(), rebuilt.bytes.size());
                     replacements.push_back({Replacement::Kind::Pumpkin, owner, source, owned,
@@ -112,8 +107,7 @@ HookAction use_rebuilt_model(ModContext*, void* args, void*, void*) {
                                   static_cast<unsigned>(rebuilt.bytes.size()),
                                   rebuilt.evidence.written_normals,
                                   rebuilt.evidence.rebuilt_normal_capacity,
-                                  rebuilt.evidence.triangles,
-                                  static_cast<long long>(elapsed));
+                                  rebuilt.evidence.triangles, static_cast<long long>(elapsed));
                     svc_log->info(mod_ctx, message);
                 } else
                     svc_log->info(mod_ctx, "Geometry rebuild: pumpkin allocation failed");
@@ -149,17 +143,16 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
     std::optional<Target> target;
     if (settings::geometry_skinned_smoothing_enabled() &&
         std::strcmp(info->mArchiveName, "Kmdl") == 0)
-        target = Target{Replacement::Kind::LinkBody, "al.bmd", 140448,
-                        0xc00c6d9abd5d79bcULL,
+        target = Target{Replacement::Kind::LinkBody, "al.bmd", 140448, 0xc00c6d9abd5d79bcULL,
                         "Kmdl.arc/al.bmd"};
     else if (settings::geometry_smoothing_enabled() &&
              std::strcmp(info->mArchiveName, "OBJ_GM") == 0)
-        target = Target{Replacement::Kind::Pot, "k_kumo_tubo01.bmd", 12896,
-                        0xa9efd2ace652b900ULL, "OBJ_GM.arc/k_kumo_tubo01.bmd"};
+        target = Target{Replacement::Kind::Pot, "k_kumo_tubo01.bmd", 12896, 0xa9efd2ace652b900ULL,
+                        "OBJ_GM.arc/k_kumo_tubo01.bmd"};
     else if (settings::geometry_smoothing_enabled() &&
              std::strcmp(info->mArchiveName, "E_nest") == 0)
-        target = Target{Replacement::Kind::Nest, "o_hachinosu_01.bmd", 12576,
-                        0xde8546d0a1fd387dULL, "E_nest.arc/o_hachinosu_01.bmd"};
+        target = Target{Replacement::Kind::Nest, "o_hachinosu_01.bmd", 12576, 0xde8546d0a1fd387dULL,
+                        "E_nest.arc/o_hachinosu_01.bmd"};
     if (!target)
         return HOOK_CONTINUE;
     if (JKRHeap::getCurrentHeap() != info->mDataHeap)
@@ -176,8 +169,8 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
         auto* entry = info->mArchive->findIdxResource(index);
         if (!entry)
             continue;
-        const char* name = info->mArchive->mStringTable +
-                           (entry->type_flags_and_name_offset & 0xFFFFFF);
+        const char* name =
+            info->mArchive->mStringTable + (entry->type_flags_and_name_offset & 0xFFFFFF);
         if (std::strcmp(name, target->file) != 0)
             continue;
         const void* source = info->mArchive->getIdxResource(index);
@@ -187,16 +180,13 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
         }
         const u32 size = info->mArchive->getExpandedResSize(source);
         const std::uint64_t source_hash =
-            size != static_cast<u32>(-1)
-                ? fnv1a(static_cast<const std::byte*>(source), size)
-                : 0;
+            size != static_cast<u32>(-1) ? fnv1a(static_cast<const std::byte*>(source), size) : 0;
         if (size != target->size || source_hash != target->hash) {
             char message[240];
             std::snprintf(message, sizeof(message),
                           "Geometry rebuild: source fingerprint rejected for %s "
                           "bytes=%u hash=%016llx",
-                          target->label, size,
-                          static_cast<unsigned long long>(source_hash));
+                          target->label, size, static_cast<unsigned long long>(source_hash));
             svc_log->info(mod_ctx, message);
             return HOOK_CONTINUE;
         }
@@ -220,8 +210,8 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
             return HOOK_CONTINUE;
         }
         std::memcpy(owned, rebuilt.bytes.data(), rebuilt.bytes.size());
-        replacements.push_back(Replacement{target->kind, info, source, owned,
-                                           static_cast<u32>(rebuilt.bytes.size())});
+        replacements.push_back(
+            Replacement{target->kind, info, source, owned, static_cast<u32>(rebuilt.bytes.size())});
         const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                                  std::chrono::steady_clock::now() - begin)
                                  .count();
@@ -229,11 +219,9 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
         std::snprintf(message, sizeof(message),
                       "Geometry rebuild: %s bytes=%u normals=%u/%u "
                       "triangles=%u us=%lld",
-                      target->label,
-                      static_cast<unsigned>(rebuilt.bytes.size()),
-                      rebuilt.evidence.written_normals,
-                      rebuilt.evidence.rebuilt_normal_capacity, rebuilt.evidence.triangles,
-                      static_cast<long long>(elapsed));
+                      target->label, static_cast<unsigned>(rebuilt.bytes.size()),
+                      rebuilt.evidence.written_normals, rebuilt.evidence.rebuilt_normal_capacity,
+                      rebuilt.evidence.triangles, static_cast<long long>(elapsed));
         svc_log->info(mod_ctx, message);
         return HOOK_CONTINUE;
     }
@@ -251,6 +239,12 @@ struct MutationBackup {
     std::unique_ptr<std::byte[]> original;
 };
 std::vector<MutationBackup> mutations;
+struct ProcessedModel {
+    const dRes_info_c* owner;
+    J3DModelData* model;
+};
+std::vector<ProcessedModel> processed;
+Summary current_summary;
 
 bool is_smoothing(MutationBackup::Kind kind) {
     return kind == MutationBackup::Kind::RigidSmoothing ||
@@ -259,15 +253,12 @@ bool is_smoothing(MutationBackup::Kind kind) {
 
 auto find_mutation(J3DModelData* model) {
     return std::find_if(mutations.begin(), mutations.end(),
-                        [model](const MutationBackup& item) {
-                            return item.model_data == model;
-                        });
+                        [model](const MutationBackup& item) { return item.model_data == model; });
 }
 
 bool has_mutation_kind(MutationBackup::Kind kind) {
-    return std::any_of(mutations.begin(), mutations.end(), [kind](const MutationBackup& item) {
-        return item.kind == kind;
-    });
+    return std::any_of(mutations.begin(), mutations.end(),
+                       [kind](const MutationBackup& item) { return item.kind == kind; });
 }
 
 void restore_mutations(MutationBackup::Kind kind = MutationBackup::Kind::None,
@@ -279,6 +270,12 @@ void restore_mutations(MutationBackup::Kind kind = MutationBackup::Kind::None,
             continue;
         }
         std::memcpy(it->normals, it->original.get(), it->bytes);
+        char restoration[180];
+        std::snprintf(restoration, sizeof(restoration),
+                      "Geometry restore proof: bytes=%u hash=%016llx exact=%s", it->bytes,
+                      static_cast<unsigned long long>(fnv1a(it->original.get(), it->bytes)),
+                      std::memcmp(it->normals, it->original.get(), it->bytes) == 0 ? "yes" : "NO");
+        svc_log->info(mod_ctx, restoration);
         svc_log->info(mod_ctx, is_smoothing(it->kind)
                                    ? "Geometry smoothing: original normals restored"
                                    : "Geometry mutation test: original normals restored");
@@ -322,9 +319,8 @@ void maybe_mutate(dRes_info_c& info, const char* file_name, J3DModelData& model)
     if (!original)
         return;
     std::memcpy(original.get(), normals, bytes);
-    mutations.push_back({MutationBackup::Kind::Diagnostic,
-                         "L_mbox_00.arc/l_metabox_00.bmd", &info, &model, normals, bytes, 0,
-                         std::move(original)});
+    mutations.push_back({MutationBackup::Kind::Diagnostic, "L_mbox_00.arc/l_metabox_00.bmd", &info,
+                         &model, normals, bytes, 0, std::move(original)});
     for (u32 i = 0; i < count * 3; ++i)
         normals[i] = -normals[i];
     svc_log->info(mod_ctx,
@@ -339,35 +335,6 @@ bool is_model_node(u32 type) {
 bool is_topology_target(const dRes_info_c& info, const char* name) {
     const auto length = std::strlen(name);
     return info.mArchiveName && length >= 4 && std::strcmp(name + length - 4, ".bmd") == 0;
-}
-
-bool is_smoothing_target(const dRes_info_c& info, const char* name) {
-    if (!info.mArchiveName)
-        return false;
-    if (settings::geometry_smoothing_enabled() &&
-        std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
-        std::strcmp(name, "k_kumo_iwa00.bmd") == 0)
-        return true;
-    const auto rebuilt = std::find_if(replacements.begin(), replacements.end(),
-                                      [&info](const Replacement& item) {
-                                          return item.owner == &info;
-                                      });
-    if (rebuilt == replacements.end())
-        return false;
-    if (rebuilt->kind == Replacement::Kind::Pot)
-        return settings::geometry_smoothing_enabled() &&
-               std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
-               std::strcmp(name, "k_kumo_tubo01.bmd") == 0;
-    if (rebuilt->kind == Replacement::Kind::Nest)
-        return settings::geometry_smoothing_enabled() &&
-               std::strcmp(info.mArchiveName, "E_nest") == 0 &&
-               std::strcmp(name, "o_hachinosu_01.bmd") == 0;
-    if (rebuilt->kind == Replacement::Kind::Pumpkin)
-        return settings::geometry_smoothing_enabled() &&
-               std::strcmp(info.mArchiveName, "pumpkin") == 0 &&
-               std::strcmp(name, "pumpkin.bmd") == 0;
-    return settings::geometry_skinned_smoothing_enabled() &&
-           std::strcmp(info.mArchiveName, "Kmdl") == 0 && std::strcmp(name, "al.bmd") == 0;
 }
 
 bool array_in_resource(const dRes_info_c& info, const J3DModelData& model, const void* array,
@@ -393,12 +360,56 @@ template <class T> std::uint64_t nested_vector_bytes(const std::vector<std::vect
     return bytes;
 }
 
+// A normal array shared by distinct model objects has no independent restore
+// owner. Reject the entire candidate before the first write in this archive.
+bool shared_normal_storage(const dRes_info_c& info, J3DModelData& model) {
+    const auto& vertex = model.getVertexData();
+    const auto begin = reinterpret_cast<std::uintptr_t>(vertex.getVtxNrmArray());
+    const std::uint64_t bytes =
+        std::uint64_t(vertex.getNrmNum()) * vertex.getVtxArrStride(GX_VA_NRM);
+    if (!begin || bytes > std::numeric_limits<std::uintptr_t>::max() - begin)
+        return true;
+    const auto overlaps = [&](J3DModelData* other) {
+        if (!other || other == &model)
+            return false;
+        const auto& v = other->getVertexData();
+        const auto address = reinterpret_cast<std::uintptr_t>(v.getVtxNrmArray());
+        const std::uint64_t size = std::uint64_t(v.getNrmNum()) * v.getVtxArrStride(GX_VA_NRM);
+        return address && (size > std::numeric_limits<std::uintptr_t>::max() - address ||
+                           (begin < address + size && address < begin + bytes));
+    };
+    for (const auto& entry : mutations)
+        if (overlaps(entry.model_data))
+            return true;
+    auto* archive = info.mArchive;
+    const auto count = static_cast<u32>(archive->countFile());
+    for (int i = 0; i < archive->countDirectory(); ++i) {
+        const auto& node = archive->mNodes[i];
+        if (!is_model_node(node.type))
+            continue;
+        for (u32 j = 0; j < node.num_entries && node.first_file_index + j < count; ++j) {
+            const auto index = node.first_file_index + j;
+            if (archive->isFileEntry(index) &&
+                overlaps(static_cast<J3DModelData*>(info.mRes[index])))
+                return true;
+        }
+    }
+    return false;
+}
+
 void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& model) {
-    const bool target = is_smoothing_target(info, name);
+    const bool target = is_topology_target(info, name) &&
+                        (model.getWEvlpMtxNum() ? settings::geometry_skinned_smoothing_enabled()
+                                                : settings::geometry_smoothing_enabled());
     const bool apply = target && !has_mutation_kind(MutationBackup::Kind::Diagnostic) &&
                        find_mutation(&model) == mutations.end();
     if ((!settings::topology_diagnostics_enabled() || !is_topology_target(info, name)) && !apply)
         return;
+    if (std::any_of(processed.begin(), processed.end(),
+                    [&](const ProcessedModel& item) { return item.model == &model; }) ||
+        processed.size() >= 4096)
+        return;
+    processed.push_back({&info, &model});
     const auto begin = std::chrono::steady_clock::now();
     const auto* owned_replacement = replacement_for(model.getRawData());
     const u32 resource_size = owned_replacement
@@ -414,13 +425,14 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const u32 stride = vertex.getVtxArrStride(GX_VA_POS);
     const int pos_type = vertex.getVtxPosType();
     topology::Result result;
+    std::vector<topology::Vec3> positions;
     std::uint64_t peak_vector_bytes = 0;
     if (!array_in_resource(info, model, vertex.getVtxPosArray(), pos_count, stride) ||
         pos_count == 0 ||
         !((pos_type == GX_F32 && stride == 12) || (pos_type == GX_S16 && stride == 6))) {
         result.error = "unsupported position array";
     } else {
-        std::vector<topology::Vec3> positions(pos_count);
+        positions.resize(pos_count);
         const auto* source = static_cast<const std::byte*>(vertex.getVtxPosArray());
         const float scale = std::ldexp(1.0f, -static_cast<int>(vertex.getVtxPosFrac()));
         for (u32 i = 0; i < pos_count; ++i) {
@@ -485,12 +497,41 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                              std::chrono::steady_clock::now() - begin)
                              .count();
+    const int normal_type = vertex.getVtxNrmType();
+    const u32 normal_stride = vertex.getVtxArrStride(GX_VA_NRM);
+    const auto* rebuilt = replacement_for(model.getRawData());
+    const bool pot_exact = rebuilt && rebuilt->kind == Replacement::Kind::Pot &&
+                           result.corner_hash == 0xc25e3fbcbca371d2ULL && pos_count == 90 &&
+                           normal_count == 880 && model.getWEvlpMtxNum() == 0;
+    const bool link_exact = rebuilt && rebuilt->kind == Replacement::Kind::LinkBody &&
+                            result.corner_hash == 0x6ed5b0df43c35b63ULL && pos_count == 1560 &&
+                            normal_count == 10064 && model.getWEvlpMtxNum() == 110;
+    const bool nest_exact = rebuilt && rebuilt->kind == Replacement::Kind::Nest &&
+                            result.corner_hash == 0xd107e10bca9ec9d0ULL && pos_count == 61 &&
+                            normal_count == 400 && model.getWEvlpMtxNum() == 0;
+    const bool pumpkin_exact = rebuilt && rebuilt->kind == Replacement::Kind::Pumpkin &&
+                               result.corner_hash == 0x2b808b13bc7ab6e8ULL && pos_count == 306 &&
+                               normal_count == 1818 && model.getWEvlpMtxNum() == 0;
+    const bool rock_exact = !rebuilt && std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
+                            std::strcmp(name, "k_kumo_iwa00.bmd") == 0 && resource_size == 13856 &&
+                            resource_hash == 0xaae14e74c4cca0b8ULL &&
+                            result.corner_hash == 0x4905bff69be3ae64ULL && pos_count == 40 &&
+                            normal_count == 197 && model.getWEvlpMtxNum() == 0;
+    const unsigned normal_fraction = vertex.getVtxNrmFrac();
+    const bool exact = normal_type == GX_S16 && normal_stride == 6 &&
+                       (((pot_exact || link_exact) && normal_fraction == 14) ||
+                        ((nest_exact || pumpkin_exact) && normal_fraction == 15) ||
+                        (rock_exact && normal_fraction == 15));
+    smoothing::Qualification qualification;
     smoothing::Result smooth;
     long long smooth_us = 0;
     long long normal_decode_us = 0;
-    const int normal_type = vertex.getVtxNrmType();
-    const u32 normal_stride = vertex.getVtxArrStride(GX_VA_NRM);
-    if (result.ok() && !vertex.getVtxNBTArray() &&
+    bool xyz_normal = false;
+    if (const auto* formats = vertex.getVtxAttrFmtList())
+        for (unsigned i = 0; i < 32 && formats[i].attr != GX_VA_NULL; ++i)
+            if (formats[i].attr == GX_VA_NRM)
+                xyz_normal = formats[i].cnt == GX_NRM_XYZ;
+    if (result.ok() && xyz_normal && !vertex.getVtxNBTArray() && vertex.getVtxNrmFrac() <= 15 &&
         array_in_resource(info, model, vertex.getVtxNrmArray(), normal_count, normal_stride) &&
         ((normal_type == GX_F32 && normal_stride == 12) ||
          (normal_type == GX_S16 && normal_stride == 6))) {
@@ -517,78 +558,64 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 .count();
         smoothing::Options options;
         options.face_angle_degrees = settings::geometry_smoothing_angle();
-        smooth = smoothing::plan(result, normals, options);
+        const smoothing::Representation representation{
+            true,
+            model.getWEvlpMtxNum() == 0 && model.getJointNum() == 1 && model.getDrawMtxNum() == 1,
+            exact, false};
+        qualification = smoothing::qualify(result, positions, normals, representation, options);
+        smooth = std::move(qualification.smoothing);
         smooth_us = std::chrono::duration_cast<std::chrono::microseconds>(
                         std::chrono::steady_clock::now() - smoothing_begin)
                         .count();
-        peak_vector_bytes =
-            std::max(peak_vector_bytes, vector_bytes(result.triangles) + vector_bytes(normals) +
-                                            smooth.working_vector_bytes);
+        peak_vector_bytes = std::max(
+            peak_vector_bytes, vector_bytes(result.triangles) + vector_bytes(positions) +
+                                   vector_bytes(normals) + qualification.working_vector_bytes);
     } else {
         smooth.error = "unsupported normal array or topology";
+        qualification.reason = result.error ? result.error : smooth.error;
+    }
+    if ((rebuilt && !exact) || !delete_registered || shared_normal_storage(info, model)) {
+        qualification.classification = smoothing::Class::Unsupported;
+        qualification.reason = rebuilt && !exact    ? "rebuilt fingerprint mismatch"
+                               : !delete_registered ? "restoration hook unavailable"
+                                                    : "shared normal storage";
     }
     if (apply) {
-        const auto* rebuilt = replacement_for(model.getRawData());
-        const bool pot_exact = rebuilt && rebuilt->kind == Replacement::Kind::Pot &&
-                               result.corner_hash == 0xc25e3fbcbca371d2ULL && pos_count == 90 &&
-                               normal_count == 880 && model.getWEvlpMtxNum() == 0;
-        const bool link_exact = rebuilt && rebuilt->kind == Replacement::Kind::LinkBody &&
-                                result.corner_hash == 0x6ed5b0df43c35b63ULL && pos_count == 1560 &&
-                                normal_count == 10064 && model.getWEvlpMtxNum() == 110;
-        const bool nest_exact = rebuilt && rebuilt->kind == Replacement::Kind::Nest &&
-                                result.corner_hash == 0xd107e10bca9ec9d0ULL && pos_count == 61 &&
-                                normal_count == 400 && model.getWEvlpMtxNum() == 0;
-        const bool pumpkin_exact = rebuilt && rebuilt->kind == Replacement::Kind::Pumpkin &&
-                                   result.corner_hash == 0x2b808b13bc7ab6e8ULL &&
-                                   pos_count == 306 && normal_count == 1818 &&
-                                   model.getWEvlpMtxNum() == 0;
-        const bool rock_exact = !rebuilt && std::strcmp(info.mArchiveName, "OBJ_GM") == 0 &&
-                                std::strcmp(name, "k_kumo_iwa00.bmd") == 0 &&
-                                resource_size == 13856 &&
-                                resource_hash == 0xaae14e74c4cca0b8ULL &&
-                                result.corner_hash == 0x4905bff69be3ae64ULL && pos_count == 40 &&
-                                normal_count == 197 && model.getWEvlpMtxNum() == 0;
-        const unsigned normal_fraction = vertex.getVtxNrmFrac();
-        const bool exact = normal_type == GX_S16 && normal_stride == 6 &&
-                           (((pot_exact || link_exact) && normal_fraction == 14) ||
-                            ((nest_exact || pumpkin_exact) && normal_fraction == 15) ||
-                            (rock_exact && normal_fraction == 15));
-        if (exact && smooth.safe() && smooth.changed_indices > 0 && delete_registered) {
+        std::uint64_t retained_bytes = 0;
+        for (const auto& mutation : mutations)
+            retained_bytes += mutation.bytes;
+        if (qualification.classification == smoothing::Class::Safe && smooth.safe() &&
+            smooth.changed_indices > 0 && delete_registered && mutations.size() < 1024 &&
+            retained_bytes + std::uint64_t(normal_count) * normal_stride <= 16 * 1024 * 1024) {
             const u32 bytes_count = normal_count * normal_stride;
             std::unique_ptr<std::byte[]> backup{new (std::nothrow) std::byte[bytes_count]};
             if (backup) {
                 auto* destination = static_cast<std::byte*>(vertex.getVtxNrmArray());
                 std::memcpy(backup.get(), destination, bytes_count);
+                // Publish ownership before changing bytes; vector allocation failure
+                // must not leave a changed array with no restoration record.
+                mutations.push_back({link_exact ? MutationBackup::Kind::SkinnedSmoothing
+                                                : MutationBackup::Kind::RigidSmoothing,
+                                     exact ? "known-good model" : "automatically qualified model",
+                                     const_cast<dRes_info_c*>(&info), &model, destination,
+                                     bytes_count, 0, std::move(backup)});
                 for (u32 i = 0; i < normal_count; ++i) {
+                    if (normal_type == GX_F32) {
+                        const float encoded[]{smooth.normals[i].x, smooth.normals[i].y,
+                                              smooth.normals[i].z};
+                        std::memcpy(destination + i * normal_stride, encoded, sizeof(encoded));
+                        continue;
+                    }
                     std::int16_t encoded[3];
-                    // Source values are S16, and the plan only returns finite originals or
-                    // normalized weighted faces; the checked codec rejects any regression.
                     if (!smoothing::encode_s16_xyz(smooth.normals[i], normal_fraction, encoded)) {
-                        std::memcpy(destination, backup.get(), bytes_count);
+                        std::memcpy(destination, mutations.back().original.get(), bytes_count);
+                        mutations.pop_back();
                         svc_log->info(mod_ctx, "Geometry smoothing: normal encoding rejected");
                         return;
                     }
                     std::memcpy(destination + i * 6, encoded, 6);
                 }
-                const char* label = pot_exact    ? "OBJ_GM.arc/k_kumo_tubo01.bmd"
-                                    : link_exact ? "Kmdl.arc/al.bmd"
-                                    : nest_exact ? "E_nest.arc/o_hachinosu_01.bmd"
-                                    : pumpkin_exact ? "pumpkin.arc/pumpkin.bmd"
-                                                 : "OBJ_GM.arc/k_kumo_iwa00.bmd";
-                mutations.push_back({link_exact ? MutationBackup::Kind::SkinnedSmoothing
-                                                : MutationBackup::Kind::RigidSmoothing,
-                                     label, const_cast<dRes_info_c*>(&info), &model, destination,
-                                     bytes_count, 0, std::move(backup)});
-                svc_log->info(
-                    mod_ctx,
-                    pot_exact ? "Geometry smoothing: applied OBJ_GM.arc/k_kumo_tubo01.bmd"
-                              : link_exact ? "Geometry smoothing: applied Kmdl.arc/al.bmd"
-                              : nest_exact ? "Geometry smoothing: applied "
-                                             "E_nest.arc/o_hachinosu_01.bmd"
-                              : pumpkin_exact ? "Geometry smoothing: applied "
-                                                "pumpkin.arc/pumpkin.bmd"
-                                           : "Geometry smoothing: applied "
-                                             "OBJ_GM.arc/k_kumo_iwa00.bmd");
+                svc_log->info(mod_ctx, "Geometry smoothing: applied qualified model");
             }
         } else {
             svc_log->info(mod_ctx, "Geometry smoothing: target rejected by safety checks");
@@ -597,7 +624,24 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const auto total_us = std::chrono::duration_cast<std::chrono::microseconds>(
                               std::chrono::steady_clock::now() - begin)
                               .count();
-    char report[850];
+    ++current_summary.examined;
+    const bool applied = find_mutation(&model) != mutations.end();
+    current_summary.applied += applied;
+    current_summary.skipped += !applied;
+    current_summary.classification = smoothing::label(qualification.classification);
+    current_summary.reason = qualification.reason;
+    current_summary.known_good = exact;
+    char status[400];
+    std::snprintf(status, sizeof(status),
+                  "Geometry qualification: %.40s/%.80s class=%s knownGood=%s reason=%s "
+                  "classifyUs=%llu planUs=%llu applied=%s processed=%zu",
+                  info.mArchiveName, name, smoothing::label(qualification.classification),
+                  exact ? "yes" : "no", qualification.reason,
+                  static_cast<unsigned long long>(qualification.classification_us),
+                  static_cast<unsigned long long>(qualification.smoothing_us),
+                  find_mutation(&model) != mutations.end() ? "yes" : "no", processed.size());
+    svc_log->info(mod_ctx, status);
+    char report[1600];
     std::snprintf(
         report, sizeof(report),
         "Topology JSON: {\"archive\":\"%s\",\"file\":\"%s\",\"resourceBytes\":%u,"
@@ -612,23 +656,21 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         "\"ambiguousFaces\":%u,\"normalDecodeUs\":%lld,\"adjacencyUs\":%llu,"
         "\"smoothUs\":%lld,\"totalUs\":%lld,\"peakTrackedVectorBytes\":%llu,\"backupBytes\":%u,"
         "\"cacheEntries\":%u,\"smoothError\":\"%s\"}",
-        info.mArchiveName, name, resource_size,
-        static_cast<unsigned long long>(resource_hash), pos_count, normal_count,
-        model.getShapeNum(),
-        model.getWEvlpMtxNum(), result.primitive_count, normal_type, normal_stride,
-        vertex.getVtxNrmFrac(), result.strip_count, result.fan_count,
-        result.indexed_count, result.triangles.size(), result.degenerate_count,
-        result.unique_positions, result.unique_normals, result.position_normal_splits,
-        static_cast<unsigned long long>(result.corner_hash), static_cast<long long>(elapsed),
-        result.error ? result.error : "", smooth.smoothing_groups, smooth.candidate_indices,
-        smooth.changed_indices, smooth.index_conflicts, smooth.ambiguous_faces, normal_decode_us,
+        info.mArchiveName, name, resource_size, static_cast<unsigned long long>(resource_hash),
+        pos_count, normal_count, model.getShapeNum(), model.getWEvlpMtxNum(),
+        result.primitive_count, normal_type, normal_stride, vertex.getVtxNrmFrac(),
+        result.strip_count, result.fan_count, result.indexed_count, result.triangles.size(),
+        result.degenerate_count, result.unique_positions, result.unique_normals,
+        result.position_normal_splits, static_cast<unsigned long long>(result.corner_hash),
+        static_cast<long long>(elapsed), result.error ? result.error : "", smooth.smoothing_groups,
+        smooth.candidate_indices, smooth.changed_indices, smooth.index_conflicts,
+        smooth.ambiguous_faces, normal_decode_us,
         static_cast<unsigned long long>(smooth.adjacency_us), smooth_us,
         static_cast<long long>(total_us), static_cast<unsigned long long>(peak_vector_bytes),
         find_mutation(&model) != mutations.end() ? find_mutation(&model)->bytes : 0,
-        static_cast<unsigned>(std::count_if(
-            mutations.begin(), mutations.end(), [](const MutationBackup& item) {
-                return is_smoothing(item.kind);
-            })),
+        static_cast<unsigned>(
+            std::count_if(mutations.begin(), mutations.end(),
+                          [](const MutationBackup& item) { return is_smoothing(item.kind); })),
         smooth.error ? smooth.error : "");
     svc_log->info(mod_ctx, report);
 }
@@ -644,7 +686,13 @@ void describe_model(const dRes_info_c& info, u32 type, u32 file_index) {
 
     const char* file_name = archive->mStringTable + (entry->type_flags_and_name_offset & 0xFFFFFF);
     maybe_mutate(const_cast<dRes_info_c&>(info), file_name, *model);
-    analyze_topology(info, file_name, *model);
+    try {
+        analyze_topology(info, file_name, *model);
+    } catch (const std::bad_alloc&) {
+        // All allocations precede normal writes or registration of their
+        // restoration owner. Resource loading can continue unchanged.
+        svc_log->warn(mod_ctx, "Geometry qualification: allocation failed; skipped");
+    }
     const J3DVertexData& vertex = model->getVertexData();
     int normal_type = -1;
     int normal_count = -1;
@@ -705,16 +753,14 @@ HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
     auto* owner = args ? mods::arg<dRes_info_c*>(args, 0) : nullptr;
     if (!owner)
         return HOOK_CONTINUE;
-    if (std::any_of(mutations.begin(), mutations.end(),
-                    [owner](const MutationBackup& item) {
-                        return item.owner == owner && is_smoothing(item.kind);
-                    }))
+    if (std::any_of(mutations.begin(), mutations.end(), [owner](const MutationBackup& item) {
+            return item.owner == owner && is_smoothing(item.kind);
+        }))
         svc_log->info(mod_ctx, "Geometry smoothing: archive pre-delete restoration");
     restore_mutations(MutationBackup::Kind::None, owner);
+    std::erase_if(processed, [owner](const ProcessedModel& item) { return item.owner == owner; });
     const auto old_size = replacements.size();
-    std::erase_if(replacements, [owner](const Replacement& item) {
-        return item.owner == owner;
-    });
+    std::erase_if(replacements, [owner](const Replacement& item) { return item.owner == owner; });
     if (replacements.size() != old_size)
         svc_log->info(mod_ctx, "Geometry rebuild: archive replacement released");
     return HOOK_CONTINUE;
@@ -741,6 +787,8 @@ void initialize() {
     replacements.clear();
     loading_owners.clear();
     mutations.clear();
+    processed.clear();
+    current_summary = {};
     if (!svc_hook)
         return;
     if (mods::hook::add_pre<ModelLoad>(use_rebuilt_model) == MOD_OK)
@@ -767,6 +815,7 @@ void shutdown() {
     if (load_registered)
         (void)mods::hook::uninstall<ResourceLoad>();
     restore_mutations();
+    processed.clear();
     if (delete_registered)
         (void)mods::hook::uninstall<ResourceDelete>();
     if (create_registered)
@@ -779,11 +828,10 @@ void shutdown() {
     loading_owners.clear();
 }
 
-void restore_mutation() {
-    restore_mutations(MutationBackup::Kind::Diagnostic);
-}
+void restore_mutation() { restore_mutations(MutationBackup::Kind::Diagnostic); }
 void restore_smoothing(bool skinned) {
     restore_mutations(skinned ? MutationBackup::Kind::SkinnedSmoothing
                               : MutationBackup::Kind::RigidSmoothing);
 }
+Summary summary() { return current_summary; }
 } // namespace midnafx::geometry_probe

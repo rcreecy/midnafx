@@ -307,6 +307,12 @@ Result decode(std::span<const Shape> shapes, std::span<const Format> formats,
         result.error = "invalid model dimensions";
         return result;
     }
+    for (const auto p : positions) {
+        if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z)) {
+            result.error = "nonfinite position";
+            return result;
+        }
+    }
     for (std::size_t si = 0; si < shapes.size(); ++si) {
         const auto& shape = shapes[si];
         Layout layout;
