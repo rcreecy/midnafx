@@ -72,6 +72,8 @@ struct PipelinePair {
 // Pairs stay alive until the host has drained draw callbacks at shutdown.
 std::vector<std::unique_ptr<PipelinePair>> pairs;
 GfxStageHookHandle stage_hook = 0;
+GfxStageHookHandle pre_water_hook = 0;
+GfxStageHookHandle scene_begin_hook = 0;
 GfxDrawTypeHandle draw_type = 0;
 std::atomic<std::uint32_t> state{
     0}; // 0 unavailable, 1 ready, 2 failed, 3 layout skip, 4 GPU pending, 5 init layout skip
@@ -99,6 +101,9 @@ struct SampleWindow {
 SampleWindow active_times, disabled_times;
 bool warned = false;
 bool depth_probe_completed = false;
+GfxResolvedTargets pre_water_snapshot = GFX_RESOLVED_TARGETS_INIT;
+bool pre_water_snapshot_ready = false;
+bool pre_water_capture_logged = false;
 std::uint32_t depth_view_warned_kind = PipelineCount;
 std::uint32_t depth_view_logged_kind = PipelineCount;
 std::chrono::steady_clock::time_point next_init_retry{};
@@ -308,6 +313,28 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     wgpuBindGroupRelease(group);
 }
 
+void reset_scene_capture(ModContext*, const GfxStageContext*, void*) {
+    // Views returned by resolve_pass are borrowed for one frame. Never carry one
+    // into the next scene/frame when a later stage exits early.
+    pre_water_snapshot = GFX_RESOLVED_TARGETS_INIT;
+    pre_water_snapshot_ready = false;
+}
+
+void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*) {
+    if (!context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
+        !settings::water_scene_capture_diagnostic_enabled() || svc_gfx == nullptr)
+        return;
+    GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
+    request.color = true;
+    request.depth = true;
+    GfxResolvedTargets resolved = GFX_RESOLVED_TARGETS_INIT;
+    if (svc_gfx->resolve_pass(mod_ctx, &request, &resolved) != MOD_OK || !resolved.color ||
+        resolved.width == 0 || resolved.height == 0)
+        return;
+    pre_water_snapshot = resolved;
+    pre_water_snapshot_ready = true;
+}
+
 void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const auto current_state = state.load(std::memory_order_acquire);
     if ((current_state != 1 && current_state != 3) || stage_ctx == nullptr ||
@@ -317,6 +344,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const bool dof_debug = settings::dof_coc_view_enabled();
     const bool depth_debug = !dof_debug && settings::atmosphere_depth_view_enabled();
     const bool depth_based_debug = depth_debug || dof_debug;
+    const bool water_capture_debug = settings::water_scene_capture_diagnostic_enabled() &&
+                                     pre_water_snapshot_ready;
     if (!depth_based_debug) {
         depth_view_warned_kind = PipelineCount;
         depth_view_logged_kind = PipelineCount;
@@ -324,7 +353,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const bool timing = settings::diagnostics_enabled();
     const auto start =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-    if (!settings::enabled() && !depth_based_debug) {
+    if (!settings::enabled() && !depth_based_debug && !water_capture_debug) {
         if (timing) {
             disabled_samples.fetch_add(1, std::memory_order_relaxed);
             const auto elapsed =
@@ -337,8 +366,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     }
     auto prepared = settings::prepared_grade();
     const auto mode = visual::debug_mode(prepared.uniforms.debug_mode);
-    const bool passthrough_test =
-        settings::passthrough_test() || mode == visual::DebugMode::Passthrough;
+    const bool passthrough_test = settings::passthrough_test() ||
+                                  mode == visual::DebugMode::Passthrough || water_capture_debug;
     const bool detail_enabled = prepared.uniforms.detail_strength > 0.0f;
     if (!depth_based_debug && prepared.neutral && !detail_enabled && !passthrough_test &&
         mode == visual::DebugMode::Final) {
@@ -446,9 +475,13 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     request.color = !depth_based_debug;
     request.depth = depth_based_debug;
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
+    if (water_capture_debug)
+        snapshot = pre_water_snapshot;
     const auto before_resolve =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-    const auto resolve_result = svc_gfx->resolve_pass(mod_ctx, &request, &snapshot);
+    const auto resolve_result = water_capture_debug
+                                    ? MOD_OK
+                                    : svc_gfx->resolve_pass(mod_ctx, &request, &snapshot);
     if (timing)
         resolve_us.store(std::chrono::duration<double, std::micro>(
                              std::chrono::steady_clock::now() - before_resolve)
@@ -497,6 +530,14 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         return;
     }
     submitted.fetch_add(1, std::memory_order_relaxed);
+    if (water_capture_debug && !pre_water_capture_logged && svc_log != nullptr) {
+        char message[192];
+        std::snprintf(message, sizeof(message),
+                      "Water pre-scene capture diagnostic active: color=%ux%u depth=%s",
+                      snapshot.width, snapshot.height, snapshot.depth ? "available" : "unavailable");
+        svc_log->info(mod_ctx, message);
+        pre_water_capture_logged = true;
+    }
     if (depth_based_debug && depth_view_logged_kind != kind && svc_log != nullptr) {
         char message[224];
         if (dof_debug)
@@ -596,6 +637,9 @@ void initialize() {
     reset_timing_samples();
     warned = false;
     depth_probe_completed = false;
+    pre_water_snapshot = GFX_RESOLVED_TARGETS_INIT;
+    pre_water_snapshot_ready = false;
+    pre_water_capture_logged = false;
     depth_view_warned_kind = PipelineCount;
     depth_view_logged_kind = PipelineCount;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
@@ -634,12 +678,36 @@ void initialize() {
         state.store(2);
         return;
     }
+    GfxStageHookDesc capture_desc = GFX_STAGE_HOOK_DESC_INIT;
+    capture_desc.callback = capture_pre_water_scene;
+    if (svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_SCENE_AFTER_OPAQUE, &capture_desc,
+                                     &pre_water_hook) != MOD_OK) {
+        svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
+        svc_gfx->unregister_draw_type(mod_ctx, draw_type);
+        stage_hook = 0;
+        draw_type = 0;
+        state.store(2);
+        return;
+    }
+    GfxStageHookDesc begin_desc = GFX_STAGE_HOOK_DESC_INIT;
+    begin_desc.callback = reset_scene_capture;
+    if (svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_SCENE_BEGIN, &begin_desc,
+                                     &scene_begin_hook) != MOD_OK) {
+        svc_gfx->unregister_stage_hook(mod_ctx, pre_water_hook);
+        svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
+        svc_gfx->unregister_draw_type(mod_ctx, draw_type);
+        pre_water_hook = stage_hook = 0;
+        draw_type = 0;
+        state.store(2);
+        return;
+    }
     state.store(1, std::memory_order_release);
 }
 
 void update() {
     const auto current_state = state.load(std::memory_order_acquire);
     const bool graphics_requested = settings::enabled() ||
+                                    settings::water_scene_capture_diagnostic_enabled() ||
                                     settings::atmosphere_depth_view_enabled() ||
                                     settings::atmosphere_depth_probe_enabled() ||
                                     settings::dof_coc_view_enabled();
@@ -675,9 +743,13 @@ void shutdown() {
     state.store(0);
     if (svc_gfx != nullptr && stage_hook != 0)
         svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
+    if (svc_gfx != nullptr && pre_water_hook != 0)
+        svc_gfx->unregister_stage_hook(mod_ctx, pre_water_hook);
+    if (svc_gfx != nullptr && scene_begin_hook != 0)
+        svc_gfx->unregister_stage_hook(mod_ctx, scene_begin_hook);
     if (svc_gfx != nullptr && draw_type != 0)
         svc_gfx->unregister_draw_type(mod_ctx, draw_type);
-    stage_hook = 0;
+    stage_hook = pre_water_hook = scene_begin_hook = 0;
     draw_type = 0;
     release_gpu();
 }

@@ -8,6 +8,7 @@
 #include <JSystem/J3DGraphBase/J3DMaterial.h>
 #include <JSystem/J3DGraphBase/J3DPacket.h>
 #include <JSystem/JUtility/JUTNameTab.h>
+#include <m_Do/m_Do_ext.h>
 #include <d/actor/d_a_bg.h>
 #include <d/actor/d_a_bg_obj.h>
 #include <d/actor/d_a_obj_groundwater.h>

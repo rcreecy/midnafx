@@ -44,6 +44,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     geometry_smoothing{"geometry_smoothing"},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
     water_classification_diagnostic{"water_classification_diagnostic"},
+    water_scene_capture_diagnostic{"water_scene_capture_diagnostic"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
@@ -985,9 +986,13 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Water research"));
     add_toggle(panel, "Mark classified water surfaces magenta (developer)",
                water_classification_diagnostic);
+    add_toggle(panel, "Show opaque pre-water scene capture (developer)",
+               water_scene_capture_diagnostic);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
-        "Default off. Marks exact water actors and validated stage materials under Gate 1. "
+        "Default off. The first control marks exact water actors and validated stage materials. "
+        "The second replaces the final world image with the scene captured immediately after "
+        "opaque geometry and before primary water, proving the Gate 2 boundary. HUD remains live. "
         "Unknown water paths remain unchanged.",
         nullptr));
     refresh_status();
@@ -1016,6 +1021,7 @@ bool initialize() {
     register_toggle(geometry_smoothing);
     register_toggle(geometry_skinned_smoothing);
     register_toggle(water_classification_diagnostic);
+    register_toggle(water_scene_capture_diagnostic);
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
@@ -1061,6 +1067,7 @@ bool geometry_smoothing_enabled() { return geometry_smoothing.value; }
 bool geometry_skinned_smoothing_enabled() { return geometry_skinned_smoothing.value; }
 float geometry_smoothing_angle() { return static_cast<float>(smoothing_angle_setting.value); }
 bool water_classification_diagnostic_enabled() { return water_classification_diagnostic.value; }
+bool water_scene_capture_diagnostic_enabled() { return water_scene_capture_diagnostic.value; }
 bool camera_enabled() { return camera_toggle.value; }
 float camera_fov_scale() { return static_cast<float>(camera_fov_setting.value) / 100.0f; }
 float camera_transition_seconds() {
