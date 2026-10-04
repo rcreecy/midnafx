@@ -12,6 +12,7 @@ bool geometry_mutation_test_enabled();
 bool geometry_smoothing_enabled();
 bool geometry_skinned_smoothing_enabled();
 float geometry_smoothing_angle();
+bool water_classification_diagnostic_enabled();
 bool camera_enabled();
 float camera_fov_scale();
 float camera_transition_seconds();

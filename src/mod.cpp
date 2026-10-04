@@ -1,6 +1,7 @@
 #include "game/camera_probe.hpp"
 #include "game/game_state.hpp"
 #include "game/geometry_probe.hpp"
+#include "game/water_probe.hpp"
 #include "render/dof_blur.hpp"
 #include "render/renderer.hpp"
 #include "services.hpp"
@@ -28,6 +29,7 @@ MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::camera_probe::initialize();
     midnafx::render::dof_blur::initialize();
     midnafx::geometry_probe::initialize();
+    midnafx::water_probe::initialize();
     last_update = std::chrono::steady_clock::now();
     svc_log->info(mod_ctx,
                   "MidnaFX grading, detail, diagnostics, and Twilight prototype initialized");
@@ -40,6 +42,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
     midnafx::settings::update_twilight(midnafx::game_state::sample(), elapsed);
     midnafx::render::update();
     midnafx::render::dof_blur::update();
+    midnafx::water_probe::update();
     midnafx::settings::update_diagnostics();
     return MOD_OK;
 }
@@ -48,6 +51,7 @@ MOD_EXPORT ModResult mod_shutdown(ModError*) {
     midnafx::render::dof_blur::shutdown();
     midnafx::render::shutdown();
     midnafx::camera_probe::shutdown();
+    midnafx::water_probe::shutdown();
     midnafx::geometry_probe::shutdown();
     midnafx::settings::shutdown();
     return MOD_OK;
