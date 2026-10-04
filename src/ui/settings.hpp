@@ -15,6 +15,7 @@ float geometry_smoothing_angle();
 bool water_classification_diagnostic_enabled();
 bool water_scene_capture_diagnostic_enabled();
 bool water_surface_capture_diagnostic_enabled();
+bool water_thickness_diagnostic_enabled();
 bool camera_enabled();
 float camera_fov_scale();
 float camera_transition_seconds();

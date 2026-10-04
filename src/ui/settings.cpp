@@ -46,6 +46,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     water_classification_diagnostic{"water_classification_diagnostic"},
     water_scene_capture_diagnostic{"water_scene_capture_diagnostic"},
     water_surface_capture_diagnostic{"water_surface_capture_diagnostic"},
+    water_thickness_diagnostic{"water_thickness_diagnostic"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
@@ -991,12 +992,15 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
                water_scene_capture_diagnostic);
     add_toggle(panel, "Sample pre-water capture on classified surfaces (developer)",
                water_surface_capture_diagnostic);
+    add_toggle(panel, "Visualize water optical thickness (developer)", water_thickness_diagnostic);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
         "Default off. The first control marks exact water actors and validated stage materials. "
         "The second replaces the final world image with the scene captured immediately after "
         "opaque geometry. The third samples a separate GPU capture on exact classified water "
-        "draws. Both captures occur before primary water; HUD remains live. "
+        "draws. The thickness view duplicates one exact classified shape into an offscreen "
+        "surface-depth mask and compares it with opaque scene depth. Captures occur before "
+        "primary water; HUD remains live. "
         "Unknown water paths remain unchanged.",
         nullptr));
     refresh_status();
@@ -1027,6 +1031,7 @@ bool initialize() {
     register_toggle(water_classification_diagnostic);
     register_toggle(water_scene_capture_diagnostic);
     register_toggle(water_surface_capture_diagnostic);
+    register_toggle(water_thickness_diagnostic);
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
@@ -1074,6 +1079,7 @@ float geometry_smoothing_angle() { return static_cast<float>(smoothing_angle_set
 bool water_classification_diagnostic_enabled() { return water_classification_diagnostic.value; }
 bool water_scene_capture_diagnostic_enabled() { return water_scene_capture_diagnostic.value; }
 bool water_surface_capture_diagnostic_enabled() { return water_surface_capture_diagnostic.value; }
+bool water_thickness_diagnostic_enabled() { return water_thickness_diagnostic.value; }
 bool camera_enabled() { return camera_toggle.value; }
 float camera_fov_scale() { return static_cast<float>(camera_fov_setting.value) / 100.0f; }
 float camera_transition_seconds() {

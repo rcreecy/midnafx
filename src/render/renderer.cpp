@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "config/visual.hpp"
 #include "game/camera_probe.hpp"
+#include "game/water_probe.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -28,7 +29,8 @@ enum PipelineKind : std::uint32_t {
     DebugDetail = 4,
     DepthDiagnostic = 5,
     DofDiagnostic = 6,
-    PipelineCount = 7,
+    WaterThicknessDiagnostic = 7,
+    PipelineCount = 8,
 };
 struct DepthUniforms {
     float view_from_proj[16];
@@ -48,9 +50,18 @@ struct DofUniforms {
     float padding[3];
 };
 static_assert(sizeof(DofUniforms) == 96);
+struct WaterThicknessUniforms {
+    float view_from_proj[16];
+    float max_thickness;
+    float background_depth;
+    float padding[2];
+};
+static_assert(sizeof(WaterThicknessUniforms) == 80);
 struct Payload {
     WGPUTextureView scene;
     WGPUTextureView depth;
+    WGPUTextureView auxiliary_depth;
+    WGPUTextureView mask;
     const PipelinePair* pair;
     std::uint64_t layout_key;
     std::uint32_t kind;
@@ -66,7 +77,7 @@ struct Pipeline {
 };
 struct PipelinePair {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
-    WGPUShaderModule shaders[4]{};
+    WGPUShaderModule shaders[5]{};
     Pipeline pipelines[PipelineCount];
 };
 // Pairs stay alive until the host has drained draw callbacks at shutdown.
@@ -104,6 +115,7 @@ bool depth_probe_completed = false;
 GfxResolvedTargets pre_water_snapshot = GFX_RESOLVED_TARGETS_INIT;
 bool pre_water_snapshot_ready = false;
 bool pre_water_capture_logged = false;
+bool water_thickness_logged = false;
 std::uint32_t depth_view_warned_kind = PipelineCount;
 std::uint32_t depth_view_logged_kind = PipelineCount;
 std::chrono::steady_clock::time_point next_init_retry{};
@@ -153,9 +165,9 @@ bool supported(const GfxRenderTargetLayout& target) {
 
 const char* invalid_camera_field(const CameraInfo& camera) {
     const char* names[] = {"view_from_world", "world_from_view", "proj_from_view",
-                           "view_from_proj", "proj_from_world", "world_from_proj"};
+                           "view_from_proj",  "proj_from_world", "world_from_proj"};
     const float* matrices[] = {camera.view_from_world, camera.world_from_view,
-                               camera.proj_from_view, camera.view_from_proj,
+                               camera.proj_from_view,  camera.view_from_proj,
                                camera.proj_from_world, camera.world_from_proj};
     for (unsigned matrix_index = 0; matrix_index < 6; ++matrix_index)
         for (unsigned i = 0; i < 16; ++i)
@@ -176,8 +188,8 @@ const char* invalid_camera_field(const CameraInfo& camera) {
 }
 
 void run_depth_probe() {
-    if (!settings::atmosphere_depth_probe_enabled() ||
-        settings::atmosphere_depth_view_enabled() || settings::dof_coc_view_enabled()) {
+    if (!settings::atmosphere_depth_probe_enabled() || settings::atmosphere_depth_view_enabled() ||
+        settings::dof_coc_view_enabled()) {
         depth_probe_completed = false;
         return;
     }
@@ -204,7 +216,8 @@ void run_depth_probe() {
     std::snprintf(message, sizeof(message),
                   "Atmosphere depth probe: depth=%s size=%ux%u reversed_z=%s fovy=%.2f "
                   "aspect=%.3f near=%.3f far=%.1f eye=[%.2f,%.2f,%.2f] matrices=finite",
-                  resolve_result == MOD_OK && snapshot.depth != nullptr ? "available" : "unavailable",
+                  resolve_result == MOD_OK && snapshot.depth != nullptr ? "available"
+                                                                        : "unavailable",
                   snapshot.width, snapshot.height, device.uses_reversed_z ? "yes" : "no",
                   camera.fovy, camera.aspect, camera.near_plane, camera.far_plane, camera.eye[0],
                   camera.eye[1], camera.eye[2]);
@@ -227,7 +240,10 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
     create_shader(next->shaders[2], atmosphere_depth_shader,
                   "MidnaFX atmosphere depth diagnostic shader");
     create_shader(next->shaders[3], dof_shader, "MidnaFX depth of field diagnostic shader");
-    if (next->shaders[0] && next->shaders[1] && next->shaders[2] && next->shaders[3]) {
+    create_shader(next->shaders[4], water_thickness_shader,
+                  "MidnaFX water thickness diagnostic shader");
+    if (next->shaders[0] && next->shaders[1] && next->shaders[2] && next->shaders[3] &&
+        next->shaders[4]) {
         build_pipeline(next->pipelines[Passthrough], next->shaders[0], "fs_main",
                        "MidnaFX passthrough", layout);
         build_pipeline(next->pipelines[Grade], next->shaders[1], "fs_main", "MidnaFX grading",
@@ -242,6 +258,8 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
                        "MidnaFX depth reconstruction diagnostic", layout);
         build_pipeline(next->pipelines[DofDiagnostic], next->shaders[3], "fs_coc",
                        "MidnaFX depth of field focus diagnostic", layout);
+        build_pipeline(next->pipelines[WaterThicknessDiagnostic], next->shaders[4], "fs_thickness",
+                       "MidnaFX water thickness diagnostic", layout);
     }
     const bool validation_ok = pop_scope(device.device, device.instance);
     const bool internal_ok = pop_scope(device.device, device.instance);
@@ -269,15 +287,30 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     const auto& selected = payload.pair->pipelines[payload.kind];
     if (selected.pipeline == nullptr || selected.bind_layout == nullptr)
         return;
+    const bool water_depth = payload.kind == WaterThicknessDiagnostic;
     const bool uses_depth = payload.kind == DepthDiagnostic || payload.kind == DofDiagnostic;
-    if ((uses_depth ? payload.depth == nullptr : payload.scene == nullptr) ||
-        payload.layout_key != ctx->layout.key ||
-        payload.layout_key != payload.pair->layout.key || ctx->layout.sample_count != 1)
+    if ((water_depth ? (!payload.depth || !payload.auxiliary_depth || !payload.mask)
+                     : (uses_depth ? payload.depth == nullptr : payload.scene == nullptr)) ||
+        payload.layout_key != ctx->layout.key || payload.layout_key != payload.pair->layout.key ||
+        ctx->layout.sample_count != 1)
         return;
-    WGPUBindGroupEntry entries[2] = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
+    WGPUBindGroupEntry entries[4] = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT,
+                                     WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     entries[0].binding = 0;
     entries[0].textureView = uses_depth ? payload.depth : payload.scene;
-    if (payload.kind != Passthrough) {
+    if (water_depth) {
+        if (payload.uniform_size != sizeof(WaterThicknessUniforms))
+            return;
+        entries[0].textureView = payload.depth;
+        entries[1].binding = 1;
+        entries[1].textureView = payload.auxiliary_depth;
+        entries[2].binding = 2;
+        entries[2].textureView = payload.mask;
+        entries[3].binding = 3;
+        entries[3].buffer = ctx->uniform_buffer;
+        entries[3].offset = payload.uniform_offset;
+        entries[3].size = payload.uniform_size;
+    } else if (payload.kind != Passthrough) {
         auto expected_size = sizeof(grade::Uniforms);
         if (payload.kind == DepthDiagnostic)
             expected_size = sizeof(DepthUniforms);
@@ -293,7 +326,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     desc.label = {"MidnaFX scene", WGPU_STRLEN};
     desc.layout = selected.bind_layout;
-    desc.entryCount = payload.kind == Passthrough ? 1 : 2;
+    desc.entryCount = water_depth ? 4 : payload.kind == Passthrough ? 1 : 2;
     desc.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(ctx->device, &desc);
     if (group == nullptr) {
@@ -344,8 +377,11 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const bool dof_debug = settings::dof_coc_view_enabled();
     const bool depth_debug = !dof_debug && settings::atmosphere_depth_view_enabled();
     const bool depth_based_debug = depth_debug || dof_debug;
-    const bool water_capture_debug = settings::water_scene_capture_diagnostic_enabled() &&
-                                     pre_water_snapshot_ready;
+    water_probe::ThicknessInputs water_inputs{};
+    const bool water_thickness_debug =
+        !depth_based_debug && water_probe::latest_thickness_inputs(water_inputs);
+    const bool water_capture_debug =
+        settings::water_scene_capture_diagnostic_enabled() && pre_water_snapshot_ready;
     if (!depth_based_debug) {
         depth_view_warned_kind = PipelineCount;
         depth_view_logged_kind = PipelineCount;
@@ -353,7 +389,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const bool timing = settings::diagnostics_enabled();
     const auto start =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-    if (!settings::enabled() && !depth_based_debug && !water_capture_debug) {
+    if (!settings::enabled() && !depth_based_debug && !water_capture_debug &&
+        !water_thickness_debug) {
         if (timing) {
             disabled_samples.fetch_add(1, std::memory_order_relaxed);
             const auto elapsed =
@@ -367,7 +404,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     auto prepared = settings::prepared_grade();
     const auto mode = visual::debug_mode(prepared.uniforms.debug_mode);
     const bool passthrough_test = settings::passthrough_test() ||
-                                  mode == visual::DebugMode::Passthrough || water_capture_debug;
+                                  mode == visual::DebugMode::Passthrough || water_capture_debug ||
+                                  water_thickness_debug;
     const bool detail_enabled = prepared.uniforms.detail_strength > 0.0f;
     if (!depth_based_debug && prepared.neutral && !detail_enabled && !passthrough_test &&
         mode == visual::DebugMode::Final) {
@@ -410,6 +448,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     if (state.load(std::memory_order_acquire) != 1)
         return;
     std::uint32_t kind = dof_debug ? DofDiagnostic : (depth_debug ? DepthDiagnostic : Passthrough);
+    if (water_thickness_debug)
+        kind = WaterThicknessDiagnostic;
     if (!depth_based_debug && !passthrough_test)
         kind = mode == visual::DebugMode::Final ? (detail_enabled ? Detail : Grade)
                                                 : (detail_enabled ? DebugDetail : Debug);
@@ -424,7 +464,18 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         camera_target_focus = true;
     }
     GfxRange uniform_range{0, 0};
-    if (depth_based_debug) {
+    if (water_thickness_debug) {
+        CameraInfo camera = CAMERA_INFO_INIT;
+        if (!camera_probe::latest_camera_info(camera) || invalid_camera_field(camera) != nullptr)
+            return;
+        WaterThicknessUniforms uniforms{};
+        std::memcpy(uniforms.view_from_proj, camera.view_from_proj,
+                    sizeof(uniforms.view_from_proj));
+        uniforms.max_thickness = settings::atmosphere_depth_distance();
+        uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
+        if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &uniform_range) != MOD_OK)
+            return;
+    } else if (depth_based_debug) {
         CameraInfo camera = CAMERA_INFO_INIT;
         if (!camera_probe::latest_camera_info(camera) || invalid_camera_field(camera) != nullptr)
             return;
@@ -455,8 +506,9 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
             return;
         if (uniform_result != MOD_OK) {
             if (depth_view_warned_kind != kind && svc_log != nullptr) {
-                svc_log->warn(mod_ctx,
-                              "Depth-based diagnostic uniform upload failed; original frame retained");
+                svc_log->warn(
+                    mod_ctx,
+                    "Depth-based diagnostic uniform upload failed; original frame retained");
                 depth_view_warned_kind = kind;
             }
             return;
@@ -477,9 +529,15 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
     if (water_capture_debug)
         snapshot = pre_water_snapshot;
+    else if (water_thickness_debug) {
+        snapshot.depth = water_inputs.scene_depth;
+        snapshot.width = water_inputs.width;
+        snapshot.height = water_inputs.height;
+        snapshot.color_format = current.color_attachments[0].format;
+    }
     const auto before_resolve =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-    const auto resolve_result = water_capture_debug
+    const auto resolve_result = water_capture_debug || water_thickness_debug
                                     ? MOD_OK
                                     : svc_gfx->resolve_pass(mod_ctx, &request, &snapshot);
     if (timing)
@@ -489,8 +547,11 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                          std::memory_order_relaxed);
     if (resolve_result == MOD_UNAVAILABLE)
         return;
-    if (resolve_result != MOD_OK || (depth_based_debug ? snapshot.depth == nullptr
-                                                       : snapshot.color == nullptr)) {
+    if (resolve_result != MOD_OK ||
+        (water_thickness_debug
+             ? (!snapshot.depth || !water_inputs.surface_depth || !water_inputs.surface_mask)
+         : depth_based_debug ? snapshot.depth == nullptr
+                             : snapshot.color == nullptr)) {
         if (depth_based_debug) {
             if (depth_view_warned_kind != kind && svc_log != nullptr) {
                 svc_log->warn(mod_ctx,
@@ -502,7 +563,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         state.store(2, std::memory_order_release);
         return;
     }
-    if ((!depth_based_debug && snapshot.color_format != current.color_attachments[0].format) ||
+    if ((!depth_based_debug && !water_thickness_debug &&
+         snapshot.color_format != current.color_attachments[0].format) ||
         snapshot.width != current.color_attachments[0].width ||
         snapshot.height != current.color_attachments[0].height) {
         state.store(3, std::memory_order_release);
@@ -512,16 +574,24 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         snapshot_requests.fetch_add(1, std::memory_order_relaxed);
     width.store(snapshot.width, std::memory_order_relaxed);
     height.store(snapshot.height, std::memory_order_relaxed);
-    const Payload payload{snapshot.color, snapshot.depth, pair, current.key, kind,
-                          uniform_range.offset, uniform_range.size};
+    const Payload payload{snapshot.color,
+                          snapshot.depth,
+                          water_thickness_debug ? water_inputs.surface_depth : nullptr,
+                          water_thickness_debug ? water_inputs.surface_mask : nullptr,
+                          pair,
+                          current.key,
+                          kind,
+                          uniform_range.offset,
+                          uniform_range.size};
     const auto push_result = svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload));
     if (push_result == MOD_UNAVAILABLE)
         return;
     if (push_result != MOD_OK) {
         if (depth_based_debug) {
             if (depth_view_warned_kind != kind && svc_log != nullptr) {
-                svc_log->warn(mod_ctx,
-                              "Depth-based diagnostic draw submission failed; original frame retained");
+                svc_log->warn(
+                    mod_ctx,
+                    "Depth-based diagnostic draw submission failed; original frame retained");
                 depth_view_warned_kind = kind;
             }
             return;
@@ -534,27 +604,38 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         char message[192];
         std::snprintf(message, sizeof(message),
                       "Water pre-scene capture diagnostic active: color=%ux%u depth=%s",
-                      snapshot.width, snapshot.height, snapshot.depth ? "available" : "unavailable");
+                      snapshot.width, snapshot.height,
+                      snapshot.depth ? "available" : "unavailable");
         svc_log->info(mod_ctx, message);
         pre_water_capture_logged = true;
+    }
+    if (water_thickness_debug && !water_thickness_logged && svc_log != nullptr) {
+        char message[192];
+        std::snprintf(message, sizeof(message),
+                      "Water thickness diagnostic active: size=%ux%u max_depth=%.0f reversed_z=%s",
+                      snapshot.width, snapshot.height,
+                      static_cast<double>(settings::atmosphere_depth_distance()),
+                      device.uses_reversed_z ? "yes" : "no");
+        svc_log->info(mod_ctx, message);
+        water_thickness_logged = true;
     }
     if (depth_based_debug && depth_view_logged_kind != kind && svc_log != nullptr) {
         char message[224];
         if (dof_debug)
             std::snprintf(message, sizeof(message),
-                          "Depth of field focus diagnostic active: size=%ux%u focus=%.0f source=%s range=%.0f reversed_z=%s",
+                          "Depth of field focus diagnostic active: size=%ux%u focus=%.0f source=%s "
+                          "range=%.0f reversed_z=%s",
                           snapshot.width, snapshot.height,
                           static_cast<double>(active_focus_distance),
                           camera_target_focus ? "camera-target" : "manual",
                           static_cast<double>(settings::dof_focus_range()),
                           device.uses_reversed_z ? "yes" : "no");
         else
-            std::snprintf(
-                message, sizeof(message),
-                "Atmosphere depth diagnostic active: size=%ux%u range=%.0f reversed_z=%s",
-                snapshot.width, snapshot.height,
-                static_cast<double>(settings::atmosphere_depth_distance()),
-                device.uses_reversed_z ? "yes" : "no");
+            std::snprintf(message, sizeof(message),
+                          "Atmosphere depth diagnostic active: size=%ux%u range=%.0f reversed_z=%s",
+                          snapshot.width, snapshot.height,
+                          static_cast<double>(settings::atmosphere_depth_distance()),
+                          device.uses_reversed_z ? "yes" : "no");
         svc_log->info(mod_ctx, message);
         depth_view_logged_kind = kind;
     }
@@ -640,6 +721,7 @@ void initialize() {
     pre_water_snapshot = GFX_RESOLVED_TARGETS_INIT;
     pre_water_snapshot_ready = false;
     pre_water_capture_logged = false;
+    water_thickness_logged = false;
     depth_view_warned_kind = PipelineCount;
     depth_view_logged_kind = PipelineCount;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
@@ -706,11 +788,10 @@ void initialize() {
 
 void update() {
     const auto current_state = state.load(std::memory_order_acquire);
-    const bool graphics_requested = settings::enabled() ||
-                                    settings::water_scene_capture_diagnostic_enabled() ||
-                                    settings::atmosphere_depth_view_enabled() ||
-                                    settings::atmosphere_depth_probe_enabled() ||
-                                    settings::dof_coc_view_enabled();
+    const bool graphics_requested =
+        settings::enabled() || settings::water_scene_capture_diagnostic_enabled() ||
+        settings::atmosphere_depth_view_enabled() || settings::atmosphere_depth_probe_enabled() ||
+        settings::dof_coc_view_enabled();
     if ((current_state == 4 || current_state == 5) && graphics_requested) {
         const auto now = std::chrono::steady_clock::now();
         if (now >= next_init_retry)
