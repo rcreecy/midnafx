@@ -9,6 +9,7 @@
 #include <JSystem/J3DGraphBase/J3DPacket.h>
 #include <JSystem/JUtility/JUTNameTab.h>
 #include <m_Do/m_Do_ext.h>
+#include <m_Do/m_Do_graphic.h>
 #include <d/actor/d_a_bg.h>
 #include <d/actor/d_a_bg_obj.h>
 #include <d/actor/d_a_obj_groundwater.h>
@@ -18,7 +19,11 @@
 #include <d/actor/d_a_obj_onsen.h>
 #include <d/actor/d_a_obj_rstair.h>
 #include <dolphin/gx/GXBump.h>
+#include <dolphin/gx/GXAurora.h>
+#include <dolphin/gx/GXExtra.h>
+#include <dolphin/gx/GXFrameBuffer.h>
 #include <dolphin/gx/GXTev.h>
+#include <dolphin/gx/GXTexture.h>
 #include <f_op/f_op_actor_iter.h>
 #include <f_op/f_op_actor_mng.h>
 #include <mods/svc/hook.hpp>
@@ -50,6 +55,7 @@ std::unordered_set<J3DModelData*> previous_models;
 std::unordered_set<J3DModelData*> frame_classified_models;
 std::unordered_set<J3DModelData*> previous_classified_models;
 GfxStageHookHandle cleanup_hook = 0;
+GfxStageHookHandle capture_hook = 0;
 bool hooks_ready = false;
 bool lv3_water_hook = false;
 bool lv3_water2_hook = false;
@@ -62,6 +68,20 @@ std::uint64_t classified_draws = 0;
 std::uint64_t stage_scan_ns = 0;
 std::uint64_t stage_scan_frames = 0;
 bool diagnostic_was_enabled = false;
+bool surface_capture_logged = false;
+bool surface_sample_logged = false;
+alignas(32) unsigned char pre_water_capture_key[32]{};
+GXTexObj pre_water_capture_texture{};
+u16 pre_water_capture_width = 0;
+u16 pre_water_capture_height = 0;
+bool pre_water_capture_ready = false;
+
+bool diagnostic_requested() {
+    return settings::water_classification_diagnostic_enabled() ||
+           settings::water_surface_capture_diagnostic_enabled();
+}
+
+bool diagnostic_active() { return hooks_ready && cleanup_hook != 0 && diagnostic_requested(); }
 
 bool is_stage_water_candidate(const char* stage);
 
@@ -126,7 +146,7 @@ void log_model(J3DModelData* data, const char* water_class, const char* role, fl
 }
 
 void classify(J3DModel* model, const char* water_class, const char* role, float water_y) {
-    if (!settings::water_classification_diagnostic_enabled() || !hooks_ready || !model)
+    if (!diagnostic_active() || !model)
         return;
     J3DModelData* data = model->getModelData();
     if (!data)
@@ -142,7 +162,7 @@ void classify(J3DModel* model, const char* water_class, const char* role, float 
 }
 
 void inspect(J3DModel* model, const char* water_class, const char* role) {
-    if (!settings::water_classification_diagnostic_enabled() || !hooks_ready || !model)
+    if (!diagnostic_active() || !model)
         return;
     J3DModelData* data = model->getModelData();
     if (!data)
@@ -247,12 +267,39 @@ int inspect_stage_actor(void* raw_actor, void*) {
 }
 
 HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
-    if (!args || !settings::water_classification_diagnostic_enabled() || !hooks_ready)
+    if (!args || !diagnostic_active())
         return HOOK_CONTINUE;
     auto* packet = mods::arg<J3DShapePacket*>(args, 0);
     J3DShape* shape = packet ? packet->getShape() : nullptr;
     J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
     if (!material || !frame_materials.contains(material))
+        return HOOK_CONTINUE;
+
+    if (settings::water_surface_capture_diagnostic_enabled() && pre_water_capture_ready) {
+        GXLoadTexObj(&pre_water_capture_texture, GX_TEXMAP0);
+        GXSetNumIndStages(0);
+        GXSetNumTevStages(1);
+        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR_NULL);
+        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_TEXC);
+        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_TEXA);
+        GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE,
+                        GX_TEVPREV);
+        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE,
+                        GX_TEVPREV);
+        if (!surface_sample_logged && svc_log) {
+            char message[192];
+            std::snprintf(message, sizeof(message),
+                          "Water surface capture sampled {material=%p size=%ux%u}",
+                          static_cast<void*>(material), pre_water_capture_width,
+                          pre_water_capture_height);
+            svc_log->info(mod_ctx, message);
+            surface_sample_logged = true;
+        }
+        ++classified_draws;
+        return HOOK_CONTINUE;
+    }
+
+    if (!settings::water_classification_diagnostic_enabled())
         return HOOK_CONTINUE;
 
     constexpr GXColor magenta{255, 0, 255, 255};
@@ -270,12 +317,84 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     return HOOK_CONTINUE;
 }
 
+void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*) {
+    pre_water_capture_ready = false;
+    if (!context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
+        !settings::water_surface_capture_diagnostic_enabled())
+        return;
+    const u16 width = static_cast<u16>(mDoGph_gInf_c::getWidth());
+    const u16 height = static_cast<u16>(mDoGph_gInf_c::getHeight());
+    if (width == 0 || height == 0)
+        return;
+    if (width != pre_water_capture_width || height != pre_water_capture_height) {
+        GXDestroyTexObj(&pre_water_capture_texture);
+        GXDestroyCopyTex(pre_water_capture_key);
+        GXInitTexObj(&pre_water_capture_texture, pre_water_capture_key, width, height,
+                     GX_TF_RGBA8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+        GXInitTexObjLOD(&pre_water_capture_texture, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f,
+                        0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
+        pre_water_capture_width = width;
+        pre_water_capture_height = height;
+    }
+    GXSetTexCopySrc(0, 0, width, height);
+    GXSetTexCopyDst(width, height, GX_TF_RGBA8, GX_FALSE);
+    GXCopyTex(pre_water_capture_key, GX_FALSE);
+    pre_water_capture_ready = true;
+    if (!surface_capture_logged && svc_log) {
+        char message[160];
+        std::snprintf(message, sizeof(message),
+                      "Water surface capture ready {size=%ux%u format=RGBA8}", width, height);
+        svc_log->info(mod_ctx, message);
+        surface_capture_logged = true;
+    }
+}
+
 void clear_after_frame(ModContext*, const GfxStageContext*, void*) {
+    pre_water_capture_ready = false;
     frame_materials.clear();
     previous_models = frame_models;
     frame_models.clear();
     previous_classified_models = frame_classified_models;
     frame_classified_models.clear();
+}
+
+void release_pre_water_capture() {
+    pre_water_capture_ready = false;
+    if (pre_water_capture_width != 0 || pre_water_capture_height != 0) {
+        GXDestroyTexObj(&pre_water_capture_texture);
+        GXDestroyCopyTex(pre_water_capture_key);
+        pre_water_capture_width = 0;
+        pre_water_capture_height = 0;
+    }
+}
+
+void update_stage_hooks() {
+    if (!svc_gfx || !hooks_ready)
+        return;
+    const bool requested = diagnostic_requested();
+    if (requested && cleanup_hook == 0) {
+        GfxStageHookDesc cleanup = GFX_STAGE_HOOK_DESC_INIT;
+        cleanup.callback = clear_after_frame;
+        if (svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_FRAME_AFTER_HUD, &cleanup,
+                                         &cleanup_hook) != MOD_OK)
+            return;
+    } else if (!requested && cleanup_hook != 0) {
+        svc_gfx->unregister_stage_hook(mod_ctx, cleanup_hook);
+        cleanup_hook = 0;
+    }
+
+    const bool capture_requested = settings::water_surface_capture_diagnostic_enabled();
+    if (capture_requested && capture_hook == 0) {
+        GfxStageHookDesc capture = GFX_STAGE_HOOK_DESC_INIT;
+        capture.callback = capture_pre_water_scene;
+        if (svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_SCENE_AFTER_OPAQUE, &capture,
+                                         &capture_hook) != MOD_OK)
+            release_pre_water_capture();
+    } else if (!capture_requested && capture_hook != 0) {
+        svc_gfx->unregister_stage_hook(mod_ctx, capture_hook);
+        capture_hook = 0;
+        release_pre_water_capture();
+    }
 }
 
 template <class Hook>
@@ -323,15 +442,12 @@ void initialize() {
     stage_scan_ns = 0;
     stage_scan_frames = 0;
     diagnostic_was_enabled = false;
+    surface_capture_logged = false;
+    surface_sample_logged = false;
     cleanup_hook = 0;
+    capture_hook = 0;
     hooks_ready = false;
     if (!svc_hook || !svc_gfx)
-        return;
-
-    GfxStageHookDesc cleanup = GFX_STAGE_HOOK_DESC_INIT;
-    cleanup.callback = clear_after_frame;
-    if (svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_FRAME_AFTER_HUD, &cleanup,
-                                     &cleanup_hook) != MOD_OK)
         return;
 
     lv3_water_hook = add_pre<Lv3WaterDraw>(on_lv3_water, "lakebed");
@@ -350,8 +466,6 @@ void initialize() {
     hooks_ready = shape_hook && classifier_count != 0;
     if (!hooks_ready) {
         uninstall_hooks();
-        svc_gfx->unregister_stage_hook(mod_ctx, cleanup_hook);
-        cleanup_hook = 0;
         if (svc_log)
             svc_log->warn(mod_ctx, "Water classification diagnostic unavailable; failed closed");
     } else if (svc_log) {
@@ -361,10 +475,12 @@ void initialize() {
                       classifier_count);
         svc_log->info(mod_ctx, message);
     }
+    update_stage_hooks();
 }
 
 void update() {
-    const bool enabled = settings::water_classification_diagnostic_enabled();
+    update_stage_hooks();
+    const bool enabled = diagnostic_active();
     if (enabled && hooks_ready && is_stage_water_candidate(dComIfGp_getStartStageName())) {
         const auto started = std::chrono::steady_clock::now();
         (void)fopAcIt_Executor(inspect_stage_actor, nullptr);
@@ -397,6 +513,10 @@ void shutdown() {
     uninstall_hooks();
     if (svc_gfx && cleanup_hook)
         svc_gfx->unregister_stage_hook(mod_ctx, cleanup_hook);
+    if (svc_gfx && capture_hook)
+        svc_gfx->unregister_stage_hook(mod_ctx, capture_hook);
     cleanup_hook = 0;
+    capture_hook = 0;
+    release_pre_water_capture();
 }
 } // namespace midnafx::water_probe
