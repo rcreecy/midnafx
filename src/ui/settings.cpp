@@ -937,7 +937,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_number(panel, smoothing_angle_setting);
     add_toggle(panel, "Validated skinned model shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Hard normal splits and material boundaries are always preserved. Unknown or ambiguous models are skipped. "
+        "Hard normal splits and material boundaries are always preserved. Unsupported or ambiguous models are skipped. "
         "Enable before loading a scene. Disable restores source normals; enabling again requires a scene reload.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
     UiControlDesc debug = UI_CONTROL_DESC_INIT;
