@@ -9,8 +9,8 @@ evidence. A source match or successful build does not pass a runtime gate.
 
 | Gate | Status | Evidence still required |
 | --- | --- | --- |
-| 1: classify water | In progress | Obvious default-off diagnostic on representative outdoor, dungeon, shallow/current, and underwater scenes; nearby non-water translucency must remain unchanged. |
-| 2: pre-water scene color | In progress | Runtime proof that a snapshot contains opaque submerged geometry, excludes the water draw itself, survives resize, and produces no WebGPU validation errors. |
+| 1: classify water | **PASS** | Runtime proof covers outdoor, shallow, dungeon, boss, moving/current, and underwater scenes. Unknown paths fail closed. |
+| 2: pre-water scene color | **INCOMPLETE** | The boundary and snapshot are proven. A safe supported bridge from its frame-scoped WebGPU view into an exact classified GX/J3D water draw is still missing. |
 | 3: optical thickness | Not started | Stable shallow-to-deep diagnostic on several scenes after Gates 1 and 2 pass. |
 
 No optical replacement is enabled. Absorption, animated normal detail,
@@ -174,6 +174,15 @@ wooden platform and surrounding rock remain unchanged. Local evidence is
 lake, so it is not useful visual evidence despite loading the same classified
 materials.
 
+`R_SP107`, room 1, start point 2, layer 13 exercises the generic `Water00`
+actor. Its primary model contains `cc_MA06_nigori_v_x`, `dd_MA09_mera_v`, and
+two `ee_MA03_ryusui_v_x` materials; its projected companion contains
+`cc_MA02_waterb_v`. The solid-magenta diagnostic followed the complete moving
+surface while Link was swimming. Stone channels, gates, Link, the map, and the
+underwater presentation remained unmarked. A matched diagnostic/original pair
+is stored locally as `build/m12-water-lakebed/sewers-moving-water-start2.png`
+and `build/m12-water-lakebed/sewers-moving-water-start2-original.png`.
+
 Earlier explicit-actor proofs remain valid:
 
 * `D_MN01`, room 3: primary and projected Lakebed water models marked; nearby
@@ -192,10 +201,46 @@ Stage actor discovery consumed 6,472 microseconds over 643 frames, about 10.1
 microseconds per frame while the developer diagnostic was enabled. This scan and
 all material-name work are bypassed while the default-off diagnostic is disabled.
 
-Gate 1 remains **in progress**. Current proof covers dungeon, boss, Lake Hylia,
-and Fishing Pond classes. Moving/current water, underwater presentation,
-waterfall-adjacent behavior, disable/re-enable lifecycle, and measured diagnostic
-CPU cost remain required before Gate 1 can pass.
+Gate 1 is **PASS** for the representative classes required to choose exact water
+surfaces. Proof covers dungeon, boss, Lake Hylia, Fishing Pond, generic moving
+water, and an underwater/swimming state. The Fishing Pond stage also contains
+the distinct `cd_MA03_TakiKasan_v_x` waterfall material. It is excluded from the
+water-surface allowlist, consistent with source evidence that `daObjWaterFall`
+owns flow/gameplay behavior but submits no surface model. Hot springs remain a
+catalogued, story-layer-gated coverage case rather than a prerequisite for the
+first optical prototype. Unrecognized actors and stage materials remain native.
+
+## Gate 2 runtime evidence
+
+The default-off `water_scene_capture_diagnostic` resolves color and depth at
+`GFX_STAGE_SCENE_AFTER_OPAQUE`, retains the borrowed views for the current frame
+only, and presents the captured color at `GFX_STAGE_FRAME_BEFORE_HUD`. A
+`GFX_STAGE_SCENE_BEGIN` callback clears all borrowed handles so an early return
+cannot carry stale views into another frame.
+
+At `F_SP127`, room 0, the diagnostic displayed the opaque terrain and submerged
+geometry behind the Fishing Pond surface. The native water surface was absent,
+which proves it was not recursively included. Link and opaque scene geometry
+were present; the HUD rendered afterward and remained live. The captured color
+was 1216x896 and matching raw depth was available. Local evidence is
+`build/m12-water-lakebed/fishing-pond-prewater-capture.png`.
+
+Resizing the host window to 960x720 rebuilt the scene layout and continued to
+display the correct pre-water image without stretching, stale views, a crash,
+or a WebGPU/D3D12 validation error. Local evidence is
+`build/m12-water-lakebed/fishing-pond-prewater-resized.png`. The ordinary card
+warning `Failed to open file: gczelda2` remained the only error-level message.
+
+This proves the public scene-color/depth boundary. It does not yet prove that a
+classified water shape can directly sample the snapshot. `resolve_pass` returns
+borrowed WebGPU views, while TP water is submitted through GX/J3D. MidnaFX has
+no supported conversion from a `WGPUTextureView` to a GX texture binding and no
+draw-scoped Gfx callback carrying the current J3D shape. Retaining the view past
+the frame, using framebuffer color matching as a mask, or overwriting TP's shared
+EFB-copy buffers would violate the ownership or correctness requirements.
+
+Gate 2 therefore remains **INCOMPLETE** and Gate 3 has not started. No thickness,
+absorption, refraction, Fresnel, reflection, shoreline, or SSR code is present.
 
 ## Test matrix for Gate 1
 
@@ -209,25 +254,27 @@ CPU cost remain required before Gate 1 can pass.
 | Underwater | any stable swimmable scene | Surface identity remains stable; underwater overlay and particles remain unmarked. |
 | Waterfall adjacent | stage with `daObjWaterFall` | Surface classification does not consume waterfall gameplay actor or unrelated spray. |
 
-## Smallest likely host contract
+## Smallest required host contract
 
-Gate 1 can begin with HookService and exact resource/material identity. Gate 2
-should first use public `GFX_STAGE_SCENE_AFTER_OPAQUE` plus `resolve_pass`; this
-already provides frame-scoped color/depth snapshots with viewport ownership and
-resize handling.
+The existing `GFX_STAGE_SCENE_AFTER_OPAQUE` and `resolve_pass` contract is an
+adequate capture boundary. The remaining requirement is a portable way for an
+exact classified GX/J3D draw to consume that frame-scoped snapshot. The smallest
+generally useful Dusklight extension is a draw-scoped callback around J3D/GX
+shape submission that carries stable model/material/shape identity and permits a
+mod draw using the current scene layout, depth state, and borrowed resolved
+views. An alternative is an explicit host-managed bridge that exposes a resolved
+view as a frame-scoped GX texture binding. Either contract must define command
+ordering, viewport mapping, resize behavior, and borrowed-resource lifetime.
 
-If runtime proof shows that a water component needs a capture after a narrower
-opaque sub-list or before an invisible companion draw, the smallest generally
-useful Dusklight extension is a documented scene stage between opaque completion
-and translucent-background submission, or a scoped draw-pass callback carrying
-draw-list and J3D model/material identity. MidnaFX must not retain borrowed views
-or use backend-specific framebuffer access.
+MidnaFX should not implement a backend-specific texture import, infer a mask from
+framebuffer color, retain the borrowed view after the frame, or reuse TP's native
+EFB-copy storage. Once one of these contracts exists, the next experiment is to
+render only the already-classified Fishing Pond surface from the captured color,
+then repeat on `Water00` and Lakebed paired primary/projected models.
 
 ## Open questions
 
-* Exact Lake Hylia and other stage-water material/shape/resource identities.
-* Which `MAxx` suffixes identify water rather than other projected environment
-  materials in representative stages.
+* Additional exact identities for story-layer-gated hot springs and rotating-stair water.
 * Per-class GX blend, depth test/write, textures, and animated texture state.
 * Whether primary and projected models can be replaced as one optical surface
   without double composition.
@@ -237,4 +284,5 @@ or use backend-specific framebuffer access.
 * Whether semantic collision water planes align closely enough with rendered
   geometry for stable thickness reconstruction.
 
-Until runtime diagnostics answer these questions, M12 Gate 1 remains incomplete.
+Gate 1 is complete. Gate 2 stops at the missing surface-consumption contract
+described above.
