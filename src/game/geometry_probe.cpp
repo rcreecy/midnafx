@@ -564,9 +564,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
             exact, false};
         qualification = smoothing::qualify(result, positions, normals, representation, options);
         smooth = std::move(qualification.smoothing);
-        smooth_us = std::chrono::duration_cast<std::chrono::microseconds>(
-                        std::chrono::steady_clock::now() - smoothing_begin)
-                        .count();
+        smooth_us = static_cast<long long>(qualification.smoothing_us);
         peak_vector_bytes = std::max(
             peak_vector_bytes, vector_bytes(result.triangles) + vector_bytes(positions) +
                                    vector_bytes(normals) + qualification.working_vector_bytes);

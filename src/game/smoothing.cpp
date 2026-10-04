@@ -253,6 +253,13 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
                       std::span<const Vec3> originals, Representation representation,
                       Options options) {
     Qualification out;
+    struct Edge {
+        std::uint16_t a, b;
+        std::uint32_t ca, cb;
+    };
+    std::vector<Edge> edges;
+    std::vector<std::uint32_t> parent;
+    std::vector<std::vector<std::uint32_t>> refs;
     const auto begin = std::chrono::steady_clock::now();
     const auto elapsed = [](auto start) {
         return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
@@ -263,6 +270,8 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
         out.classification = state;
         out.reason = reason;
         out.classification_us = elapsed(begin);
+        out.working_vector_bytes = std::max(out.working_vector_bytes,
+            vector_bytes(edges) + vector_bytes(parent) + nested_vector_bytes(refs));
         return out;
     };
     if (representation.known_bad)
@@ -283,14 +292,9 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
     if (mesh.degenerate_count || mesh.ignored_nontriangles)
         return reject(Class::Ambiguous, "degenerate or nontriangle primitives");
 
-    struct Edge {
-        std::uint16_t a, b;
-        std::uint32_t ca, cb;
-    };
-    std::vector<Edge> edges;
-    std::vector<std::uint32_t> parent(mesh.triangles.size() * 3);
+    parent.resize(mesh.triangles.size() * 3);
     std::iota(parent.begin(), parent.end(), 0);
-    std::vector<std::vector<std::uint32_t>> refs(positions.size());
+    refs.resize(positions.size());
     edges.reserve(parent.size());
     const auto root = [&](std::uint32_t i) {
         while (parent[i] != i) {
