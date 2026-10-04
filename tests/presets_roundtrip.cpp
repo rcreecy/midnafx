@@ -25,7 +25,7 @@ int main() {
     CHECK(!presets::decode("MFX1\nBroken\t0,0,100,100,100,0,0,999,255\n", decoded));
     CHECK(decoded[0].name == "Warm Night");
     CHECK(!presets::decode(encoded + encoded.substr(5), decoded));
-    CHECK(!presets::decode("MFX3\n", decoded));
+    CHECK(!presets::decode("MFX4\n", decoded));
     CHECK(!presets::decode("MFX2\nBad\t0,0,100,100,100,0,0,0,255,1,99\n", decoded));
     CHECK(presets::decode("MFX1\nLegacy\t0,0,100,100,100,0,0,0,255\n", decoded));
     CHECK(decoded.size() == 1 && !decoded[0].snapshot.detail_enabled);
@@ -46,4 +46,19 @@ int main() {
     CHECK(decoded[0].snapshot.detail_strength == realism.detail_strength);
     // Built-in labels use a slash so existing saved names cannot collide.
     CHECK(!presets::valid_name("Natural / Vivid Realism"));
+    CHECK(presets::decode("MFX2\nLegacy\t0,0,100,100,100,0,0,0,255,1,12\n", decoded));
+    CHECK(decoded[0].snapshot.product_flags == -1);
+    for (int flags = -1; flags <= 63; ++flags) {
+        auto snapshot = realism;
+        snapshot.product_flags = flags;
+        CHECK(presets::decode(presets::encode({{"Product", snapshot}}), decoded));
+        CHECK(decoded[0].snapshot.product_flags == flags);
+        CHECK(decoded[0].snapshot.values == realism.values);
+    }
+    const auto retained = decoded[0].snapshot.product_flags;
+    CHECK(!presets::decode("MFX3\nBad\t0,0,100,100,100,0,0,0,255,1,12,64\n", decoded));
+    CHECK(decoded[0].snapshot.product_flags == retained);
+    CHECK(presets::vanilla_plus().product_flags == presets::Grading);
+    CHECK(presets::enhanced().product_flags == (presets::Grading | presets::Camera));
+    CHECK((presets::enhanced().product_flags & presets::Dof) == 0);
 }

@@ -1,5 +1,6 @@
 #include "presets.hpp"
 
+#include <algorithm>
 #include <charconv>
 #include <limits>
 #include <string_view>
@@ -14,7 +15,14 @@ bool number(std::string_view text, std::int64_t& result) {
     const auto parsed = std::from_chars(text.data(), text.data() + text.size(), result);
     return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size();
 }
-bool parse_row(std::string_view row, bool version_two, Entry& entry) {
+bool parse_row(std::string_view row, unsigned version, Entry& entry) {
+    if (version == 3) {
+        const auto last = row.rfind(',');
+        if (last == row.npos || !number(row.substr(last + 1), entry.snapshot.product_flags) ||
+            entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 63)
+            return false;
+        row = row.substr(0, last);
+    }
     const auto tab = row.find('\t');
     if (tab == row.npos)
         return false;
@@ -32,7 +40,7 @@ bool parse_row(std::string_view row, bool version_two, Entry& entry) {
         row.remove_prefix(comma + 1);
     }
     std::int64_t mask = 0;
-    if (version_two) {
+    if (version >= 2) {
         const auto first = row.find(',');
         if (first == row.npos || !number(row.substr(0, first), mask))
             return false;
@@ -70,7 +78,10 @@ bool valid_name(const std::string& name) {
 std::string encode(const std::vector<Entry>& entries) {
     if (entries.size() > Maximum)
         return {};
-    std::string result = "MFX2\n";
+    const bool product = std::any_of(entries.begin(), entries.end(), [](const Entry& entry) {
+        return entry.snapshot.product_flags != -1;
+    });
+    std::string result = product ? "MFX3\n" : "MFX2\n";
     for (const auto& entry : entries) {
         if (!valid_name(entry.name))
             return {};
@@ -92,6 +103,12 @@ std::string encode(const std::vector<Entry>& entries) {
         result += entry.snapshot.detail_enabled ? '1' : '0';
         result += ',';
         result += std::to_string(entry.snapshot.detail_strength);
+        if (entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 63)
+            return {};
+        if (product) {
+            result += ',';
+            result += std::to_string(entry.snapshot.product_flags);
+        }
         result += '\n';
     }
     return result.size() <= 8192 ? result : std::string{};
@@ -102,9 +119,10 @@ bool decode(const std::string& text, std::vector<Entry>& output) {
         output.clear();
         return true;
     }
-    if (text.size() > 8192 || (text.substr(0, 5) != "MFX1\n" && text.substr(0, 5) != "MFX2\n"))
+    if (text.size() > 8192 || (text.substr(0, 5) != "MFX1\n" && text.substr(0, 5) != "MFX2\n" &&
+                               text.substr(0, 5) != "MFX3\n"))
         return false;
-    const bool version_two = text[3] == '2';
+    const unsigned version = text[3] - '0';
     std::vector<Entry> parsed;
     std::string_view remaining(text.data() + 5, text.size() - 5);
     while (!remaining.empty()) {
@@ -112,7 +130,7 @@ bool decode(const std::string& text, std::vector<Entry>& output) {
         if (end == remaining.npos || parsed.size() >= Maximum)
             return false;
         Entry next;
-        if (!parse_row(remaining.substr(0, end), version_two, next))
+        if (!parse_row(remaining.substr(0, end), version, next))
             return false;
         for (const auto& prior : parsed)
             if (prior.name == next.name)
@@ -139,6 +157,21 @@ Snapshot smoke_test() {
     result.values = {120, 12, 145, 85, 0, 70, 85, -65};
     result.detail_enabled = true;
     result.detail_strength = 35;
+    return result;
+}
+
+Snapshot vanilla_plus() {
+    Snapshot result;
+    result.values = {0, 0, 100, 101, 103, 10, 0, 0};
+    result.detail_enabled = true;
+    result.detail_strength = 8;
+    result.product_flags = Grading;
+    return result;
+}
+Snapshot enhanced() {
+    auto result = vivid_realism();
+    // Geometry and DOF remain explicit opt-ins until broad art validation.
+    result.product_flags = Grading | Camera;
     return result;
 }
 } // namespace midnafx::presets

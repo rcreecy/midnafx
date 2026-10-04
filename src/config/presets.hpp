@@ -8,11 +8,21 @@
 
 namespace midnafx::presets {
 constexpr std::size_t Maximum = 16;
+enum ProductFlag {
+    Grading = 1,
+    Geometry = 2,
+    SkinnedGeometry = 4,
+    Camera = 8,
+    LowerCamera = 16,
+    Dof = 32
+};
 struct Snapshot {
     std::array<std::int64_t, grade::Count> values{0, 0, 100, 100, 100, 0, 0, 0};
     std::array<bool, grade::Count> active{true, true, true, true, true, true, true, true};
     bool detail_enabled = false;
     std::int64_t detail_strength = 20;
+    // -1 preserves the legacy grading-only application contract.
+    std::int64_t product_flags = -1;
 };
 struct Entry {
     std::string name;
@@ -23,4 +33,6 @@ std::string encode(const std::vector<Entry>& entries);
 bool decode(const std::string& text, std::vector<Entry>& output);
 Snapshot smoke_test();
 Snapshot vivid_realism();
+Snapshot vanilla_plus();
+Snapshot enhanced();
 } // namespace midnafx::presets

@@ -73,6 +73,8 @@ NumberSetting dof_blur_radius_setting{
 NumberSetting dof_focus_transition_setting{
     "dof_focus_transition_cs", "Autofocus transition (0.01 s)", 0, 100, 20, 20, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
+constexpr const char* VanillaPlusName = "Profile / Vanilla+";
+constexpr const char* EnhancedName = "Profile / Enhanced";
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
     "Final",           "Passthrough", "A/B Split", "Luminance", "Highlight Clipping",
@@ -98,6 +100,7 @@ twilight::State logged_twilight_state = twilight::State::Unavailable;
 int logged_twilight_endpoint = -1;
 bool twilight_log_initialized = false;
 UiElementHandle status_element = 0, detail_element = 0, camera_element = 0;
+UiElementHandle geometry_element = 0;
 std::chrono::steady_clock::time_point next_refresh{};
 bool warned_ui = false;
 double config_update_us = 0.0;
@@ -149,9 +152,11 @@ std::size_t preset_index() {
         return 2;
     if (selected_preset == RealismName)
         return 3;
+    if (selected_preset == VanillaPlusName) return 4;
+    if (selected_preset == EnhancedName) return 5;
     for (std::size_t i = 0; i < saved_presets.size(); ++i)
         if (saved_presets[i].name == selected_preset)
-            return i + 4;
+            return i + 6;
     return 1;
 }
 presets::Snapshot capture() {
@@ -160,6 +165,12 @@ presets::Snapshot capture() {
         value.values[i] = effects[i].value;
         value.active[i] = effects[i].active;
     }
+    value.product_flags = (master.value ? presets::Grading : 0) |
+        (geometry_smoothing.value ? presets::Geometry : 0) |
+        (geometry_skinned_smoothing.value ? presets::SkinnedGeometry : 0) |
+        (camera_toggle.value ? presets::Camera : 0) |
+        (camera_lower_angle.value ? presets::LowerCamera : 0) |
+        (dof_blur.value ? presets::Dof : 0);
     value.detail_enabled = detail_toggle.value;
     value.detail_strength = detail_strength_setting.value;
     return value;
@@ -179,6 +190,8 @@ void refresh_preset_options() {
     options.push_back({sizeof(UiControlOption), "Custom", true});
     options.push_back({sizeof(UiControlOption), SmokeName, true});
     options.push_back({sizeof(UiControlOption), RealismName, true});
+    options.push_back({sizeof(UiControlOption), VanillaPlusName, true});
+    options.push_back({sizeof(UiControlOption), EnhancedName, true});
     for (const auto& preset : saved_presets)
         options.push_back({sizeof(UiControlOption), preset.name.c_str(), true});
     check_ui(svc_ui->control_set_options(mod_ctx, preset_control, options.data(), options.size()));
@@ -186,27 +199,53 @@ void refresh_preset_options() {
 void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
     remember_custom();
     applying_preset = true;
+    bool persisted = true;
+    const auto save_warning = [&](const char* message) {
+        persisted = false;
+        warn(message);
+    };
     for (unsigned i = 0; i < grade::Count; ++i) {
         auto& effect = effects[i];
         effect.value = snapshot.values[i];
         effect.active = snapshot.active[i];
         if (svc_config && effect.value_handle &&
             svc_config->set_int(mod_ctx, effect.value_handle, effect.value) != MOD_OK)
-            warn("Could not save a preset value.");
+            save_warning("Could not save a preset value.");
         if (svc_config && effect.active_handle &&
             svc_config->set_bool(mod_ctx, effect.active_handle, effect.active) != MOD_OK)
-            warn("Could not save a preset toggle.");
+            save_warning("Could not save a preset toggle.");
     }
     detail_toggle.value = snapshot.detail_enabled;
     detail_strength_setting.value = snapshot.detail_strength;
     if (svc_config && detail_toggle.handle &&
         svc_config->set_bool(mod_ctx, detail_toggle.handle, detail_toggle.value) != MOD_OK)
-        warn("Could not save preset detail toggle.");
+        save_warning("Could not save preset detail toggle.");
     if (svc_config && detail_strength_setting.handle &&
         svc_config->set_int(mod_ctx, detail_strength_setting.handle,
                             detail_strength_setting.value) != MOD_OK)
-        warn("Could not save preset detail strength.");
-    selected_preset = name;
+        save_warning("Could not save preset detail strength.");
+    if (snapshot.product_flags >= 0) {
+        const auto apply_toggle = [&](Toggle& toggle, int flag) {
+            const bool enabled = (snapshot.product_flags & flag) != 0;
+            if (svc_config && toggle.handle &&
+                svc_config->set_bool(mod_ctx, toggle.handle, enabled) != MOD_OK) {
+                save_warning("Could not save a profile toggle.");
+                return;
+            }
+            toggle.value = enabled;
+        };
+        apply_toggle(master, presets::Grading);
+        apply_toggle(geometry_smoothing, presets::Geometry);
+        apply_toggle(geometry_skinned_smoothing, presets::SkinnedGeometry);
+        apply_toggle(camera_toggle, presets::Camera);
+        apply_toggle(camera_lower_angle, presets::LowerCamera);
+        apply_toggle(dof_blur, presets::Dof);
+        if (!geometry_smoothing.value) geometry_probe::restore_smoothing(false);
+        if (!geometry_skinned_smoothing.value) geometry_probe::restore_smoothing(true);
+    }
+    // A failed config write must not advertise a completely applied profile.
+    // Keep the saved Custom snapshot available for explicit recovery.
+    selected_preset = persisted ? name : "Custom";
     persist_selection();
     applying_preset = false;
     update_grade();
@@ -265,7 +304,9 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
         if ((user == &geometry_smoothing || user == &geometry_skinned_smoothing) &&
             !value->bool_value)
             geometry_probe::restore_smoothing(user == &geometry_skinned_smoothing);
-        if (user == &detail_toggle && !applying_preset) {
+        if ((user == &detail_toggle || user == &master || user == &geometry_smoothing ||
+             user == &geometry_skinned_smoothing || user == &camera_toggle ||
+             user == &camera_lower_angle || user == &dof_blur) && !applying_preset) {
             mark_custom();
             update_grade();
         }
@@ -380,7 +421,11 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
         geometry_probe::restore_mutation();
     if (&toggle == &geometry_smoothing && !toggle.value)
         geometry_probe::restore_smoothing(false);
-    if (&toggle == &detail_toggle) {
+    if (&toggle == &geometry_skinned_smoothing && !toggle.value)
+        geometry_probe::restore_smoothing(true);
+    if (&toggle == &detail_toggle || &toggle == &master || &toggle == &geometry_smoothing ||
+        &toggle == &geometry_skinned_smoothing || &toggle == &camera_toggle ||
+        &toggle == &camera_lower_angle || &toggle == &dof_blur) {
         mark_custom();
         update_grade();
     }
@@ -494,14 +539,17 @@ void set_preset(ModContext*, void*, const UiControlValue* in) {
         apply_preset(presets::smoke_test(), SmokeName);
     else if (index == 3)
         apply_preset(presets::vivid_realism(), RealismName);
-    else if (index >= 4 && static_cast<std::size_t>(index - 4) < saved_presets.size()) {
-        const auto& preset = saved_presets[static_cast<std::size_t>(index - 4)];
+    else if (index == 4) apply_preset(presets::vanilla_plus(), VanillaPlusName);
+    else if (index == 5) apply_preset(presets::enhanced(), EnhancedName);
+    else if (index >= 6 && static_cast<std::size_t>(index - 6) < saved_presets.size()) {
+        const auto& preset = saved_presets[static_cast<std::size_t>(index - 6)];
         apply_preset(preset.snapshot, preset.name);
     }
 }
 void save_preset(ModContext*, void*) {
     if (selected_preset != "Vanilla" && selected_preset != "Custom" &&
-        selected_preset != SmokeName && selected_preset != RealismName) {
+        selected_preset != SmokeName && selected_preset != RealismName &&
+        selected_preset != VanillaPlusName && selected_preset != EnhancedName) {
         for (auto& preset : saved_presets)
             if (preset.name == selected_preset) {
                 preset.snapshot = capture();
@@ -542,11 +590,14 @@ void load_preset(ModContext*, void*) {
         apply_preset(presets::smoke_test(), SmokeName);
     else if (index == 3)
         apply_preset(presets::vivid_realism(), RealismName);
-    else if (index >= 4)
-        apply_preset(saved_presets[index - 4].snapshot, saved_presets[index - 4].name);
+    else if (index == 4) apply_preset(presets::vanilla_plus(), VanillaPlusName);
+    else if (index == 5) apply_preset(presets::enhanced(), EnhancedName);
+    else if (index >= 6 && index - 6 < saved_presets.size())
+        apply_preset(saved_presets[index - 6].snapshot, saved_presets[index - 6].name);
 }
 void capture_twilight_target(ModContext*, void*) {
-    const auto snapshot = capture();
+    auto snapshot = capture();
+    snapshot.product_flags = -1;
     const auto encoded = presets::encode({{"Twilight", snapshot}});
     if (encoded.empty() ||
         (svc_config && twilight_target_handle &&
@@ -609,6 +660,23 @@ void register_twilight_target() {
     } else
         warn("Invalid saved Twilight target; automatic profile inactive.");
 }
+// New storage is authoritative once written. Legacy keys remain untouched for rollback.
+void migrate_profile_storage(const char* legacy_name, ConfigVarHandle product) {
+    ConfigVarDesc desc = CONFIG_VAR_DESC_INIT;
+    desc.type = CONFIG_VAR_STRING;
+    desc.name = legacy_name;
+    ConfigVarHandle legacy = 0;
+    if (svc_config->register_var(mod_ctx, &desc, &legacy) != MOD_OK) return;
+    size_t length = 0;
+    if (svc_config->get_string(mod_ctx, product, nullptr, 0, &length) != MOD_OK || length != 0) return;
+    if (svc_config->get_string(mod_ctx, legacy, nullptr, 0, &length) != MOD_OK || !length || length > 8192) return;
+    std::string text(length + 1, '\0');
+    if (svc_config->get_string(mod_ctx, legacy, text.data(), text.size(), nullptr) != MOD_OK) return;
+    text.resize(length);
+    std::vector<presets::Entry> parsed;
+    if (presets::decode(text, parsed) && svc_config->set_string(mod_ctx, product, text.c_str()) != MOD_OK)
+        warn("Could not copy legacy presets; original data retained.");
+}
 void register_presets() {
     saved_presets.clear();
     selected_preset = "Custom";
@@ -617,9 +685,10 @@ void register_presets() {
     if (!svc_config)
         return;
     ConfigVarDesc desc = CONFIG_VAR_DESC_INIT;
-    desc.name = "preset_data";
+    desc.name = "profile_data";
     desc.type = CONFIG_VAR_STRING;
     if (svc_config->register_var(mod_ctx, &desc, &presets_handle) == MOD_OK) {
+        migrate_profile_storage("preset_data", presets_handle);
         size_t length = 0;
         if (svc_config->get_string(mod_ctx, presets_handle, nullptr, 0, &length) == MOD_OK) {
             if (length <= 8192) {
@@ -635,9 +704,10 @@ void register_presets() {
         }
     }
     desc = CONFIG_VAR_DESC_INIT;
-    desc.name = "custom_data";
+    desc.name = "profile_custom_data";
     desc.type = CONFIG_VAR_STRING;
     if (svc_config->register_var(mod_ctx, &desc, &custom_handle) == MOD_OK) {
+        migrate_profile_storage("custom_data", custom_handle);
         size_t length = 0;
         if (svc_config->get_string(mod_ctx, custom_handle, nullptr, 0, &length) == MOD_OK &&
             length <= 8192) {
@@ -665,7 +735,8 @@ void register_presets() {
             if (svc_config->get_string(mod_ctx, selected_handle, name.data(), name.size(),
                                        nullptr) == MOD_OK) {
                 name.resize(length);
-                if (name == "Vanilla" || name == "Custom" || name == SmokeName || name == RealismName)
+                if (name == "Vanilla" || name == "Custom" || name == SmokeName || name == RealismName ||
+                    name == VanillaPlusName || name == EnhancedName)
                     selected_preset = name;
                 else
                     for (const auto& entry : saved_presets)
@@ -676,6 +747,15 @@ void register_presets() {
     }
 }
 void refresh_status() {
+    if (geometry_element) {
+        const auto geometry = geometry_probe::summary();
+        char text[384];
+        std::snprintf(text, sizeof(text),
+            "Since mod load: %u examined, %u processed, %u skipped. Last: %s (%s), known-good: %s. "
+            "Structural qualification does not imply visual approval.", geometry.examined, geometry.applied,
+            geometry.skipped, geometry.classification, geometry.reason, geometry.known_good ? "yes" : "no");
+        check_ui(svc_ui->elem_set_text(mod_ctx, geometry_element, text));
+    }
     const auto data = render::diagnostics();
     char status[512];
     const auto active_grade = prepared_grade();
@@ -767,22 +847,29 @@ void refresh_status() {
 }
 ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     status_element = detail_element = camera_element = 0;
+    geometry_element = 0;
     preset_control = 0;
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "MidnaFX"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
-    add_toggle(panel, "Force passthrough comparison", passthrough);
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Presets"));
-    std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName};
+    add_toggle(panel, "Enhanced model shading", geometry_smoothing);
+    add_toggle(panel, "Modern exploration camera", camera_toggle);
+    add_toggle(panel, "Depth of field (experimental)", dof_blur);
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic: visual profile"));
+    std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName, VanillaPlusName, EnhancedName};
     for (const auto& preset : saved_presets)
         labels.push_back(preset.name.c_str());
     UiControlDesc choice = UI_CONTROL_DESC_INIT;
     choice.kind = UI_CONTROL_DROPDOWN;
-    choice.label = "Current preset";
+    choice.label = "Visual profile / saved look";
     choice.get = get_preset;
     choice.set = set_preset;
     choice.options = labels.data();
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Vanilla+ uses restrained grading and native camera. Enhanced uses Natural / Vivid Realism and modern FOV. "
+        "Both leave model shading and depth of field off pending broader visual validation. Custom restores your saved choices; "
+        "advanced tuning stays unchanged. Legacy looks affect grading and detail only.", nullptr));
     UiControlDesc button = UI_CONTROL_DESC_INIT;
     button.kind = UI_CONTROL_BUTTON;
     button.label = "Save current preset";
@@ -799,29 +886,18 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     reset.label = "Restore neutral grading";
     reset.on_pressed = reset_neutral;
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &reset, nullptr));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Tone"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: tone"));
     for (unsigned i = grade::Exposure; i <= grade::Gamma; ++i)
         add_effect(panel, effects[i]);
     add_effect(panel, effects[grade::HighlightRolloff]);
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Color"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: color"));
     add_effect(panel, effects[grade::Saturation]);
     add_effect(panel, effects[grade::Temperature]);
     add_effect(panel, effects[grade::Tint]);
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Detail"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: detail"));
     add_toggle(panel, "Enable sharpening", detail_toggle);
     add_number(panel, detail_strength_setting);
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Visual diagnostics"));
-    UiControlDesc debug = UI_CONTROL_DESC_INIT;
-    debug.kind = UI_CONTROL_DROPDOWN;
-    debug.label = "Debug view";
-    debug.get = get_number;
-    debug.set = set_number;
-    debug.user_data = &debug_mode_setting;
-    debug.options = DebugLabels.data();
-    debug.option_count = DebugLabels.size();
-    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &debug, nullptr));
-    add_number(panel, split_setting);
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Twilight prototype"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: Twilight"));
     add_toggle(panel, "Automatic Twilight profile", auto_twilight);
     add_number(panel, twilight_transition);
     button.label = "Capture current look as Twilight target";
@@ -830,8 +906,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     button.label = "Clear Twilight target";
     button.on_pressed = clear_twilight_target;
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Camera prototype"));
-    add_toggle(panel, "Modern exploration FOV", camera_toggle);
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: camera"));
+
     add_number(panel, camera_fov_setting);
     add_number(panel, camera_transition_setting);
     add_toggle(panel, "Lower exploration camera", camera_lower_angle);
@@ -842,19 +918,9 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "targeting, aiming, and other nonzero camera modes keep native framing. The angle "
         "control changes native chase-controller latitude before smoothing and collision.",
         nullptr));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Atmosphere research"));
-    add_toggle(panel, "Run one-shot depth/camera probe", atmosphere_depth_probe);
-    add_toggle(panel, "Visualize reconstructed depth", atmosphere_depth_view);
-    add_number(panel, atmosphere_distance_setting);
-    check_ui(svc_ui->pane_add_text(
-        mod_ctx, panel,
-        "Developer diagnostics only. The one-shot probe records availability without changing "
-        "the image; toggle it off and on to run again. The depth view replaces scene color with "
-        "linear camera distance and stays default off.",
-        nullptr));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Depth of field research"));
-    add_toggle(panel, "Visualize focus mask", dof_coc_view);
-    add_toggle(panel, "Experimental depth of field blur", dof_blur);
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: depth of field"));
+
+
     add_toggle(panel, "Use camera target focus", dof_autofocus);
     add_number(panel, dof_focus_distance_setting);
     add_number(panel, dof_focus_range_setting);
@@ -867,22 +933,50 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "target focus replaces manual distance and fails closed when unavailable. Blur strength "
         "and autofocus transition are configurable. Diagnostics override blur.",
         nullptr));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Diagnostics"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: model shading"));
+    add_number(panel, smoothing_angle_setting);
+    add_toggle(panel, "Validated skinned model shading", geometry_skinned_smoothing);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Hard normal splits and material boundaries are always preserved. Unknown or ambiguous models are skipped. "
+        "Enable before loading a scene. Disable restores source normals; enabling again requires a scene reload.", nullptr));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
+    UiControlDesc debug = UI_CONTROL_DESC_INIT;
+    debug.kind = UI_CONTROL_DROPDOWN;
+    debug.label = "Debug view";
+    debug.get = get_number;
+    debug.set = set_number;
+    debug.user_data = &debug_mode_setting;
+    debug.options = DebugLabels.data();
+    debug.option_count = DebugLabels.size();
+    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &debug, nullptr));
+    add_number(panel, split_setting);
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: depth diagnostics"));
+    add_toggle(panel, "Run one-shot depth/camera probe", atmosphere_depth_probe);
+    add_toggle(panel, "Visualize reconstructed depth", atmosphere_depth_view);
+    add_number(panel, atmosphere_distance_setting);
+    check_ui(svc_ui->pane_add_text(
+        mod_ctx, panel,
+        "Developer diagnostics only. The one-shot probe records availability without changing "
+        "the image; toggle it off and on to run again. The depth view replaces scene color with "
+        "linear camera distance and stays default off.",
+        nullptr));
+    add_toggle(panel, "Visualize focus mask", dof_coc_view);
+    add_toggle(panel, "Force passthrough comparison", passthrough);
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: performance and shaders"));
     add_toggle(panel, "Enable CPU diagnostics", diagnostics_toggle);
     button.label = "Reset CPU timing samples";
     button.on_pressed = reset_timing;
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &status_element));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &detail_element));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Camera research diagnostics"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: camera diagnostics"));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &camera_element));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Geometry research"));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: model qualification"));
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel, "", &geometry_element));
     add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
     add_toggle(panel, "Log topology for loaded models (developer)", topology_diagnostics);
     add_toggle(panel, "Mutation test: metal box only", geometry_mutation_test);
-    add_toggle(panel, "Experimental smoothing: validated static objects",
-               geometry_smoothing);
-    add_number(panel, smoothing_angle_setting);
+
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
         "Developer test only. Enable before loading the target scene; "
@@ -1078,5 +1172,5 @@ void update_twilight(twilight::State state, float elapsed_seconds) {
         twilight_log_initialized = true;
     }
 }
-void shutdown() { status_element = detail_element = camera_element = preset_control = 0; }
+void shutdown() { status_element = detail_element = camera_element = geometry_element = preset_control = 0; }
 } // namespace midnafx::settings
