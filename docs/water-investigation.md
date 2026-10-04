@@ -283,6 +283,18 @@ The shape capture, resolve submission, state restoration, and native replay used
 captured frame. This is submission-side CPU time and does not claim GPU duration.
 The diagnostic remains developer-only and performs none of this work while off.
 
+The same source-matched runtime path also executed on three additional classes:
+
+| Class / scene | Successful captures | Failures | CPU hook wall time |
+| --- | ---: | ---: | ---: |
+| Large outdoor: Lake Hylia `F_SP115` | 260 | 0 | 24,561 us total / 94 us each |
+| Moving/swimmable: `R_SP107` generic water | 260 | 0 | 26,083 us total / 100 us each |
+| Dungeon: Lakebed Temple `D_MN01` | 259 | 0 | 25,196 us total / 97 us each |
+
+All three runs unloaded cleanly with no WebGPU/D3D12 validation or device-loss
+errors. This proves that each class reaches the narrow one-shape capture path; it
+does not prove complete multi-shape coverage or visual correctness.
+
 The first run exposed an important viewport distinction: GX reported a logical
 608x448 size while the active target and depth view were 1216x896. The diagnostic
 now uses the resolved target dimensions for its offscreen attachments and

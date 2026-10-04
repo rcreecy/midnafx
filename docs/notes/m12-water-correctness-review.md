@@ -42,4 +42,7 @@ effects remain out of scope.
   Fishing Pond and shuts down cleanly without WebGPU/D3D12 validation errors.
 * A 347-capture run reported zero capture failures and about 217 microseconds of
   CPU hook wall time per captured frame; GPU duration is not yet measured.
+* Lake Hylia, generic moving/swimmable water, and Lakebed Temple each completed
+  259-260 captures with zero failures, clean unload, and 94-100 microseconds of
+  CPU hook wall time per capture. These runs prove execution, not pixels.
 * Gate 3 remains provisional until the visual checks above pass.
