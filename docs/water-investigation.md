@@ -140,10 +140,62 @@ machine-readable row per classified model/material with:
 * diagnostic draw count and CPU cost.
 
 The visual proof will make only classified surface shapes unmistakably magenta.
-It must restore all temporary material state immediately after each draw and on
-shutdown. The feature remains developer-only and default off. Unknown resources,
-missing services, unexpected fingerprints, unsupported material layouts, and
-underwater-only overlays fail closed.
+The diagnostic does not mutate J3D material or model data. It replaces GX TEV
+state immediately before the selected shape draw; subsequent material display
+lists establish their own state. The feature remains developer-only and default
+off. Unknown resources, missing services, unexpected fingerprints, unsupported
+material layouts, and underwater-only overlays fail closed.
+
+## Runtime evidence checkpoint
+
+The diagnostic runs in the source-matched Windows D3D12 host and is available
+through `water_classification_diagnostic`. It defaults off. Six explicit water
+actor hooks resolved at runtime. Stage background discovery uses the active
+`daBg_c` and `daBgObj_c` process instances because the small profile draw wrappers
+are not stable public hook targets.
+
+Observed exact stage materials:
+
+| Scene | Model part | Selected material | GX evidence |
+| --- | --- | --- | --- |
+| `F_SP115`, room 0 | stage part 0 | `cc_MA06_NigoriWater_v_x` | blend `1/4/5`, depth `1/3/0`, 2 TEV stages |
+| `F_SP115`, room 0 | stage part 0 | `cd_MA09_MeraWater_v_x` | blend `1/2/0`, depth `1/3/0`, 2 TEV stages |
+| `F_SP127`, room 0 | stage part 1 | `cc_MA02_IndirectWater_v` | blend `1/4/5`, depth `1/3/0`, 1 TEV stage |
+| `F_SP127`, room 0 | stage part 4 | `cc_MA06_Nigori_Water_v_x` | blend `1/4/5`, depth `1/3/0`, 3 TEV stages |
+| `F_SP127`, room 0 | stage part 4 | `cc_MA09_Nigori_Water_v` | blend `1/2/0`, depth `1/3/0`, 2 TEV stages |
+
+`F_SP127` runtime proof marks the full Fishing Pond surface solid magenta while
+foreground soil, cliffs, HUD, and nearby scene geometry remain unchanged. Local
+evidence is `build/m12-water-lakebed/fishing-pond-magenta.png`.
+
+`F_SP115` start point 20 marks only the visible Lake Hylia water patch while the
+wooden platform and surrounding rock remain unchanged. Local evidence is
+`build/m12-water-lakebed/lake-hylia-start20.png`. Start point 0 does not face the
+lake, so it is not useful visual evidence despite loading the same classified
+materials.
+
+Earlier explicit-actor proofs remain valid:
+
+* `D_MN01`, room 3: primary and projected Lakebed water models marked; nearby
+  dungeon geometry remained unchanged.
+* `D_MN01A`, room 50: Morpheel arena water marked; Link, arena floor, and swim
+  opening remained unchanged. Local evidence is
+  `build/m12-water-lakebed/morpheel-point0-magenta.png`.
+
+No D3D12/WebGPU validation errors occurred in these runs. Normal game-card
+warning `Failed to open file: gczelda2` remains unrelated. Graceful shutdown
+uninstalled all diagnostic hooks and did not require material restoration because
+no model/material bytes were changed.
+
+A final Fishing Pond run marked 1,845 shape draws across two classified models.
+Stage actor discovery consumed 6,472 microseconds over 643 frames, about 10.1
+microseconds per frame while the developer diagnostic was enabled. This scan and
+all material-name work are bypassed while the default-off diagnostic is disabled.
+
+Gate 1 remains **in progress**. Current proof covers dungeon, boss, Lake Hylia,
+and Fishing Pond classes. Moving/current water, underwater presentation,
+waterfall-adjacent behavior, disable/re-enable lifecycle, and measured diagnostic
+CPU cost remain required before Gate 1 can pass.
 
 ## Test matrix for Gate 1
 
