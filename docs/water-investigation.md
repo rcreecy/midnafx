@@ -11,7 +11,7 @@ evidence. A source match or successful build does not pass a runtime gate.
 | --- | --- | --- |
 | 1: classify water | **PASS** | Runtime proof covers outdoor, shallow, dungeon, boss, moving/current, and underwater scenes. Unknown paths fail closed. |
 | 2: pre-water scene color | **PASS** | The boundary, frame ownership, private GX copy, and consumption by an exact classified water draw are proven at Fishing Pond. |
-| 3: optical thickness | **INCOMPLETE** | Scene depth is available, but the current exact GX/J3D surface path does not expose a water-fragment mask/surface depth to a programmable pass. |
+| 3: optical thickness | **PROVISIONAL** | Exact mask/surface-depth capture and the thickness pass execute in the live runtime. A visible heatmap and native-water replay still require visual confirmation before PASS. |
 
 No optical replacement is enabled. Absorption, animated normal detail,
 refraction, Fresnel, reflection, shoreline treatment, specular, and SSR remain
@@ -256,12 +256,43 @@ Combined with the matched 1216x896 pre-water screenshot above, this proves that
 the exact water draw consumes the opaque scene captured before water. Gate 2 is
 **PASS**.
 
-Gate 3 is **INCOMPLETE**. Raw scene depth is available, and representative actors
-provide semantic water height, but GX TEV cannot reconstruct world position or
-compare behind-water depth with the current water fragment. The programmable
-WebGPU pass has no exact water mask or per-fragment surface depth. A framebuffer
-color-key mask would be heuristic and is explicitly rejected. No thickness or
-product optical code has been added.
+## Gate 3 provisional runtime evidence
+
+The default-off `water_thickness_diagnostic` now creates an exact programmable
+surface representation without changing model data. At the first exact
+classified `J3DShapePacket::drawFast` in a frame, MidnaFX renders that shape into
+a private full-resolution target with solid-white coverage and depth writes,
+resolves the coverage mask plus `R32F` water-surface depth, then restores and
+replays the native water shape into the game scene. The fullscreen diagnostic
+compares this surface depth with the raw opaque depth captured at
+`GFX_STAGE_SCENE_AFTER_OPAQUE`, reconstructs view distances with the current
+camera matrices, and displays clamped optical thickness as grayscale.
+
+The source-matched Windows D3D12 runtime reached this path at `F_SP127`, room 0,
+for the exact `cc_MA02_IndirectWater_v` Fishing Pond surface. It recorded:
+
+* `Water thickness pre-depth {ready=yes requested=608x448 resolved=1216x896 depth=yes}`;
+* `Water thickness surface capture ready {size=1216x896 mask=color depth=R32F}`;
+* `Water thickness diagnostic active: size=1216x896 max_depth=5000 reversed_z=yes`;
+* clean `all mods unloaded`; and
+* no WebGPU, D3D12, device-lost, or validation errors.
+
+The first run exposed an important viewport distinction: GX reported a logical
+608x448 size while the active target and depth view were 1216x896. The diagnostic
+now uses the resolved target dimensions for its offscreen attachments and
+viewport. All borrowed pre-depth views are cleared at the next frame boundary;
+private surface targets are recreated on resize and destroyed on disable or
+shutdown. Missing services, views, camera matrices, or unsupported formats bypass
+the diagnostic.
+
+Gate 3 remains **PROVISIONAL**, not PASS. The execution evidence proves the GPU
+path and resource lifetime, but the current Windows automation surface could not
+capture the desktop image. We have not yet visibly confirmed that the grayscale
+field tracks shoreline/depth or that the native replay is pixel-correct. The
+initial path also captures only the first exact classified shape per frame. The
+validated Fishing Pond material is a single-shape case; multi-shape water and
+other water classes still require aggregation and visual proof. No absorption or
+other product optical effect has been added.
 
 ## Test matrix for Gate 1
 
@@ -275,23 +306,29 @@ product optical code has been added.
 | Underwater | any stable swimmable scene | Surface identity remains stable; underwater overlay and particles remain unmarked. |
 | Waterfall adjacent | stage with `daObjWaterFall` | Surface classification does not consume waterfall gameplay actor or unrelated spray. |
 
-## Smallest required Gate 3 contract
+## Gate 3 contract and next experiment
 
 Gate 2 needs no Dusklight extension. Existing GX EFB-copy semantics provide the
 portable, GPU-only color bridge when MidnaFX uses a private texture identity.
 
-Gate 3 needs an exact programmable representation of the water surface. The
-smallest generally useful Dusklight extension is either an auxiliary attachment
-that exact J3D/GX shape draws can write, or a draw-scoped callback that exposes
-the generated water geometry/current transforms to a mod draw. It must preserve
-main-pass ordering and expose scene depth plus water-fragment depth without GPU
-readback. This would let MidnaFX produce an explicit water mask and reconstruct
-thickness in WebGPU. It must define viewport mapping, resize behavior, attachment
-clearing, command ordering, and frame-scoped ownership.
+The narrow Fishing Pond experiment needs no Dusklight extension. Existing public
+stage callbacks, GX state, and exact shape interception can produce a private
+mask/surface-depth pair without readback. This approach is acceptable only if
+visual testing proves that replay restores the native water draw exactly.
 
-MidnaFX should not infer a mask from framebuffer color, retain borrowed views,
-or reuse TP's native EFB-copy storage. The next experiment is a Fishing Pond
-water-surface depth/mask diagnostic using that explicit contract.
+If replay is not pixel-correct, or if aggregating all shapes/classes cannot be
+done safely, the smallest generally useful Dusklight extension remains an
+auxiliary attachment for exact J3D/GX draws or a draw-scoped callback exposing
+generated geometry and current transforms. Such an API must define viewport
+mapping, resize behavior, clearing, command ordering, and frame-scoped ownership.
+
+MidnaFX does not infer a mask from framebuffer color, retain borrowed views, or
+reuse TP's native EFB-copy storage. The next experiment is direct visual A/B at
+Fishing Pond: confirm the heatmap is shallow at shore and deeper over submerged
+geometry, and confirm native water replay has no missing surface, double draw, or
+state corruption. Then aggregate all exact classified shapes and repeat across
+large outdoor, dungeon, moving, and underwater cases. Depth-based absorption may
+start only after those observations make Gate 3 PASS.
 
 ## Open questions
 
@@ -305,5 +342,5 @@ water-surface depth/mask diagnostic using that explicit contract.
 * Whether semantic collision water planes align closely enough with rendered
   geometry for stable thickness reconstruction.
 
-Gates 1 and 2 are complete. Gate 3 stops at the missing exact programmable
-water-surface depth/mask contract described above.
+Gates 1 and 2 are complete. Gate 3 has a functioning narrow prototype and remains
+provisional pending visual and multi-class validation.
