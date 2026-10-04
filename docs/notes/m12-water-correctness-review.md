@@ -40,4 +40,6 @@ effects remain out of scope.
 * All 14 tests pass, including shader compilation and package contract checks.
 * Source-matched D3D12 runtime reaches mask, surface-depth, and thickness passes at
   Fishing Pond and shuts down cleanly without WebGPU/D3D12 validation errors.
+* A 347-capture run reported zero capture failures and about 217 microseconds of
+  CPU hook wall time per captured frame; GPU duration is not yet measured.
 * Gate 3 remains provisional until the visual checks above pass.

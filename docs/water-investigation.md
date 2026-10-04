@@ -277,6 +277,12 @@ for the exact `cc_MA02_IndirectWater_v` Fishing Pond surface. It recorded:
 * clean `all mods unloaded`; and
 * no WebGPU, D3D12, device-lost, or validation errors.
 
+A repeat run measured 347 successful surface captures with zero capture failures.
+The shape capture, resolve submission, state restoration, and native replay used
+75,257 microseconds of CPU hook wall time in total, about 217 microseconds per
+captured frame. This is submission-side CPU time and does not claim GPU duration.
+The diagnostic remains developer-only and performs none of this work while off.
+
 The first run exposed an important viewport distinction: GX reported a logical
 608x448 size while the active target and depth view were 1216x896. The diagnostic
 now uses the resolved target dimensions for its offscreen attachments and

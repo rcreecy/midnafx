@@ -70,6 +70,10 @@ bool shape_post_hook = false;
 std::uint64_t classified_draws = 0;
 std::uint64_t stage_scan_ns = 0;
 std::uint64_t stage_scan_frames = 0;
+std::uint64_t thickness_captures = 0;
+std::uint64_t thickness_capture_failures = 0;
+std::uint64_t thickness_capture_ns = 0;
+std::chrono::steady_clock::time_point thickness_capture_started{};
 bool diagnostic_was_enabled = false;
 bool surface_capture_logged = false;
 bool surface_sample_logged = false;
@@ -114,16 +118,20 @@ bool is_allowed_stage_material(const char* stage, const char* name) {
 }
 
 void log_summary(const char* reason) {
-    if (!svc_log || classified_draws == 0)
+    if (!svc_log || (classified_draws == 0 && thickness_captures == 0))
         return;
-    char message[256];
+    char message[320];
     std::snprintf(message, sizeof(message),
                   "WaterClass summary {reason=%s marked_draws=%llu active_models=%u "
-                  "stage_scan_frames=%llu stage_scan_us=%llu}",
+                  "stage_scan_frames=%llu stage_scan_us=%llu thickness_captures=%llu "
+                  "thickness_failures=%llu thickness_capture_us=%llu}",
                   reason, static_cast<unsigned long long>(classified_draws),
                   static_cast<unsigned>(previous_classified_models.size()),
                   static_cast<unsigned long long>(stage_scan_frames),
-                  static_cast<unsigned long long>(stage_scan_ns / 1000));
+                  static_cast<unsigned long long>(stage_scan_ns / 1000),
+                  static_cast<unsigned long long>(thickness_captures),
+                  static_cast<unsigned long long>(thickness_capture_failures),
+                  static_cast<unsigned long long>(thickness_capture_ns / 1000));
     svc_log->info(mod_ctx, message);
 }
 
@@ -286,11 +294,14 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
     const bool classified = material && frame_materials.contains(material);
     if (classified && shape_post_hook && settings::water_thickness_diagnostic_enabled() &&
-        pre_water_depth_ready && !mask_capture_consumed && !mask_capture_active &&
-        svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
-        mask_capture_active = true;
-        mask_capture_consumed = true;
-        capture_owner = CaptureOwner::Shape;
+        pre_water_depth_ready && !mask_capture_consumed && !mask_capture_active) {
+        const auto started = std::chrono::steady_clock::now();
+        if (svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
+            thickness_capture_started = started;
+            mask_capture_active = true;
+            mask_capture_consumed = true;
+            capture_owner = CaptureOwner::Shape;
+        }
     }
     if (!classified)
         return HOOK_CONTINUE;
@@ -386,6 +397,13 @@ void after_classified_shape(ModContext*, void* args, void*, void*) {
             packet->getDisplayListObj()->callDL();
         ShapeDrawFast::g_orig(packet);
     }
+    ++thickness_captures;
+    if (!water_surface_ready)
+        ++thickness_capture_failures;
+    thickness_capture_ns +=
+        static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                       std::chrono::steady_clock::now() - thickness_capture_started)
+                                       .count());
 }
 
 void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*) {
@@ -555,6 +573,10 @@ void initialize() {
     classified_draws = 0;
     stage_scan_ns = 0;
     stage_scan_frames = 0;
+    thickness_captures = 0;
+    thickness_capture_failures = 0;
+    thickness_capture_ns = 0;
+    thickness_capture_started = {};
     diagnostic_was_enabled = false;
     surface_capture_logged = false;
     surface_sample_logged = false;
@@ -619,6 +641,9 @@ void update() {
         classified_draws = 0;
         stage_scan_ns = 0;
         stage_scan_frames = 0;
+        thickness_captures = 0;
+        thickness_capture_failures = 0;
+        thickness_capture_ns = 0;
         frame_materials.clear();
         frame_classified_models.clear();
     }
