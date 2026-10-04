@@ -75,3 +75,18 @@ effects remain out of scope.
   failures.
 * Gate 3 passes for the validated single-base-shape path. Multi-shape aggregation
   remains outside this gate and constrains the first product allowlist.
+
+## Absorption prototype review
+
+* The new setting is default off and persisted through the existing settings
+  migration path. It does not mutate gameplay water, geometry, or native draw
+  state.
+* The shader rejects missing masks, background depth, invalid reconstruction,
+  and foreground occlusion. Inputs are frame-scoped and resize-safe through the
+  existing water attachment lifecycle.
+* R_SP107 reached the absorption pipeline on D3D12 with no WebGPU validation
+  errors or diagnostic fault colors. The captured pre-water scene color was
+  near-black over the moving surface, so the visual result was near-black water.
+  This is a source-boundary limitation; it is not a quality pass for absorption.
+* Do not broaden the allowlist or enable the setting by default until a
+  scene-color source containing useful submerged content is established.

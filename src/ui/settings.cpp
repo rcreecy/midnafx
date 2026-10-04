@@ -47,6 +47,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     water_scene_capture_diagnostic{"water_scene_capture_diagnostic"},
     water_surface_capture_diagnostic{"water_surface_capture_diagnostic"},
     water_thickness_diagnostic{"water_thickness_diagnostic"},
+    enhanced_water{"enhanced_water"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
@@ -75,6 +76,10 @@ NumberSetting dof_blur_radius_setting{
     "dof_blur_radius", "Blur radius (pixels)", 2, 12, 6, 6, false};
 NumberSetting dof_focus_transition_setting{
     "dof_focus_transition_cs", "Autofocus transition (0.01 s)", 0, 100, 20, 20, false};
+NumberSetting water_absorption_setting{
+    "water_absorption_strength", "Water absorption strength (%)", 0, 200, 65, 65, false};
+NumberSetting water_optical_depth_setting{
+    "water_max_optical_depth", "Maximum water optical depth", 500, 10000, 5000, 5000, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* VanillaPlusName = "Profile / Vanilla+";
 constexpr const char* EnhancedName = "Profile / Enhanced";
@@ -857,6 +862,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enhanced model shading", geometry_smoothing);
     add_toggle(panel, "Modern exploration camera", camera_toggle);
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
+    add_toggle(panel, "Enhanced water (experimental)", enhanced_water);
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic: visual profile"));
     std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName, VanillaPlusName, EnhancedName};
     for (const auto& preset : saved_presets)
@@ -935,6 +941,15 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "magenta is invalid. Experimental blur uses a half-resolution near/far chain. Camera "
         "target focus replaces manual distance and fails closed when unavailable. Blur strength "
         "and autofocus transition are configurable. Diagnostics override blur.",
+        nullptr));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Water"));
+    add_toggle(panel, "Enable depth-based water absorption", enhanced_water);
+    add_number(panel, water_absorption_setting);
+    add_number(panel, water_optical_depth_setting);
+    check_ui(svc_ui->pane_add_text(
+        mod_ctx, panel,
+        "Experimental and default off. Applies restrained depth-based absorption only to exact "
+        "validated base-water surfaces. Unknown, ambiguous, and unsupported water remains native.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: model shading"));
     add_number(panel, smoothing_angle_setting);
@@ -1032,6 +1047,7 @@ bool initialize() {
     register_toggle(water_scene_capture_diagnostic);
     register_toggle(water_surface_capture_diagnostic);
     register_toggle(water_thickness_diagnostic);
+    register_toggle(enhanced_water);
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
@@ -1052,6 +1068,8 @@ bool initialize() {
     register_number(dof_focus_range_setting);
     register_number(dof_blur_radius_setting);
     register_number(dof_focus_transition_setting);
+    register_number(water_absorption_setting);
+    register_number(water_optical_depth_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -1080,6 +1098,13 @@ bool water_classification_diagnostic_enabled() { return water_classification_dia
 bool water_scene_capture_diagnostic_enabled() { return water_scene_capture_diagnostic.value; }
 bool water_surface_capture_diagnostic_enabled() { return water_surface_capture_diagnostic.value; }
 bool water_thickness_diagnostic_enabled() { return water_thickness_diagnostic.value; }
+bool enhanced_water_enabled() { return enhanced_water.value; }
+float water_absorption_strength() {
+    return static_cast<float>(water_absorption_setting.value) / 100.0f;
+}
+float water_max_optical_depth() {
+    return static_cast<float>(water_optical_depth_setting.value);
+}
 bool camera_enabled() { return camera_toggle.value; }
 float camera_fov_scale() { return static_cast<float>(camera_fov_setting.value) / 100.0f; }
 float camera_transition_seconds() {

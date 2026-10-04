@@ -1,14 +1,30 @@
-struct WaterThicknessDiagnostic {
+struct WaterParameters {
     view_from_proj: mat4x4f,
     max_thickness: f32,
     background_depth: f32,
-    padding: vec2f,
+    absorption_strength: f32,
+    padding: f32,
+    shallow_tint: vec4f,
+    deep_tint: vec4f,
+    gain_r: f32,
+    gain_g: f32,
+    gain_b: f32,
+    black_point: f32,
+    contrast: f32,
+    saturation: f32,
+    gamma_inverse: f32,
+    rolloff: f32,
+    detail_strength: f32,
+    difference_gain: f32,
+    debug_mode: u32,
+    split_x: u32,
 }
 
-@group(0) @binding(0) var scene_depth: texture_2d<f32>;
-@group(0) @binding(1) var surface_depth: texture_2d<f32>;
-@group(0) @binding(2) var surface_mask: texture_2d<f32>;
-@group(0) @binding(3) var<uniform> params: WaterThicknessDiagnostic;
+@group(0) @binding(0) var scene_color: texture_2d<f32>;
+@group(0) @binding(1) var scene_depth: texture_2d<f32>;
+@group(0) @binding(2) var surface_depth: texture_2d<f32>;
+@group(0) @binding(3) var surface_mask: texture_2d<f32>;
+@group(0) @binding(4) var<uniform> params: WaterParameters;
 
 @vertex
 fn vs_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
@@ -25,6 +41,68 @@ fn view_distance(coord: vec2i, depth: f32, dimensions: vec2f) -> f32 {
     }
     let distance = length(view4.xyz / view4.w);
     return select(distance, -1.0, distance != distance || distance > 3.402823e38);
+}
+
+fn max_component(value: vec3f) -> f32 {
+    return max(max(value.r, value.g), value.b);
+}
+
+fn apply_detail(center: vec3f, position: vec2i) -> vec3f {
+    let last = vec2i(textureDimensions(scene_color)) - vec2i(1);
+    let north = textureLoad(scene_color, clamp(position + vec2i(0, -1), vec2i(0), last), 0).rgb;
+    let east = textureLoad(scene_color, clamp(position + vec2i(1, 0), vec2i(0), last), 0).rgb;
+    let south = textureLoad(scene_color, clamp(position + vec2i(0, 1), vec2i(0), last), 0).rgb;
+    let west = textureLoad(scene_color, clamp(position + vec2i(-1, 0), vec2i(0), last), 0).rgb;
+    let neighbor_average = (north + east + south + west) * 0.25;
+    let highpass = center - neighbor_average;
+    let local_min = min(center, min(min(north, east), min(south, west)));
+    let local_max = max(center, max(max(north, east), max(south, west)));
+    let local_contrast = max_component(local_max - local_min);
+    let edge_gate = 1.0 - smoothstep(0.12, 0.42, local_contrast);
+    let signal_gate = smoothstep(0.005, 0.03, max_component(abs(highpass)));
+    let bounded_highpass = clamp(highpass, vec3f(-0.08), vec3f(0.08));
+    return clamp(center + params.detail_strength * edge_gate * signal_gate * bounded_highpass,
+                 vec3f(0.0), vec3f(1.0));
+}
+
+fn apply_grading(input: vec3f) -> vec3f {
+    var color = input * vec3f(params.gain_r, params.gain_g, params.gain_b);
+    color = max(color - vec3f(params.black_point), vec3f(0.0)) /
+            (1.0 - params.black_point);
+    color = (color - vec3f(0.5)) * params.contrast + vec3f(0.5);
+    let above_knee = max(color - vec3f(0.65), vec3f(0.0));
+    color -= params.rolloff * above_knee * above_knee / (vec3f(0.35) + above_knee);
+    let luma = dot(color, vec3f(0.2126, 0.7152, 0.0722));
+    color = vec3f(luma) + (color - vec3f(luma)) * params.saturation;
+    return pow(max(color, vec3f(0.0)), vec3f(params.gamma_inverse));
+}
+
+fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
+    if (textureLoad(surface_mask, coord, 0).a < 0.5) {
+        return source;
+    }
+    let water_depth = textureLoad(surface_depth, coord, 0).r;
+    let opaque_depth = textureLoad(scene_depth, coord, 0).r;
+    if (abs(water_depth - params.background_depth) <= 0.000001 ||
+        abs(opaque_depth - params.background_depth) <= 0.000001) {
+        return source;
+    }
+    let dimensions = vec2f(textureDimensions(scene_depth));
+    let water_distance = view_distance(coord, water_depth, dimensions);
+    let opaque_distance = view_distance(coord, opaque_depth, dimensions);
+    if (water_distance < 0.0 || opaque_distance <= water_distance) {
+        return source;
+    }
+    let normalized = clamp((opaque_distance - water_distance) / params.max_thickness, 0.0, 1.0);
+    let transmission = exp(-params.absorption_strength * normalized);
+    let scatter = mix(params.shallow_tint.rgb, params.deep_tint.rgb,
+                      smoothstep(0.0, 1.0, normalized));
+    // Some TP water paths have no opaque color behind the surface at the
+    // pre-water boundary. Keep those pixels visibly water-colored instead of
+    // turning the whole surface black until a submerged-color source exists.
+    let source_luma = dot(source, vec3f(0.2126, 0.7152, 0.0722));
+    let stable_source = select(source, max(source, params.shallow_tint.rgb * 0.35), source_luma < 0.01);
+    return stable_source * transmission + scatter * (1.0 - transmission);
 }
 
 @fragment
@@ -57,4 +135,19 @@ fn fs_thickness(@builtin(position) position: vec4f) -> @location(0) vec4f {
     }
     let normalized = clamp((opaque_distance - water_distance) / params.max_thickness, 0.0, 1.0);
     return vec4f(vec3f(normalized), 1.0);
+}
+
+@fragment
+fn fs_absorption(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    return vec4f(apply_grading(apply_absorption(coord, source.rgb)), source.a);
+}
+
+@fragment
+fn fs_absorption_detail(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    let detailed = apply_detail(source.rgb, coord);
+    return vec4f(apply_grading(apply_absorption(coord, detailed)), source.a);
 }

@@ -343,10 +343,24 @@ outdoor Lake Hylia water, and generic moving/swimmable actor water. Background
 depth is handled separately, invalid reconstruction is conspicuous, and opaque
 geometry in front of the classified plane cannot contaminate thickness. The
 pass does not establish general multi-shape aggregation: only the first exact
-base candidate drawn in a frame is captured. The first absorption prototype must
-therefore remain on the exact validated allowlist and fail closed for surfaces
-that need aggregation. No product absorption or other optical effect has been
-added yet.
+base candidate drawn in a frame is captured. The first absorption prototype is
+therefore restricted to the exact validated allowlist and fails closed when the
+required inputs are unavailable. No refraction, animated normals, reflection,
+or gameplay water changes are included.
+
+## First product feature: depth-based absorption
+
+The default-off `Enhanced water (experimental)` setting applies a restrained
+Beer-Lambert-inspired pass after the narrow pre-water capture. It uses the water
+mask, reconstructed surface depth, opaque scene depth, and current scene color.
+Missing inputs, invalid/background depth, and foreground occlusion bypass the
+effect. Strength defaults to 0.65 and maximum optical depth to 5000, with muted
+green-blue shallow/deep tints. Runtime proof reached the absorption pipeline on
+R_SP107 without shader validation errors or red/magenta diagnostics, but the
+moving-water scene still showed a near-black water field because its pre-water
+color is not a useful submerged-color source. This is an architectural
+limitation, not visual quality validation; the feature remains experimental and
+default off pending a better submerged-color source.
 
 ## Test matrix for Gate 1
 

@@ -30,7 +30,9 @@ enum PipelineKind : std::uint32_t {
     DepthDiagnostic = 5,
     DofDiagnostic = 6,
     WaterThicknessDiagnostic = 7,
-    PipelineCount = 8,
+    WaterAbsorption = 8,
+    WaterAbsorptionDetail = 9,
+    PipelineCount = 10,
 };
 struct DepthUniforms {
     float view_from_proj[16];
@@ -50,13 +52,17 @@ struct DofUniforms {
     float padding[3];
 };
 static_assert(sizeof(DofUniforms) == 96);
-struct WaterThicknessUniforms {
+struct WaterUniforms {
     float view_from_proj[16];
     float max_thickness;
     float background_depth;
-    float padding[2];
+    float absorption_strength;
+    float padding;
+    float shallow_tint[4];
+    float deep_tint[4];
+    grade::Uniforms grading;
 };
-static_assert(sizeof(WaterThicknessUniforms) == 80);
+static_assert(sizeof(WaterUniforms) == 160);
 struct Payload {
     WGPUTextureView scene;
     WGPUTextureView depth;
@@ -116,6 +122,7 @@ GfxResolvedTargets pre_water_snapshot = GFX_RESOLVED_TARGETS_INIT;
 bool pre_water_snapshot_ready = false;
 bool pre_water_capture_logged = false;
 bool water_thickness_logged = false;
+bool water_absorption_logged = false;
 std::uint32_t depth_view_warned_kind = PipelineCount;
 std::uint32_t depth_view_logged_kind = PipelineCount;
 std::chrono::steady_clock::time_point next_init_retry{};
@@ -260,6 +267,10 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
                        "MidnaFX depth of field focus diagnostic", layout);
         build_pipeline(next->pipelines[WaterThicknessDiagnostic], next->shaders[4], "fs_thickness",
                        "MidnaFX water thickness diagnostic", layout);
+        build_pipeline(next->pipelines[WaterAbsorption], next->shaders[4], "fs_absorption",
+                       "MidnaFX water absorption", layout);
+        build_pipeline(next->pipelines[WaterAbsorptionDetail], next->shaders[4],
+                       "fs_absorption_detail", "MidnaFX water absorption and detail", layout);
     }
     const bool validation_ok = pop_scope(device.device, device.instance);
     const bool internal_ok = pop_scope(device.device, device.instance);
@@ -288,28 +299,42 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     if (selected.pipeline == nullptr || selected.bind_layout == nullptr)
         return;
     const bool water_depth = payload.kind == WaterThicknessDiagnostic;
+    const bool water_absorption =
+        payload.kind == WaterAbsorption || payload.kind == WaterAbsorptionDetail;
+    const bool water_effect = water_depth || water_absorption;
     const bool uses_depth = payload.kind == DepthDiagnostic || payload.kind == DofDiagnostic;
-    if ((water_depth ? (!payload.depth || !payload.auxiliary_depth || !payload.mask)
+    if ((water_effect ? (!payload.depth || !payload.auxiliary_depth || !payload.mask ||
+                         (water_absorption && !payload.scene))
                      : (uses_depth ? payload.depth == nullptr : payload.scene == nullptr)) ||
         payload.layout_key != ctx->layout.key || payload.layout_key != payload.pair->layout.key ||
         ctx->layout.sample_count != 1)
         return;
-    WGPUBindGroupEntry entries[4] = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT,
-                                     WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
+    WGPUBindGroupEntry entries[5] = {
+        WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT,
+        WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     entries[0].binding = 0;
     entries[0].textureView = uses_depth ? payload.depth : payload.scene;
-    if (water_depth) {
-        if (payload.uniform_size != sizeof(WaterThicknessUniforms))
+    if (water_effect) {
+        if (payload.uniform_size != sizeof(WaterUniforms))
             return;
-        entries[0].textureView = payload.depth;
-        entries[1].binding = 1;
-        entries[1].textureView = payload.auxiliary_depth;
-        entries[2].binding = 2;
-        entries[2].textureView = payload.mask;
-        entries[3].binding = 3;
-        entries[3].buffer = ctx->uniform_buffer;
-        entries[3].offset = payload.uniform_offset;
-        entries[3].size = payload.uniform_size;
+        constexpr unsigned texture_base = 1;
+        const unsigned uniform_index = water_absorption ? 4 : 3;
+        unsigned entry_index = 0;
+        if (water_absorption) {
+            entries[entry_index].binding = 0;
+            entries[entry_index++].textureView = payload.scene;
+        }
+        entries[entry_index].binding = texture_base + 0;
+        entries[entry_index++].textureView = payload.depth;
+        entries[entry_index].binding = texture_base + 1;
+        entries[entry_index++].textureView = payload.auxiliary_depth;
+        entries[entry_index].binding = texture_base + 2;
+        entries[entry_index++].textureView = payload.mask;
+        WGPUBindGroupEntry& uniform_entry = entries[uniform_index];
+        uniform_entry.binding = 4;
+        uniform_entry.buffer = ctx->uniform_buffer;
+        uniform_entry.offset = payload.uniform_offset;
+        uniform_entry.size = payload.uniform_size;
     } else if (payload.kind != Passthrough) {
         auto expected_size = sizeof(grade::Uniforms);
         if (payload.kind == DepthDiagnostic)
@@ -326,7 +351,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     desc.label = {"MidnaFX scene", WGPU_STRLEN};
     desc.layout = selected.bind_layout;
-    desc.entryCount = water_depth ? 4 : payload.kind == Passthrough ? 1 : 2;
+    desc.entryCount = water_absorption ? 5 : water_depth ? 4 : payload.kind == Passthrough ? 1 : 2;
     desc.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(ctx->device, &desc);
     if (group == nullptr) {
@@ -378,10 +403,16 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const bool depth_debug = !dof_debug && settings::atmosphere_depth_view_enabled();
     const bool depth_based_debug = depth_debug || dof_debug;
     water_probe::ThicknessInputs water_inputs{};
+    const bool water_inputs_ready = water_probe::latest_thickness_inputs(water_inputs);
     const bool water_thickness_debug =
-        !depth_based_debug && water_probe::latest_thickness_inputs(water_inputs);
+        !depth_based_debug && settings::water_thickness_diagnostic_enabled() && water_inputs_ready;
     const bool water_capture_debug =
         settings::water_scene_capture_diagnostic_enabled() && pre_water_snapshot_ready;
+    auto prepared = settings::prepared_grade();
+    const auto mode = visual::debug_mode(prepared.uniforms.debug_mode);
+    const bool water_absorption = !depth_based_debug && !water_thickness_debug &&
+                                  !water_capture_debug && settings::enhanced_water_enabled() &&
+                                  water_inputs_ready && mode == visual::DebugMode::Final;
     if (!depth_based_debug) {
         depth_view_warned_kind = PipelineCount;
         depth_view_logged_kind = PipelineCount;
@@ -390,7 +421,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const auto start =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     if (!settings::enabled() && !depth_based_debug && !water_capture_debug &&
-        !water_thickness_debug) {
+        !water_thickness_debug && !water_absorption) {
         if (timing) {
             disabled_samples.fetch_add(1, std::memory_order_relaxed);
             const auto elapsed =
@@ -401,14 +432,12 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         }
         return;
     }
-    auto prepared = settings::prepared_grade();
-    const auto mode = visual::debug_mode(prepared.uniforms.debug_mode);
     const bool passthrough_test = settings::passthrough_test() ||
                                   mode == visual::DebugMode::Passthrough || water_capture_debug ||
                                   water_thickness_debug;
     const bool detail_enabled = prepared.uniforms.detail_strength > 0.0f;
-    if (!depth_based_debug && prepared.neutral && !detail_enabled && !passthrough_test &&
-        mode == visual::DebugMode::Final) {
+    if (!depth_based_debug && !water_absorption && prepared.neutral && !detail_enabled &&
+        !passthrough_test && mode == visual::DebugMode::Final) {
         if (timing)
             neutral_samples.fetch_add(1, std::memory_order_relaxed);
         return;
@@ -450,6 +479,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     std::uint32_t kind = dof_debug ? DofDiagnostic : (depth_debug ? DepthDiagnostic : Passthrough);
     if (water_thickness_debug)
         kind = WaterThicknessDiagnostic;
+    else if (water_absorption)
+        kind = detail_enabled ? WaterAbsorptionDetail : WaterAbsorption;
     if (!depth_based_debug && !passthrough_test)
         kind = mode == visual::DebugMode::Final ? (detail_enabled ? Detail : Grade)
                                                 : (detail_enabled ? DebugDetail : Debug);
@@ -464,15 +495,22 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         camera_target_focus = true;
     }
     GfxRange uniform_range{0, 0};
-    if (water_thickness_debug) {
+    if (water_thickness_debug || water_absorption) {
         CameraInfo camera = CAMERA_INFO_INIT;
         if (!camera_probe::latest_camera_info(camera) || invalid_camera_field(camera) != nullptr)
             return;
-        WaterThicknessUniforms uniforms{};
+        WaterUniforms uniforms{};
         std::memcpy(uniforms.view_from_proj, camera.view_from_proj,
                     sizeof(uniforms.view_from_proj));
-        uniforms.max_thickness = settings::atmosphere_depth_distance();
+        uniforms.max_thickness = water_absorption ? settings::water_max_optical_depth()
+                                                  : settings::atmosphere_depth_distance();
         uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
+        uniforms.absorption_strength = settings::water_absorption_strength();
+        const float shallow[4]{0.26f, 0.34f, 0.30f, 1.0f};
+        const float deep[4]{0.07f, 0.14f, 0.16f, 1.0f};
+        std::memcpy(uniforms.shallow_tint, shallow, sizeof(shallow));
+        std::memcpy(uniforms.deep_tint, deep, sizeof(deep));
+        uniforms.grading = prepared.uniforms;
         if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &uniform_range) != MOD_OK)
             return;
     } else if (depth_based_debug) {
@@ -548,8 +586,9 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     if (resolve_result == MOD_UNAVAILABLE)
         return;
     if (resolve_result != MOD_OK ||
-        (water_thickness_debug
-             ? (!snapshot.depth || !water_inputs.surface_depth || !water_inputs.surface_mask)
+        ((water_thickness_debug || water_absorption)
+             ? ((water_absorption && !snapshot.color) || !water_inputs.scene_depth ||
+                !water_inputs.surface_depth || !water_inputs.surface_mask)
          : depth_based_debug ? snapshot.depth == nullptr
                              : snapshot.color == nullptr)) {
         if (depth_based_debug) {
@@ -575,9 +614,13 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     width.store(snapshot.width, std::memory_order_relaxed);
     height.store(snapshot.height, std::memory_order_relaxed);
     const Payload payload{snapshot.color,
-                          snapshot.depth,
-                          water_thickness_debug ? water_inputs.surface_depth : nullptr,
-                          water_thickness_debug ? water_inputs.surface_mask : nullptr,
+                          (water_thickness_debug || water_absorption) ? water_inputs.scene_depth
+                                                                     : snapshot.depth,
+                          (water_thickness_debug || water_absorption)
+                              ? water_inputs.surface_depth
+                              : nullptr,
+                          (water_thickness_debug || water_absorption) ? water_inputs.surface_mask
+                                                                     : nullptr,
                           pair,
                           current.key,
                           kind,
@@ -618,6 +661,18 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                       device.uses_reversed_z ? "yes" : "no");
         svc_log->info(mod_ctx, message);
         water_thickness_logged = true;
+    }
+    if (water_absorption && !water_absorption_logged && svc_log != nullptr) {
+        char message[224];
+        std::snprintf(message, sizeof(message),
+                      "Water absorption active: size=%ux%u strength=%.2f max_depth=%.0f "
+                      "reversed_z=%s",
+                      snapshot.width, snapshot.height,
+                      static_cast<double>(settings::water_absorption_strength()),
+                      static_cast<double>(settings::water_max_optical_depth()),
+                      device.uses_reversed_z ? "yes" : "no");
+        svc_log->info(mod_ctx, message);
+        water_absorption_logged = true;
     }
     if (depth_based_debug && depth_view_logged_kind != kind && svc_log != nullptr) {
         char message[224];
@@ -722,6 +777,7 @@ void initialize() {
     pre_water_snapshot_ready = false;
     pre_water_capture_logged = false;
     water_thickness_logged = false;
+    water_absorption_logged = false;
     depth_view_warned_kind = PipelineCount;
     depth_view_logged_kind = PipelineCount;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
@@ -790,6 +846,7 @@ void update() {
     const auto current_state = state.load(std::memory_order_acquire);
     const bool graphics_requested =
         settings::enabled() || settings::water_scene_capture_diagnostic_enabled() ||
+        settings::water_thickness_diagnostic_enabled() || settings::enhanced_water_enabled() ||
         settings::atmosphere_depth_view_enabled() || settings::atmosphere_depth_probe_enabled() ||
         settings::dof_coc_view_enabled();
     if ((current_state == 4 || current_state == 5) && graphics_requested) {

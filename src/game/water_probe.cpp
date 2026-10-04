@@ -104,7 +104,11 @@ CaptureOwner capture_owner = CaptureOwner::None;
 bool diagnostic_requested() {
     return settings::water_classification_diagnostic_enabled() ||
            settings::water_surface_capture_diagnostic_enabled() ||
-           settings::water_thickness_diagnostic_enabled();
+           settings::water_thickness_diagnostic_enabled() || settings::enhanced_water_enabled();
+}
+
+bool thickness_requested() {
+    return settings::water_thickness_diagnostic_enabled() || settings::enhanced_water_enabled();
 }
 
 bool diagnostic_active() { return hooks_ready && cleanup_hook != 0 && diagnostic_requested(); }
@@ -329,7 +333,7 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     const bool thickness_candidate =
         identity != frame_material_identities.end() && identity->second.thickness_candidate;
     if (classified && thickness_candidate && shape_post_hook &&
-        settings::water_thickness_diagnostic_enabled() && pre_water_depth_ready &&
+        thickness_requested() && pre_water_depth_ready &&
         !mask_capture_consumed && !mask_capture_active) {
         const auto started = std::chrono::steady_clock::now();
         if (svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
@@ -461,7 +465,7 @@ void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*)
     mask_capture_consumed = false;
     if (!context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
         (!settings::water_surface_capture_diagnostic_enabled() &&
-         !settings::water_thickness_diagnostic_enabled()))
+         !thickness_requested()))
         return;
     // Presentation can run between 30 Hz simulation ticks. Refresh stage-model
     // identity here so interpolated frames do not lose exact water classification.
@@ -487,7 +491,7 @@ void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*)
         GXCopyTex(pre_water_capture_key, GX_FALSE);
         pre_water_capture_ready = true;
     }
-    if (settings::water_thickness_diagnostic_enabled()) {
+    if (thickness_requested()) {
         GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
         request.color = false;
         request.depth = true;
@@ -555,8 +559,8 @@ void update_stage_hooks() {
         cleanup_hook = 0;
     }
 
-    const bool capture_requested = settings::water_surface_capture_diagnostic_enabled() ||
-                                   settings::water_thickness_diagnostic_enabled();
+    const bool capture_requested =
+        settings::water_surface_capture_diagnostic_enabled() || thickness_requested();
     if (capture_requested && capture_hook == 0) {
         GfxStageHookDesc capture = GFX_STAGE_HOOK_DESC_INIT;
         capture.callback = capture_pre_water_scene;
@@ -702,8 +706,8 @@ void update() {
 
 bool latest_thickness_inputs(ThicknessInputs& out) {
     out = {};
-    if (!settings::water_thickness_diagnostic_enabled() || !pre_water_depth_ready ||
-        !water_surface_ready || !pre_water_depth.depth || !water_surface.depth ||
+    if (!thickness_requested() || !pre_water_depth_ready || !water_surface_ready ||
+        !pre_water_depth.depth || !water_surface.depth ||
         !water_surface.color || pre_water_depth.width != water_surface.width ||
         pre_water_depth.height != water_surface.height)
         return false;
