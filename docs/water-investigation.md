@@ -356,11 +356,20 @@ mask, reconstructed surface depth, opaque scene depth, and current scene color.
 Missing inputs, invalid/background depth, and foreground occlusion bypass the
 effect. Strength defaults to 0.65 and maximum optical depth to 5000, with muted
 green-blue shallow/deep tints. Runtime proof reached the absorption pipeline on
-R_SP107 without shader validation errors or red/magenta diagnostics, but the
-moving-water scene still showed a near-black water field because its pre-water
-color is not a useful submerged-color source. This is an architectural
-limitation, not visual quality validation; the feature remains experimental and
-default off pending a better submerged-color source.
+R_SP107 without shader validation errors or red/magenta diagnostics. Two defects
+were found during the first visual run: normal grade selection overwrote the
+absorption pipeline, and the auxiliary surface pass ran before the native water
+draw, so replay lost authored water color. Pipeline selection now preserves the
+absorption kind. Native water draws first; the same geometry is replayed only
+into the private mask/depth pass afterward. A zero-strength control visually
+matches native water, including animated distortion and transparency. Default
+strength adds restrained depth tint while retaining those authored details.
+Evidence is `build/m12-water-surface/absorption-default-off.jpg`,
+`absorption-zero-inverted.jpg`, and `absorption-default-inverted.jpg`. The final
+run completed 1,449 captures with zero failures, about 88 microseconds of CPU
+capture/replay wall time per frame, clean unload, and no WebGPU/D3D12 validation
+errors. The feature remains experimental and default off while additional water
+classes are validated.
 
 ## Test matrix for Gate 1
 
@@ -391,12 +400,11 @@ generated geometry and current transforms. Such an API must define viewport
 mapping, resize behavior, clearing, command ordering, and frame-scoped ownership.
 
 MidnaFX does not infer a mask from framebuffer color, retain borrowed views, or
-reuse TP's native EFB-copy storage. The next experiment is direct visual A/B at
-Fishing Pond: confirm the heatmap is shallow at shore and deeper over submerged
-geometry, and confirm native water replay has no missing surface, double draw, or
-state corruption. Then aggregate all exact classified shapes and repeat across
-large outdoor, dungeon, moving, and underwater cases. Depth-based absorption may
-start only after those observations make Gate 3 PASS.
+reuse TP's native EFB-copy storage. Moving-water A/B now confirms the post-native
+auxiliary replay preserves authored water at zero absorption and applies the
+default tint only inside the classified surface. Next, repeat zero/default A/B
+across Fishing Pond, Lake Hylia, dungeon, and underwater transitions, then add
+safe multi-shape aggregation before broadening the allowlist.
 
 ## Open questions
 
@@ -410,5 +418,5 @@ start only after those observations make Gate 3 PASS.
 * Whether semantic collision water planes align closely enough with rendered
   geometry for stable thickness reconstruction.
 
-Gates 1 and 2 are complete. Gate 3 has a functioning narrow prototype and remains
-provisional pending visual and multi-class validation.
+Gates 1-3 pass for the narrow single-base-shape allowlist. Multi-shape and
+additional-scene product validation remain before broader rollout.

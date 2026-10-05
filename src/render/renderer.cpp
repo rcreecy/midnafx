@@ -481,7 +481,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         kind = WaterThicknessDiagnostic;
     else if (water_absorption)
         kind = detail_enabled ? WaterAbsorptionDetail : WaterAbsorption;
-    if (!depth_based_debug && !passthrough_test)
+    if (!depth_based_debug && !passthrough_test && !water_absorption)
         kind = mode == visual::DebugMode::Final ? (detail_enabled ? Detail : Grade)
                                                 : (detail_enabled ? DebugDetail : Debug);
     prepared.uniforms.split_x =

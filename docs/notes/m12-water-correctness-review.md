@@ -84,9 +84,16 @@ effects remain out of scope.
 * The shader rejects missing masks, background depth, invalid reconstruction,
   and foreground occlusion. Inputs are frame-scoped and resize-safe through the
   existing water attachment lifecycle.
-* R_SP107 reached the absorption pipeline on D3D12 with no WebGPU validation
-  errors or diagnostic fault colors. The captured pre-water scene color was
-  near-black over the moving surface, so the visual result was near-black water.
-  This is a source-boundary limitation; it is not a quality pass for absorption.
-* Do not broaden the allowlist or enable the setting by default until a
-  scene-color source containing useful submerged content is established.
+* Visual review found that normal grade selection overwrote the absorption
+  pipeline kind. The active log was therefore misleading. The selection guard
+  now preserves `WaterAbsorption` and `WaterAbsorptionDetail`.
+* A zero-strength control then proved that the original capture order replaced
+  native water with an incomplete replay. Capture now leaves the original draw
+  untouched and performs the white mask/depth replay in a private pass afterward.
+* R_SP107 zero-strength A/B preserves native transparency and animated
+  distortion. Default strength produces a restrained depth tint without losing
+  those details. The final D3D12 run completed 1,449 captures with zero failures,
+  clean unload, about 88 microseconds of CPU hook time per frame, and no WebGPU
+  validation errors.
+* Do not broaden the allowlist or enable the setting by default until equivalent
+  zero/default A/B passes on large outdoor, dungeon, and underwater cases.

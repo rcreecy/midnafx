@@ -335,46 +335,30 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     if (classified && thickness_candidate && shape_post_hook &&
         thickness_requested() && pre_water_depth_ready &&
         !mask_capture_consumed && !mask_capture_active) {
-        const auto started = std::chrono::steady_clock::now();
-        if (svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
-            thickness_capture_started = started;
-            mask_capture_active = true;
-            mask_capture_consumed = true;
-            capture_owner = CaptureOwner::Shape;
-            if (!thickness_target_logged && svc_log) {
-                char message[224];
-                std::snprintf(message, sizeof(message),
-                              "Water thickness target {material=%p name=%.96s shape=%p}",
-                              static_cast<void*>(material),
-                              identity != frame_material_identities.end() && identity->second.name
-                                  ? identity->second.name
-                                  : "<unknown>",
-                              static_cast<void*>(shape));
-                svc_log->info(mod_ctx, message);
-                thickness_target_logged = true;
-            }
+        thickness_capture_started = std::chrono::steady_clock::now();
+        mask_capture_active = true;
+        mask_capture_consumed = true;
+        capture_owner = CaptureOwner::Shape;
+        if (!thickness_target_logged && svc_log) {
+            char message[224];
+            std::snprintf(message, sizeof(message),
+                          "Water thickness target {material=%p name=%.96s shape=%p}",
+                          static_cast<void*>(material),
+                          identity != frame_material_identities.end() && identity->second.name
+                              ? identity->second.name
+                              : "<unknown>",
+                          static_cast<void*>(shape));
+            svc_log->info(mod_ctx, message);
+            thickness_target_logged = true;
         }
     }
     if (!classified)
         return HOOK_CONTINUE;
 
-    if (mask_capture_active) {
-        constexpr GXColor white{255, 255, 255, 255};
-        GXSetNumIndStages(0);
-        GXSetNumTevStages(1);
-        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR_NULL);
-        GXSetTevColor(GX_TEVREG0, white);
-        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_C0);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
-        GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-        GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_OR, GX_ALWAYS, 0);
-        GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_CLEAR);
-        GXSetColorUpdate(GX_TRUE);
-        GXSetAlphaUpdate(GX_TRUE);
-        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    // Thickness capture replays into a private pass after this native draw.
+    // Do not let another diagnostic alter the native water state first.
+    if (mask_capture_active)
         return HOOK_CONTINUE;
-    }
 
     if (settings::water_surface_capture_diagnostic_enabled() && pre_water_capture_ready) {
         GXLoadTexObj(&pre_water_capture_texture, GX_TEXMAP0);
@@ -419,14 +403,40 @@ void after_classified_shape(ModContext*, void* args, void*, void*) {
     auto* packet = mods::arg<J3DShapePacket*>(args, 0);
     J3DShape* shape = packet ? packet->getShape() : nullptr;
     J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
-    GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
-    request.color = true;
-    request.depth = true;
     water_surface = GFX_RESOLVED_TARGETS_INIT;
-    water_surface_ready = svc_gfx->resolve_pass(mod_ctx, &request, &water_surface) == MOD_OK &&
-                          water_surface.color && water_surface.depth &&
-                          water_surface.width == pre_water_depth.width &&
-                          water_surface.height == pre_water_depth.height;
+    water_surface_ready = false;
+    if (packet && material &&
+        svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
+        material->load();
+        packet->prepareDraw();
+        shape->loadPreDrawSetting();
+        constexpr GXColor white{255, 255, 255, 255};
+        GXSetNumIndStages(0);
+        GXSetNumTevStages(1);
+        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR_NULL);
+        GXSetTevColor(GX_TEVREG0, white);
+        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_C0);
+        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
+        GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_OR, GX_ALWAYS, 0);
+        GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_CLEAR);
+        GXSetColorUpdate(GX_TRUE);
+        GXSetAlphaUpdate(GX_TRUE);
+        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+        if (packet->getDisplayListObj())
+            packet->getDisplayListObj()->callDL();
+        ShapeDrawFast::g_orig(packet);
+
+        GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
+        request.color = true;
+        request.depth = true;
+        water_surface_ready =
+            svc_gfx->resolve_pass(mod_ctx, &request, &water_surface) == MOD_OK &&
+            water_surface.color && water_surface.depth &&
+            water_surface.width == pre_water_depth.width &&
+            water_surface.height == pre_water_depth.height;
+    }
     mask_capture_active = false;
     capture_owner = CaptureOwner::None;
     if (water_surface_ready && !thickness_capture_logged && svc_log) {
@@ -440,14 +450,6 @@ void after_classified_shape(ModContext*, void* args, void*, void*) {
         svc_log->warn(mod_ctx,
                       "Water thickness surface capture unavailable; diagnostic failed closed");
         thickness_capture_warned = true;
-    }
-    if (packet && material) {
-        material->load();
-        packet->prepareDraw();
-        shape->loadPreDrawSetting();
-        if (packet->getDisplayListObj())
-            packet->getDisplayListObj()->callDL();
-        ShapeDrawFast::g_orig(packet);
     }
     ++thickness_captures;
     if (!water_surface_ready)
