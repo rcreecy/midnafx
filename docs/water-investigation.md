@@ -481,6 +481,34 @@ Evidence is `build/m12-water-surface/shoreline-fishing-maximum.jpg` and
 `shoreline-fishing-zero.jpg`. More irregular natural shores and dungeon edges
 remain unvalidated.
 
+## Environment-aware specular response
+
+TP exposes a stable read-only light position through
+`g_env_light.base_light.mPosition`. `dScnKy_env_light_c::SetBaseLight()` selects
+this value from the authored sun, moon, or stage light according to the game's
+existing environment rules. TP's weather renderer also consumes the same base
+light position. MidnaFX therefore uses this semantic signal instead of inventing
+a global sun direction. Missing or non-finite light data disables the specular
+term for that frame.
+
+Enhanced water now applies a restrained Blinn-Phong highlight from this light,
+the reconstructed water position, camera matrices, and the shared animated
+surface normal. Strength is persisted from 0-100% and defaults to 12%. The
+100% diagnostic remains capped to a 28% additive contribution. Zero length and
+NaN vectors return the pre-specular color. The feature remains inside the exact
+water mask and default-off enhanced-water path.
+
+Fishing Pond passed matched 0% and 100% D3D12 runs. Runtime diagnostics reported
+`light=yes` in both runs. The maximum run produced a restrained water-local
+highlight response without affecting Link, shore terrain, HUD, or unrelated
+translucency. It completed 7,199 captures with zero failures, two packets per
+frame, about 50 microseconds of CPU replay work per frame, clean unload, and no
+validation errors. The zero control completed 6,211 captures with zero failures
+at about 56 microseconds per frame and also unloaded cleanly. Evidence is
+`build/m12-water-surface/specular-fishing-maximum.jpg` and
+`specular-fishing-zero.jpg`. GPU shader time and behavior across outdoor
+day/night transitions still need measurement.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |
@@ -513,11 +541,11 @@ MidnaFX does not infer a mask from framebuffer color, retain borrowed views, or
 reuse TP's native EFB-copy storage. Moving-water, Fishing Pond, and Lake Hylia
 A/B now confirm the post-native auxiliary replay preserves authored water at
 zero absorption and applies the default tint only inside the classified surface.
-Fishing Pond also validates bounded screen-space refraction and a restrained
-Fresnel environment fallback on the exact allowlist. Next, validate dungeon
-pixels and underwater transitions when a useful controllable spawn is
-available, then investigate a stable semantic sun/light direction for optional
-specular response. SSR remains separate and optional.
+Fishing Pond also validates bounded screen-space refraction, a restrained
+Fresnel environment fallback, shoreline treatment, and environment-aware
+specular on the exact allowlist. Next, validate dungeon pixels, underwater
+transitions, and outdoor day/night light changes when useful controllable states
+are available. SSR remains separate and optional.
 
 ## Open questions
 

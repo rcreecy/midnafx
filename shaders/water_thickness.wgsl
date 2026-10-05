@@ -21,6 +21,11 @@ struct WaterParameters {
     shoreline_padding_0: f32,
     shoreline_padding_1: f32,
     shoreline_padding_2: f32,
+    light_position: vec4f,
+    specular_strength: f32,
+    specular_padding_0: f32,
+    specular_padding_1: f32,
+    specular_padding_2: f32,
     gain_r: f32,
     gain_g: f32,
     gain_b: f32,
@@ -138,6 +143,37 @@ fn apply_shoreline_treatment(color: vec3f, normalized_depth: f32,
     return mix(color, highlight, clamp(weight, 0.0, 0.16));
 }
 
+fn apply_specular(color: vec3f, coord: vec2i, water_depth: f32,
+                  dimensions: vec2f, normal: vec3f) -> vec3f {
+    if (params.specular_strength <= 0.0 || params.light_position.w < 0.5) {
+        return color;
+    }
+    let world = world_position(coord, water_depth, dimensions);
+    let view_position = (params.view_from_world * vec4f(world, 1.0)).xyz;
+    let raw_view_normal = (params.view_from_world * vec4f(normal, 0.0)).xyz;
+    let raw_light = params.light_position.xyz - world;
+    let raw_view_light = (params.view_from_world * vec4f(raw_light, 0.0)).xyz;
+    let view_length = length(view_position);
+    let normal_length = length(raw_view_normal);
+    let light_length = length(raw_view_light);
+    if (view_length <= 0.000001 || normal_length <= 0.000001 ||
+        light_length <= 0.000001 || view_length != view_length ||
+        normal_length != normal_length || light_length != light_length) {
+        return color;
+    }
+    let view_direction = -view_position / view_length;
+    let view_normal = raw_view_normal / normal_length;
+    let view_light = raw_view_light / light_length;
+    let half_vector = view_direction + view_light;
+    let half_length = length(half_vector);
+    if (half_length <= 0.000001 || half_length != half_length) {
+        return color;
+    }
+    let highlight = pow(max(dot(view_normal, half_vector / half_length), 0.0), 48.0) *
+                    params.specular_strength * 0.28;
+    return min(color + vec3f(highlight), vec3f(1.0));
+}
+
 fn max_component(value: vec3f) -> f32 {
     return max(max(value.r, value.g), value.b);
 }
@@ -203,7 +239,8 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
                                                stable_source, surface_normal);
     let absorbed = (transmitted_source * transmission + scatter * (1.0 - transmission)) * wave_light;
     let shoreline = apply_shoreline_treatment(absorbed, normalized, surface_normal);
-    return apply_fresnel_reflection(coord, water_depth, dimensions, shoreline, surface_normal);
+    let reflected = apply_fresnel_reflection(coord, water_depth, dimensions, shoreline, surface_normal);
+    return apply_specular(reflected, coord, water_depth, dimensions, surface_normal);
 }
 
 @fragment

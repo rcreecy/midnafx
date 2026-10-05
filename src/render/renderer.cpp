@@ -71,9 +71,12 @@ struct WaterUniforms {
     float reflection_padding[3];
     float shoreline_strength;
     float shoreline_padding[3];
+    float light_position[4];
+    float specular_strength;
+    float specular_padding[3];
     grade::Uniforms grading;
 };
-static_assert(sizeof(WaterUniforms) == 352);
+static_assert(sizeof(WaterUniforms) == 384);
 struct Payload {
     WGPUTextureView scene;
     WGPUTextureView depth;
@@ -514,6 +517,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         camera_target_focus = true;
     }
     GfxRange uniform_range{0, 0};
+    bool water_environment_light = false;
     if (water_thickness_debug || water_absorption) {
         CameraInfo camera = CAMERA_INFO_INIT;
         if (!camera_probe::latest_camera_info(camera) || invalid_camera_field(camera) != nullptr)
@@ -550,6 +554,15 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
             water_absorption ? settings::water_reflection_strength() : 0.0f;
         uniforms.shoreline_strength =
             water_absorption ? settings::water_shoreline_strength() : 0.0f;
+        float light_position[3]{};
+        water_environment_light =
+            water_absorption && water_probe::latest_environment_light(light_position);
+        uniforms.light_position[0] = light_position[0];
+        uniforms.light_position[1] = light_position[1];
+        uniforms.light_position[2] = light_position[2];
+        uniforms.light_position[3] = water_environment_light ? 1.0f : 0.0f;
+        uniforms.specular_strength =
+            water_environment_light ? settings::water_specular_strength() : 0.0f;
         uniforms.grading = prepared.uniforms;
         if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &uniform_range) != MOD_OK)
             return;
@@ -708,7 +721,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         std::snprintf(message, sizeof(message),
                       "Water absorption active: size=%ux%u strength=%.2f max_depth=%.0f "
                       "wave_strength=%.2f refraction_strength=%.2f reflection_strength=%.2f "
-                      "shoreline_strength=%.2f reversed_z=%s",
+                      "shoreline_strength=%.2f specular_strength=%.2f light=%s reversed_z=%s",
                       snapshot.width, snapshot.height,
                       static_cast<double>(settings::water_absorption_strength()),
                       static_cast<double>(settings::water_max_optical_depth()),
@@ -716,6 +729,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                       static_cast<double>(settings::water_refraction_strength()),
                       static_cast<double>(settings::water_reflection_strength()),
                       static_cast<double>(settings::water_shoreline_strength()),
+                      static_cast<double>(settings::water_specular_strength()),
+                      water_environment_light ? "yes" : "no",
                       device.uses_reversed_z ? "yes" : "no");
         svc_log->info(mod_ctx, message);
         water_absorption_logged = true;

@@ -18,6 +18,7 @@
 #include <d/actor/d_a_obj_lv3WaterB.h>
 #include <d/actor/d_a_obj_onsen.h>
 #include <d/actor/d_a_obj_rstair.h>
+#include <d/d_kankyo.h>
 #include <dolphin/gx/GXAurora.h>
 #include <dolphin/gx/GXBump.h>
 #include <dolphin/gx/GXExtra.h>
@@ -740,6 +741,19 @@ bool latest_thickness_inputs(ThicknessInputs& out) {
     out.surface_mask = water_surface.color;
     out.width = water_surface.width;
     out.height = water_surface.height;
+    return true;
+}
+
+bool latest_environment_light(float out_position[3]) {
+    if (!out_position)
+        return false;
+    const auto& position = g_env_light.base_light.mPosition;
+    if (!std::isfinite(position.x) || !std::isfinite(position.y) ||
+        !std::isfinite(position.z))
+        return false;
+    out_position[0] = position.x;
+    out_position[1] = position.y;
+    out_position[2] = position.z;
     return true;
 }
 

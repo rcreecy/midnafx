@@ -94,6 +94,8 @@ NumberSetting water_reflection_blue_setting{
     "water_reflection_blue", "Water reflection tint blue (%)", 0, 100, 36, 36, false};
 NumberSetting water_shoreline_strength_setting{
     "water_shoreline_strength", "Water shoreline treatment (%)", 0, 100, 20, 20, false};
+NumberSetting water_specular_strength_setting{
+    "water_specular_strength", "Water specular strength (%)", 0, 100, 12, 12, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* VanillaPlusName = "Profile / Vanilla+";
 constexpr const char* EnhancedName = "Profile / Enhanced";
@@ -967,11 +969,12 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_number(panel, water_reflection_green_setting);
     add_number(panel, water_reflection_blue_setting);
     add_number(panel, water_shoreline_strength_setting);
+    add_number(panel, water_specular_strength_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
         "Experimental and default off. Applies restrained depth-based absorption, animated "
         "two-layer surface detail, bounded refraction, Fresnel reflection, and subtle shallow "
-        "shoreline treatment only to exact validated water. "
+        "shoreline treatment, and environment-aware specular only to exact validated water. "
         "Unknown, ambiguous, and unsupported water remains native.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: model shading"));
@@ -1100,6 +1103,7 @@ bool initialize() {
     register_number(water_reflection_green_setting);
     register_number(water_reflection_blue_setting);
     register_number(water_shoreline_strength_setting);
+    register_number(water_specular_strength_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -1155,6 +1159,9 @@ float water_reflection_tint_blue() {
 }
 float water_shoreline_strength() {
     return static_cast<float>(water_shoreline_strength_setting.value) / 100.0f;
+}
+float water_specular_strength() {
+    return static_cast<float>(water_specular_strength_setting.value) / 100.0f;
 }
 bool camera_enabled() { return camera_toggle.value; }
 float camera_fov_scale() { return static_cast<float>(camera_fov_setting.value) / 100.0f; }

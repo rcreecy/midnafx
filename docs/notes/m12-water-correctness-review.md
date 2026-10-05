@@ -174,3 +174,22 @@ effects remain out of scope.
   microseconds of CPU replay work per frame.
 * Irregular natural shores, dungeon edges, and underwater transitions still
   require live visual validation before broader classification.
+
+## Environment-aware specular review
+
+* The light source is TP's authored `g_env_light.base_light.mPosition`.
+  `SetBaseLight()` selects sun, moon, or stage light using native environment
+  rules. MidnaFX reads this state without changing game interpolation or light
+  ownership.
+* Missing and non-finite light positions disable specular for the frame. Shader
+  guards reject zero-length and NaN view, normal, light, and half vectors.
+  Strength is persisted, bounded from 0-100%, defaults to 12%, and only reaches
+  the exact-mask, default-off enhanced-water path.
+* Fishing Pond passed matched 0% and 100% runs with `light=yes`. Maximum remained
+  water-local and did not visibly affect Link, shore terrain, HUD, or unrelated
+  translucency. Maximum/zero completed 7,199/6,211 captures with zero failures,
+  clean unload, no validation errors, and about 50/56 microseconds of CPU replay
+  work per frame.
+* Live day/night transition stability, dungeon stage-light behavior, and GPU
+  shader duration remain unvalidated. Broader enablement remains blocked on
+  those checks plus underwater and dungeon visual proof.

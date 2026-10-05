@@ -26,6 +26,7 @@ float water_reflection_tint_red();
 float water_reflection_tint_green();
 float water_reflection_tint_blue();
 float water_shoreline_strength();
+float water_specular_strength();
 bool camera_enabled();
 float camera_fov_scale();
 float camera_transition_seconds();

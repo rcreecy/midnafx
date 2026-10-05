@@ -16,5 +16,6 @@ void initialize();
 void update();
 void finalize_thickness_capture();
 bool latest_thickness_inputs(ThicknessInputs& out);
+bool latest_environment_light(float out_position[3]);
 void shutdown();
 } // namespace midnafx::water_probe
