@@ -110,3 +110,18 @@ effects remain out of scope.
   not expose water, so this proves execution/lifecycle rather than pixels.
 * Do not broaden the allowlist or enable the setting by default until equivalent
   dungeon and underwater visual validation passes.
+
+## Animated surface-normal review
+
+* Two procedural layers use different world-space scales and opposing scroll
+  directions. Validated camera matrices and captured surface depth anchor the
+  pattern; invalid water/background depth bypasses the full water effect before
+  reconstruction.
+* Wave strength is persisted, bounded to 0-100%, and only participates while the
+  default-off enhanced-water path is active. Zero disables the added variation.
+* Fishing Pond passed 0%, 100%, and default-20% runs. The effect remained local
+  to water, retained native animated texture and transparency, and showed no
+  validation errors. The default run completed 1,289 captures with zero failures
+  and clean unload.
+* CPU replay work remained about 51 microseconds per frame with two packets. GPU
+  cost of the added trigonometric shader work remains unmeasured.

@@ -80,6 +80,8 @@ NumberSetting water_absorption_setting{
     "water_absorption_strength", "Water absorption strength (%)", 0, 200, 65, 65, false};
 NumberSetting water_optical_depth_setting{
     "water_max_optical_depth", "Maximum water optical depth", 500, 10000, 5000, 5000, false};
+NumberSetting water_wave_strength_setting{
+    "water_wave_strength", "Water surface detail strength (%)", 0, 100, 20, 20, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* VanillaPlusName = "Profile / Vanilla+";
 constexpr const char* EnhancedName = "Profile / Enhanced";
@@ -946,10 +948,12 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enable depth-based water absorption", enhanced_water);
     add_number(panel, water_absorption_setting);
     add_number(panel, water_optical_depth_setting);
+    add_number(panel, water_wave_strength_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
-        "Experimental and default off. Applies restrained depth-based absorption only to exact "
-        "validated base-water surfaces. Unknown, ambiguous, and unsupported water remains native.",
+        "Experimental and default off. Applies restrained depth-based absorption and animated "
+        "two-layer surface detail only to exact validated water. Unknown, ambiguous, and "
+        "unsupported water remains native.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: model shading"));
     add_number(panel, smoothing_angle_setting);
@@ -1070,6 +1074,7 @@ bool initialize() {
     register_number(dof_focus_transition_setting);
     register_number(water_absorption_setting);
     register_number(water_optical_depth_setting);
+    register_number(water_wave_strength_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -1104,6 +1109,9 @@ float water_absorption_strength() {
 }
 float water_max_optical_depth() {
     return static_cast<float>(water_optical_depth_setting.value);
+}
+float water_wave_strength() {
+    return static_cast<float>(water_wave_strength_setting.value) / 100.0f;
 }
 bool camera_enabled() { return camera_toggle.value; }
 float camera_fov_scale() { return static_cast<float>(camera_fov_setting.value) / 100.0f; }

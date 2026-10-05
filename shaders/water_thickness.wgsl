@@ -1,11 +1,16 @@
 struct WaterParameters {
     view_from_proj: mat4x4f,
+    world_from_proj: mat4x4f,
     max_thickness: f32,
     background_depth: f32,
     absorption_strength: f32,
-    padding: f32,
+    animation_time: f32,
     shallow_tint: vec4f,
     deep_tint: vec4f,
+    wave_strength: f32,
+    wave_scale: f32,
+    wave_speed: f32,
+    wave_padding: f32,
     gain_r: f32,
     gain_g: f32,
     gain_b: f32,
@@ -41,6 +46,24 @@ fn view_distance(coord: vec2i, depth: f32, dimensions: vec2f) -> f32 {
     }
     let distance = length(view4.xyz / view4.w);
     return select(distance, -1.0, distance != distance || distance > 3.402823e38);
+}
+
+fn world_position(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
+    let uv = (vec2f(coord) + vec2f(0.5)) / dimensions;
+    let ndc = vec3f(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0, depth);
+    let world4 = params.world_from_proj * vec4f(ndc, 1.0);
+    return world4.xyz / world4.w;
+}
+
+fn water_surface_normal(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
+    let world = world_position(coord, depth, dimensions);
+    let time = params.animation_time * params.wave_speed;
+    let large = world.xz * params.wave_scale + vec2f(time, time * 0.37);
+    let ripple = world.xz * (params.wave_scale * 2.35) + vec2f(-time * 0.71, time * 0.53);
+    let large_slope = vec2f(sin(large.x + cos(large.y)), cos(large.y + sin(large.x)));
+    let ripple_slope = vec2f(cos(ripple.x - sin(ripple.y)), sin(ripple.y + cos(ripple.x)));
+    let slope = (large_slope * 0.65 + ripple_slope * 0.35) * params.wave_strength * 0.28;
+    return normalize(vec3f(-slope.x, 1.0, -slope.y));
 }
 
 fn max_component(value: vec3f) -> f32 {
@@ -97,12 +120,14 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     let transmission = exp(-params.absorption_strength * normalized);
     let scatter = mix(params.shallow_tint.rgb, params.deep_tint.rgb,
                       smoothstep(0.0, 1.0, normalized));
+    let surface_normal = water_surface_normal(coord, water_depth, dimensions);
+    let wave_light = 1.0 + dot(surface_normal.xz, normalize(vec2f(0.8, 0.6))) * 0.10;
     // Some TP water paths have no opaque color behind the surface at the
     // pre-water boundary. Keep those pixels visibly water-colored instead of
     // turning the whole surface black until a submerged-color source exists.
     let source_luma = dot(source, vec3f(0.2126, 0.7152, 0.0722));
     let stable_source = select(source, max(source, params.shallow_tint.rgb * 0.35), source_luma < 0.01);
-    return stable_source * transmission + scatter * (1.0 - transmission);
+    return (stable_source * transmission + scatter * (1.0 - transmission)) * wave_light;
 }
 
 @fragment

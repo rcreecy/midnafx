@@ -54,15 +54,20 @@ struct DofUniforms {
 static_assert(sizeof(DofUniforms) == 96);
 struct WaterUniforms {
     float view_from_proj[16];
+    float world_from_proj[16];
     float max_thickness;
     float background_depth;
     float absorption_strength;
-    float padding;
+    float animation_time;
     float shallow_tint[4];
     float deep_tint[4];
+    float wave_strength;
+    float wave_scale;
+    float wave_speed;
+    float wave_padding;
     grade::Uniforms grading;
 };
-static_assert(sizeof(WaterUniforms) == 160);
+static_assert(sizeof(WaterUniforms) == 240);
 struct Payload {
     WGPUTextureView scene;
     WGPUTextureView depth;
@@ -127,6 +132,7 @@ std::uint32_t depth_view_warned_kind = PipelineCount;
 std::uint32_t depth_view_logged_kind = PipelineCount;
 std::chrono::steady_clock::time_point next_init_retry{};
 std::chrono::steady_clock::time_point next_layout_retry{};
+std::chrono::steady_clock::time_point water_animation_start{};
 
 struct ScopeResult {
     bool complete = false;
@@ -503,14 +509,23 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         WaterUniforms uniforms{};
         std::memcpy(uniforms.view_from_proj, camera.view_from_proj,
                     sizeof(uniforms.view_from_proj));
+        std::memcpy(uniforms.world_from_proj, camera.world_from_proj,
+                    sizeof(uniforms.world_from_proj));
         uniforms.max_thickness = water_absorption ? settings::water_max_optical_depth()
                                                   : settings::atmosphere_depth_distance();
         uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
         uniforms.absorption_strength = settings::water_absorption_strength();
+        uniforms.animation_time = std::fmod(
+            std::chrono::duration<float>(std::chrono::steady_clock::now() - water_animation_start)
+                .count(),
+            4096.0f);
         const float shallow[4]{0.26f, 0.34f, 0.30f, 1.0f};
         const float deep[4]{0.07f, 0.14f, 0.16f, 1.0f};
         std::memcpy(uniforms.shallow_tint, shallow, sizeof(shallow));
         std::memcpy(uniforms.deep_tint, deep, sizeof(deep));
+        uniforms.wave_strength = water_absorption ? settings::water_wave_strength() : 0.0f;
+        uniforms.wave_scale = 0.012f;
+        uniforms.wave_speed = 0.35f;
         uniforms.grading = prepared.uniforms;
         if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &uniform_range) != MOD_OK)
             return;
@@ -667,10 +682,11 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         char message[224];
         std::snprintf(message, sizeof(message),
                       "Water absorption active: size=%ux%u strength=%.2f max_depth=%.0f "
-                      "reversed_z=%s",
+                      "wave_strength=%.2f reversed_z=%s",
                       snapshot.width, snapshot.height,
                       static_cast<double>(settings::water_absorption_strength()),
                       static_cast<double>(settings::water_max_optical_depth()),
+                      static_cast<double>(settings::water_wave_strength()),
                       device.uses_reversed_z ? "yes" : "no");
         svc_log->info(mod_ctx, message);
         water_absorption_logged = true;
@@ -779,6 +795,7 @@ void initialize() {
     pre_water_capture_logged = false;
     water_thickness_logged = false;
     water_absorption_logged = false;
+    water_animation_start = std::chrono::steady_clock::now();
     depth_view_warned_kind = PipelineCount;
     depth_view_logged_kind = PipelineCount;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);

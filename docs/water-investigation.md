@@ -393,6 +393,28 @@ The feature remains experimental and default off. Dungeon water still has only
 execution evidence because the available Lakebed spawns do not expose a useful
 surface view, and underwater transition behavior remains unvalidated.
 
+## Animated surface-normal prototype
+
+Enhanced water now derives one shared procedural surface normal from two
+independently scrolling, opposing wave layers. The coordinates are reconstructed
+in world space from exact water-surface depth and `world_from_proj`, so the
+pattern remains attached to the water instead of the screen. A large slow layer
+provides broad structure and a smaller opposing layer breaks repetition. The
+combined normal currently supplies restrained moving light variation to the
+absorption result and is the input intended for later refraction and Fresnel.
+
+One persisted `Water surface detail strength` control ranges from 0-100% and
+defaults to 20%. Fishing Pond was tested at 0%, 100%, and the 20% default. The
+maximum diagnostic made the continuous two-layer motion observable without
+affecting shore, terrain, Link, HUD, or unrelated translucency; the default was
+subtle and retained TP's authored surface texture. The default run completed
+1,289 combined captures with zero failures, two packets per frame, about 51
+microseconds of CPU replay work per frame, clean unload, and no validation
+errors. The additional shader cost has no GPU timestamp measurement yet.
+Evidence is `build/m12-water-surface/waves-fishing-zero.jpg`,
+`waves-fishing-maximum-a.jpg`, `waves-fishing-maximum-b.jpg`, and
+`waves-fishing-default.jpg`.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |
@@ -426,8 +448,8 @@ reuse TP's native EFB-copy storage. Moving-water, Fishing Pond, and Lake Hylia
 A/B now confirm the post-native auxiliary replay preserves authored water at
 zero absorption and applies the default tint only inside the classified surface.
 Next, validate dungeon pixels and underwater transitions when a useful
-controllable spawn is available, then broaden the allowlist only with matched
-visual proof.
+controllable spawn is available, then prototype bounded screen-space refraction
+on the same exact allowlist.
 
 ## Open questions
 
