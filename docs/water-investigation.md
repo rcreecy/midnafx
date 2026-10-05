@@ -388,9 +388,23 @@ microseconds per frame. Evidence is
 `absorption-fishing-default.jpg`, `absorption-lake-zero.jpg`, and
 `absorption-lake-default.jpg`.
 
-The feature remains experimental and default off. Dungeon water still has only
-execution evidence because the available Lakebed spawns do not expose a useful
-surface view, and underwater transition behavior remains unvalidated.
+The feature remains experimental and default off. A matched native/enhanced
+R_SP107 room-1 surface-swimming check retained Link, the native animated
+surface, transparency, HUD, and surrounding geometry. The enhanced run then
+remained stable for 392,535 one-packet captures with zero failures, about 251
+microseconds of CPU capture/replay work per frame, and clean unload; a shorter
+repeat completed 3,134 captures with zero failures at about 219 microseconds per
+frame. Evidence is `build/m12-water-surface/underwater-surface-native.png` and
+`underwater-surface-enhanced.png`. This validates swimming at the air/water
+boundary, not a fully submerged camera: the unattended input harness could emit
+only a short button tap and did not sustain the dive action.
+
+Dungeon water still has execution evidence only because the available Lakebed
+spawns do not expose a useful surface view. A current all-features Lakebed room
+3 run processed four exact packets per frame for 11,900 captures with zero
+failures, `light=yes`, and clean unload. It measured about 1.61 milliseconds of
+CPU capture/replay work per frame, substantially above earlier Lakebed and
+outdoor samples, so dungeon performance remains an explicit open risk.
 
 ## Animated surface-normal prototype
 

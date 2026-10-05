@@ -108,8 +108,22 @@ effects remain out of scope.
   1,464 combined captures with zero failures at about 52 microseconds of CPU
   replay work per frame, clean unload, and no validation errors. The spawn does
   not expose water, so this proves execution/lifecycle rather than pixels.
-* Do not broaden the allowlist or enable the setting by default until equivalent
-  dungeon and underwater visual validation passes.
+* A later all-features Lakebed room-3 run completed 11,900 captures with zero
+  failures, four packets per frame, `light=yes`, and clean unload, but measured
+  about 1.61 milliseconds of CPU replay work per frame. The large variance from
+  the earlier run is unresolved and blocks broader dungeon enablement.
+* R_SP107 room-1 matched native/enhanced surface-swimming captures retained
+  Link, authored surface motion/transparency, HUD, and surrounding geometry.
+  The enhanced run completed 392,535 one-packet captures with zero failures at
+  about 251 microseconds per frame and clean unload; a shorter repeat completed
+  3,134 captures with zero failures at about 219 microseconds per frame.
+  Evidence is `underwater-surface-native.png` and
+  `underwater-surface-enhanced.png` under `build/m12-water-surface/`.
+* This proves stable swimming at the air/water boundary. A fully submerged
+  camera remains unvalidated because the unattended input path could not hold
+  the game's dive action. Do not broaden the allowlist or enable the setting by
+  default until dungeon pixels, dungeon performance variance, and submerged
+  camera behavior are resolved.
 
 ## Animated surface-normal review
 
@@ -198,9 +212,11 @@ effects remain out of scope.
   clean unload. Evidence is `specular-fishing-noon.jpg`,
   `specular-fishing-night.jpg`, `specular-fishing-time067.jpg`, and
   `specular-fishing-time068.jpg` under `build/m12-water-surface/`.
-* Dungeon stage-light behavior, underwater behavior, and GPU shader duration
-  remain unvalidated. Broader enablement remains blocked on those checks plus
-  underwater and dungeon visual proof.
+* Lakebed execution reached the environment-aware path with `light=yes`, but the
+  available spawn exposed no water pixels. Dungeon stage-light appearance, a
+  fully submerged camera, and GPU shader duration remain unvalidated. Broader
+  enablement remains blocked on those checks plus dungeon visual proof and the
+  observed dungeon CPU timing variance.
 
 ## Optional SSR research review
 
