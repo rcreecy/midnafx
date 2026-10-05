@@ -190,9 +190,17 @@ effects remain out of scope.
   translucency. Maximum/zero completed 7,199/6,211 captures with zero failures,
   clean unload, no validation errors, and about 50/56 microseconds of CPU replay
   work per frame.
-* Live day/night transition stability, dungeon stage-light behavior, and GPU
-  shader duration remain unvalidated. Broader enablement remains blocked on
-  those checks plus underwater and dungeon visual proof.
+* A controlled Fishing Pond run exercised noon (`180`), night (`330`), and the
+  native sun/moon selection boundary (`67` then `68`). Authored scene lighting
+  changed without exploding, inverted, or blown-out water specular, NaN/Inf
+  state, or WebGPU/D3D12 validation errors. The run completed 16,478 captures
+  with zero failures, about 54 microseconds of CPU replay work per capture, and
+  clean unload. Evidence is `specular-fishing-noon.jpg`,
+  `specular-fishing-night.jpg`, `specular-fishing-time067.jpg`, and
+  `specular-fishing-time068.jpg` under `build/m12-water-surface/`.
+* Dungeon stage-light behavior, underwater behavior, and GPU shader duration
+  remain unvalidated. Broader enablement remains blocked on those checks plus
+  underwater and dungeon visual proof.
 
 ## Optional SSR research review
 

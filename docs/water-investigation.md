@@ -506,8 +506,20 @@ frame, about 50 microseconds of CPU replay work per frame, clean unload, and no
 validation errors. The zero control completed 6,211 captures with zero failures
 at about 56 microseconds per frame and also unloaded cleanly. Evidence is
 `build/m12-water-surface/specular-fishing-maximum.jpg` and
-`specular-fishing-zero.jpg`. GPU shader time and behavior across outdoor
-day/night transitions still need measurement.
+`specular-fishing-zero.jpg`.
+
+Outdoor light-state stability also passed a controlled Fishing Pond run. The
+live console set time to noon (`180`), night (`330`), and directly across the
+native sun/moon selection boundary (`67` then `68`). The authored scene light
+and shadow changed at each state while enhanced water remained stable: no
+exploding, inverted, or blown-out specular response, no NaN/Inf state, and no
+WebGPU/D3D12 validation errors were observed. The run completed 16,478 captures
+with zero failures, about 54 microseconds of CPU replay work per capture, and a
+clean mod unload. Evidence is
+`build/m12-water-surface/specular-fishing-noon.jpg`,
+`specular-fishing-night.jpg`, `specular-fishing-time067.jpg`, and
+`specular-fishing-time068.jpg`. GPU shader duration, dungeon stage-light
+behavior, and underwater behavior remain unvalidated.
 
 ## Optional SSR experiment
 
@@ -575,8 +587,8 @@ zero absorption and applies the default tint only inside the classified surface.
 Fishing Pond also validates bounded screen-space refraction, a restrained
 Fresnel environment fallback, shoreline treatment, and environment-aware
 specular on the exact allowlist. Next, validate dungeon pixels, underwater
-transitions, and outdoor day/night light changes when useful controllable states
-are available. SSR remains separate and optional.
+transitions, and dungeon stage-light changes when useful controllable states are
+available. SSR remains separate and optional.
 
 ## Open questions
 
