@@ -132,10 +132,19 @@ effects remain out of scope.
   3,134 captures with zero failures at about 219 microseconds per frame.
   Evidence is `underwater-surface-native.png` and
   `underwater-surface-enhanced.png` under `build/m12-water-surface/`.
-* This proves stable swimming at the air/water boundary. A fully submerged
-  camera remains unvalidated because the unattended input path could not hold
-  the game's dive action. Do not broaden the allowlist or enable the setting by
-  default until dungeon pixels and submerged camera behavior are resolved.
+* This proves stable swimming at the air/water boundary.
+* Lakebed room-3 flycam validation exposed real dungeon water pixels and crossed
+  the surface repeatedly. Enhanced water retained authored surface detail,
+  submerged fish, underwater distortion, surrounding geometry, and the surface
+  boundary. Native/enhanced evidence is `dungeon-native.jpg`,
+  `dungeon-enhanced.jpg`, `dungeon-underwater-native.jpg`, and
+  `dungeon-underwater-enhanced.jpg` under `build/m12-water-surface/`.
+* The visible enhanced run completed 17,205 captures with zero failures and
+  four packets per frame at about 53 microseconds of CPU replay work per frame.
+  The dedicated submerged transition run completed 9,361 captures with zero
+  failures at about 53 microseconds per frame. Both unloaded cleanly with no
+  texture-index or WebGPU/D3D12 validation errors. This is a camera-state proof;
+  a gameplay-controlled dive remains a separate input-path check.
 
 ## Animated surface-normal review
 
@@ -166,8 +175,9 @@ effects remain out of scope.
   smear, validation error, or shutdown failure was observed.
 * The maximum run completed 3,164 captures with zero failures, two packets per
   frame, about 45 microseconds of CPU replay work per frame, and clean unload.
-  GPU shader cost remains unmeasured. Dungeon and underwater visual validation
-  are still required before broadening the exact allowlist.
+  The later Lakebed surface/submerged flycam passes exercised the combined path
+  without recursive image, gross edge smear, or transition failure. GPU shader
+  cost remains unmeasured.
 
 ## Fresnel fallback review
 
@@ -198,8 +208,9 @@ effects remain out of scope.
   or unrelated translucency. Maximum/zero completed 4,702/4,857 captures with
   zero failures, clean unload, no validation errors, and about 51/56
   microseconds of CPU replay work per frame.
-* Irregular natural shores, dungeon edges, and underwater transitions still
-  require live visual validation before broader classification.
+* Lakebed dungeon edges and repeated underwater transitions passed live flycam
+  validation. More irregular natural shore classes still require live proof
+  before broader classification.
 
 ## Environment-aware specular review
 
@@ -224,10 +235,11 @@ effects remain out of scope.
   clean unload. Evidence is `specular-fishing-noon.jpg`,
   `specular-fishing-night.jpg`, `specular-fishing-time067.jpg`, and
   `specular-fishing-time068.jpg` under `build/m12-water-surface/`.
-* Lakebed execution reached the environment-aware path with `light=yes`, but the
-  available spawn exposed no water pixels. Dungeon stage-light appearance, a
-  fully submerged camera, and GPU shader duration remain unvalidated. Broader
-  enablement remains blocked on those checks plus dungeon visual proof.
+* Lakebed execution reached the environment-aware path with `light=yes`; the
+  later flycam pass exposed water pixels above and below the surface without
+  unstable, inverted, or blown-out response. A controlled dungeon stage-light
+  change and GPU shader duration remain unvalidated. Broader enablement remains
+  blocked on those checks and additional exact-class coverage.
 
 ## Optional SSR research review
 

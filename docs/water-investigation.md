@@ -396,16 +396,22 @@ microseconds of CPU capture/replay work per frame, and clean unload; a shorter
 repeat completed 3,134 captures with zero failures at about 219 microseconds per
 frame. Evidence is `build/m12-water-surface/underwater-surface-native.png` and
 `underwater-surface-enhanced.png`. This validates swimming at the air/water
-boundary, not a fully submerged camera: the unattended input harness could emit
-only a short button tap and did not sustain the dive action.
+boundary.
 
-Dungeon water still has execution evidence only because the available Lakebed
-spawns do not expose a useful surface view. A current all-features Lakebed room
-3 run processed four exact packets per frame for 11,900 captures with zero
-failures, `light=yes`, and clean unload. It measured about 1.61 milliseconds of
-CPU capture/replay work per frame. A specular-off repeat measured 1.437
-milliseconds per frame, proving the cost was in surface replay rather than the
-optical shader.
+Flycam validation subsequently exposed the Lakebed room-3 surface and crossed
+it from both sides. Enhanced water retained the dungeon's authored surface,
+surrounding geometry, submerged fish, underwater distortion, and the visible
+surface boundary. Repeated air-to-water-to-air movement remained stable. Native
+and enhanced evidence is `build/m12-water-surface/dungeon-native.jpg`,
+`dungeon-enhanced.jpg`, `dungeon-underwater-native.jpg`, and
+`dungeon-underwater-enhanced.jpg`. This proves camera-state rendering across
+the surface; it does not replace a gameplay dive/swim-input test.
+
+An earlier all-features Lakebed room-3 run processed four exact packets per
+frame for 11,900 captures with zero failures, `light=yes`, and clean unload. It
+measured about 1.61 milliseconds of CPU capture/replay work per frame. A
+specular-off repeat measured 1.437 milliseconds per frame, proving the cost was
+in surface replay rather than the optical shader.
 
 Review found that the auxiliary replay redundantly called `prepareDraw()` before
 `J3DShapePacket::drawFast()`, which calls it itself, and reloaded the source
@@ -417,9 +423,13 @@ about 54 microseconds per frame. It had zero capture failures, zero texture-inde
 errors, normal rendering, and clean unload. A visible R_SP107 surface-swimming
 repeat remained visually correct and measured 42,400 microseconds over 1,002
 one-packet captures, about 42 microseconds per frame. Evidence is
-`build/m12-water-surface/optimized-swim-enhanced.jpg`. Dungeon pixel proof and
-GPU shader timing remain open; the resolved CPU replay variance no longer
-blocks dungeon enablement by itself.
+`build/m12-water-surface/optimized-swim-enhanced.jpg`. The later visible
+Lakebed flycam run completed 17,205 captures with zero failures and four packets
+per frame at about 53 microseconds of CPU replay work per frame. Its dedicated
+underwater transition repeat completed 9,361 captures with zero failures at
+about 53 microseconds per frame. Both unloaded cleanly with no texture-index or
+WebGPU/D3D12 validation errors. GPU shader timing remains open; the resolved CPU
+replay variance no longer blocks dungeon enablement by itself.
 
 ## Animated surface-normal prototype
 
@@ -462,9 +472,10 @@ edge smearing were not observed. The maximum run completed 3,164 combined
 captures with zero failures, two packets per frame, about 45 microseconds of CPU
 replay work per frame, clean unload, and no WebGPU/D3D12 validation errors.
 Evidence is `build/m12-water-surface/refraction-fishing-zero.jpg`,
-`refraction-fishing-default.jpg`, and `refraction-fishing-maximum.jpg`. GPU cost
-still lacks timestamp measurement, and dungeon pixels plus underwater
-transitions remain unvalidated.
+`refraction-fishing-default.jpg`, and `refraction-fishing-maximum.jpg`. The
+Lakebed surface and submerged flycam passes later exercised this same combined
+water path without recursive image, edge-smear, or transition failure. GPU cost
+still lacks timestamp measurement.
 
 ## Fresnel and environment-reflection fallback
 
@@ -547,8 +558,10 @@ with zero failures, about 54 microseconds of CPU replay work per capture, and a
 clean mod unload. Evidence is
 `build/m12-water-surface/specular-fishing-noon.jpg`,
 `specular-fishing-night.jpg`, `specular-fishing-time067.jpg`, and
-`specular-fishing-time068.jpg`. GPU shader duration, dungeon stage-light
-behavior, and underwater behavior remain unvalidated.
+`specular-fishing-time068.jpg`. The Lakebed surface and submerged flycam passes
+remained visually stable with the dungeon-authored light available. A
+controlled dungeon stage-light state change and GPU shader duration remain
+unvalidated.
 
 ## Optional SSR experiment
 
@@ -615,9 +628,11 @@ A/B now confirm the post-native auxiliary replay preserves authored water at
 zero absorption and applies the default tint only inside the classified surface.
 Fishing Pond also validates bounded screen-space refraction, a restrained
 Fresnel environment fallback, shoreline treatment, and environment-aware
-specular on the exact allowlist. Next, validate dungeon pixels, underwater
-transitions, and dungeon stage-light changes when useful controllable states are
-available. SSR remains separate and optional.
+specular on the exact allowlist. Lakebed room-3 flycam proof now also validates
+visible dungeon pixels, a fully submerged camera, and repeated surface
+crossings. Next, measure GPU shader duration and exercise a controlled dungeon
+stage-light change when a useful controllable state is available. SSR remains
+separate and optional.
 
 ## Open questions
 
