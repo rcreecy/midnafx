@@ -509,6 +509,29 @@ at about 56 microseconds per frame and also unloaded cleanly. Evidence is
 `specular-fishing-zero.jpg`. GPU shader time and behavior across outdoor
 day/night transitions still need measurement.
 
+## Optional SSR experiment
+
+A bounded eight-step screen-space reflection prototype reused the existing
+pre-water scene color/depth plus `proj_from_view`, `view_from_proj`, and the
+shared animated normal. It rejected off-screen projection, background depth,
+invalid clip coordinates, and samples in front of the water. Misses retained
+the environment-tint fallback. CPU capture/replay cost remained about 64
+microseconds per frame across 7,750 captures with zero failures, clean unload,
+and no validation errors.
+
+The Fishing Pond hit diagnostic rendered every classified water pixel black and
+no hit pixel magenta. The tested radial-distance crossing rule therefore found
+zero trustworthy intersections in this view. Evidence is
+`build/m12-water-surface/ssr-hit-diagnostic-no-hits.jpg`. The prototype was
+reverted and no SSR setting or shader path ships from this experiment.
+
+The smallest next SSR experiment is a miss-reason diagnostic that separates
+off-screen rays, background samples, and depth-crossing misses, then replaces
+radial distance with signed view-space depth and a bounded thickness interval.
+No new Dusklight API is indicated; current scene color, depth, and camera
+matrices are sufficient for that experiment. SSR remains optional and must not
+replace the validated environment fallback until real hits are proven.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |

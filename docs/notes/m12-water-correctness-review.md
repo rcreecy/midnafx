@@ -193,3 +193,16 @@ effects remain out of scope.
 * Live day/night transition stability, dungeon stage-light behavior, and GPU
   shader duration remain unvalidated. Broader enablement remains blocked on
   those checks plus underwater and dungeon visual proof.
+
+## Optional SSR research review
+
+* An eight-step prototype used only existing frame-scoped scene color/depth and
+  camera matrices. It bounded loop cost, rejected invalid/off-screen rays and
+  background depth, and retained the environment fallback on misses.
+* A magenta-hit/black-miss diagnostic at Fishing Pond produced no magenta water
+  pixels. The radial-distance crossing rule did not establish one valid hit.
+  Runtime remained stable for 7,750 captures with zero failures and clean
+  unload, but stability does not satisfy SSR correctness.
+* The prototype was reverted completely. No SSR control or runtime shader path
+  remains. A future experiment must diagnose miss reasons and use signed
+  view-space depth crossing before SSR can return to product scope.
