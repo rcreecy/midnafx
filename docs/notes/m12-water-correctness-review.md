@@ -204,5 +204,7 @@ effects remain out of scope.
   Runtime remained stable for 7,750 captures with zero failures and clean
   unload, but stability does not satisfy SSR correctness.
 * The prototype was reverted completely. No SSR control or runtime shader path
-  remains. A future experiment must diagnose miss reasons and use signed
-  view-space depth crossing before SSR can return to product scope.
+  remains. A second experiment used signed view-space depth and a miss-reason
+  view. Both normal and widened bounded traces produced only no-crossing and
+  off-screen results, with no valid hit. SSR needs a stronger intersection
+  method and a high-contrast validation scene before returning to product scope.

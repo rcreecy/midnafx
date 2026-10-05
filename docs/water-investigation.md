@@ -525,12 +525,20 @@ zero trustworthy intersections in this view. Evidence is
 `build/m12-water-surface/ssr-hit-diagnostic-no-hits.jpg`. The prototype was
 reverted and no SSR setting or shader path ships from this experiment.
 
-The smallest next SSR experiment is a miss-reason diagnostic that separates
-off-screen rays, background samples, and depth-crossing misses, then replaces
-radial distance with signed view-space depth and a bounded thickness interval.
+A follow-up miss-reason diagnostic replaced radial distance with signed
+view-space depth and separated valid-depth no-crossing rays (yellow), off-screen
+rays (red), and background samples (blue). Fishing Pond produced only yellow and
+red regions, including after increasing the bounded eight-step range and hit
+thickness. It still produced no magenta hits. Evidence is
+`build/m12-water-surface/ssr-depth-miss-reasons.jpg` and
+`ssr-signed-depth-no-hits.jpg`.
+
 No new Dusklight API is indicated; current scene color, depth, and camera
-matrices are sufficient for that experiment. SSR remains optional and must not
-replace the validated environment fallback until real hits are proven.
+matrices are sufficient. Any later SSR work needs a more robust screen-space
+intersection method, likely perspective-correct segment refinement or a depth
+pyramid, plus proof in a scene containing strong reflected silhouettes. SSR
+remains optional and must not replace the validated environment fallback until
+real hits are proven.
 
 ## Test matrix for Gate 1
 
