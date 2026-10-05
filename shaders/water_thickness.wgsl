@@ -1,6 +1,7 @@
 struct WaterParameters {
     view_from_proj: mat4x4f,
     world_from_proj: mat4x4f,
+    view_from_world: mat4x4f,
     max_thickness: f32,
     background_depth: f32,
     absorption_strength: f32,
@@ -10,7 +11,7 @@ struct WaterParameters {
     wave_strength: f32,
     wave_scale: f32,
     wave_speed: f32,
-    wave_padding: f32,
+    refraction_strength: f32,
     gain_r: f32,
     gain_g: f32,
     gain_b: f32,
@@ -30,6 +31,7 @@ struct WaterParameters {
 @group(0) @binding(2) var surface_depth: texture_2d<f32>;
 @group(0) @binding(3) var surface_mask: texture_2d<f32>;
 @group(0) @binding(4) var<uniform> params: WaterParameters;
+@group(0) @binding(5) var scene_behind_water: texture_2d<f32>;
 
 @vertex
 fn vs_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
@@ -64,6 +66,30 @@ fn water_surface_normal(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
     let ripple_slope = vec2f(cos(ripple.x - sin(ripple.y)), sin(ripple.y + cos(ripple.x)));
     let slope = (large_slope * 0.65 + ripple_slope * 0.35) * params.wave_strength * 0.28;
     return normalize(vec3f(-slope.x, 1.0, -slope.y));
+}
+
+fn refracted_source(coord: vec2i, water_depth: f32, normalized_depth: f32,
+                    dimensions: vec2f, native_source: vec3f, normal: vec3f) -> vec3f {
+    if (params.refraction_strength <= 0.0) {
+        return native_source;
+    }
+    let view_normal = normalize((params.view_from_world * vec4f(normal, 0.0)).xyz);
+    let depth_scale = smoothstep(0.0, 0.35, normalized_depth);
+    let offset = view_normal.xy * params.refraction_strength * mix(1.0, 8.0, depth_scale);
+    let last = vec2i(dimensions) - vec2i(1);
+    let sample_coord = clamp(coord + vec2i(round(offset)), vec2i(0), last);
+    let sample_depth = textureLoad(scene_depth, sample_coord, 0).r;
+    if (abs(sample_depth - params.background_depth) <= 0.000001) {
+        return native_source;
+    }
+    let water_distance = view_distance(coord, water_depth, dimensions);
+    let sample_distance = view_distance(sample_coord, sample_depth, dimensions);
+    if (sample_distance <= water_distance) {
+        return native_source;
+    }
+    let refracted = textureLoad(scene_behind_water, sample_coord, 0).rgb;
+    let blend = params.refraction_strength * mix(0.08, 0.35, depth_scale);
+    return mix(native_source, refracted, blend);
 }
 
 fn max_component(value: vec3f) -> f32 {
@@ -127,7 +153,9 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     // turning the whole surface black until a submerged-color source exists.
     let source_luma = dot(source, vec3f(0.2126, 0.7152, 0.0722));
     let stable_source = select(source, max(source, params.shallow_tint.rgb * 0.35), source_luma < 0.01);
-    return (stable_source * transmission + scatter * (1.0 - transmission)) * wave_light;
+    let transmitted_source = refracted_source(coord, water_depth, normalized, dimensions,
+                                               stable_source, surface_normal);
+    return (transmitted_source * transmission + scatter * (1.0 - transmission)) * wave_light;
 }
 
 @fragment

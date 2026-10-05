@@ -348,10 +348,9 @@ packets per frame; overflow fails the frame closed. Lakebed Temple room 3
 exercised four packets per frame for 1,464 combined captures with zero failures,
 about 52 microseconds of CPU replay work per frame, clean unload, and no
 validation errors. This is execution and lifecycle proof because the available
-spawn does not show the water surface. The first absorption prototype remains
-restricted to the exact validated allowlist and fails closed when inputs are
-unavailable. No refraction, animated normals, reflection, or gameplay water
-changes are included.
+spawn does not show the water surface. Product water effects remain restricted
+to the exact validated allowlist and fail closed when inputs are unavailable.
+Reflection and gameplay water changes are not included.
 
 ## First product feature: depth-based absorption
 
@@ -415,6 +414,29 @@ Evidence is `build/m12-water-surface/waves-fishing-zero.jpg`,
 `waves-fishing-maximum-a.jpg`, `waves-fishing-maximum-b.jpg`, and
 `waves-fishing-default.jpg`.
 
+## Bounded screen-space refraction prototype
+
+Enhanced water now optionally samples the same pre-water opaque scene-color
+resolve used with the depth capture. The animated world-space surface normal is
+transformed into view space and offsets sampling by at most eight pixels. The
+offset grows with optical thickness, clamps to the viewport, rejects background
+depth and opaque geometry in front of the water, and blends at no more than 35%
+so TP's authored surface remains visible. Refraction strength is persisted,
+bounded from 0-100%, and defaults to 15% under the default-off enhanced-water
+toggle.
+
+Fishing Pond passed zero, default-15%, and maximum-100% runs on D3D12. Zero
+retained the established absorption result. Default remained restrained.
+Maximum made the water-local distortion observable without affecting Link,
+shore terrain, HUD, or unrelated translucency; off-screen sampling and gross
+edge smearing were not observed. The maximum run completed 3,164 combined
+captures with zero failures, two packets per frame, about 45 microseconds of CPU
+replay work per frame, clean unload, and no WebGPU/D3D12 validation errors.
+Evidence is `build/m12-water-surface/refraction-fishing-zero.jpg`,
+`refraction-fishing-default.jpg`, and `refraction-fishing-maximum.jpg`. GPU cost
+still lacks timestamp measurement, and dungeon pixels plus underwater
+transitions remain unvalidated.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |
@@ -447,9 +469,10 @@ MidnaFX does not infer a mask from framebuffer color, retain borrowed views, or
 reuse TP's native EFB-copy storage. Moving-water, Fishing Pond, and Lake Hylia
 A/B now confirm the post-native auxiliary replay preserves authored water at
 zero absorption and applies the default tint only inside the classified surface.
-Next, validate dungeon pixels and underwater transitions when a useful
-controllable spawn is available, then prototype bounded screen-space refraction
-on the same exact allowlist.
+Fishing Pond also validates bounded screen-space refraction on the exact
+allowlist. Next, validate dungeon pixels and underwater transitions when a
+useful controllable spawn is available, then add Fresnel with a restrained
+environment-reflection fallback.
 
 ## Open questions
 

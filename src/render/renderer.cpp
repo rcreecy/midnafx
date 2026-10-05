@@ -55,6 +55,7 @@ static_assert(sizeof(DofUniforms) == 96);
 struct WaterUniforms {
     float view_from_proj[16];
     float world_from_proj[16];
+    float view_from_world[16];
     float max_thickness;
     float background_depth;
     float absorption_strength;
@@ -64,15 +65,16 @@ struct WaterUniforms {
     float wave_strength;
     float wave_scale;
     float wave_speed;
-    float wave_padding;
+    float refraction_strength;
     grade::Uniforms grading;
 };
-static_assert(sizeof(WaterUniforms) == 240);
+static_assert(sizeof(WaterUniforms) == 304);
 struct Payload {
     WGPUTextureView scene;
     WGPUTextureView depth;
     WGPUTextureView auxiliary_depth;
     WGPUTextureView mask;
+    WGPUTextureView behind_scene;
     const PipelinePair* pair;
     std::uint64_t layout_key;
     std::uint32_t kind;
@@ -310,14 +312,14 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     const bool water_effect = water_depth || water_absorption;
     const bool uses_depth = payload.kind == DepthDiagnostic || payload.kind == DofDiagnostic;
     if ((water_effect ? (!payload.depth || !payload.auxiliary_depth || !payload.mask ||
-                         (water_absorption && !payload.scene))
+                         (water_absorption && (!payload.scene || !payload.behind_scene)))
                      : (uses_depth ? payload.depth == nullptr : payload.scene == nullptr)) ||
         payload.layout_key != ctx->layout.key || payload.layout_key != payload.pair->layout.key ||
         ctx->layout.sample_count != 1)
         return;
-    WGPUBindGroupEntry entries[5] = {
+    WGPUBindGroupEntry entries[6] = {
         WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT,
-        WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
+        WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     entries[0].binding = 0;
     entries[0].textureView = uses_depth ? payload.depth : payload.scene;
     if (water_effect) {
@@ -341,6 +343,10 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
         uniform_entry.buffer = ctx->uniform_buffer;
         uniform_entry.offset = payload.uniform_offset;
         uniform_entry.size = payload.uniform_size;
+        if (water_absorption) {
+            entries[5].binding = 5;
+            entries[5].textureView = payload.behind_scene;
+        }
     } else if (payload.kind != Passthrough) {
         auto expected_size = sizeof(grade::Uniforms);
         if (payload.kind == DepthDiagnostic)
@@ -357,7 +363,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     desc.label = {"MidnaFX scene", WGPU_STRLEN};
     desc.layout = selected.bind_layout;
-    desc.entryCount = water_absorption ? 5 : water_depth ? 4 : payload.kind == Passthrough ? 1 : 2;
+    desc.entryCount = water_absorption ? 6 : water_depth ? 4 : payload.kind == Passthrough ? 1 : 2;
     desc.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(ctx->device, &desc);
     if (group == nullptr) {
@@ -419,7 +425,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const auto mode = visual::debug_mode(prepared.uniforms.debug_mode);
     const bool water_absorption = !depth_based_debug && !water_thickness_debug &&
                                   !water_capture_debug && settings::enhanced_water_enabled() &&
-                                  water_inputs_ready && mode == visual::DebugMode::Final;
+                                  water_inputs_ready && water_inputs.scene_color &&
+                                  mode == visual::DebugMode::Final;
     if (!depth_based_debug) {
         depth_view_warned_kind = PipelineCount;
         depth_view_logged_kind = PipelineCount;
@@ -511,6 +518,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                     sizeof(uniforms.view_from_proj));
         std::memcpy(uniforms.world_from_proj, camera.world_from_proj,
                     sizeof(uniforms.world_from_proj));
+        std::memcpy(uniforms.view_from_world, camera.view_from_world,
+                    sizeof(uniforms.view_from_world));
         uniforms.max_thickness = water_absorption ? settings::water_max_optical_depth()
                                                   : settings::atmosphere_depth_distance();
         uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
@@ -526,6 +535,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         uniforms.wave_strength = water_absorption ? settings::water_wave_strength() : 0.0f;
         uniforms.wave_scale = 0.012f;
         uniforms.wave_speed = 0.35f;
+        uniforms.refraction_strength =
+            water_absorption ? settings::water_refraction_strength() : 0.0f;
         uniforms.grading = prepared.uniforms;
         if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &uniform_range) != MOD_OK)
             return;
@@ -637,6 +648,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                               : nullptr,
                           (water_thickness_debug || water_absorption) ? water_inputs.surface_mask
                                                                      : nullptr,
+                          water_absorption ? water_inputs.scene_color : nullptr,
                           pair,
                           current.key,
                           kind,
@@ -682,11 +694,12 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         char message[224];
         std::snprintf(message, sizeof(message),
                       "Water absorption active: size=%ux%u strength=%.2f max_depth=%.0f "
-                      "wave_strength=%.2f reversed_z=%s",
+                      "wave_strength=%.2f refraction_strength=%.2f reversed_z=%s",
                       snapshot.width, snapshot.height,
                       static_cast<double>(settings::water_absorption_strength()),
                       static_cast<double>(settings::water_max_optical_depth()),
                       static_cast<double>(settings::water_wave_strength()),
+                      static_cast<double>(settings::water_refraction_strength()),
                       device.uses_reversed_z ? "yes" : "no");
         svc_log->info(mod_ctx, message);
         water_absorption_logged = true;
@@ -847,7 +860,7 @@ void initialize() {
     }
     GfxStageHookDesc begin_desc = GFX_STAGE_HOOK_DESC_INIT;
     begin_desc.callback = reset_scene_capture;
-    if (svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_SCENE_BEGIN, &begin_desc,
+    if (svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_FRAME_AFTER_HUD, &begin_desc,
                                      &scene_begin_hook) != MOD_OK) {
         svc_gfx->unregister_stage_hook(mod_ctx, pre_water_hook);
         svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);

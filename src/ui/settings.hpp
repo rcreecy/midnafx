@@ -20,6 +20,7 @@ bool enhanced_water_enabled();
 float water_absorption_strength();
 float water_max_optical_depth();
 float water_wave_strength();
+float water_refraction_strength();
 bool camera_enabled();
 float camera_fov_scale();
 float camera_transition_seconds();

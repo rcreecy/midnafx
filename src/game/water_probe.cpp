@@ -523,19 +523,20 @@ void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*)
     }
     if (thickness_requested()) {
         GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
-        request.color = false;
+        request.color = settings::enhanced_water_enabled();
         request.depth = true;
         pre_water_depth = GFX_RESOLVED_TARGETS_INIT;
         pre_water_depth_ready =
             svc_gfx->resolve_pass(mod_ctx, &request, &pre_water_depth) == MOD_OK &&
             pre_water_depth.depth && pre_water_depth.width != 0 && pre_water_depth.height != 0;
         if (!thickness_depth_logged && svc_log) {
-            char message[192];
+            char message[224];
             std::snprintf(
                 message, sizeof(message),
-                "Water thickness pre-depth {ready=%s requested=%ux%u resolved=%ux%u depth=%s}",
+                "Water thickness pre-depth {ready=%s requested=%ux%u resolved=%ux%u color=%s depth=%s}",
                 pre_water_depth_ready ? "yes" : "no", width, height, pre_water_depth.width,
-                pre_water_depth.height, pre_water_depth.depth ? "yes" : "no");
+                pre_water_depth.height, pre_water_depth.color ? "yes" : "no",
+                pre_water_depth.depth ? "yes" : "no");
             svc_log->info(mod_ctx, message);
             thickness_depth_logged = true;
         }
@@ -734,6 +735,7 @@ bool latest_thickness_inputs(ThicknessInputs& out) {
         pre_water_depth.height != water_surface.height)
         return false;
     out.scene_depth = pre_water_depth.depth;
+    out.scene_color = pre_water_depth.color;
     out.surface_depth = water_surface.depth;
     out.surface_mask = water_surface.color;
     out.width = water_surface.width;

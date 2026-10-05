@@ -125,3 +125,20 @@ effects remain out of scope.
   and clean unload.
 * CPU replay work remained about 51 microseconds per frame with two packets. GPU
   cost of the added trigonometric shader work remains unmeasured.
+
+## Refraction prototype review
+
+* The opaque scene-color resolve is requested together with the existing
+  pre-water depth resolve only when enhanced water is enabled. Both views remain
+  frame-scoped and are consumed before the after-HUD cleanup hook.
+* Refraction is bounded to eight pixels and 35% blending. Sampling clamps to the
+  viewport and rejects background depth plus opaque samples at or in front of
+  the water surface. Missing color/depth/mask inputs fail the effect closed.
+* Fishing Pond passed 0%, default-15%, and 100% runs. Maximum strength exposed
+  the intended water-local distortion without visible shoreline, Link, HUD, or
+  unrelated-translucency contamination. No recursive water image, gross edge
+  smear, validation error, or shutdown failure was observed.
+* The maximum run completed 3,164 captures with zero failures, two packets per
+  frame, about 45 microseconds of CPU replay work per frame, and clean unload.
+  GPU shader cost remains unmeasured. Dungeon and underwater visual validation
+  are still required before broadening the exact allowlist.

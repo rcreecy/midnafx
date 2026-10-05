@@ -4,6 +4,7 @@
 
 namespace midnafx::water_probe {
 struct ThicknessInputs {
+    WGPUTextureView scene_color = nullptr;
     WGPUTextureView scene_depth = nullptr;
     WGPUTextureView surface_depth = nullptr;
     WGPUTextureView surface_mask = nullptr;
