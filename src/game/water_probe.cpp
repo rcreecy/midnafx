@@ -430,8 +430,8 @@ void resolve_pending_surface_packets() {
             J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
             if (!packet || !shape || !material)
                 continue;
-            material->load();
-            packet->prepareDraw();
+            // The replay is untextured. Loading the source material would only rebind its
+            // textures/NBT scale and can reference a stale J3D texture table at this stage.
             shape->loadPreDrawSetting();
             constexpr GXColor white{255, 255, 255, 255};
             GXSetNumIndStages(0);

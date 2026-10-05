@@ -403,8 +403,23 @@ Dungeon water still has execution evidence only because the available Lakebed
 spawns do not expose a useful surface view. A current all-features Lakebed room
 3 run processed four exact packets per frame for 11,900 captures with zero
 failures, `light=yes`, and clean unload. It measured about 1.61 milliseconds of
-CPU capture/replay work per frame, substantially above earlier Lakebed and
-outdoor samples, so dungeon performance remains an explicit open risk.
+CPU capture/replay work per frame. A specular-off repeat measured 1.437
+milliseconds per frame, proving the cost was in surface replay rather than the
+optical shader.
+
+Review found that the auxiliary replay redundantly called `prepareDraw()` before
+`J3DShapePacket::drawFast()`, which calls it itself, and reloaded the source
+material even though the mask pass is untextured. The material reload rebound
+textures from a stale J3D texture table and produced two out-of-range texture
+lookups per packet per frame. Removing both redundant operations reduced the
+same four-packet Lakebed run to 198,970 microseconds over 3,678 captures, or
+about 54 microseconds per frame. It had zero capture failures, zero texture-index
+errors, normal rendering, and clean unload. A visible R_SP107 surface-swimming
+repeat remained visually correct and measured 42,400 microseconds over 1,002
+one-packet captures, about 42 microseconds per frame. Evidence is
+`build/m12-water-surface/optimized-swim-enhanced.jpg`. Dungeon pixel proof and
+GPU shader timing remain open; the resolved CPU replay variance no longer
+blocks dungeon enablement by itself.
 
 ## Animated surface-normal prototype
 
