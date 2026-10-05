@@ -43,10 +43,10 @@ effects remain out of scope.
   Fishing Pond, and the visible Lake Hylia patch. The shape hook still cannot
   invoke the enclosing material packet's complete draw call, so untested water
   classes could depend on additional authored state.
-* The diagnostic captures the first exact base candidate drawn each frame. It
-  does not aggregate multiple simultaneously visible base shapes. Initial product
-  work must use the validated exact allowlist and fail closed when aggregation is
-  required.
+* Exact packets are retained only until the same frame's pre-HUD stage, then
+  replayed into one combined mask/depth pass and cleared. Collection is capped at
+  64 unique packets; overflow fails the frame closed. Multi-packet pixels remain
+  visually unproven even though Lakebed exercises the path successfully.
 * Lakebed room 3 has execution proof but no useful surface-facing spawn for an
   unattended visual proof. Underwater transitions and additional story-layer
   states remain product-validation work.
@@ -74,8 +74,9 @@ effects remain out of scope.
 * Lake Hylia produced a stable water-local grayscale field without reconstruction
   fault colors, then unloaded cleanly after 688 successful captures and zero
   failures.
-* Gate 3 passes for the validated single-base-shape path. Multi-shape aggregation
-  remains outside this gate and constrains the first product allowlist.
+* Gate 3 passes for the validated exact path. Multi-packet aggregation is bounded
+  and implemented, but broader material coverage remains outside this gate and
+  constrains the first product allowlist.
 
 ## Absorption prototype review
 
@@ -103,5 +104,9 @@ effects remain out of scope.
 * Lake Hylia zero/default A/B remained stable on the small visible water patch
   and retained native detail. The runs completed 1,334/1,038 captures with zero
   failures at about 86/85 microseconds per frame and unloaded cleanly.
+* Lakebed Temple exercised four exact surface packets per frame. It completed
+  1,464 combined captures with zero failures at about 52 microseconds of CPU
+  replay work per frame, clean unload, and no validation errors. The spawn does
+  not expose water, so this proves execution/lifecycle rather than pixels.
 * Do not broaden the allowlist or enable the setting by default until equivalent
-  dungeon and underwater validation passes and multi-shape aggregation is safe.
+  dungeon and underwater visual validation passes.

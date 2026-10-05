@@ -13,6 +13,7 @@ struct ThicknessInputs {
 
 void initialize();
 void update();
+void finalize_thickness_capture();
 bool latest_thickness_inputs(ThicknessInputs& out);
 void shutdown();
 } // namespace midnafx::water_probe

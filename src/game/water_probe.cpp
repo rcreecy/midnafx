@@ -29,12 +29,14 @@
 #include <f_op/f_op_actor_mng.h>
 #include <mods/svc/hook.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace midnafx::water_probe {
 namespace {
@@ -72,13 +74,14 @@ bool onsen_hook = false;
 bool rot_stair_hook = false;
 bool boss_water_hook = false;
 bool shape_hook = false;
-bool shape_post_hook = false;
 std::uint64_t classified_draws = 0;
 std::uint64_t stage_scan_ns = 0;
 std::uint64_t stage_scan_frames = 0;
 std::uint64_t thickness_captures = 0;
 std::uint64_t thickness_capture_failures = 0;
 std::uint64_t thickness_capture_ns = 0;
+std::uint64_t thickness_packet_total = 0;
+std::size_t thickness_packet_max = 0;
 std::chrono::steady_clock::time_point thickness_capture_started{};
 bool diagnostic_was_enabled = false;
 bool surface_capture_logged = false;
@@ -96,10 +99,10 @@ GfxResolvedTargets pre_water_depth = GFX_RESOLVED_TARGETS_INIT;
 GfxResolvedTargets water_surface = GFX_RESOLVED_TARGETS_INIT;
 bool pre_water_depth_ready = false;
 bool water_surface_ready = false;
-bool mask_capture_active = false;
-bool mask_capture_consumed = false;
-enum class CaptureOwner { None, Shape };
-CaptureOwner capture_owner = CaptureOwner::None;
+std::vector<J3DShapePacket*> pending_surface_packets;
+constexpr std::size_t kMaxSurfacePackets = 64;
+bool pending_surface_overflow = false;
+bool surface_overflow_warned = false;
 
 bool diagnostic_requested() {
     return settings::water_classification_diagnostic_enabled() ||
@@ -131,18 +134,20 @@ bool is_allowed_stage_material(const char* stage, const char* name) {
 void log_summary(const char* reason) {
     if (!svc_log || (classified_draws == 0 && thickness_captures == 0))
         return;
-    char message[320];
+    char message[384];
     std::snprintf(message, sizeof(message),
                   "WaterClass summary {reason=%s marked_draws=%llu active_models=%u "
                   "stage_scan_frames=%llu stage_scan_us=%llu thickness_captures=%llu "
-                  "thickness_failures=%llu thickness_capture_us=%llu}",
+                  "thickness_failures=%llu thickness_capture_us=%llu packets_total=%llu "
+                  "packets_max=%zu}",
                   reason, static_cast<unsigned long long>(classified_draws),
                   static_cast<unsigned>(previous_classified_models.size()),
                   static_cast<unsigned long long>(stage_scan_frames),
                   static_cast<unsigned long long>(stage_scan_ns / 1000),
                   static_cast<unsigned long long>(thickness_captures),
                   static_cast<unsigned long long>(thickness_capture_failures),
-                  static_cast<unsigned long long>(thickness_capture_ns / 1000));
+                  static_cast<unsigned long long>(thickness_capture_ns / 1000),
+                  static_cast<unsigned long long>(thickness_packet_total), thickness_packet_max);
     svc_log->info(mod_ctx, message);
 }
 
@@ -332,13 +337,14 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     const auto identity = frame_material_identities.find(material);
     const bool thickness_candidate =
         identity != frame_material_identities.end() && identity->second.thickness_candidate;
-    if (classified && thickness_candidate && shape_post_hook &&
-        thickness_requested() && pre_water_depth_ready &&
-        !mask_capture_consumed && !mask_capture_active) {
-        thickness_capture_started = std::chrono::steady_clock::now();
-        mask_capture_active = true;
-        mask_capture_consumed = true;
-        capture_owner = CaptureOwner::Shape;
+    if (classified && thickness_candidate && thickness_requested() && pre_water_depth_ready &&
+        !pending_surface_overflow &&
+        std::find(pending_surface_packets.begin(), pending_surface_packets.end(), packet) ==
+            pending_surface_packets.end()) {
+        if (pending_surface_packets.size() >= kMaxSurfacePackets)
+            pending_surface_overflow = true;
+        else
+            pending_surface_packets.push_back(packet);
         if (!thickness_target_logged && svc_log) {
             char message[224];
             std::snprintf(message, sizeof(message),
@@ -355,9 +361,9 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     if (!classified)
         return HOOK_CONTINUE;
 
-    // Thickness capture replays into a private pass after this native draw.
-    // Do not let another diagnostic alter the native water state first.
-    if (mask_capture_active)
+    // Product thickness/absorption never changes the native water draw.
+    // Developer surface/classification overrides remain mutually exclusive.
+    if (thickness_requested())
         return HOOK_CONTINUE;
 
     if (settings::water_surface_capture_diagnostic_enabled() && pre_water_capture_ready) {
@@ -397,36 +403,55 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     return HOOK_CONTINUE;
 }
 
-void after_classified_shape(ModContext*, void* args, void*, void*) {
-    if (!mask_capture_active || capture_owner != CaptureOwner::Shape || !args)
+void resolve_pending_surface_packets() {
+    if (pending_surface_overflow) {
+        pending_surface_packets.clear();
+        pending_surface_overflow = false;
+        water_surface_ready = false;
+        ++thickness_captures;
+        ++thickness_capture_failures;
+        if (!surface_overflow_warned && svc_log) {
+            svc_log->warn(mod_ctx,
+                          "Water thickness packet limit exceeded; frame failed closed");
+            surface_overflow_warned = true;
+        }
         return;
-    auto* packet = mods::arg<J3DShapePacket*>(args, 0);
-    J3DShape* shape = packet ? packet->getShape() : nullptr;
-    J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
+    }
+    if (pending_surface_packets.empty())
+        return;
+    thickness_capture_started = std::chrono::steady_clock::now();
     water_surface = GFX_RESOLVED_TARGETS_INIT;
     water_surface_ready = false;
-    if (packet && material &&
+    if (pre_water_depth_ready && svc_gfx &&
         svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
-        material->load();
-        packet->prepareDraw();
-        shape->loadPreDrawSetting();
-        constexpr GXColor white{255, 255, 255, 255};
-        GXSetNumIndStages(0);
-        GXSetNumTevStages(1);
-        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR_NULL);
-        GXSetTevColor(GX_TEVREG0, white);
-        GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_C0);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
-        GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-        GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_OR, GX_ALWAYS, 0);
-        GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_CLEAR);
-        GXSetColorUpdate(GX_TRUE);
-        GXSetAlphaUpdate(GX_TRUE);
-        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
-        if (packet->getDisplayListObj())
-            packet->getDisplayListObj()->callDL();
-        ShapeDrawFast::g_orig(packet);
+        for (auto* packet : pending_surface_packets) {
+            J3DShape* shape = packet ? packet->getShape() : nullptr;
+            J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
+            if (!packet || !shape || !material)
+                continue;
+            material->load();
+            packet->prepareDraw();
+            shape->loadPreDrawSetting();
+            constexpr GXColor white{255, 255, 255, 255};
+            GXSetNumIndStages(0);
+            GXSetNumTevStages(1);
+            GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR_NULL);
+            GXSetTevColor(GX_TEVREG0, white);
+            GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_C0);
+            GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
+            GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE,
+                            GX_TEVPREV);
+            GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE,
+                            GX_TEVPREV);
+            GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_OR, GX_ALWAYS, 0);
+            GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_CLEAR);
+            GXSetColorUpdate(GX_TRUE);
+            GXSetAlphaUpdate(GX_TRUE);
+            GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+            if (packet->getDisplayListObj())
+                packet->getDisplayListObj()->callDL();
+            ShapeDrawFast::g_orig(packet);
+        }
 
         GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
         request.color = true;
@@ -437,13 +462,15 @@ void after_classified_shape(ModContext*, void* args, void*, void*) {
             water_surface.width == pre_water_depth.width &&
             water_surface.height == pre_water_depth.height;
     }
-    mask_capture_active = false;
-    capture_owner = CaptureOwner::None;
+    const auto packet_count = pending_surface_packets.size();
+    thickness_packet_total += packet_count;
+    thickness_packet_max = std::max(thickness_packet_max, packet_count);
+    pending_surface_packets.clear();
     if (water_surface_ready && !thickness_capture_logged && svc_log) {
         char message[192];
         std::snprintf(message, sizeof(message),
-                      "Water thickness surface capture ready {size=%ux%u mask=color depth=R32F}",
-                      water_surface.width, water_surface.height);
+                      "Water thickness surface capture ready {size=%ux%u packets=%zu mask=color depth=R32F}",
+                      water_surface.width, water_surface.height, packet_count);
         svc_log->info(mod_ctx, message);
         thickness_capture_logged = true;
     } else if (!water_surface_ready && !thickness_capture_warned && svc_log) {
@@ -464,7 +491,8 @@ void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*)
     pre_water_capture_ready = false;
     pre_water_depth_ready = false;
     water_surface_ready = false;
-    mask_capture_consumed = false;
+    pending_surface_packets.clear();
+    pending_surface_overflow = false;
     if (!context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
         (!settings::water_surface_capture_diagnostic_enabled() &&
          !thickness_requested()))
@@ -526,8 +554,8 @@ void clear_after_frame(ModContext*, const GfxStageContext*, void*) {
     pre_water_capture_ready = false;
     pre_water_depth_ready = false;
     water_surface_ready = false;
-    mask_capture_active = false;
-    capture_owner = CaptureOwner::None;
+    pending_surface_packets.clear();
+    pending_surface_overflow = false;
     frame_materials.clear();
     frame_material_identities.clear();
     previous_models = frame_models;
@@ -587,18 +615,6 @@ template <class Hook> bool add_pre(HookPreFn callback, const char* label) {
     return result == MOD_OK;
 }
 
-template <class Hook> bool add_post(HookPostFn callback, const char* label) {
-    const ModResult result = mods::hook::add_post<Hook>(callback);
-    if (result != MOD_OK && svc_log) {
-        char message[160];
-        std::snprintf(message, sizeof(message),
-                      "WaterClass post-hook unavailable {target=%s result=%d}", label,
-                      static_cast<int>(result));
-        svc_log->info(mod_ctx, message);
-    }
-    return result == MOD_OK;
-}
-
 void uninstall_hooks() {
     if (svc_hook) {
         if (lv3_water_hook)
@@ -618,7 +634,6 @@ void uninstall_hooks() {
     }
     lv3_water_hook = lv3_water2_hook = ground_water_hook = onsen_hook = false;
     rot_stair_hook = boss_water_hook = shape_hook = false;
-    shape_post_hook = false;
 }
 } // namespace
 
@@ -635,6 +650,8 @@ void initialize() {
     thickness_captures = 0;
     thickness_capture_failures = 0;
     thickness_capture_ns = 0;
+    thickness_packet_total = 0;
+    thickness_packet_max = 0;
     thickness_capture_started = {};
     diagnostic_was_enabled = false;
     surface_capture_logged = false;
@@ -643,15 +660,15 @@ void initialize() {
     thickness_capture_warned = false;
     thickness_depth_logged = false;
     thickness_target_logged = false;
+    surface_overflow_warned = false;
     cleanup_hook = 0;
     capture_hook = 0;
     pre_water_depth = GFX_RESOLVED_TARGETS_INIT;
     water_surface = GFX_RESOLVED_TARGETS_INIT;
     pre_water_depth_ready = false;
     water_surface_ready = false;
-    mask_capture_active = false;
-    mask_capture_consumed = false;
-    capture_owner = CaptureOwner::None;
+    pending_surface_packets.clear();
+    pending_surface_overflow = false;
     hooks_ready = false;
     if (!svc_hook || !svc_gfx)
         return;
@@ -663,7 +680,6 @@ void initialize() {
     rot_stair_hook = add_pre<RotStairDraw>(on_rot_stair, "rotating-stair-water");
     boss_water_hook = add_pre<Lv3BossWaterDraw>(on_boss_water, "lakebed-boss");
     shape_hook = add_pre<ShapeDrawFast>(mark_classified_shape, "J3DShapePacket::drawFast");
-    shape_post_hook = add_post<ShapeDrawFast>(after_classified_shape, "J3DShapePacket::drawFast");
     const unsigned classifier_count =
         static_cast<unsigned>(lv3_water_hook) + static_cast<unsigned>(lv3_water2_hook) +
         static_cast<unsigned>(ground_water_hook) + static_cast<unsigned>(onsen_hook) +
@@ -699,12 +715,16 @@ void update() {
         thickness_captures = 0;
         thickness_capture_failures = 0;
         thickness_capture_ns = 0;
+        thickness_packet_total = 0;
+        thickness_packet_max = 0;
         frame_materials.clear();
         frame_material_identities.clear();
         frame_classified_models.clear();
     }
     diagnostic_was_enabled = enabled;
 }
+
+void finalize_thickness_capture() { resolve_pending_surface_packets(); }
 
 bool latest_thickness_inputs(ThicknessInputs& out) {
     out = {};
@@ -741,8 +761,8 @@ void shutdown() {
     water_surface = GFX_RESOLVED_TARGETS_INIT;
     pre_water_depth_ready = false;
     water_surface_ready = false;
-    mask_capture_active = false;
-    capture_owner = CaptureOwner::None;
+    pending_surface_packets.clear();
+    pending_surface_overflow = false;
     release_pre_water_capture();
 }
 } // namespace midnafx::water_probe

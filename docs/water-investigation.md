@@ -259,12 +259,12 @@ the exact water draw consumes the opaque scene captured before water. Gate 2 is
 ## Gate 3 runtime evidence
 
 The default-off `water_thickness_diagnostic` now creates an exact programmable
-surface representation without changing model data. At the first exact
-classified `J3DShapePacket::drawFast` in a frame, MidnaFX renders that shape into
-a private full-resolution target with solid-white coverage and depth writes,
-resolves the coverage mask plus `R32F` water-surface depth, then restores and
-replays the native water shape into the game scene. The fullscreen diagnostic
-compares this surface depth with the raw opaque depth captured at
+surface representation without changing model data. MidnaFX records unique exact
+classified `J3DShapePacket::drawFast` packets while their native draws proceed
+untouched. Immediately before its fullscreen stage, it replays all collected
+packets into one private full-resolution target with solid-white coverage and
+depth writes, then resolves the combined mask plus `R32F` water-surface depth.
+The fullscreen diagnostic compares this surface depth with raw opaque depth from
 `GFX_STAGE_SCENE_AFTER_OPAQUE`, reconstructs view distances with the current
 camera matrices, and displays clamped optical thickness as grayscale.
 
@@ -337,16 +337,21 @@ captures with zero failures. Lakebed Temple room 3 still provides execution-only
 evidence: its three valid spawn points do not present a useful visible water
 surface, so no visual claim is made for that scene.
 
-Gate 3 is **PASS** for deriving stable optical thickness on the validated
-single-base-shape path. Evidence now covers Fishing Pond stage water, large
+Gate 3 is **PASS** for deriving stable optical thickness on the validated exact
+allowlist. Evidence now covers Fishing Pond stage water, large
 outdoor Lake Hylia water, and generic moving/swimmable actor water. Background
 depth is handled separately, invalid reconstruction is conspicuous, and opaque
-geometry in front of the classified plane cannot contaminate thickness. The
-pass does not establish general multi-shape aggregation: only the first exact
-base candidate drawn in a frame is captured. The first absorption prototype is
-therefore restricted to the exact validated allowlist and fails closed when the
-required inputs are unavailable. No refraction, animated normals, reflection,
-or gameplay water changes are included.
+geometry in front of the classified plane cannot contaminate thickness.
+
+Multi-packet aggregation is also implemented and bounded to 64 unique exact
+packets per frame; overflow fails the frame closed. Lakebed Temple room 3
+exercised four packets per frame for 1,464 combined captures with zero failures,
+about 52 microseconds of CPU replay work per frame, clean unload, and no
+validation errors. This is execution and lifecycle proof because the available
+spawn does not show the water surface. The first absorption prototype remains
+restricted to the exact validated allowlist and fails closed when inputs are
+unavailable. No refraction, animated normals, reflection, or gameplay water
+changes are included.
 
 ## First product feature: depth-based absorption
 
@@ -420,9 +425,9 @@ MidnaFX does not infer a mask from framebuffer color, retain borrowed views, or
 reuse TP's native EFB-copy storage. Moving-water, Fishing Pond, and Lake Hylia
 A/B now confirm the post-native auxiliary replay preserves authored water at
 zero absorption and applies the default tint only inside the classified surface.
-Next, validate dungeon and underwater transitions when a useful controllable
-spawn is available, then add safe multi-shape aggregation before broadening the
-allowlist.
+Next, validate dungeon pixels and underwater transitions when a useful
+controllable spawn is available, then broaden the allowlist only with matched
+visual proof.
 
 ## Open questions
 
@@ -436,5 +441,5 @@ allowlist.
 * Whether semantic collision water planes align closely enough with rendered
   geometry for stable thickness reconstruction.
 
-Gates 1-3 pass for the narrow single-base-shape allowlist. Multi-shape and
-additional-scene product validation remain before broader rollout.
+Gates 1-3 pass for the narrow exact allowlist, including bounded multi-packet
+aggregation. Additional-scene product validation remains before broader rollout.

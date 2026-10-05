@@ -398,6 +398,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     if ((current_state != 1 && current_state != 3) || stage_ctx == nullptr ||
         stage_ctx->stage != GFX_STAGE_FRAME_BEFORE_HUD)
         return;
+    water_probe::finalize_thickness_capture();
     run_depth_probe();
     const bool dof_debug = settings::dof_coc_view_enabled();
     const bool depth_debug = !dof_debug && settings::atmosphere_depth_view_enabled();
