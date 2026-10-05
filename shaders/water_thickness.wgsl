@@ -12,6 +12,11 @@ struct WaterParameters {
     wave_scale: f32,
     wave_speed: f32,
     refraction_strength: f32,
+    reflection_tint: vec4f,
+    reflection_strength: f32,
+    reflection_padding_0: f32,
+    reflection_padding_1: f32,
+    reflection_padding_2: f32,
     gain_r: f32,
     gain_g: f32,
     gain_b: f32,
@@ -92,6 +97,28 @@ fn refracted_source(coord: vec2i, water_depth: f32, normalized_depth: f32,
     return mix(native_source, refracted, blend);
 }
 
+fn apply_fresnel_reflection(coord: vec2i, water_depth: f32, dimensions: vec2f,
+                            transmitted: vec3f, normal: vec3f) -> vec3f {
+    if (params.reflection_strength <= 0.0) {
+        return transmitted;
+    }
+    let world = world_position(coord, water_depth, dimensions);
+    let view_position = (params.view_from_world * vec4f(world, 1.0)).xyz;
+    let raw_view_normal = (params.view_from_world * vec4f(normal, 0.0)).xyz;
+    let view_length = length(view_position);
+    let normal_length = length(raw_view_normal);
+    if (view_length <= 0.000001 || normal_length <= 0.000001 ||
+        view_length != view_length || normal_length != normal_length) {
+        return transmitted;
+    }
+    let view_normal = raw_view_normal / normal_length;
+    let view_direction = -view_position / view_length;
+    let facing = clamp(dot(view_direction, view_normal), 0.0, 1.0);
+    let fresnel = 0.02 + 0.98 * pow(1.0 - facing, 5.0);
+    let weight = clamp(fresnel * params.reflection_strength, 0.0, 0.45);
+    return mix(transmitted, params.reflection_tint.rgb, weight);
+}
+
 fn max_component(value: vec3f) -> f32 {
     return max(max(value.r, value.g), value.b);
 }
@@ -155,7 +182,8 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     let stable_source = select(source, max(source, params.shallow_tint.rgb * 0.35), source_luma < 0.01);
     let transmitted_source = refracted_source(coord, water_depth, normalized, dimensions,
                                                stable_source, surface_normal);
-    return (transmitted_source * transmission + scatter * (1.0 - transmission)) * wave_light;
+    let absorbed = (transmitted_source * transmission + scatter * (1.0 - transmission)) * wave_light;
+    return apply_fresnel_reflection(coord, water_depth, dimensions, absorbed, surface_normal);
 }
 
 @fragment

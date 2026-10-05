@@ -142,3 +142,19 @@ effects remain out of scope.
   frame, about 45 microseconds of CPU replay work per frame, and clean unload.
   GPU shader cost remains unmeasured. Dungeon and underwater visual validation
   are still required before broadening the exact allowlist.
+
+## Fresnel fallback review
+
+* Schlick Fresnel uses reconstructed view position and the shared animated
+  surface normal. Zero-length and NaN vector lengths return the transmitted
+  result, and the final reflection blend is capped at 45%.
+* Strength and RGB tint controls are persisted and bounded. The feature is
+  reachable only through the default-off enhanced-water path and exact surface
+  mask; unavailable camera/depth inputs already fail that path closed.
+* A fresh Fishing Pond run at 100% strength kept near-normal water transmissive
+  and added the expected cool grazing response without visible contamination of
+  Link, shore terrain, HUD, or unrelated translucency. The 3,123-capture run had
+  zero failures, about 44 microseconds of CPU replay work per frame, clean
+  unload, and no validation errors.
+* This is a tint fallback, not a claim of scene-accurate reflection. A semantic
+  environment color remains unavailable and SSR remains deferred.

@@ -437,6 +437,28 @@ Evidence is `build/m12-water-surface/refraction-fishing-zero.jpg`,
 still lacks timestamp measurement, and dungeon pixels plus underwater
 transitions remain unvalidated.
 
+## Fresnel and environment-reflection fallback
+
+Enhanced water now applies a Schlick Fresnel term after transmission,
+absorption, and scattering. The animated surface normal and reconstructed view
+position produce the view angle. Near-normal views retain transmission while
+grazing views blend toward a restrained configurable environment tint. This is
+an explicit fallback rather than scene reflection: no sky/environment semantic
+is currently exposed. Reflection strength defaults to 25%; tint defaults to a
+muted blue-green and both strength and RGB channels are persisted controls.
+The blend is capped at 45%, invalid vectors fail closed, and the whole path
+remains behind the exact allowlist and default-off enhanced-water toggle.
+
+Fishing Pond passed a 100% diagnostic run. The grazing water band gained the
+expected cool response while near-normal portions remained transmissive; Link,
+shore terrain, HUD, and unrelated translucency were unaffected. The run
+completed 3,123 captures with zero failures, two packets per frame, about 44
+microseconds of CPU replay work per frame, clean unload, and no WebGPU/D3D12
+validation errors. Evidence is
+`build/m12-water-surface/reflection-fishing-maximum-fresh.jpg`. The prior
+`refraction-fishing-default.jpg` capture is the same-spawn no-reflection baseline.
+The fallback is intentionally not described as reflecting real scene content.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |
@@ -469,10 +491,10 @@ MidnaFX does not infer a mask from framebuffer color, retain borrowed views, or
 reuse TP's native EFB-copy storage. Moving-water, Fishing Pond, and Lake Hylia
 A/B now confirm the post-native auxiliary replay preserves authored water at
 zero absorption and applies the default tint only inside the classified surface.
-Fishing Pond also validates bounded screen-space refraction on the exact
-allowlist. Next, validate dungeon pixels and underwater transitions when a
-useful controllable spawn is available, then add Fresnel with a restrained
-environment-reflection fallback.
+Fishing Pond also validates bounded screen-space refraction and a restrained
+Fresnel environment fallback on the exact allowlist. Next, validate dungeon
+pixels and underwater transitions when a useful controllable spawn is
+available, then add depth-aware shoreline treatment.
 
 ## Open questions
 

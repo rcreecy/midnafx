@@ -66,9 +66,12 @@ struct WaterUniforms {
     float wave_scale;
     float wave_speed;
     float refraction_strength;
+    float reflection_tint[4];
+    float reflection_strength;
+    float reflection_padding[3];
     grade::Uniforms grading;
 };
-static_assert(sizeof(WaterUniforms) == 304);
+static_assert(sizeof(WaterUniforms) == 336);
 struct Payload {
     WGPUTextureView scene;
     WGPUTextureView depth;
@@ -537,6 +540,12 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         uniforms.wave_speed = 0.35f;
         uniforms.refraction_strength =
             water_absorption ? settings::water_refraction_strength() : 0.0f;
+        const float reflection[4]{settings::water_reflection_tint_red(),
+                                  settings::water_reflection_tint_green(),
+                                  settings::water_reflection_tint_blue(), 1.0f};
+        std::memcpy(uniforms.reflection_tint, reflection, sizeof(reflection));
+        uniforms.reflection_strength =
+            water_absorption ? settings::water_reflection_strength() : 0.0f;
         uniforms.grading = prepared.uniforms;
         if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &uniform_range) != MOD_OK)
             return;
@@ -694,12 +703,14 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         char message[224];
         std::snprintf(message, sizeof(message),
                       "Water absorption active: size=%ux%u strength=%.2f max_depth=%.0f "
-                      "wave_strength=%.2f refraction_strength=%.2f reversed_z=%s",
+                      "wave_strength=%.2f refraction_strength=%.2f reflection_strength=%.2f "
+                      "reversed_z=%s",
                       snapshot.width, snapshot.height,
                       static_cast<double>(settings::water_absorption_strength()),
                       static_cast<double>(settings::water_max_optical_depth()),
                       static_cast<double>(settings::water_wave_strength()),
                       static_cast<double>(settings::water_refraction_strength()),
+                      static_cast<double>(settings::water_reflection_strength()),
                       device.uses_reversed_z ? "yes" : "no");
         svc_log->info(mod_ctx, message);
         water_absorption_logged = true;
