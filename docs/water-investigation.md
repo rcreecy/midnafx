@@ -368,8 +368,25 @@ Evidence is `build/m12-water-surface/absorption-default-off.jpg`,
 `absorption-zero-inverted.jpg`, and `absorption-default-inverted.jpg`. The final
 run completed 1,449 captures with zero failures, about 88 microseconds of CPU
 capture/replay wall time per frame, clean unload, and no WebGPU/D3D12 validation
-errors. The feature remains experimental and default off while additional water
-classes are validated.
+errors.
+
+Matched zero-strength/default-strength runs now also pass on Fishing Pond and
+Lake Hylia. Fishing Pond provides the clearest product proof: the default pass
+adds a darker depth-dependent tint across the broad visible pond while retaining
+the native animated surface, transparency, shoreline, and background geometry.
+Its zero/default runs completed 1,171/1,143 captures with zero failures, about
+138/147 microseconds of CPU capture/replay wall time per frame, clean unload,
+and no validation errors. Lake Hylia's start-point-20 view exposes only a small
+water patch, but both runs remained visually stable and retained native surface
+detail; they completed 1,334/1,038 captures with zero failures at about 86/85
+microseconds per frame. Evidence is
+`build/m12-water-surface/absorption-fishing-zero.jpg`,
+`absorption-fishing-default.jpg`, `absorption-lake-zero.jpg`, and
+`absorption-lake-default.jpg`.
+
+The feature remains experimental and default off. Dungeon water still has only
+execution evidence because the available Lakebed spawns do not expose a useful
+surface view, and underwater transition behavior remains unvalidated.
 
 ## Test matrix for Gate 1
 
@@ -400,11 +417,12 @@ generated geometry and current transforms. Such an API must define viewport
 mapping, resize behavior, clearing, command ordering, and frame-scoped ownership.
 
 MidnaFX does not infer a mask from framebuffer color, retain borrowed views, or
-reuse TP's native EFB-copy storage. Moving-water A/B now confirms the post-native
-auxiliary replay preserves authored water at zero absorption and applies the
-default tint only inside the classified surface. Next, repeat zero/default A/B
-across Fishing Pond, Lake Hylia, dungeon, and underwater transitions, then add
-safe multi-shape aggregation before broadening the allowlist.
+reuse TP's native EFB-copy storage. Moving-water, Fishing Pond, and Lake Hylia
+A/B now confirm the post-native auxiliary replay preserves authored water at
+zero absorption and applies the default tint only inside the classified surface.
+Next, validate dungeon and underwater transitions when a useful controllable
+spawn is available, then add safe multi-shape aggregation before broadening the
+allowlist.
 
 ## Open questions
 

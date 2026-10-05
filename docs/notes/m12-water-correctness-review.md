@@ -39,9 +39,10 @@ effects remain out of scope.
 
 ## Remaining risks
 
-* Native replay correctness is not yet visually proven. The shape hook cannot
-  invoke the enclosing material packet's complete draw call, so an authored state
-  dependency could still differ despite replaying its observable setup.
+* Post-native auxiliary replay is visually proven on generic moving water,
+  Fishing Pond, and the visible Lake Hylia patch. The shape hook still cannot
+  invoke the enclosing material packet's complete draw call, so untested water
+  classes could depend on additional authored state.
 * The diagnostic captures the first exact base candidate drawn each frame. It
   does not aggregate multiple simultaneously visible base shapes. Initial product
   work must use the validated exact allowlist and fail closed when aggregation is
@@ -95,5 +96,12 @@ effects remain out of scope.
   those details. The final D3D12 run completed 1,449 captures with zero failures,
   clean unload, about 88 microseconds of CPU hook time per frame, and no WebGPU
   validation errors.
+* Fishing Pond zero/default A/B preserves waves, transparency, shoreline, and
+  background geometry while the default pass adds a restrained depth tint. The
+  runs completed 1,171/1,143 captures with zero failures at about 138/147
+  microseconds per frame and unloaded cleanly without validation errors.
+* Lake Hylia zero/default A/B remained stable on the small visible water patch
+  and retained native detail. The runs completed 1,334/1,038 captures with zero
+  failures at about 86/85 microseconds per frame and unloaded cleanly.
 * Do not broaden the allowlist or enable the setting by default until equivalent
-  zero/default A/B passes on large outdoor, dungeon, and underwater cases.
+  dungeon and underwater validation passes and multi-shape aggregation is safe.
