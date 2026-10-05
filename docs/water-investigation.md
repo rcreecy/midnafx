@@ -459,6 +459,28 @@ validation errors. Evidence is
 `refraction-fishing-default.jpg` capture is the same-spawn no-reflection baseline.
 The fallback is intentionally not described as reflecting real scene content.
 
+## Depth-aware shoreline treatment
+
+Enhanced water now derives a shallow-intersection weight from the same validated
+optical thickness used by absorption. Within the shallowest 8% of configured
+optical depth it gently blends toward the existing shallow-water tint, modulated
+by the shared animated surface normal. The blend is capped at 16%; the default
+strength is 20%. It does not synthesize foam, change alpha, alter geometry, or
+replace TP's authored ripple and splash effects. Invalid depth, foreground
+occlusion, missing masks, and non-allowlisted water continue to bypass the
+entire effect.
+
+Fishing Pond passed 0% and 100% runs. The maximum diagnostic produced a subtle
+brighter shallow transition without a hard halo or ocean-foam look. Deep water,
+Link, shore terrain, HUD, and unrelated translucency remained stable. The
+maximum run completed 4,702 captures with zero failures, two packets per frame,
+about 51 microseconds of CPU replay work per frame, clean unload, and no
+WebGPU/D3D12 validation errors. The zero control completed 4,857 captures with
+zero failures at about 56 microseconds per frame and also unloaded cleanly.
+Evidence is `build/m12-water-surface/shoreline-fishing-maximum.jpg` and
+`shoreline-fishing-zero.jpg`. More irregular natural shores and dungeon edges
+remain unvalidated.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |
@@ -494,7 +516,8 @@ zero absorption and applies the default tint only inside the classified surface.
 Fishing Pond also validates bounded screen-space refraction and a restrained
 Fresnel environment fallback on the exact allowlist. Next, validate dungeon
 pixels and underwater transitions when a useful controllable spawn is
-available, then add depth-aware shoreline treatment.
+available, then investigate a stable semantic sun/light direction for optional
+specular response. SSR remains separate and optional.
 
 ## Open questions
 

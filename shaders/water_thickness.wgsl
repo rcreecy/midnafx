@@ -17,6 +17,10 @@ struct WaterParameters {
     reflection_padding_0: f32,
     reflection_padding_1: f32,
     reflection_padding_2: f32,
+    shoreline_strength: f32,
+    shoreline_padding_0: f32,
+    shoreline_padding_1: f32,
+    shoreline_padding_2: f32,
     gain_r: f32,
     gain_g: f32,
     gain_b: f32,
@@ -64,6 +68,9 @@ fn world_position(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
 
 fn water_surface_normal(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
     let world = world_position(coord, depth, dimensions);
+    if (any(world != world) || any(abs(world) > vec3f(3.402823e38))) {
+        return vec3f(0.0, 1.0, 0.0);
+    }
     let time = params.animation_time * params.wave_speed;
     let large = world.xz * params.wave_scale + vec2f(time, time * 0.37);
     let ripple = world.xz * (params.wave_scale * 2.35) + vec2f(-time * 0.71, time * 0.53);
@@ -117,6 +124,18 @@ fn apply_fresnel_reflection(coord: vec2i, water_depth: f32, dimensions: vec2f,
     let fresnel = 0.02 + 0.98 * pow(1.0 - facing, 5.0);
     let weight = clamp(fresnel * params.reflection_strength, 0.0, 0.45);
     return mix(transmitted, params.reflection_tint.rgb, weight);
+}
+
+fn apply_shoreline_treatment(color: vec3f, normalized_depth: f32,
+                             normal: vec3f) -> vec3f {
+    if (params.shoreline_strength <= 0.0) {
+        return color;
+    }
+    let shallow = 1.0 - smoothstep(0.0, 0.08, normalized_depth);
+    let ripple = 0.75 + 0.25 * clamp(length(normal.xz) * 8.0, 0.0, 1.0);
+    let weight = shallow * ripple * params.shoreline_strength * 0.16;
+    let highlight = min(params.shallow_tint.rgb * 1.18, vec3f(1.0));
+    return mix(color, highlight, clamp(weight, 0.0, 0.16));
 }
 
 fn max_component(value: vec3f) -> f32 {
@@ -183,7 +202,8 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     let transmitted_source = refracted_source(coord, water_depth, normalized, dimensions,
                                                stable_source, surface_normal);
     let absorbed = (transmitted_source * transmission + scatter * (1.0 - transmission)) * wave_light;
-    return apply_fresnel_reflection(coord, water_depth, dimensions, absorbed, surface_normal);
+    let shoreline = apply_shoreline_treatment(absorbed, normalized, surface_normal);
+    return apply_fresnel_reflection(coord, water_depth, dimensions, shoreline, surface_normal);
 }
 
 @fragment

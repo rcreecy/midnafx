@@ -158,3 +158,19 @@ effects remain out of scope.
   unload, and no validation errors.
 * This is a tint fallback, not a claim of scene-accurate reflection. A semantic
   environment color remains unavailable and SSR remains deferred.
+
+## Shoreline treatment review
+
+* Shoreline weight is derived only after exact mask, valid surface/opaque depth,
+  and foreground-occlusion checks pass. It uses normalized optical thickness,
+  clamps the active band to the shallowest 8%, and caps color blending at 16%.
+* Strength is persisted and bounded from 0-100%. Zero returns the prior result;
+  default is 20%. The shader does not alter alpha, water geometry, gameplay,
+  collision, or TP's authored interaction effects.
+* Fishing Pond passed 0% and 100% runs. The maximum remained restrained, avoided
+  hard halos and bright foam, and did not contaminate Link, shore terrain, HUD,
+  or unrelated translucency. Maximum/zero completed 4,702/4,857 captures with
+  zero failures, clean unload, no validation errors, and about 51/56
+  microseconds of CPU replay work per frame.
+* Irregular natural shores, dungeon edges, and underwater transitions still
+  require live visual validation before broader classification.
