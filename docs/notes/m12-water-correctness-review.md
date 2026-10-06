@@ -210,8 +210,13 @@ optical-thickness capture through the currently implemented product effects.
   zero failures, clean unload, no validation errors, and about 51/56
   microseconds of CPU replay work per frame.
 * Lakebed dungeon edges and repeated underwater transitions passed live flycam
-  validation. More irregular natural shore classes still require live proof
-  before broader classification.
+  validation.
+* Lake Hylia `F_SP115`, room 0, start point 20 passed an irregular natural-shore
+  comparison after the 15% absorption correction. The curved rock boundary,
+  platform, Link, HUD, and environmental particles remained unaffected. The
+  run completed 3,180 captures with zero failures, one packet per frame, about
+  40.0 microseconds of CPU replay work per capture, clean unload, and no
+  WebGPU/D3D12 validation errors.
 
 ## Environment-aware specular review
 

@@ -519,8 +519,8 @@ about 51 microseconds of CPU replay work per frame, clean unload, and no
 WebGPU/D3D12 validation errors. The zero control completed 4,857 captures with
 zero failures at about 56 microseconds per frame and also unloaded cleanly.
 Evidence is `build/m12-water-surface/shoreline-fishing-maximum.jpg` and
-`shoreline-fishing-zero.jpg`. More irregular natural shores and dungeon edges
-remain unvalidated.
+`shoreline-fishing-zero.jpg`. Lakebed dungeon edges and the irregular Lake
+Hylia shore are validated below.
 
 ## Environment-aware specular response
 
@@ -639,6 +639,24 @@ errors and unloaded all mods cleanly. Exact classification continued to include
 the three Fishing Pond surface materials while excluding the adjacent
 `cd_MA03_TakiKasan_v_x` waterfall material.
 
+## Lake Hylia irregular-shore validation
+
+`F_SP115`, room 0, start point 20 provides an irregular rock-water boundary
+beside a wooden platform. The final 15% absorption/scatter build kept the
+effect inside the authored water surface: the curved rock boundary stayed
+clean, and the rock, platform, Link, HUD, and nearby square environmental
+particles were unchanged. No red/magenta reconstruction faults, hard depth
+silhouettes, or shoreline halos were visible. Evidence is
+`build/m12-water-surface/natural-shore-enhanced-final.png`, compared with the
+established control `absorption-lake-zero.jpg`.
+
+The D3D12 run captured 3,180 frames with zero failures and one exact packet per
+frame. Capture/replay CPU time was 127,120 microseconds total, about 40.0
+microseconds per capture. It reported no WebGPU/D3D12 validation errors and
+unloaded all mods cleanly. The selected stage materials remained
+`cc_MA06_NigoriWater_v_x` and `cd_MA09_MeraWater_v_x`; unrelated translucent
+materials remained outside the exact allowlist.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |
@@ -676,8 +694,8 @@ Fresnel environment fallback, shoreline treatment, and environment-aware
 specular on the exact allowlist. Lakebed room-3 flycam proof validates visible
 dungeon pixels, a fully submerged camera, repeated surface crossings, and a
 controlled authored light-state change. Next, expand exact-class pixel coverage
-to an irregular natural shore and waterfall-adjacent water. GPU timing requires
-the documented optional host instrumentation. SSR remains separate and optional.
+for any newly added water identity before enabling it. GPU timing requires the
+documented optional host instrumentation. SSR remains separate and optional.
 
 ## Open questions
 
