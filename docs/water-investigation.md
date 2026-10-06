@@ -11,11 +11,12 @@ evidence. A source match or successful build does not pass a runtime gate.
 | --- | --- | --- |
 | 1: classify water | **PASS** | Runtime proof covers outdoor, shallow, dungeon, boss, moving/current, and underwater scenes. Unknown paths fail closed. |
 | 2: pre-water scene color | **PASS** | The boundary, frame ownership, private GX copy, and consumption by an exact classified water draw are proven at Fishing Pond. |
-| 3: optical thickness | **PROVISIONAL** | Exact mask/surface-depth capture and the thickness pass execute in the live runtime. A visible heatmap and native-water replay still require visual confirmation before PASS. |
+| 3: optical thickness | **PASS** | Exact mask/surface-depth capture, visible heatmap, native-water preservation, bounded multi-packet replay, and foreground rejection are proven on the exact allowlist. |
 
-No optical replacement is enabled. Absorption, animated normal detail,
-refraction, Fresnel, reflection, shoreline treatment, specular, and SSR remain
-behind these gates.
+The product water path remains default off and exact-allowlist only. Absorption,
+animated normal detail, refraction, Fresnel environment fallback, shoreline
+treatment, and authored-light specular are implemented behind that boundary.
+The rejected SSR prototype does not ship.
 
 ## Observed render classes
 
@@ -558,10 +559,28 @@ with zero failures, about 54 microseconds of CPU replay work per capture, and a
 clean mod unload. Evidence is
 `build/m12-water-surface/specular-fishing-noon.jpg`,
 `specular-fishing-night.jpg`, `specular-fishing-time067.jpg`, and
-`specular-fishing-time068.jpg`. The Lakebed surface and submerged flycam passes
-remained visually stable with the dungeon-authored light available. A
-controlled dungeon stage-light state change and GPU shader duration remain
-unvalidated.
+`specular-fishing-time068.jpg`.
+
+A matched Lakebed room-3 flycam run then held the underwater camera fixed while
+the live console changed TP time from night (`330`) to noon (`180`). The central
+world crop increased from 49.55 to 54.62 mean luma (about 10.2%) while the water
+surface, submerged geometry, fish, and distortion remained stable. The run
+completed 1,399,500 captures with zero failures, four packets per frame, about
+47.5 microseconds of CPU capture/replay work per frame, clean mod unload, and no
+texture-index or WebGPU/D3D12 validation errors. Evidence is
+`build/m12-water-surface/dungeon-light-night.jpg` and
+`dungeon-light-noon.jpg`. This proves stability across a controlled authored
+dungeon lighting-state change; the exact `base_light` vector was not logged, so
+the captures do not claim a measured direction change.
+
+GPU shader duration cannot be measured through the current source-matched public
+mod contract. Dusklight's public `GfxService` exposes frame callbacks and borrowed
+device/queue access but no asynchronous timestamp result, while Aurora's internal
+timestamp profiler is compiled only with `TRACY_ENABLE`; this runtime reports no
+`TimestampQuery` feature. CPU submission/capture time is therefore reported
+separately and must not be treated as GPU duration. The smallest useful host
+addition is an optional asynchronous per-pass timing scope/result exposed to mods,
+with no GPU wait or readback on the render path.
 
 ## Optional SSR experiment
 
@@ -628,11 +647,11 @@ A/B now confirm the post-native auxiliary replay preserves authored water at
 zero absorption and applies the default tint only inside the classified surface.
 Fishing Pond also validates bounded screen-space refraction, a restrained
 Fresnel environment fallback, shoreline treatment, and environment-aware
-specular on the exact allowlist. Lakebed room-3 flycam proof now also validates
-visible dungeon pixels, a fully submerged camera, and repeated surface
-crossings. Next, measure GPU shader duration and exercise a controlled dungeon
-stage-light change when a useful controllable state is available. SSR remains
-separate and optional.
+specular on the exact allowlist. Lakebed room-3 flycam proof validates visible
+dungeon pixels, a fully submerged camera, repeated surface crossings, and a
+controlled authored light-state change. Next, expand exact-class pixel coverage
+to an irregular natural shore and waterfall-adjacent water. GPU timing requires
+the documented optional host instrumentation. SSR remains separate and optional.
 
 ## Open questions
 

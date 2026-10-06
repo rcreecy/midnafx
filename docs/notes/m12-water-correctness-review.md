@@ -1,9 +1,10 @@
-# M12 Gate 3 correctness review
+# M12 water correctness review
 
-Date: 2026-10-04
+Initial review: 2026-10-04  
+Updated: 2026-10-06
 
-Scope: the default-off water optical-thickness diagnostic only. Product water
-effects remain out of scope.
+Scope: the default-off exact-allowlist water pipeline, from classification and
+optical-thickness capture through the currently implemented product effects.
 
 ## Findings resolved
 
@@ -45,11 +46,11 @@ effects remain out of scope.
   classes could depend on additional authored state.
 * Exact packets are retained only until the same frame's pre-HUD stage, then
   replayed into one combined mask/depth pass and cleared. Collection is capped at
-  64 unique packets; overflow fails the frame closed. Multi-packet pixels remain
-  visually unproven even though Lakebed exercises the path successfully.
-* Lakebed room 3 has execution proof but no useful surface-facing spawn for an
-  unattended visual proof. Underwater transitions and additional story-layer
-  states remain product-validation work.
+  64 unique packets; overflow fails the frame closed. Lakebed room 3 now proves
+  visible four-packet surface and submerged output.
+* Lakebed room 3 now has visible surface and submerged flycam proof, including
+  repeated surface crossings. A gameplay-controlled dive and additional
+  story-layer states remain separate product-validation work.
 
 ## Verification
 
@@ -237,9 +238,25 @@ effects remain out of scope.
   `specular-fishing-time068.jpg` under `build/m12-water-surface/`.
 * Lakebed execution reached the environment-aware path with `light=yes`; the
   later flycam pass exposed water pixels above and below the surface without
-  unstable, inverted, or blown-out response. A controlled dungeon stage-light
-  change and GPU shader duration remain unvalidated. Broader enablement remains
-  blocked on those checks and additional exact-class coverage.
+  unstable, inverted, or blown-out response.
+* A matched Lakebed room-3 flycam run held the underwater camera fixed while the
+  live console changed TP time from night (`330`) to noon (`180`). The central
+  world crop increased from 49.55 to 54.62 mean luma (about 10.2%) while water,
+  submerged geometry, fish, and distortion remained stable. It completed
+  1,399,500 captures with zero failures, four packets per frame, about 47.5
+  microseconds of CPU capture/replay work per frame, clean unload, and no
+  texture-index or WebGPU/D3D12 validation errors. Evidence is
+  `dungeon-light-night.jpg` and `dungeon-light-noon.jpg` under
+  `build/m12-water-surface/`. The exact `base_light` vector was not logged, so
+  this proves stability across an authored dungeon state change without claiming
+  a measured direction change.
+* GPU shader duration remains unavailable through the public source-matched host:
+  `GfxService` has no timing-result contract, Aurora timestamp collection is
+  compiled only with `TRACY_ENABLE`, and this runtime does not expose
+  `TimestampQuery`. CPU hook measurements are not GPU timings. A useful host
+  extension would expose optional asynchronous per-pass timing without a render-
+  path wait or readback. Broader enablement remains blocked on additional
+  exact-class coverage, not on inventing a private timing hack.
 
 ## Optional SSR research review
 
