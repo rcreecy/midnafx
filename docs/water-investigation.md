@@ -613,6 +613,32 @@ pyramid, plus proof in a scene containing strong reflected silhouettes. SSR
 remains optional and must not replace the validated environment fallback until
 real hits are proven.
 
+## Fishing Pond submerged-depth quality correction
+
+A controlled `F_SP127`, room 0 comparison exposed a product-quality defect in
+the first absorption implementation. At time `180`, FOV `61.651`, camera eye
+`(-1748.550, 2071.123, 6018.771)`, and center
+`(-1748.550, 2033.058, 5926.299)`, the uncapped Beer-Lambert/scatter result
+converted coarse submerged depth discontinuities into large hard-edged brown
+silhouettes that were absent from the native surface. Evidence is
+`build/m12-water-surface/waterfall-adjacent-enhanced-time180.png` beside
+`waterfall-adjacent-native-time180.png`.
+
+The shader now limits absorption/scatter to a 15% contribution over TP's
+authored transmitted water color. Refraction, animated normals, Fresnel,
+shoreline treatment, and specular keep their independent controls. A 45%
+intermediate reduced the defect but still exposed the coarse triangles; the
+15% repeat removed the large blocky silhouettes while preserving restrained
+depth variation. Final evidence is
+`build/m12-water-surface/waterfall-adjacent-enhanced-final-time180.png`.
+
+The final D3D12 run processed 8,919 thickness captures with zero failures,
+two packets per frame, and 425,936 microseconds of capture/replay CPU time
+(about 47.8 microseconds per capture). It reported no WebGPU/D3D12 validation
+errors and unloaded all mods cleanly. Exact classification continued to include
+the three Fishing Pond surface materials while excluding the adjacent
+`cd_MA03_TakiKasan_v_x` waterfall material.
+
 ## Test matrix for Gate 1
 
 | Class | Candidate | Required observation |

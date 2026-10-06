@@ -272,3 +272,19 @@ optical-thickness capture through the currently implemented product effects.
   view. Both normal and widened bounded traces produced only no-crossing and
   off-screen results, with no valid hit. SSR needs a stronger intersection
   method and a high-contrast validation scene before returning to product scope.
+
+## Submerged-depth discontinuity review
+
+* A matched Fishing Pond comparison found that full-strength absorption/scatter
+  exposed coarse submerged triangles as large hard-edged brown silhouettes.
+  Native water at the same time, FOV, eye, and center did not show them.
+* The correction preserves TP's authored transmitted surface and caps the
+  Beer-Lambert/scatter contribution at 15%. It does not weaken the separate
+  refraction, wave-normal, Fresnel, shoreline, or specular controls.
+* A 45% intermediate remained visibly blocky and was rejected. The final 15%
+  run removed the objectionable silhouettes at the matched view while retaining
+  restrained optical-depth variation.
+* The final run completed 8,919 captures with zero failures, two packets per
+  frame, about 47.8 microseconds of CPU capture/replay work per capture, clean
+  unload, and no WebGPU/D3D12 validation errors. The adjacent waterfall stayed
+  outside the exact water-surface allowlist.

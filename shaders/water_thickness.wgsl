@@ -237,7 +237,12 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     let stable_source = select(source, max(source, params.shallow_tint.rgb * 0.35), source_luma < 0.01);
     let transmitted_source = refracted_source(coord, water_depth, normalized, dimensions,
                                                stable_source, surface_normal);
-    let absorbed = (transmitted_source * transmission + scatter * (1.0 - transmission)) * wave_light;
+    // Preserve enough of TP's authored surface to keep coarse submerged depth
+    // discontinuities from appearing as hard silhouettes in the final water.
+    // This limits only absorption/scatter; refraction and the later surface
+    // responses retain their independent controls.
+    let physical_absorption = transmitted_source * transmission + scatter * (1.0 - transmission);
+    let absorbed = mix(transmitted_source, physical_absorption, 0.15) * wave_light;
     let shoreline = apply_shoreline_treatment(absorbed, normalized, surface_normal);
     let reflected = apply_fresnel_reflection(coord, water_depth, dimensions, shoreline, surface_normal);
     return apply_specular(reflected, coord, water_depth, dimensions, surface_normal);
