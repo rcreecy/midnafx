@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- Add a default-off, exact-allowlist enhanced-water pipeline with depth-based
+  absorption, animated surface detail, bounded refraction, Fresnel/environment
+  response, shoreline treatment, and authored-light specular.
+- Preserve TP water gameplay, geometry, animation, interaction effects, and
+  unrelated translucency through frame-scoped scene/depth captures and
+  fail-closed exact classification.
+- Validate exact classification across outdoor, moving, dungeon, boss, and
+  submerged scenes, with optical-path proof at waterfall-adjacent and irregular
+  shores and clean lifecycle behavior.
+- Keep screen-space reflections deferred after the first prototype could not
+  produce trustworthy on-screen intersections.
+
 ## 1.0.0 - 2026-10-03
 
 - Complete the opt-in modern camera qualification with native first-person,

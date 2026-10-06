@@ -36,6 +36,18 @@ movement, resize, and clean shutdown. New Ordon on/off captures show an intact
 Link silhouette and HUD, but are not frame-matched and do not close the full
 art-quality matrix. Intel Mac/Metal runtime validation remains deferred.
 
+Post-v1 development also includes a default-off enhanced-water path for a
+small exact allowlist of validated TP water materials. It preserves gameplay
+water, authored animation, splashes, particles, and geometry while adding
+restrained depth absorption, animated surface detail, bounded refraction,
+Fresnel/environment response, shoreline treatment, and authored-light
+specular. Exact classification has live D3D12 evidence across outdoor, moving,
+dungeon, boss, and submerged scenes; the optical path has additional
+waterfall-adjacent and irregular-shore proof. Unknown water remains native;
+screen-space reflections are deferred after an unsuccessful research prototype.
+See [the M12 investigation](docs/water-investigation.md) for exact coverage and
+limits.
+
 Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
 [latest release](https://github.com/rcreecy/midnafx/releases/latest), then put that file
 in Dusklight's mods folder. Each package contains one platform's native library.
@@ -61,4 +73,5 @@ Camera foundation, host patch, and runtime evidence: [docs/camera-investigation.
 Geometry coverage checkpoint: [docs/m8-geometry-coverage.md](docs/m8-geometry-coverage.md).
 Atmosphere depth/camera gate: [docs/atmosphere-investigation.md](docs/atmosphere-investigation.md).
 Depth of field focus gate: [docs/depth-of-field-investigation.md](docs/depth-of-field-investigation.md).
+Water modernization gates and runtime evidence: [docs/water-investigation.md](docs/water-investigation.md).
 v1 milestone disposition and ship status: [docs/v1-readiness.md](docs/v1-readiness.md).
