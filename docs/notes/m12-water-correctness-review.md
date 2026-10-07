@@ -326,3 +326,21 @@ optical-thickness capture through the currently implemented product effects.
   would be a feature and correctness expansion, not allowlist completion.
 * Windows release build, shader validation, package contract, and all 15 tests pass
   with the classification diagnostic restored to default off.
+
+## Dynamic/story-water confidence follow-up
+
+* `F_SP109,0,14,0` visibly isolated the hot-spring pool. Enhanced rendering kept
+  authored ripple/foam detail and nearby mist while completing 594 captures with
+  zero failures at about 43 microseconds of CPU capture/replay work per frame.
+* `D_MN01A,50,0,0` exercised `lakebed-boss` directly. Magenta covered only the
+  arena surface, and enhanced water completed 668 captures with zero failures at
+  about 45 microseconds per frame. A native control matched the arena's dark base
+  exposure, ruling out an enhancement-caused blackout.
+* Both enhanced runs unloaded cleanly. No WebGPU/D3D12 validation, NaN, or Inf
+  fault was observed.
+* A direct room-3 Lakebed warp did not activate the story-gated rotating-stair
+  actor. Ordinary Lakebed water remained classified, but no rotating-stair pixel
+  proof is claimed.
+* Default-on remains rejected for this checkpoint. The exact broad allowlist is
+  safe for opt-in use; story-gated rotating water and transition coverage remain
+  required before changing the product default.

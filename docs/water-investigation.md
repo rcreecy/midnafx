@@ -763,3 +763,23 @@ This is the viable broad stage-surface boundary for the current architecture. It
 does not claim waterfalls, spray, oil, glass, or every story-layer actor as ordinary
 water. Newly discovered water identities still require exact catalog and live pixel
 proof before entry.
+
+Dynamic/story-water follow-up added two more live proofs. `F_SP109,0,14,0`
+marked only the visible hot-spring pool in magenta; the enhanced run retained its
+authored ripples, foam edge, mist, terrain, Link, and HUD. It completed 594
+one-packet captures with zero failures, 25,490 microseconds of capture/replay CPU
+time (about 43 microseconds per frame), and clean unload. `D_MN01A,50,0,0`
+identified the Morpheel arena surface through the `lakebed-boss` actor classifier:
+three exact materials on one model, with the arena and HUD left unmarked. Its
+enhanced run completed 668 one-packet captures with zero failures, 30,021
+microseconds total (about 45 microseconds per frame), and clean unload. A matched
+native run confirmed the arena's very dark appearance is authored rather than an
+enhanced-water regression.
+
+The `D_MN01,3,1,0` direct warp loaded the ordinary Lakebed and central-water
+classifiers but did not activate the story-gated rotating-stair classifier. That
+actor therefore remains source-mapped and fail-closed, without a live pixel claim.
+The broad exact static table and validated actor classes are viable opt-in coverage,
+but enhanced water remains default off. Default-on is deferred until story-state
+entry can exercise rotating-stair water and a representative transition corpus can
+repeat without classification or visual faults.
