@@ -48,6 +48,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     water_surface_capture_diagnostic{"water_surface_capture_diagnostic"},
     water_thickness_diagnostic{"water_thickness_diagnostic"},
     enhanced_water{"enhanced_water", true},
+    anti_aliasing{"anti_aliasing"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
@@ -984,6 +985,11 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "Hard normal splits and material boundaries are always preserved. Unsupported or ambiguous models are skipped. "
         "Enable before loading a scene. Disable restores source normals; enabling again requires a scene reload.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
+    add_toggle(panel, "Enable anti-aliasing prototype", anti_aliasing);
+    check_ui(svc_ui->pane_add_text(
+        mod_ctx, panel,
+        "Default off. Conservative pre-HUD FXAA is an M13 runtime-validation prototype. It "
+        "does not affect native HUD or menus.", nullptr));
     UiControlDesc debug = UI_CONTROL_DESC_INIT;
     debug.kind = UI_CONTROL_DROPDOWN;
     debug.label = "Debug view";
@@ -1074,6 +1080,7 @@ bool initialize() {
     register_toggle(water_surface_capture_diagnostic);
     register_toggle(water_thickness_diagnostic);
     register_toggle(enhanced_water);
+    register_toggle(anti_aliasing);
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
@@ -1184,6 +1191,7 @@ float dof_blur_radius() { return static_cast<float>(dof_blur_radius_setting.valu
 float dof_focus_transition_seconds() {
     return static_cast<float>(dof_focus_transition_setting.value) / 100.0f;
 }
+bool anti_aliasing_enabled() { return anti_aliasing.value; }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {

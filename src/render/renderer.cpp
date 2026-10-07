@@ -32,7 +32,11 @@ enum PipelineKind : std::uint32_t {
     WaterThicknessDiagnostic = 7,
     WaterAbsorption = 8,
     WaterAbsorptionDetail = 9,
-    PipelineCount = 10,
+    Fxaa = 10,
+    FxaaDetail = 11,
+    WaterAbsorptionFxaa = 12,
+    WaterAbsorptionFxaaDetail = 13,
+    PipelineCount = 14,
 };
 struct DepthUniforms {
     float view_from_proj[16];
@@ -287,6 +291,15 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
                        "MidnaFX water absorption", layout);
         build_pipeline(next->pipelines[WaterAbsorptionDetail], next->shaders[4],
                        "fs_absorption_detail", "MidnaFX water absorption and detail", layout);
+        build_pipeline(next->pipelines[Fxaa], next->shaders[1], "fs_fxaa", "MidnaFX FXAA",
+                       layout);
+        build_pipeline(next->pipelines[FxaaDetail], next->shaders[1], "fs_fxaa_detail",
+                       "MidnaFX FXAA and detail", layout);
+        build_pipeline(next->pipelines[WaterAbsorptionFxaa], next->shaders[4],
+                       "fs_absorption_fxaa", "MidnaFX water absorption and FXAA", layout);
+        build_pipeline(next->pipelines[WaterAbsorptionFxaaDetail], next->shaders[4],
+                       "fs_absorption_fxaa_detail", "MidnaFX water absorption, FXAA and detail",
+                       layout);
     }
     const bool validation_ok = pop_scope(device.device, device.instance);
     const bool internal_ok = pop_scope(device.device, device.instance);
@@ -315,8 +328,10 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     if (selected.pipeline == nullptr || selected.bind_layout == nullptr)
         return;
     const bool water_depth = payload.kind == WaterThicknessDiagnostic;
-    const bool water_absorption =
-        payload.kind == WaterAbsorption || payload.kind == WaterAbsorptionDetail;
+    const bool water_absorption = payload.kind == WaterAbsorption ||
+                                  payload.kind == WaterAbsorptionDetail ||
+                                  payload.kind == WaterAbsorptionFxaa ||
+                                  payload.kind == WaterAbsorptionFxaaDetail;
     const bool water_effect = water_depth || water_absorption;
     const bool uses_depth = payload.kind == DepthDiagnostic || payload.kind == DofDiagnostic;
     if ((water_effect ? (!payload.depth || !payload.auxiliary_depth || !payload.mask ||
@@ -443,7 +458,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const auto start =
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     if (!settings::enabled() && !depth_based_debug && !water_capture_debug &&
-        !water_thickness_debug && !water_absorption) {
+        !water_thickness_debug && !water_absorption && !settings::anti_aliasing_enabled()) {
         if (timing) {
             disabled_samples.fetch_add(1, std::memory_order_relaxed);
             const auto elapsed =
@@ -458,8 +473,11 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                                   mode == visual::DebugMode::Passthrough || water_capture_debug ||
                                   water_thickness_debug;
     const bool detail_enabled = prepared.uniforms.detail_strength > 0.0f;
+    const bool anti_aliasing = settings::anti_aliasing_enabled() && !depth_based_debug &&
+                               !water_capture_debug && !water_thickness_debug &&
+                               mode == visual::DebugMode::Final && !passthrough_test;
     if (!depth_based_debug && !water_absorption && prepared.neutral && !detail_enabled &&
-        !passthrough_test && mode == visual::DebugMode::Final) {
+        !anti_aliasing && !passthrough_test && mode == visual::DebugMode::Final) {
         if (timing)
             neutral_samples.fetch_add(1, std::memory_order_relaxed);
         return;
@@ -502,10 +520,13 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     if (water_thickness_debug)
         kind = WaterThicknessDiagnostic;
     else if (water_absorption)
-        kind = detail_enabled ? WaterAbsorptionDetail : WaterAbsorption;
+        kind = anti_aliasing ? (detail_enabled ? WaterAbsorptionFxaaDetail : WaterAbsorptionFxaa)
+                             : (detail_enabled ? WaterAbsorptionDetail : WaterAbsorption);
     if (!depth_based_debug && !passthrough_test && !water_absorption)
-        kind = mode == visual::DebugMode::Final ? (detail_enabled ? Detail : Grade)
-                                                : (detail_enabled ? DebugDetail : Debug);
+        kind = mode == visual::DebugMode::Final
+                   ? (anti_aliasing ? (detail_enabled ? FxaaDetail : Fxaa)
+                                    : (detail_enabled ? Detail : Grade))
+                   : (detail_enabled ? DebugDetail : Debug);
     prepared.uniforms.split_x =
         visual::split_boundary(current.color_attachments[0].width, settings::split_percent());
     float active_focus_distance = settings::dof_focus_distance();
@@ -910,7 +931,7 @@ void update() {
         settings::enabled() || settings::water_scene_capture_diagnostic_enabled() ||
         settings::water_thickness_diagnostic_enabled() || settings::enhanced_water_enabled() ||
         settings::atmosphere_depth_view_enabled() || settings::atmosphere_depth_probe_enabled() ||
-        settings::dof_coc_view_enabled();
+        settings::dof_coc_view_enabled() || settings::anti_aliasing_enabled();
     if ((current_state == 4 || current_state == 5) && graphics_requested) {
         const auto now = std::chrono::steady_clock::now();
         if (now >= next_init_retry)

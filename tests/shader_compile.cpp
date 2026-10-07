@@ -183,16 +183,19 @@ int main() {
         return 77;
     }
     constexpr const char* pass_entries[]{"fs_main"};
-    constexpr const char* grade_entries[]{"fs_main", "fs_detail", "fs_debug", "fs_debug_detail"};
+    constexpr const char* grade_entries[]{"fs_main", "fs_detail", "fs_fxaa", "fs_fxaa_detail",
+                                          "fs_debug", "fs_debug_detail"};
     constexpr const char* depth_entries[]{"fs_depth"};
     constexpr const char* dof_entries[]{"fs_coc"};
     constexpr const char* dof_blur_entries[]{"cs_downsample", "cs_blur_horizontal",
                                               "cs_blur_vertical"};
     constexpr const char* dof_composite_entries[]{"fs_composite"};
+    constexpr const char* water_entries[]{"fs_thickness", "fs_absorption", "fs_absorption_detail",
+                                          "fs_absorption_fxaa", "fs_absorption_fxaa_detail"};
     const bool pass = validate(instance, device.device, midnafx::render::passthrough_shader,
                                "MidnaFX passthrough", pass_entries, 1);
     const bool grade = validate(instance, device.device, midnafx::render::grading_shader,
-                                "MidnaFX grading/detail/debug", grade_entries, 4);
+                                "MidnaFX grading/detail/FXAA/debug", grade_entries, 6);
     const bool depth = validate(instance, device.device,
                                 midnafx::render::atmosphere_depth_shader,
                                 "MidnaFX atmosphere depth diagnostic", depth_entries, 1);
@@ -205,8 +208,10 @@ int main() {
                                         midnafx::render::dof_blur_composite_shader,
                                         "MidnaFX depth of field composite",
                                         dof_composite_entries, 1);
+    const bool water = validate(instance, device.device, midnafx::render::water_thickness_shader,
+                                "MidnaFX water", water_entries, 5);
     wgpuDeviceRelease(device.device);
     wgpuAdapterRelease(adapter.adapter);
     wgpuInstanceRelease(instance);
-    return pass && grade && depth && dof && dof_blur && dof_composite ? 0 : 1;
+    return pass && grade && depth && dof && dof_blur && dof_composite && water ? 0 : 1;
 }

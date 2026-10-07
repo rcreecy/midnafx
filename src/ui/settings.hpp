@@ -42,6 +42,7 @@ float dof_focus_distance();
 float dof_focus_range();
 float dof_blur_radius();
 float dof_focus_transition_seconds();
+bool anti_aliasing_enabled();
 bool passthrough_test();
 std::int64_t split_percent();
 grade::Prepared prepared_grade();

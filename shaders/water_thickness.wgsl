@@ -196,6 +196,32 @@ fn apply_detail(center: vec3f, position: vec2i) -> vec3f {
                  vec3f(0.0), vec3f(1.0));
 }
 
+fn fxaa_source(position: vec2i) -> vec3f {
+    let last = vec2i(textureDimensions(scene_color)) - vec2i(1);
+    let center = textureLoad(scene_color, position, 0).rgb;
+    let north = textureLoad(scene_color, clamp(position + vec2i(0, -1), vec2i(0), last), 0).rgb;
+    let east = textureLoad(scene_color, clamp(position + vec2i(1, 0), vec2i(0), last), 0).rgb;
+    let south = textureLoad(scene_color, clamp(position + vec2i(0, 1), vec2i(0), last), 0).rgb;
+    let west = textureLoad(scene_color, clamp(position + vec2i(-1, 0), vec2i(0), last), 0).rgb;
+    let center_luma = dot(center, vec3f(0.299, 0.587, 0.114));
+    let north_luma = dot(north, vec3f(0.299, 0.587, 0.114));
+    let east_luma = dot(east, vec3f(0.299, 0.587, 0.114));
+    let south_luma = dot(south, vec3f(0.299, 0.587, 0.114));
+    let west_luma = dot(west, vec3f(0.299, 0.587, 0.114));
+    let low = min(center_luma, min(min(north_luma, east_luma), min(south_luma, west_luma)));
+    let high = max(center_luma, max(max(north_luma, east_luma), max(south_luma, west_luma)));
+    let contrast = high - low;
+    let threshold = max(0.0312, high * 0.125);
+    if (contrast < threshold) {
+        return center;
+    }
+    let horizontal = abs(north_luma + south_luma - 2.0 * center_luma);
+    let vertical = abs(east_luma + west_luma - 2.0 * center_luma);
+    let pair = select((east + west) * 0.5, (north + south) * 0.5, horizontal >= vertical);
+    let edge_blend = clamp((contrast - threshold) / max(contrast, 0.00001), 0.0, 1.0) * 0.40;
+    return mix(center, pair, edge_blend);
+}
+
 fn apply_grading(input: vec3f) -> vec3f {
     var color = input * vec3f(params.gain_r, params.gain_g, params.gain_b);
     color = max(color - vec3f(params.black_point), vec3f(0.0)) /
@@ -293,4 +319,19 @@ fn fs_absorption_detail(@builtin(position) position: vec4f) -> @location(0) vec4
     let source = textureLoad(scene_color, coord, 0);
     let detailed = apply_detail(source.rgb, coord);
     return vec4f(apply_grading(apply_absorption(coord, detailed)), source.a);
+}
+
+@fragment
+fn fs_absorption_fxaa(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    return vec4f(apply_grading(apply_absorption(coord, fxaa_source(coord))), source.a);
+}
+
+@fragment
+fn fs_absorption_fxaa_detail(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    let filtered = apply_detail(fxaa_source(coord), coord);
+    return vec4f(apply_grading(apply_absorption(coord, filtered)), source.a);
 }
