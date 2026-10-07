@@ -748,6 +748,17 @@ occurred during host shutdown. Scanning cost in the five drawing scenes was abou
 there is no GPU readback or per-frame diagnostic logging after initial model
 discovery.
 
+Full enhanced-water follow-ups passed in two newly covered classes. `F_SP108`
+rendered the broad forest surface with the restrained absorption, moving normal,
+refraction, Fresnel, shoreline, and specular stack while preserving Link, Midna,
+shore vegetation, dialogue, HUD, and the authored waterfall. It completed 578
+captures with zero failures, two packets per frame, 35,588 microseconds total
+capture/replay CPU time, and clean unload. `F_SP122` rendered the water below the
+bridge without affecting the bridge or foreground room and completed 326 captures
+with zero failures, two packets per frame, 22,288 microseconds total capture/replay
+CPU time, and clean unload. Both reported a valid authored light and no validation,
+NaN, or Inf error.
+
 This is the viable broad stage-surface boundary for the current architecture. It
 does not claim waterfalls, spray, oil, glass, or every story-layer actor as ordinary
 water. Newly discovered water identities still require exact catalog and live pixel

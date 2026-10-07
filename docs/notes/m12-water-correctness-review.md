@@ -316,6 +316,11 @@ optical-thickness capture through the currently implemented product effects.
 * The stage scan remains bounded to stages present in the table and measured about
   19.5-52.0 microseconds per scanned frame in the drawing scenes. The table lookup
   is read-only, allocates nothing, and unknown identities fail closed.
+* Full enhanced rendering then passed on newly covered `F_SP108` and `F_SP122`
+  surfaces. The runs completed 578 and 326 captures, respectively, with zero
+  failures, exactly two packets per frame, clean unload, no validation errors, and
+  no visible contamination of actors, shore vegetation, bridge geometry, dialogue,
+  or HUD.
 * Waterfalls/cascades, fountains, sunbeams, oil, aquarium glass, debug materials,
   particles, and spray remain excluded. Treating those as flat refractive water
   would be a feature and correctness expansion, not allowlist completion.
