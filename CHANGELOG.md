@@ -2,12 +2,14 @@
 
 ## Unreleased
 
-- Add a default-off, exact-allowlist enhanced-water pipeline with depth-based
+- Add a default-on, exact-allowlist enhanced-water pipeline with depth-based
   absorption, animated surface detail, bounded refraction, Fresnel/environment
   response, shoreline treatment, and authored-light specular.
 - Preserve TP water gameplay, geometry, animation, interaction effects, and
   unrelated translucency through frame-scoped scene/depth captures and
   fail-closed exact classification.
+- Enable enhanced water by default for new installations while preserving saved
+  user choices. Unknown, ambiguous, and unsupported water remains native.
 - Validate exact classification across outdoor, moving, dungeon, boss, and
   submerged scenes, with optical-path proof at waterfall-adjacent and irregular
   shores and clean lifecycle behavior.

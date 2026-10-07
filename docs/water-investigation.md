@@ -13,10 +13,24 @@ evidence. A source match or successful build does not pass a runtime gate.
 | 2: pre-water scene color | **PASS** | The boundary, frame ownership, private GX copy, and consumption by an exact classified water draw are proven at Fishing Pond. |
 | 3: optical thickness | **PASS** | Exact mask/surface-depth capture, visible heatmap, native-water preservation, bounded multi-packet replay, and foreground rejection are proven on the exact allowlist. |
 
-The product water path remains default off and exact-allowlist only. Absorption,
-animated normal detail, refraction, Fresnel environment fallback, shoreline
-treatment, and authored-light specular are implemented behind that boundary.
+The product water path defaults on for new installations and remains exact-allowlist
+only. Saved user choices remain authoritative. Absorption, animated normal detail,
+refraction, Fresnel environment fallback, shoreline treatment, and authored-light
+specular are implemented behind that boundary.
 The rejected SSR prototype does not ship.
+
+## Default-on release qualification
+
+The next stable release may enable this exact allowlist by default only after
+live source-matched runtime proof covers active rotating-stair water and the
+transition corpus: room load/unload, reload, feature disable/re-enable, resize,
+and clean shutdown. Unsupported water classes remain native.
+
+When enabled, capture resolves only if the render-cadence stage scan finds an
+exact static surface or a thickness candidate appeared in the preceding frame.
+A newly visible dynamic surface renders natively for its first frame, then becomes
+eligible. This avoids water-only full-resolution resolves in scenes without an
+exact water surface.
 
 ## Observed render classes
 
@@ -355,9 +369,9 @@ Reflection and gameplay water changes are not included.
 
 ## First product feature: depth-based absorption
 
-The default-off `Enhanced water (experimental)` setting applies a restrained
-Beer-Lambert-inspired pass after the narrow pre-water capture. It uses the water
-mask, reconstructed surface depth, opaque scene depth, and current scene color.
+The original opt-in `Enhanced water` setting applied a restrained Beer-Lambert-
+inspired pass after the narrow pre-water capture. It uses the water mask,
+reconstructed surface depth, opaque scene depth, and current scene color.
 Missing inputs, invalid/background depth, and foreground occlusion bypass the
 effect. Strength defaults to 0.65 and maximum optical depth to 5000, with muted
 green-blue shallow/deep tints. Runtime proof reached the absorption pipeline on
@@ -389,8 +403,9 @@ microseconds per frame. Evidence is
 `absorption-fishing-default.jpg`, `absorption-lake-zero.jpg`, and
 `absorption-lake-default.jpg`.
 
-The feature remains experimental and default off. A matched native/enhanced
-R_SP107 room-1 surface-swimming check retained Link, the native animated
+The first prototype was experimental and default off. The later default-on
+candidate retains the same exact-allowlist and fail-closed boundaries. A matched
+native/enhanced R_SP107 room-1 surface-swimming check retained Link, the native animated
 surface, transparency, HUD, and surrounding geometry. The enhanced run then
 remained stable for 392,535 one-packet captures with zero failures, about 251
 microseconds of CPU capture/replay work per frame, and clean unload; a shorter
@@ -782,7 +797,7 @@ activation then established the runtime actor path and exact three-material pair
 `cc_MA06_mizu_v_x`, `cc_MA06_water_v_x`, and `cc_MA02_mizu_v`. It was removed
 before packaging. The direct warp did not bring those surfaces into the camera,
 so this is runtime identity proof, not story-state pixel proof. The broad exact
-static table and validated actor classes are viable opt-in coverage, but enhanced
-water remains default off. Default-on is deferred until story-state entry can
-exercise rotating-stair water and a representative transition corpus can repeat
-without classification or visual faults.
+static table and validated actor classes are viable default-on coverage for new
+installations. Saved user choices remain authoritative. Default-on release
+qualification still requires story-state entry that exposes rotating-stair water
+and a representative transition corpus with no classification or visual faults.

@@ -67,6 +67,8 @@ std::unordered_set<J3DModelData*> frame_models;
 std::unordered_set<J3DModelData*> previous_models;
 std::unordered_set<J3DModelData*> frame_classified_models;
 std::unordered_set<J3DModelData*> previous_classified_models;
+bool frame_has_thickness_candidate = false;
+bool water_expected = false;
 GfxStageHookHandle cleanup_hook = 0;
 GfxStageHookHandle capture_hook = 0;
 bool hooks_ready = false;
@@ -189,11 +191,12 @@ void classify(J3DModel* model, const char* water_class, const char* role, float 
     for (u16 index = 0; index < data->getMaterialNum(); ++index) {
         if (J3DMaterial* material = data->getMaterialNodePointer(index)) {
             frame_materials.insert(material);
-            frame_material_identities[material] = {
-                names ? names->getName(index) : nullptr,
+            const bool thickness_candidate =
                 index == 0 &&
-                    (std::strcmp(role, "primary") == 0 || std::strcmp(role, "surface") == 0),
-            };
+                (std::strcmp(role, "primary") == 0 || std::strcmp(role, "surface") == 0);
+            frame_material_identities[material] = {names ? names->getName(index) : nullptr,
+                                                   thickness_candidate};
+            frame_has_thickness_candidate |= thickness_candidate;
         }
     }
 }
@@ -217,6 +220,7 @@ void inspect(J3DModel* model, const char* water_class, int room, const char* rol
             if (J3DMaterial* material = data->getMaterialNodePointer(index)) {
                 frame_materials.insert(material);
                 frame_material_identities[material] = {name, decision.thickness};
+                frame_has_thickness_candidate |= decision.thickness;
                 selected = true;
             }
         }
@@ -492,6 +496,11 @@ void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*)
     // Presentation can run between 30 Hz simulation ticks. Refresh stage-model
     // identity here so interpolated frames do not lose exact water classification.
     scan_stage_actors();
+    // Avoid a scene-color/depth resolve where no exact surface can consume it.
+    // Dynamic actor water becomes eligible after its first native frame; static
+    // stage water is discovered by the render-cadence scan above.
+    if (!water_expected && !frame_has_thickness_candidate)
+        return;
     const u16 width = static_cast<u16>(mDoGph_gInf_c::getWidth());
     const u16 height = static_cast<u16>(mDoGph_gInf_c::getHeight());
     if (width == 0 || height == 0)
@@ -555,6 +564,8 @@ void clear_after_frame(ModContext*, const GfxStageContext*, void*) {
     frame_models.clear();
     previous_classified_models = frame_classified_models;
     frame_classified_models.clear();
+    water_expected = frame_has_thickness_candidate;
+    frame_has_thickness_candidate = false;
 }
 
 void release_pre_water_capture() {
@@ -637,6 +648,8 @@ void initialize() {
     previous_models.clear();
     frame_classified_models.clear();
     previous_classified_models.clear();
+    frame_has_thickness_candidate = false;
+    water_expected = false;
     classified_draws = 0;
     stage_scan_ns = 0;
     stage_scan_frames = 0;
@@ -713,6 +726,8 @@ void update() {
         frame_materials.clear();
         frame_material_identities.clear();
         frame_classified_models.clear();
+        frame_has_thickness_candidate = false;
+        water_expected = false;
     }
     diagnostic_was_enabled = enabled;
 }
@@ -757,6 +772,8 @@ void shutdown() {
     previous_models.clear();
     frame_classified_models.clear();
     previous_classified_models.clear();
+    frame_has_thickness_candidate = false;
+    water_expected = false;
     uninstall_hooks();
     if (svc_gfx && cleanup_hook)
         svc_gfx->unregister_stage_hook(mod_ctx, cleanup_hook);

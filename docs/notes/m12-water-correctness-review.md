@@ -342,6 +342,6 @@ optical-thickness capture through the currently implemented product effects.
   developer-only activation established its live actor path and exact three
   materials, but did not expose them in the camera. No story-state pixel proof is
   claimed.
-* Default-on remains rejected for this checkpoint. The exact broad allowlist is
-  safe for opt-in use; story-gated rotating water and transition coverage remain
-  required before changing the product default.
+* Enhanced water now defaults on for new installations. The exact broad allowlist
+  remains fail-closed and saved user choices remain authoritative. Story-gated
+  rotating water and transition coverage remain release-qualification gates.

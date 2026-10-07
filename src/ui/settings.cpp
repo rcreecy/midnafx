@@ -47,7 +47,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     water_scene_capture_diagnostic{"water_scene_capture_diagnostic"},
     water_surface_capture_diagnostic{"water_surface_capture_diagnostic"},
     water_thickness_diagnostic{"water_thickness_diagnostic"},
-    enhanced_water{"enhanced_water"},
+    enhanced_water{"enhanced_water", true},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
@@ -878,7 +878,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enhanced model shading", geometry_smoothing);
     add_toggle(panel, "Modern exploration camera", camera_toggle);
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
-    add_toggle(panel, "Enhanced water (experimental)", enhanced_water);
+    add_toggle(panel, "Enhanced water", enhanced_water);
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic: visual profile"));
     std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName, VanillaPlusName, EnhancedName};
     for (const auto& preset : saved_presets)
@@ -959,7 +959,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "and autofocus transition are configurable. Diagnostics override blur.",
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Water"));
-    add_toggle(panel, "Enable depth-based water absorption", enhanced_water);
+    add_toggle(panel, "Enable enhanced water", enhanced_water);
     add_number(panel, water_absorption_setting);
     add_number(panel, water_optical_depth_setting);
     add_number(panel, water_wave_strength_setting);
@@ -972,7 +972,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_number(panel, water_specular_strength_setting);
     check_ui(svc_ui->pane_add_text(
         mod_ctx, panel,
-        "Experimental and default off. Applies restrained depth-based absorption, animated "
+        "Enabled by default for new installations. Applies restrained depth-based absorption, animated "
         "two-layer surface detail, bounded refraction, Fresnel reflection, and subtle shallow "
         "shoreline treatment, and environment-aware specular only to exact validated water. "
         "Unknown, ambiguous, and unsupported water remains native.",
