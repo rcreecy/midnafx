@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "MidnaFX contributors",
-  "description": "Modern visual grading, detail, Twilight profiles, adaptive normals, camera controls, and experimental depth of field"
+  "description": "Modern visual grading, detail, Twilight profiles, adaptive normals, camera controls, depth of field, and enhanced water"
 }

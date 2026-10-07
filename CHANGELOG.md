@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-10-07
 
 - Add a default-on, exact-allowlist enhanced-water pipeline with depth-based
   absorption, animated surface detail, bounded refraction, Fresnel/environment

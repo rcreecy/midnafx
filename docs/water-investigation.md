@@ -19,12 +19,13 @@ refraction, Fresnel environment fallback, shoreline treatment, and authored-ligh
 specular are implemented behind that boundary.
 The rejected SSR prototype does not ship.
 
-## Default-on release qualification
+## Default-on follow-up
 
-The next stable release may enable this exact allowlist by default only after
-live source-matched runtime proof covers active rotating-stair water and the
-transition corpus: room load/unload, reload, feature disable/re-enable, resize,
-and clean shutdown. Unsupported water classes remain native.
+The default-on release remains bounded to this exact allowlist. Before expanding
+coverage or removing its disclosed limitation, obtain live source-matched proof
+for active rotating-stair water and the transition corpus: room load/unload,
+reload, feature disable/re-enable, resize, and clean shutdown. Unsupported water
+classes remain native.
 
 When enabled, capture resolves only if the render-cadence stage scan finds an
 exact static surface or a thickness candidate appeared in the preceding frame.
