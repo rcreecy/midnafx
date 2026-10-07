@@ -1,5 +1,7 @@
 #include "water_probe.hpp"
 
+#include "water_identity.h"
+
 #include "services.hpp"
 #include "ui/settings.hpp"
 
@@ -119,19 +121,6 @@ bool diagnostic_active() { return hooks_ready && cleanup_hook != 0 && diagnostic
 
 bool is_stage_water_candidate(const char* stage);
 
-bool is_allowed_stage_material(const char* stage, const char* name) {
-    if (!stage || !name)
-        return false;
-    if (std::strcmp(stage, "F_SP115") == 0)
-        return std::strcmp(name, "cc_MA06_NigoriWater_v_x") == 0 ||
-               std::strcmp(name, "cd_MA09_MeraWater_v_x") == 0;
-    if (std::strcmp(stage, "F_SP127") == 0)
-        return std::strcmp(name, "cc_MA02_IndirectWater_v") == 0 ||
-               std::strcmp(name, "cc_MA06_Nigori_Water_v_x") == 0 ||
-               std::strcmp(name, "cc_MA09_Nigori_Water_v") == 0;
-    return false;
-}
-
 void log_summary(const char* reason) {
     if (!svc_log || (classified_draws == 0 && thickness_captures == 0))
         return;
@@ -152,7 +141,8 @@ void log_summary(const char* reason) {
     svc_log->info(mod_ctx, message);
 }
 
-void log_model(J3DModelData* data, const char* water_class, const char* role, float water_y) {
+void log_model(J3DModelData* data, const char* water_class, const char* role, float water_y,
+               int room = -1) {
     if (!data || !svc_log)
         return;
     JUTNameTab* names = data->getMaterialName();
@@ -167,7 +157,7 @@ void log_model(J3DModelData* data, const char* water_class, const char* role, fl
         std::snprintf(message, sizeof(message),
                       "WaterClass {class=%.40s role=%.24s model=%p material=%u name=%.80s "
                       "shapes=%u materials=%u texgens=%u tev_stages=%u blend=%d/%d/%d "
-                      "depth=%d/%d/%d water_y=%.2f}",
+                      "depth=%d/%d/%d water_y=%.2f room=%d stay_room=%d}",
                       water_class, role, static_cast<void*>(data), static_cast<unsigned>(index),
                       name ? name : "<unnamed>", static_cast<unsigned>(data->getShapeNum()),
                       static_cast<unsigned>(data->getMaterialNum()),
@@ -179,7 +169,8 @@ void log_model(J3DModelData* data, const char* water_class, const char* role, fl
                       depth ? static_cast<int>(depth->getCompareEnable()) : -1,
                       depth ? static_cast<int>(depth->getFunc()) : -1,
                       depth ? static_cast<int>(depth->getUpdateEnable()) : -1,
-                      static_cast<double>(water_y));
+                      static_cast<double>(water_y), room,
+                      static_cast<int>(dComIfGp_roomControl_getStayNo()));
         svc_log->info(mod_ctx, message);
     }
 }
@@ -207,7 +198,7 @@ void classify(J3DModel* model, const char* water_class, const char* role, float 
     }
 }
 
-void inspect(J3DModel* model, const char* water_class, const char* role) {
+void inspect(J3DModel* model, const char* water_class, int room, const char* role) {
     if (!diagnostic_active() || !model)
         return;
     J3DModelData* data = model->getModelData();
@@ -215,19 +206,17 @@ void inspect(J3DModel* model, const char* water_class, const char* role) {
         return;
     const bool first_this_frame = frame_models.insert(data).second;
     if (first_this_frame && !previous_models.contains(data))
-        log_model(data, water_class, role, model->getBaseTRMtx()[1][3]);
+        log_model(data, water_class, role, model->getBaseTRMtx()[1][3], room);
     JUTNameTab* names = data->getMaterialName();
     bool selected = false;
     for (u16 index = 0; names && index < data->getMaterialNum(); ++index) {
-        if (is_allowed_stage_material(water_class, names->getName(index))) {
+        const char* name = names->getName(index);
+        const auto decision = game::water::classify_stage_material(
+            water_class ? water_class : "", room, role ? role : "", name ? name : "");
+        if (decision.selected) {
             if (J3DMaterial* material = data->getMaterialNodePointer(index)) {
                 frame_materials.insert(material);
-                const char* name = names->getName(index);
-                frame_material_identities[material] = {
-                    name,
-                    name && (std::strstr(name, "MA06") != nullptr ||
-                             std::strcmp(name, "cc_MA02_IndirectWater_v") == 0),
-                };
+                frame_material_identities[material] = {name, decision.thickness};
                 selected = true;
             }
         }
@@ -287,8 +276,7 @@ HookAction on_boss_water(ModContext*, void* args, void*, void*) {
 }
 
 bool is_stage_water_candidate(const char* stage) {
-    return stage && (std::strcmp(stage, "F_SP115") == 0 || std::strcmp(stage, "F_SP112") == 0 ||
-                     std::strcmp(stage, "F_SP126") == 0 || std::strcmp(stage, "F_SP127") == 0);
+    return stage && game::water::has_stage_water(stage);
 }
 
 int inspect_stage_actor(void* raw_actor, void*) {
@@ -297,20 +285,23 @@ int inspect_stage_actor(void* raw_actor, void*) {
     const char* stage = dComIfGp_getStartStageName();
     if (!is_stage_water_candidate(stage))
         return 0;
+    int room = fopAcM_GetRoomNo(static_cast<fopAc_ac_c*>(raw_actor));
+    if (room < 0)
+        room = dComIfGp_roomControl_getStayNo();
     const s16 name = fopAcM_GetName(raw_actor);
     if (name == fpcNm_BG_e) {
         auto* actor = static_cast<daBg_c*>(raw_actor);
         for (unsigned i = 0; i < 6; ++i) {
             char role[16];
             std::snprintf(role, sizeof(role), "part-%u", i);
-            inspect(actor->mBgParts[i].model, stage, role);
+            inspect(actor->mBgParts[i].model, stage, room, role);
         }
     } else if (name == fpcNm_BG_OBJ_e) {
         auto* actor = static_cast<daBgObj_c*>(raw_actor);
         for (unsigned i = 0; i < 2; ++i) {
             char role[24];
             std::snprintf(role, sizeof(role), "bgobj-%u", i);
-            inspect(actor->field_0x5a8[actor->field_0xcc8][i], stage, role);
+            inspect(actor->field_0x5a8[actor->field_0xcc8][i], stage, room, role);
         }
     }
     return 0;

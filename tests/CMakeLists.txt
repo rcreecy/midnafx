@@ -46,6 +46,10 @@ add_executable(dof_quality dof_quality.cpp ../src/render/dof_quality.cpp)
 target_compile_features(dof_quality PRIVATE cxx_std_20)
 target_include_directories(dof_quality PRIVATE ../src)
 add_test(NAME dof_quality COMMAND dof_quality)
+add_executable(water_identity water_identity.cpp ../src/game/water_identity.cpp)
+target_compile_features(water_identity PRIVATE cxx_std_20)
+target_include_directories(water_identity PRIVATE ../src)
+add_test(NAME water_identity COMMAND water_identity)
 add_test(NAME camera_patch_contract COMMAND "${Python3_EXECUTABLE}"
     "${CMAKE_CURRENT_SOURCE_DIR}/camera_patch_contract.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/../patches/dusklight-camera-fov-modifier.patch")
