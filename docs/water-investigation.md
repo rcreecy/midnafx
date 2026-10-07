@@ -776,10 +776,13 @@ microseconds total (about 45 microseconds per frame), and clean unload. A matche
 native run confirmed the arena's very dark appearance is authored rather than an
 enhanced-water regression.
 
-The `D_MN01,3,1,0` direct warp loaded the ordinary Lakebed and central-water
-classifiers but did not activate the story-gated rotating-stair classifier. That
-actor therefore remains source-mapped and fail-closed, without a live pixel claim.
-The broad exact static table and validated actor classes are viable opt-in coverage,
-but enhanced water remains default off. Default-on is deferred until story-state
-entry can exercise rotating-stair water and a representative transition corpus can
-repeat without classification or visual faults.
+The `D_MN01,3,1,0` direct warp loaded ordinary Lakebed and central-water
+classifiers but left rotating-stair water switch-gated. A temporary developer-only
+activation then established the runtime actor path and exact three-material pair:
+`cc_MA06_mizu_v_x`, `cc_MA06_water_v_x`, and `cc_MA02_mizu_v`. It was removed
+before packaging. The direct warp did not bring those surfaces into the camera,
+so this is runtime identity proof, not story-state pixel proof. The broad exact
+static table and validated actor classes are viable opt-in coverage, but enhanced
+water remains default off. Default-on is deferred until story-state entry can
+exercise rotating-stair water and a representative transition corpus can repeat
+without classification or visual faults.

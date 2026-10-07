@@ -338,9 +338,10 @@ optical-thickness capture through the currently implemented product effects.
   exposure, ruling out an enhancement-caused blackout.
 * Both enhanced runs unloaded cleanly. No WebGPU/D3D12 validation, NaN, or Inf
   fault was observed.
-* A direct room-3 Lakebed warp did not activate the story-gated rotating-stair
-  actor. Ordinary Lakebed water remained classified, but no rotating-stair pixel
-  proof is claimed.
+* A direct room-3 Lakebed warp left rotating-stair water switch-gated. A removed
+  developer-only activation established its live actor path and exact three
+  materials, but did not expose them in the camera. No story-state pixel proof is
+  claimed.
 * Default-on remains rejected for this checkpoint. The exact broad allowlist is
   safe for opt-in use; story-gated rotating water and transition coverage remain
   required before changing the product default.
