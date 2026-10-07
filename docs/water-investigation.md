@@ -709,5 +709,46 @@ documented optional host instrumentation. SSR remains separate and optional.
 * Whether semantic collision water planes align closely enough with rendered
   geometry for stable thickness reconstruction.
 
-Gates 1-3 pass for the narrow exact allowlist, including bounded multi-packet
-aggregation. Additional-scene product validation remains before broader rollout.
+Gates 1-3 passed first for the narrow exact allowlist, including bounded
+multi-packet aggregation. The following confidence pass defines the broader
+source-enumerated rollout boundary.
+
+## World surface inventory and exact expansion
+
+The stage archive inventory now covers all 79 extracted stage directories. The
+read-only `tools/scan-water-materials.py` pass found 229 water-like stage material
+rows; `tools/scan-stage-spawns.py` found 1,277 usable runtime starts. Manual
+classification retained 110 exact `(stage, room, actor role, material)` identities
+across 26 stages and 43 rooms. Seventy-three identities are primary optical-depth
+candidates; companion shimmer/indirect layers remain classified but do not cause a
+second thickness replay. Six existing actor-specific classifiers continue to cover
+Lakebed, ground/current, hot-spring, rotating-stair, and boss water.
+
+The expansion remains an exact allowlist. It deliberately excludes waterfall and
+cascade materials, fountain spray, sunbeams, oil, aquarium glass, debug materials,
+and particle effects. These are authored effects or different optical classes and
+must not be passed through the flat-water replacement path. Unsupported or unknown
+stage/material combinations still fail closed.
+
+Source-matched D3D12 magenta runs supplied representative live confidence checks:
+
+| Scene | Result | Runtime evidence |
+| --- | --- | --- |
+| `F_SP103,0,27,0` | Small Ordon water patches marked; terrain, vegetation, actors, and HUD remained native. | 2,114 marked draws over 1,085 scanned frames; 53,463 microseconds total scan time. |
+| `F_SP108,1,0,0` | Broad forest water marked; Midna, Link, shore plants, dialogue, and HUD remained unaffected. | 2,169 marked draws over 751 frames; 28,988 microseconds total scan time. |
+| `F_SP117,3,1,0` | Exact large-water materials processed without marking visible room geometry. The selected surface was outside the initial camera view. | 4,968 marked draws over 1,684 frames; 87,530 microseconds total scan time. |
+| `D_MN01,0,1,0` | Exact Lakebed static layers processed; the initial camera showed no unrelated magenta geometry. | 577 marked draws over 1,000 frames; 19,519 microseconds total scan time. |
+| `F_SP122,17,0,0` | Water beneath the bridge marked; bridge, room geometry, Link, and HUD remained native. | 2,325 marked draws over 803 frames; 24,695 microseconds total scan time. |
+| `F_SP118,2,0,0` | Desert-lake model identity observed exactly as room 2 / `part-0`; its surface was outside the initial camera view. | Runtime material `Desert_Lake_051214a_cc_MA02_water_v_x`; actor room and stay room both 2. |
+
+All runs shut down through the normal window close path and unloaded all mods. No
+WebGPU/D3D12 validation error was observed; the expected device-destroyed warning
+occurred during host shutdown. Scanning cost in the five drawing scenes was about
+19.5-52.0 microseconds per scanned frame. The feature remains default off, and
+there is no GPU readback or per-frame diagnostic logging after initial model
+discovery.
+
+This is the viable broad stage-surface boundary for the current architecture. It
+does not claim waterfalls, spray, oil, glass, or every story-layer actor as ordinary
+water. Newly discovered water identities still require exact catalog and live pixel
+proof before entry.

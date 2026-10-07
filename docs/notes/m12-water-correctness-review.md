@@ -293,3 +293,31 @@ optical-thickness capture through the currently implemented product effects.
   frame, about 47.8 microseconds of CPU capture/replay work per capture, clean
   unload, and no WebGPU/D3D12 validation errors. The adjacent waterfall stayed
   outside the exact water-surface allowlist.
+
+## Broad world allowlist review
+
+* Fixed a correctness risk in the original stage-name-only checks. Static water
+  now requires an exact stage, runtime room, background role, and material name.
+  A same-named material in another room or model role is rejected.
+* The pure identity component contains 110 entries across 26 stages and 43 rooms.
+  Unit coverage proves accepted primary and companion identities plus rejection of
+  wrong-room, waterfall, sunbeam, oil, and unknown-stage inputs.
+* Runtime logging now records actor room and stay room. The desert-lake probe
+  confirmed `F_SP118` room 2 reports actor room 2 and stay room 2, matching the
+  archive identity rather than depending on a guessed global room.
+* The live confidence set covered visible outdoor water in `F_SP103` and `F_SP108`,
+  visible under-bridge water in `F_SP122`, exact Lakebed static layers in `D_MN01`,
+  the large-water room in `F_SP117`, and the special desert-lake model in `F_SP118`.
+  No unrelated opaque or translucent geometry was marked in the visible checks.
+* `F_SP115` room 0 includes runtime-only background-object identities absent from
+  the static room-model scan. Its primary MA06 layer remains the only added
+  thickness candidate; MA09 and indirect companion layers are classified without
+  causing duplicate thickness replay.
+* The stage scan remains bounded to stages present in the table and measured about
+  19.5-52.0 microseconds per scanned frame in the drawing scenes. The table lookup
+  is read-only, allocates nothing, and unknown identities fail closed.
+* Waterfalls/cascades, fountains, sunbeams, oil, aquarium glass, debug materials,
+  particles, and spray remain excluded. Treating those as flat refractive water
+  would be a feature and correctness expansion, not allowlist completion.
+* Windows release build, shader validation, package contract, and all 15 tests pass
+  with the classification diagnostic restored to default off.
