@@ -3,11 +3,17 @@
 MidnaFX is an experimental native visual processing mod for Dusklight. It provides a fused
 pre-HUD grading shader with exposure, black point, contrast, gamma, saturation, highlight
 rolloff, temperature and tint controls, plus optional five-tap detail enhancement.
-Neutral grading with detail off bypasses the render pass. Save,
+Neutral grading with detail and AA off bypasses the grading pass. Save,
 load, and duplicate looks under Basic: visual profile; Vanilla restores neutral settings and
 Custom retains its own live look across preset switches. A forced RGBA passthrough remains
 available for validating the render path. Developer views provide A/B split, luminance,
 highlight/shadow clipping, and amplified difference using the same scene snapshot.
+The development build enables experimental pre-HUD anti-aliasing by default.
+Its Basic toggle operates independently of grading and saved looks; existing
+saved AA-off values are preserved. The five-tap filter shares source samples
+with detail, and detail does not sharpen edges selected for AA. See the
+[AA correctness review](docs/notes/m13-aa-correctness-review.md) for repairs,
+headless GPU proof, and the remaining visual-quality limitations.
 Optional CPU diagnostics report stage p50/p95, layout/resolve call time, snapshot
 requests, and pipeline counts. An opt-in Twilight prototype can blend from the
 general look toward a user-captured target when Dusklight reports active

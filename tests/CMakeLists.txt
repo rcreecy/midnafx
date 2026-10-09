@@ -64,6 +64,14 @@ if(MIDNAFX_BUILD_MOD)
     endif()
     add_test(NAME shader_compile COMMAND shader_compile)
     set_tests_properties(shader_compile PROPERTIES SKIP_RETURN_CODE 77)
+    add_executable(aa_pixels aa_pixels.cpp)
+    target_compile_features(aa_pixels PRIVATE cxx_std_20)
+    target_include_directories(aa_pixels PRIVATE "${CMAKE_BINARY_DIR}/generated")
+    target_link_libraries(aa_pixels PRIVATE dawn::webgpu_dawn)
+    include("${DUSKLIGHT_DIR}/extern/aurora/cmake/AuroraCopyRuntimeDLLs.cmake")
+    aurora_copy_runtime_dlls(aa_pixels)
+    add_test(NAME aa_pixels COMMAND aa_pixels)
+    set_tests_properties(aa_pixels PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120)
     add_test(NAME package_contract COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/package_contract.py"
         "${CMAKE_BINARY_DIR}/mods/midnafx.dusk"

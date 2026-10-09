@@ -48,7 +48,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     water_surface_capture_diagnostic{"water_surface_capture_diagnostic"},
     water_thickness_diagnostic{"water_thickness_diagnostic"},
     enhanced_water{"enhanced_water", true},
-    anti_aliasing{"anti_aliasing"},
+    anti_aliasing{"anti_aliasing", true},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
@@ -787,11 +787,11 @@ void refresh_status() {
     const bool detail_active = active_grade.uniforms.detail_strength > 0.0f;
     const auto mode = visual::debug_mode(debug_mode_setting.value);
     std::snprintf(status, sizeof(status), "%s | %s | %u x %u",
-                  master.value ? (active_grade.neutral && !detail_active &&
+                  master.value ? (active_grade.neutral && !detail_active && !anti_aliasing.value &&
                                           mode == visual::DebugMode::Final && !passthrough.value
                                       ? "Neutral"
                                       : "Processing")
-                               : "Disabled",
+                               : (anti_aliasing.value ? "Grading off / AA requested" : "Grading off"),
                   data.status, data.width, data.height);
     if (status_element)
         check_ui(svc_ui->elem_set_text(mod_ctx, status_element, status));
@@ -880,6 +880,10 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Modern exploration camera", camera_toggle);
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
+    add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Anti-aliasing defaults on and operates independently of grading and saved looks. "
+        "Disable it here for an unfiltered scene. Visual qualification remains incomplete.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic: visual profile"));
     std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName, VanillaPlusName, EnhancedName};
     for (const auto& preset : saved_presets)
@@ -985,11 +989,6 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "Hard normal splits and material boundaries are always preserved. Unsupported or ambiguous models are skipped. "
         "Enable before loading a scene. Disable restores source normals; enabling again requires a scene reload.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
-    add_toggle(panel, "Enable anti-aliasing prototype", anti_aliasing);
-    check_ui(svc_ui->pane_add_text(
-        mod_ctx, panel,
-        "Default off. Conservative pre-HUD FXAA is an M13 runtime-validation prototype. It "
-        "does not affect native HUD or menus.", nullptr));
     UiControlDesc debug = UI_CONTROL_DESC_INIT;
     debug.kind = UI_CONTROL_DROPDOWN;
     debug.label = "Debug view";
@@ -1195,6 +1194,13 @@ bool anti_aliasing_enabled() { return anti_aliasing.value; }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {
+    if (!master.value) {
+        static const auto disabled_grade = grade::prepare({});
+        auto neutral = disabled_grade;
+        neutral.uniforms.debug_mode = prepared.uniforms.debug_mode;
+        neutral.uniforms.difference_gain = prepared.uniforms.difference_gain;
+        return neutral;
+    }
     if (!auto_twilight.value || !has_twilight_target || twilight_weight <= 0.0f)
         return prepared;
     auto result = twilight::blend(prepared, twilight_prepared, twilight_weight);

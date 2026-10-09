@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 - 2026-10-08
+
+- Enable experimental pre-HUD AA by default for new configurations; preserve saved off choices and expose the toggle in Basic.
+- Prevent disabled grading/detail/Twilight adjustments from leaking into AA or enhanced-water draws.
+- Reuse AA neighborhood samples for detail and prevent detail from counteracting filtered edges.
+- Add 25 headless GPU pixel cases; all 16 local Windows tests pass. Live visual quality and Metal game validation remain incomplete.
+
 ## 1.1.0 - 2026-10-07
 
 - Add a default-on, exact-allowlist enhanced-water pipeline with depth-based

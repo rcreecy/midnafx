@@ -178,12 +178,7 @@ fn max_component(value: vec3f) -> f32 {
     return max(max(value.r, value.g), value.b);
 }
 
-fn apply_detail(center: vec3f, position: vec2i) -> vec3f {
-    let last = vec2i(textureDimensions(scene_color)) - vec2i(1);
-    let north = textureLoad(scene_color, clamp(position + vec2i(0, -1), vec2i(0), last), 0).rgb;
-    let east = textureLoad(scene_color, clamp(position + vec2i(1, 0), vec2i(0), last), 0).rgb;
-    let south = textureLoad(scene_color, clamp(position + vec2i(0, 1), vec2i(0), last), 0).rgb;
-    let west = textureLoad(scene_color, clamp(position + vec2i(-1, 0), vec2i(0), last), 0).rgb;
+fn detail_from_neighbors(center: vec3f, north: vec3f, east: vec3f, south: vec3f, west: vec3f) -> vec3f {
     let neighbor_average = (north + east + south + west) * 0.25;
     let highpass = center - neighbor_average;
     let local_min = min(center, min(min(north, east), min(south, west)));
@@ -196,9 +191,17 @@ fn apply_detail(center: vec3f, position: vec2i) -> vec3f {
                  vec3f(0.0), vec3f(1.0));
 }
 
-fn fxaa_source(position: vec2i) -> vec3f {
+fn apply_detail(center: vec3f, position: vec2i) -> vec3f {
     let last = vec2i(textureDimensions(scene_color)) - vec2i(1);
-    let center = textureLoad(scene_color, position, 0).rgb;
+    let north = textureLoad(scene_color, clamp(position + vec2i(0, -1), vec2i(0), last), 0).rgb;
+    let east = textureLoad(scene_color, clamp(position + vec2i(1, 0), vec2i(0), last), 0).rgb;
+    let south = textureLoad(scene_color, clamp(position + vec2i(0, 1), vec2i(0), last), 0).rgb;
+    let west = textureLoad(scene_color, clamp(position + vec2i(-1, 0), vec2i(0), last), 0).rgb;
+    return detail_from_neighbors(center, north, east, south, west);
+}
+
+fn fxaa_source(center: vec3f, position: vec2i, detail: bool) -> vec3f {
+    let last = vec2i(textureDimensions(scene_color)) - vec2i(1);
     let north = textureLoad(scene_color, clamp(position + vec2i(0, -1), vec2i(0), last), 0).rgb;
     let east = textureLoad(scene_color, clamp(position + vec2i(1, 0), vec2i(0), last), 0).rgb;
     let south = textureLoad(scene_color, clamp(position + vec2i(0, 1), vec2i(0), last), 0).rgb;
@@ -213,8 +216,12 @@ fn fxaa_source(position: vec2i) -> vec3f {
     let contrast = high - low;
     let threshold = max(0.0312, high * 0.125);
     if (contrast < threshold) {
+        if (detail) {
+            return detail_from_neighbors(center, north, east, south, west);
+        }
         return center;
     }
+    // Do not sharpen an AA-filtered edge against unfiltered neighbors.
     let horizontal = abs(north_luma + south_luma - 2.0 * center_luma);
     let vertical = abs(east_luma + west_luma - 2.0 * center_luma);
     let pair = select((east + west) * 0.5, (north + south) * 0.5, horizontal >= vertical);
@@ -325,13 +332,13 @@ fn fs_absorption_detail(@builtin(position) position: vec4f) -> @location(0) vec4
 fn fs_absorption_fxaa(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
-    return vec4f(apply_grading(apply_absorption(coord, fxaa_source(coord))), source.a);
+    return vec4f(apply_grading(apply_absorption(coord, fxaa_source(source.rgb, coord, false))), source.a);
 }
 
 @fragment
 fn fs_absorption_fxaa_detail(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
-    let filtered = apply_detail(fxaa_source(coord), coord);
+    let filtered = fxaa_source(source.rgb, coord, true);
     return vec4f(apply_grading(apply_absorption(coord, filtered)), source.a);
 }
