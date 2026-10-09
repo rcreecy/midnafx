@@ -1,0 +1,20 @@
+diff --git a/src/dusk/ui/menu_bar.cpp b/src/dusk/ui/menu_bar.cpp
+index 614c28b..8df03a2 100644
+--- a/src/dusk/ui/menu_bar.cpp
++++ b/src/dusk/ui/menu_bar.cpp
+@@ -67,6 +67,15 @@ MenuBar::MenuBar()
+         }
+     });
+ 
++    // With no document focused, key events target the context root and never
++    // reach the normal document listener. Handle only that menu-toggle case.
++    auto* root = mDocument->GetContext()->GetRootElement();
++    listen(root, Rml::EventId::Keydown, [this, root](Rml::Event& event) {
++        if (event.GetTargetElement() == root && map_nav_event(event) == NavCommand::Menu &&
++            top_document() == this && handle_nav_event(event)) {
++            event.StopPropagation();
++        }
++    });
+     build_tabs();
+ }
+ 

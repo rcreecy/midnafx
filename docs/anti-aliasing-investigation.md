@@ -1,5 +1,10 @@
 # M13 anti-aliasing investigation
 
+The [2026-10-09 menu repair](notes/menu-root-focus-repair.md) resolves the native
+settings-access blocker on the local host. Published v1.2.0 default-on, live
+off/on, and native reload now have UI and log evidence. Full visual qualification
+remains open.
+
 ## Current prototype
 
 The [correctness and optimization review](notes/m13-aa-correctness-review.md)
@@ -231,3 +236,70 @@ This proves synthetic shader behavior, not game-scene art quality, temporal
 stability, HUD ordering, enhanced-water composition, active detail behavior, or
 performance. It does not close the remaining visual gate or qualify Metal;
 only the Windows D3D12 execution was performed in this phase.
+
+## Published v1.2.0 desktop smoke checks (2026-10-08)
+
+Desktop access was restored and the published Windows CI artifact was exercised.
+The host was initially believed to be restored, but later log inspection found
+the old QA hook still present in its executable (see correction below).
+The package SHA-256 is
+`15CE2175EB85B7919BC0C2B67BED0AF305AD869182CE7B4A28DB238BCB70379C`.
+The isolated configurations omit the AA key to exercise the shipped default;
+grading is neutral, detail is 20 percent, and enhanced water uses its default.
+
+Evidence under `build/m13-aa-runtime/` now includes `release120-outdoor`,
+`release120-pond`, and `release120-dungeon-dof`. Each contains `default-on.png`,
+launch metadata, and logs. The outdoor run additionally contains `resized.png`
+at a 1614x974 window size. Scene rendering, outdoor resize, pond water, and dungeon
+DOF show no obvious gross corruption in these captures. The HUD remains legible
+and sharp, including over the blurred dungeon background. All four host sessions
+(including an outdoor restart) log clean mod unload. Fresh user directories
+report the expected missing `gczelda2` save file.
+The logs contain no WebGPU validation or fatal error. Standard-output teardown
+still reports buffer-mapping aborts and device destruction after mod unload;
+`release120-results.json` retains these warnings. This is not a warning-free run.
+
+Native settings hotkeys still did not open the settings interface. Copying the
+existing controller/keyboard files into the isolated outdoor directory did not
+resolve its no-device-assigned prompt. Therefore no final-package live AA
+toggle, camera movement, or matched off/on comparison is claimed. These are
+smoke checks of the published binary, not full visual qualification. All test
+hosts were closed; installed user settings and packages were not changed.
+
+### Host restoration correction
+
+Further input diagnosis found `M13_QA` records in the published-package smoke
+logs. Restoring `m_Do_main.cpp` had preserved its old modification time, so the
+incremental build reused the instrumented object despite correct source bytes.
+The earlier source restoration was real, but the claimed executable restoration
+was incorrect. The hook replayed the previous read-only `camera pos` request;
+these captures must still be classified as instrumented-host evidence.
+
+The source timestamp was advanced and the host rebuilt, with `m_Do_main.cpp`
+compilation confirmed in `forced-restored-host-build.log`. Source bytes still
+match the original backup; existing camera-service edits remain intact. The
+restored executable SHA-256 is
+`7DAFAD4CE96AA626CC63DC5E1E4CD7C55A4589D2FEA7C317675DDB01A50AD601`.
+`release120-clean-host` renders Ordon with the published package, records no
+`M13_QA` messages, and logs clean mod unload. Its screenshot is `default-on.png`.
+F1 still does not open settings, including after a modifier reset. The settings
+input failure remains unresolved and is not attributed to AA. The released
+mod package never contained this temporary host hook and remains unchanged.
+
+### Native menu repair and follow-up
+
+The subsequent root-focus diagnosis and local host patch resolve the F1
+failure described above. See [the repair note](notes/menu-root-focus-repair.md)
+for the input evidence, patch scope, and live AA toggle/reload checks.
+The follow-up Hyrule Field warp remains black despite responsive menus;
+the same failure also reproduces with an empty mods directory. Transition
+qualification remains open. A controlled +1 EV run now verifies that disabling
+grading removes the exposure change while AA remains enabled and the saved
+exposure is preserved. See the repair note for evidence and limits.
+The published v1.2.0 Windows package is unchanged.
+
+A subsequent native Ordon-to-Fishing Pond warp (room 0, point 0, layer 0)
+successfully renders the destination with AA enabled. This closes one D3D12
+transition smoke check; it does not resolve the separate Hyrule Field case or
+complete temporal/visual qualification. Evidence and caveats are recorded in
+the repair note under `release120-pond-transition`.
