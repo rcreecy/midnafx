@@ -62,3 +62,12 @@ pipeline compilation coverage, not offscreen optical-composition comparison.
 Live art quality, temporal shimmering, water boundaries, Metal, and performance
 remain unqualified. Earlier default-off statements in dated investigation
 entries describe prior checkpoints and are superseded by this decision.
+
+## Release CI follow-up
+
+v1.2.0 Windows CI passed and its package was published. The Intel Mac package
+compiled, but aa_pixels failed on the hosted Apple Paravirtual Metal device,
+including basic pixel identity. The cause remains unresolved. The Mac asset
+was withheld; the release is Windows-only. This failure does not establish
+behavior on physical Intel Mac hardware.
+
