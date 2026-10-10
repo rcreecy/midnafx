@@ -69,6 +69,14 @@ jobs:
         shell: bash
         run: ctest --preset "${{ matrix.preset }}"
 
+      # The hosted Metal runner has both passed and failed unchanged pixel code.
+      # Keep adapter identity and consecutive results visible without retries
+      # that turn an initial failure into a passing gate.
+      - name: Check Metal pixel repeatability
+        if: matrix.platform == 'macos-x86_64'
+        shell: bash
+        run: ctest --preset "${{ matrix.preset }}" -R '^aa_pixels$' --repeat until-fail:3 --verbose
+
       - name: Upload platform package
         uses: actions/upload-artifact@v4
         with:
