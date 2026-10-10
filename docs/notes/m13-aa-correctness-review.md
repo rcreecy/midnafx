@@ -71,3 +71,23 @@ including basic pixel identity. The cause remains unresolved. The Mac asset
 was withheld; the release is Windows-only. This failure does not establish
 behavior on physical Intel Mac hardware.
 
+### Diagnostic rerun (2026-10-09)
+
+Commit `7ba4f1b` adds bounded first-pixel mismatch reporting to `aa_pixels`.
+It changes neither rendering code nor assertions and does not relax the gate.
+The Windows pixel test passes locally after rebuilding.
+
+Manual CI run [38012005349](https://github.com/rcreecy/midnafx/actions/runs/38012005349)
+passes all 16 tests on both Windows and Intel Mac, including `aa_pixels`
+(Mac: 3.70 seconds; it was not skipped). Both platform artifacts were produced;
+the release job was skipped because this was a branch dispatch, not a tag.
+Successful CTest output does not identify the adapter for this run.
+
+This is a successful Mac CI observation, not a demonstrated fix for the earlier
+Apple Paravirtual failure. No production shader or renderer change separates
+the runs. The earlier failure is therefore not consistently reproduced across
+these runner executions, and its cause remains unresolved. The added failure
+diagnostics will distinguish missing readback data and pixel/channel mismatch
+if it recurs. The published v1.2.0 release remains Windows-only; the new Mac
+artifact has not been promoted to a release or qualified on physical hardware.
+
