@@ -91,3 +91,18 @@ diagnostics will distinguish missing readback data and pixel/channel mismatch
 if it recurs. The published v1.2.0 release remains Windows-only; the new Mac
 artifact has not been promoted to a release or qualified on physical hardware.
 
+### Consecutive Metal verification (2026-10-09)
+
+CI run [38017063663](https://github.com/rcreecy/midnafx/actions/runs/38017063663)
+passes all 16 tests on both platforms. A new Mac-only gate then executes
+`aa_pixels` with `--repeat until-fail:3 --verbose`: all three executions pass
+all 25 cases, each identifying `Apple Paravirtual device; backend=5; type=1`.
+The gate stops on the first failure rather than retrying until success.
+
+This confirms repeatable synthetic pixel behavior on this hosted Metal runner
+and a second successful full CI run. It does not explain the original failure,
+prove reliability across every runner instance, or qualify live Mac gameplay.
+No production rendering code changed. Diagnostics and the consecutive-run gate
+remain enabled to preserve evidence if the failure recurs. Release assets are
+unchanged; the Mac package remains a CI artifact.
+
