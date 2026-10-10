@@ -106,3 +106,15 @@ No production rendering code changed. Diagnostics and the consecutive-run gate
 remain enabled to preserve evidence if the failure recurs. Release assets are
 unchanged; the Mac package remains a CI artifact.
 
+### Intel Mac publication (2026-10-09)
+
+The user explicitly requested Mac shipment without physical hardware available.
+The Intel Mac artifact from run 38017063663 is now attached to v1.2.0 as
+`midnafx-macos-x86_64.dusk`. Its manifest declares version 1.2.0 and includes
+`lib/macos-x86_64/mod.so`. Comparing the build commit with the release tag shows
+no changes to product rendering source. GitHub's uploaded asset digest matches
+local SHA-256 `767C55A028A98A78A2670F6B56B27C327E1D51A0EDDC827240C32E26C39BCF66`.
+Release notes disclose the earlier unexplained failure, passing reruns, lack of
+physical Mac gameplay testing, and Intel-only architecture. AA retains its
+experimental label. The existing Windows asset is unchanged.
+

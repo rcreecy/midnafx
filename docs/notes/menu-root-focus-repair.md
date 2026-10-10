@@ -84,8 +84,10 @@ and clean mod unload, with the existing teardown warnings. No validation,
 fatal, or temporary input/QA diagnostic markers occur in this run's stdout.
 
 This passes a scene-transition smoke check on D3D12. It does not prove temporal
-AA quality or enhanced-water optical correctness (the shutdown summary reports
-zero marked draws). The earlier Hyrule Field / layer -1 failure is not a general
+AA quality or enhanced-water optical correctness. Follow-up source review confirms
+that zero marked draws counts diagnostic overrides only; both the transition and
+motion-pond logs explicitly report `Water absorption active`, proving production
+path activation. The earlier Hyrule Field / layer -1 failure is not a general
 failure of native Warp or an AA-dependent failure. Its specific cause remains
 unresolved. Both destination and layer differ in the successful test, so this
 does not establish that changing the layer alone fixes Hyrule Field.
