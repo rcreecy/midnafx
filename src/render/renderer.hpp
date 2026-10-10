@@ -11,6 +11,8 @@ struct Diagnostics {
     double active_p50_us, active_p95_us, disabled_p50_us, disabled_p95_us;
     bool timing_enabled;
     const char* backend;
+    std::uint32_t look_resource_sets;
+    std::uint64_t look_encoded;
 };
 void initialize();
 void update();

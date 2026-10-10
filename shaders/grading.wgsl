@@ -170,3 +170,28 @@ fn fs_debug_detail(@builtin(position) position: vec4f) -> @location(0) vec4f {
     }
     return debug_output(source, apply_grading(apply_detail(source.rgb, coord)));
 }
+
+// Separate entry points keep disabled/diagnostic paths free of LUT bindings.
+@fragment
+fn fs_main_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let source = textureLoad(scene, vec2i(position.xy), 0);
+    return vec4f(apply_look(apply_grading(source.rgb)), source.a);
+}
+@fragment
+fn fs_detail_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene, coord, 0);
+    return vec4f(apply_look(apply_grading(apply_detail(source.rgb, coord))), source.a);
+}
+@fragment
+fn fs_fxaa_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene, coord, 0);
+    return vec4f(apply_look(apply_grading(fxaa_source(source.rgb, coord, false))), source.a);
+}
+@fragment
+fn fs_fxaa_detail_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene, coord, 0);
+    return vec4f(apply_look(apply_grading(fxaa_source(source.rgb, coord, true))), source.a);
+}

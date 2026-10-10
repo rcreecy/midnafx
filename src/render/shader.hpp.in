@@ -1,10 +1,12 @@
 #pragma once
 namespace midnafx::render {
 inline constexpr char passthrough_shader[] = R"midnafx(@MIDNAFX_SHADER@)midnafx";
-inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_GRADING_SHADER@)midnafx";
+inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
+@MIDNAFX_GRADING_SHADER@)midnafx";
 inline constexpr char atmosphere_depth_shader[] = R"midnafx(@MIDNAFX_ATMOSPHERE_DEPTH_SHADER@)midnafx";
 inline constexpr char dof_shader[] = R"midnafx(@MIDNAFX_DOF_SHADER@)midnafx";
 inline constexpr char dof_blur_compute_shader[] = R"midnafx(@MIDNAFX_DOF_BLUR_COMPUTE_SHADER@)midnafx";
 inline constexpr char dof_blur_composite_shader[] = R"midnafx(@MIDNAFX_DOF_BLUR_COMPOSITE_SHADER@)midnafx";
-inline constexpr char water_thickness_shader[] = R"midnafx(@MIDNAFX_WATER_THICKNESS_SHADER@)midnafx";
+inline constexpr char water_thickness_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
+)midnafx" R"midnafx(@MIDNAFX_WATER_THICKNESS_SHADER@)midnafx";
 }

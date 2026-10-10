@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "lut.hpp"
 #include "config/visual.hpp"
 #include "game/camera_probe.hpp"
 #include "game/water_probe.hpp"
@@ -92,6 +93,8 @@ struct Payload {
     std::uint32_t kind;
     std::uint32_t uniform_offset;
     std::uint32_t uniform_size;
+    std::uint32_t look_offset;
+    bool use_look;
 };
 static_assert(sizeof(Payload) <= GFX_INLINE_DRAW_PAYLOAD_SIZE);
 
@@ -104,6 +107,9 @@ struct PipelinePair {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPUShaderModule shaders[5]{};
     Pipeline pipelines[PipelineCount];
+    Pipeline look_pipelines[PipelineCount];
+    lut::Texture normal_look, twilight_look;
+    WGPUSampler look_sampler = nullptr;
 };
 // Pairs stay alive until the host has drained draw callbacks at shutdown.
 std::vector<std::unique_ptr<PipelinePair>> pairs;
@@ -115,6 +121,8 @@ std::atomic<std::uint32_t> state{
     0}; // 0 unavailable, 1 ready, 2 failed, 3 layout skip, 4 GPU pending, 5 init layout skip
 std::atomic<std::uint32_t> width{0}, height{0};
 std::atomic<std::uint64_t> submitted{0}, encoded{0}, groups{0}, builds{0};
+std::atomic<std::uint32_t> look_resource_sets{0};
+std::atomic<std::uint64_t> look_encoded{0};
 std::atomic<std::uint64_t> disabled_samples{0}, neutral_samples{0}, snapshot_requests{0};
 std::atomic<double> callback_us{0.0}, disabled_us{0.0}, layout_us{0.0}, resolve_us{0.0};
 struct SampleWindow {
@@ -300,6 +308,20 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
         build_pipeline(next->pipelines[WaterAbsorptionFxaaDetail], next->shaders[4],
                        "fs_absorption_fxaa_detail", "MidnaFX water absorption, FXAA and detail",
                        layout);
+        struct LookEntry { PipelineKind kind; unsigned shader; const char* entry; };
+        constexpr LookEntry look_entries[]{
+            {Grade, 1, "fs_main_lut"}, {Detail, 1, "fs_detail_lut"},
+            {Fxaa, 1, "fs_fxaa_lut"}, {FxaaDetail, 1, "fs_fxaa_detail_lut"},
+            {WaterAbsorption, 4, "fs_absorption_lut"},
+            {WaterAbsorptionDetail, 4, "fs_absorption_detail_lut"},
+            {WaterAbsorptionFxaa, 4, "fs_absorption_fxaa_lut"},
+            {WaterAbsorptionFxaaDetail, 4, "fs_absorption_fxaa_detail_lut"}};
+        for (const auto& item : look_entries)
+            build_pipeline(next->look_pipelines[item.kind], next->shaders[item.shader],
+                           item.entry, "MidnaFX color look", layout);
+        next->normal_look.create(device.device, lut::lattice(1));
+        next->twilight_look.create(device.device, lut::lattice(2));
+        next->look_sampler = lut::sampler(device.device);
     }
     const bool validation_ok = pop_scope(device.device, device.instance);
     const bool internal_ok = pop_scope(device.device, device.instance);
@@ -307,11 +329,16 @@ bool create_pair(const GfxRenderTargetLayout& layout) {
     bool ok = validation_ok && internal_ok && memory_ok;
     for (const auto& pipeline : next->pipelines)
         ok &= pipeline.pipeline != nullptr && pipeline.bind_layout != nullptr;
+    for (auto kind : {Grade, Detail, Fxaa, FxaaDetail, WaterAbsorption,
+                     WaterAbsorptionDetail, WaterAbsorptionFxaa, WaterAbsorptionFxaaDetail})
+        ok &= next->look_pipelines[kind].pipeline && next->look_pipelines[kind].bind_layout;
+    ok &= next->normal_look.view && next->twilight_look.view && next->look_sampler;
     if (!ok) {
         release_pair(*next);
         return false;
     }
     pairs.push_back(std::move(next));
+    look_resource_sets.store(static_cast<std::uint32_t>(pairs.size()));
     return true;
 }
 
@@ -324,7 +351,8 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
         return;
     if (payload.pair == nullptr)
         return;
-    const auto& selected = payload.pair->pipelines[payload.kind];
+    const auto& selected = payload.use_look ? payload.pair->look_pipelines[payload.kind]
+                                           : payload.pair->pipelines[payload.kind];
     if (selected.pipeline == nullptr || selected.bind_layout == nullptr)
         return;
     const bool water_depth = payload.kind == WaterThicknessDiagnostic;
@@ -340,9 +368,8 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
         payload.layout_key != ctx->layout.key || payload.layout_key != payload.pair->layout.key ||
         ctx->layout.sample_count != 1)
         return;
-    WGPUBindGroupEntry entries[6] = {
-        WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT,
-        WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
+    WGPUBindGroupEntry entries[10];
+    for (auto& entry : entries) entry = WGPU_BIND_GROUP_ENTRY_INIT;
     entries[0].binding = 0;
     entries[0].textureView = uses_depth ? payload.depth : payload.scene;
     if (water_effect) {
@@ -387,6 +414,15 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     desc.label = {"MidnaFX scene", WGPU_STRLEN};
     desc.layout = selected.bind_layout;
     desc.entryCount = water_absorption ? 6 : water_depth ? 4 : payload.kind == Passthrough ? 1 : 2;
+    if (payload.use_look) {
+        auto i = desc.entryCount;
+        entries[i].binding = 6; entries[i++].textureView = payload.pair->normal_look.view;
+        entries[i].binding = 7; entries[i++].textureView = payload.pair->twilight_look.view;
+        entries[i].binding = 8; entries[i++].sampler = payload.pair->look_sampler;
+        entries[i].binding = 9; entries[i].buffer = ctx->uniform_buffer;
+        entries[i].offset = payload.look_offset; entries[i++].size = sizeof(lut::Controls);
+        desc.entryCount = i;
+    }
     desc.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(ctx->device, &desc);
     if (group == nullptr) {
@@ -403,6 +439,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     wgpuRenderPassEncoderSetBindGroup(ctx->pass, 0, group, 0, nullptr);
     wgpuRenderPassEncoderDraw(ctx->pass, 3, 1, 0, 0);
     encoded.fetch_add(1, std::memory_order_relaxed);
+    if (payload.use_look) look_encoded.fetch_add(1, std::memory_order_relaxed);
     wgpuBindGroupRelease(group);
 }
 
@@ -476,8 +513,11 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
     const bool anti_aliasing = settings::anti_aliasing_enabled() && !depth_based_debug &&
                                !water_capture_debug && !water_thickness_debug &&
                                mode == visual::DebugMode::Final && !passthrough_test;
+    const bool use_look = settings::look_intensity() > 0 && !depth_based_debug &&
+                          !water_capture_debug && !water_thickness_debug &&
+                          mode == visual::DebugMode::Final && !passthrough_test;
     if (!depth_based_debug && !water_absorption && prepared.neutral && !detail_enabled &&
-        !anti_aliasing && !passthrough_test && mode == visual::DebugMode::Final) {
+        !anti_aliasing && !use_look && !passthrough_test && mode == visual::DebugMode::Final) {
         if (timing)
             neutral_samples.fetch_add(1, std::memory_order_relaxed);
         return;
@@ -538,6 +578,12 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         camera_target_focus = true;
     }
     GfxRange uniform_range{0, 0};
+    GfxRange look_range{0, 0};
+    if (use_look) {
+        const lut::Controls controls{settings::look_intensity(), settings::look_twilight_weight()};
+        if (svc_gfx->push_uniform(mod_ctx, &controls, sizeof(controls), &look_range) != MOD_OK)
+            return;
+    }
     bool water_environment_light = false;
     if (water_thickness_debug || water_absorption) {
         CameraInfo camera = CAMERA_INFO_INIT;
@@ -700,7 +746,9 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                           current.key,
                           kind,
                           uniform_range.offset,
-                          uniform_range.size};
+                          uniform_range.size,
+                          look_range.offset,
+                          use_look};
     const auto push_result = svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload));
     if (push_result == MOD_UNAVAILABLE)
         return;
@@ -786,6 +834,13 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
 }
 
 void release_pair(PipelinePair& pair) {
+    for (auto& selected : pair.look_pipelines) {
+        if (selected.bind_layout) wgpuBindGroupLayoutRelease(selected.bind_layout);
+        if (selected.pipeline) wgpuRenderPipelineRelease(selected.pipeline);
+        selected = {};
+    }
+    if (pair.look_sampler) wgpuSamplerRelease(pair.look_sampler);
+    pair.look_sampler = nullptr;
     for (auto& selected : pair.pipelines) {
         if (selected.bind_layout != nullptr) {
             wgpuBindGroupLayoutRelease(selected.bind_layout);
@@ -807,6 +862,7 @@ void release_gpu() {
     for (auto& pair : pairs)
         release_pair(*pair);
     pairs.clear();
+    look_resource_sets.store(0);
 }
 
 void create_shader(WGPUShaderModule& shader, const char* source, const char* label) {
@@ -851,6 +907,7 @@ void build_pipeline(Pipeline& selected, WGPUShaderModule shader, const char* ent
 } // namespace
 
 void initialize() {
+    look_encoded.store(0);
     state.store(0);
     reset_timing_samples();
     warned = false;
@@ -961,6 +1018,12 @@ void update() {
 }
 
 void shutdown() {
+    if (svc_log && settings::diagnostics_enabled()) {
+        char message[128];
+        std::snprintf(message, sizeof(message), "Color look shutdown: encoded=%llu cached_layouts=%u",
+                      static_cast<unsigned long long>(look_encoded.load()), look_resource_sets.load());
+        svc_log->info(mod_ctx, message);
+    }
     state.store(0);
     if (svc_gfx != nullptr && stage_hook != 0)
         svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
@@ -1036,6 +1099,7 @@ Diagnostics diagnostics() {
             disabled_percentiles.first,
             disabled_percentiles.second,
             timing,
-            "Dawn backend not exposed by GfxService"};
+            "Dawn backend not exposed by GfxService",
+            look_resource_sets.load(), look_encoded.load()};
 }
 } // namespace midnafx::render

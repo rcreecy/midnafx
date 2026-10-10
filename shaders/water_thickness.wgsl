@@ -342,3 +342,33 @@ fn fs_absorption_fxaa_detail(@builtin(position) position: vec4f) -> @location(0)
     let filtered = fxaa_source(source.rgb, coord, true);
     return vec4f(apply_grading(apply_absorption(coord, filtered)), source.a);
 }
+
+@fragment
+fn fs_absorption_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, source.rgb))), source.a);
+}
+
+@fragment
+fn fs_absorption_detail_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    let detailed = apply_detail(source.rgb, coord);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, detailed))), source.a);
+}
+
+@fragment
+fn fs_absorption_fxaa_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, fxaa_source(source.rgb, coord, false)))), source.a);
+}
+
+@fragment
+fn fs_absorption_fxaa_detail_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene_color, coord, 0);
+    let filtered = fxaa_source(source.rgb, coord, true);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, filtered))), source.a);
+}

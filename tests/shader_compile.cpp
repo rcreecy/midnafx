@@ -184,18 +184,21 @@ int main() {
     }
     constexpr const char* pass_entries[]{"fs_main"};
     constexpr const char* grade_entries[]{"fs_main", "fs_detail", "fs_fxaa", "fs_fxaa_detail",
-                                          "fs_debug", "fs_debug_detail"};
+                                          "fs_debug", "fs_debug_detail", "fs_main_lut",
+                                          "fs_detail_lut", "fs_fxaa_lut", "fs_fxaa_detail_lut"};
     constexpr const char* depth_entries[]{"fs_depth"};
     constexpr const char* dof_entries[]{"fs_coc"};
     constexpr const char* dof_blur_entries[]{"cs_downsample", "cs_blur_horizontal",
                                               "cs_blur_vertical"};
     constexpr const char* dof_composite_entries[]{"fs_composite"};
     constexpr const char* water_entries[]{"fs_thickness", "fs_absorption", "fs_absorption_detail",
-                                          "fs_absorption_fxaa", "fs_absorption_fxaa_detail"};
+                                          "fs_absorption_fxaa", "fs_absorption_fxaa_detail",
+                                          "fs_absorption_lut", "fs_absorption_detail_lut",
+                                          "fs_absorption_fxaa_lut", "fs_absorption_fxaa_detail_lut"};
     const bool pass = validate(instance, device.device, midnafx::render::passthrough_shader,
                                "MidnaFX passthrough", pass_entries, 1);
     const bool grade = validate(instance, device.device, midnafx::render::grading_shader,
-                                "MidnaFX grading/detail/FXAA/debug", grade_entries, 6);
+                                "MidnaFX grading/detail/FXAA/debug", grade_entries, 10);
     const bool depth = validate(instance, device.device,
                                 midnafx::render::atmosphere_depth_shader,
                                 "MidnaFX atmosphere depth diagnostic", depth_entries, 1);
@@ -209,7 +212,7 @@ int main() {
                                         "MidnaFX depth of field composite",
                                         dof_composite_entries, 1);
     const bool water = validate(instance, device.device, midnafx::render::water_thickness_shader,
-                                "MidnaFX water", water_entries, 5);
+                                "MidnaFX water", water_entries, 9);
     wgpuDeviceRelease(device.device);
     wgpuAdapterRelease(adapter.adapter);
     wgpuInstanceRelease(instance);

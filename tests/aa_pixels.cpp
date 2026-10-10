@@ -1,4 +1,5 @@
 #include "midnafx_shader.hpp"
+#include "render/lut.hpp"
 #include <webgpu/webgpu.h>
 
 #include <array>
@@ -7,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <thread>
+#include <string>
 #include <vector>
 
 namespace {
@@ -56,12 +58,15 @@ bool wait(WGPUInstance instance, WGPUFuture future) {
 }
 
 std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* entry,
-                          unsigned width, unsigned height, const std::vector<Pixel>& pixels, float detail_strength = 0.0f) {
+                          unsigned width, unsigned height, const std::vector<Pixel>& pixels,
+                          float detail_strength = 0.0f, float look_strength = -1.0f,
+                          float gain = 1.0f, unsigned table = 0, float twilight = 0.0f,
+                          WGPUTextureFormat format = WGPUTextureFormat_RGBA8Unorm) {
     wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
     auto queue = wgpuDeviceGetQueue(device);
     WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
     td.size = {width, height, 1};
-    td.format = WGPUTextureFormat_RGBA8Unorm;
+    td.format = format;
     td.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
     auto source = wgpuDeviceCreateTexture(device, &td);
     td.usage = WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc;
@@ -77,19 +82,55 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
                           &upload_layout, &td.size);
 
     // Production Grading layout, with neutral tone controls and selectable detail.
-    const std::array<float, 12> neutral{1, 1, 1, 0, 1, 1, 1, 0, detail_strength, 1, 0, 0};
+    const bool water = std::strncmp(entry, "fs_absorption", 13) == 0;
+    const std::array<float, 12> neutral{gain, gain, gain, 0, 1, 1, 1, 0, detail_strength, 1, 0, 0};
+    std::vector<float> parameters(water ? 96 : 12);
+    std::copy(neutral.begin(), neutral.end(), parameters.end() - 12);
+    std::array<WGPUTexture, 3> water_textures{};
+    std::array<WGPUTextureView, 3> water_views{};
+    if (water) {
+        for (unsigned matrix = 0; matrix < 3; ++matrix)
+            for (unsigned diagonal = 0; diagonal < 4; ++diagonal)
+                parameters[matrix * 16 + diagonal * 5] = 1;
+        parameters[48] = 2; parameters[49] = 1; parameters[50] = 0.65f;
+        parameters[52] = 0.2f; parameters[53] = 0.3f; parameters[54] = 0.4f;
+        parameters[56] = 0.1f; parameters[57] = 0.2f; parameters[58] = 0.3f;
+        parameters[61] = 1;
+        auto texture_desc = td;
+        texture_desc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+        for (unsigned i = 0; i < 3; ++i) {
+            water_textures[i] = wgpuDeviceCreateTexture(device, &texture_desc);
+            water_views[i] = wgpuTextureCreateView(water_textures[i], nullptr);
+            std::vector<Pixel> contents(pixels.size(), Pixel{static_cast<unsigned char>(i == 0 ? 192 : 64), 0, 0, 255});
+            upload.texture = water_textures[i];
+            wgpuQueueWriteTexture(queue, &upload, contents.data(), contents.size() * sizeof(Pixel), &upload_layout, &td.size);
+        }
+    }
     WGPUBufferDescriptor bd = WGPU_BUFFER_DESCRIPTOR_INIT;
-    bd.size = sizeof(neutral);
+    bd.size = parameters.size() * sizeof(float);
     bd.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
     auto uniform = wgpuDeviceCreateBuffer(device, &bd);
-    wgpuQueueWriteBuffer(queue, uniform, 0, neutral.data(), sizeof(neutral));
+    wgpuQueueWriteBuffer(queue, uniform, 0, parameters.data(), bd.size);
+    midnafx::lut::Texture lattice;
+    midnafx::lut::Texture twilight_lattice;
+    WGPUSampler look_sampler = nullptr;
+    WGPUBuffer look_uniform = nullptr;
+    if (look_strength >= 0) {
+        lattice.create(device, midnafx::lut::lattice(table));
+        twilight_lattice.create(device, midnafx::lut::lattice(table ? 2 : 0));
+        look_sampler = midnafx::lut::sampler(device);
+        midnafx::lut::Controls controls{look_strength, twilight};
+        bd.size = sizeof(controls);
+        look_uniform = wgpuDeviceCreateBuffer(device, &bd);
+        wgpuQueueWriteBuffer(queue, look_uniform, 0, &controls, sizeof(controls));
+    }
     const unsigned stride = (width * 4 + 255) & ~255u;
     bd.size = stride * height;
     bd.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead;
     auto readback = wgpuDeviceCreateBuffer(device, &bd);
 
     WGPUShaderSourceWGSL wgsl = WGPU_SHADER_SOURCE_WGSL_INIT;
-    wgsl.code = {midnafx::render::grading_shader, WGPU_STRLEN};
+    wgsl.code = {water ? midnafx::render::water_thickness_shader : midnafx::render::grading_shader, WGPU_STRLEN};
     WGPUShaderModuleDescriptor sd = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
     sd.nextInChain = &wgsl.chain;
     auto shader = wgpuDeviceCreateShaderModule(device, &sd);
@@ -98,7 +139,8 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     color.writeMask = WGPUColorWriteMask_All;
     WGPUFragmentState fragment = WGPU_FRAGMENT_STATE_INIT;
     fragment.module = shader;
-    fragment.entryPoint = {entry, WGPU_STRLEN};
+    const std::string entry_name = std::string(entry) + (look_strength >= 0 ? "_lut" : "");
+    fragment.entryPoint = {entry_name.c_str(), WGPU_STRLEN};
     fragment.targetCount = 1;
     fragment.targets = &color;
     WGPURenderPipelineDescriptor pd = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
@@ -107,15 +149,31 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     pd.fragment = &fragment;
     auto pipeline = wgpuDeviceCreateRenderPipeline(device, &pd);
     auto layout = wgpuRenderPipelineGetBindGroupLayout(pipeline, 0);
-    WGPUBindGroupEntry entries[2] = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
+    WGPUBindGroupEntry entries[10];
+    for (auto& item : entries) item = WGPU_BIND_GROUP_ENTRY_INIT;
     entries[0].binding = 0;
     entries[0].textureView = source_view;
-    entries[1].binding = 1;
-    entries[1].buffer = uniform;
-    entries[1].size = sizeof(neutral);
+    unsigned count = 1;
+    if (water) {
+        for (unsigned i = 0; i < 3; ++i) {
+            entries[count].binding = count;
+            entries[count++].textureView = water_views[i];
+        }
+    }
+    entries[count].binding = water ? 4 : 1;
+    entries[count].buffer = uniform;
+    entries[count++].size = parameters.size() * sizeof(float);
+    if (water) { entries[count].binding = 5; entries[count++].textureView = source_view; }
+    if (look_strength >= 0) {
+        entries[count].binding = 6; entries[count++].textureView = lattice.view;
+        entries[count].binding = 7; entries[count++].textureView = twilight_lattice.view;
+        entries[count].binding = 8; entries[count++].sampler = look_sampler;
+        entries[count].binding = 9; entries[count].buffer = look_uniform;
+        entries[count++].size = sizeof(midnafx::lut::Controls);
+    }
     WGPUBindGroupDescriptor bgd = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     bgd.layout = layout;
-    bgd.entryCount = 2;
+    bgd.entryCount = count;
     bgd.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(device, &bgd);
     auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
@@ -181,10 +239,14 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     wgpuShaderModuleRelease(shader);
     wgpuBufferRelease(readback);
     wgpuBufferRelease(uniform);
+    if (look_uniform) wgpuBufferRelease(look_uniform);
+    if (look_sampler) wgpuSamplerRelease(look_sampler);
     wgpuTextureViewRelease(target_view);
     wgpuTextureViewRelease(source_view);
     wgpuTextureRelease(target);
     wgpuTextureRelease(source);
+    for (auto view : water_views) if (view) wgpuTextureViewRelease(view);
+    for (auto texture : water_textures) if (texture) wgpuTextureRelease(texture);
     wgpuQueueRelease(queue);
     return output;
 }
@@ -295,6 +357,74 @@ int main() {
         }
     }
     std::printf("%u pixel cases: %s\n", cases, ok ? "PASS" : "FAIL");
+    // Exercise all 256 code values, independent RGB channels, boundaries,
+    // padded rows, degenerate dimensions, and resource recreation per draw.
+    for (auto size : {std::array<unsigned, 2>{1, 1}, {1, 257}, {257, 1}, {257, 3}}) {
+        const auto [w, h] = size;
+        std::vector<Pixel> source(w * h);
+        for (unsigned i = 0; i < source.size(); ++i)
+            source[i] = {static_cast<unsigned char>(i % 256),
+                         static_cast<unsigned char>((i * 73) % 256),
+                         static_cast<unsigned char>(255 - i % 256),
+                         static_cast<unsigned char>((i * 19) % 256)};
+        for (auto entry : {"fs_main", "fs_detail", "fs_fxaa", "fs_fxaa_detail",
+                           "fs_absorption", "fs_absorption_detail", "fs_absorption_fxaa", "fs_absorption_fxaa_detail"}) {
+          for (float gain : {0.25f, 1.0f, 4.0f}) {
+            auto baseline = render(instance, device, entry, w, h, source, 0.5f, -1, gain);
+            for (float intensity : {0.0f, 0.5f, 1.0f}) {
+                auto identity = render(instance, device, entry, w, h, source, 0.5f, intensity, gain);
+                bool valid = baseline.size() == source.size() && identity.size() == source.size();
+                if (valid) for (unsigned i = 0; i < source.size(); ++i) {
+                    valid &= identity[i][3] == source[i][3];
+                    for (unsigned c = 0; c < 3; ++c)
+                        valid &= std::abs(int(identity[i][c]) - int(baseline[i][c])) <= (intensity == 0 ? 0 : 1);
+                }
+                std::printf("Identity LUT %ux%u %s intensity=%.1f: %s\n", w, h, entry, intensity, valid ? "PASS" : "FAIL");
+                if (!valid) report_difference("identity LUT", w, baseline, identity);
+                ok &= valid;
+            }
+          }
+        }
+    }
+    const std::vector<Pixel> boundaries{{0,0,0,0}, {255,255,255,255}, {255,0,0,1},
+        {0,255,0,2}, {0,0,255,3}, {255,255,0,4}, {255,0,255,5}, {0,255,255,6},
+        {1,2,3,7}, {3,2,1,8}, {127,128,129,9}};
+    for (auto format : {WGPUTextureFormat_RGBA8Unorm, WGPUTextureFormat_BGRA8Unorm}) {
+        const auto result = render(instance, device, "fs_main", unsigned(boundaries.size()), 1,
+                                   boundaries, 0, 1, 1, 0, 0, format);
+        const bool valid = result == boundaries;
+        std::printf("Identity primaries, secondaries, low codes, format=%u: %s\n",
+                    unsigned(format), valid ? "PASS" : "FAIL");
+        ok &= valid;
+    }
+    const bool half_ok = midnafx::lut::half(0.0f) == 0 && midnafx::lut::half(1.0f) == 0x3c00 &&
+        midnafx::lut::half(0x1p-25f) == 0 && midnafx::lut::half(0x1.8p-25f) == 1 &&
+        midnafx::lut::half(0x1p-24f) == 1 && midnafx::lut::half(0x1.ffcp-15f) == 0x400;
+    std::printf("Half conversion endpoints and subnormal rounding: %s\n", half_ok ? "PASS" : "FAIL");
+    ok &= half_ok;
+    std::vector<Pixel> ramp(256);
+    for (unsigned i = 0; i < ramp.size(); ++i)
+        ramp[i] = {static_cast<unsigned char>(i), static_cast<unsigned char>(i),
+                   static_cast<unsigned char>(i), static_cast<unsigned char>(255 - i)};
+    const auto natural = render(instance, device, "fs_main", 256, 1, ramp, 0, 1, 1, 1, 0);
+    const auto twilight = render(instance, device, "fs_main", 256, 1, ramp, 0, 1, 1, 1, 1);
+    const auto midpoint = render(instance, device, "fs_main", 256, 1, ramp, 0, 1, 1, 1, 0.5f);
+    const auto bypass = render(instance, device, "fs_main", 256, 1, ramp, 0, 0, 1, 1, 1);
+    bool creative_ok = natural.size() == ramp.size() && twilight.size() == ramp.size() &&
+                       midpoint.size() == ramp.size() && bypass == ramp;
+    if (creative_ok) {
+        creative_ok &= natural != ramp && twilight != natural;
+        for (unsigned i = 0; i < ramp.size(); ++i) {
+            creative_ok &= natural[i][3] == ramp[i][3] && twilight[i][3] == ramp[i][3] && midpoint[i][3] == ramp[i][3];
+            for (unsigned c = 0; c < 3; ++c) {
+                creative_ok &= std::abs(2 * int(midpoint[i][c]) - int(natural[i][c]) - int(twilight[i][c])) <= 2;
+                if (i) creative_ok &= natural[i][c] >= natural[i - 1][c] && twilight[i][c] >= twilight[i - 1][c];
+                if (i == 0 || i == 255) creative_ok &= natural[i][c] == i && twilight[i][c] == i;
+            }
+        }
+    }
+    std::printf("Creative endpoints, monotonic ramp, Twilight midpoint, zero-strength bypass: %s\n", creative_ok ? "PASS" : "FAIL");
+    ok &= creative_ok;
     wgpuDeviceRelease(device);
     wgpuAdapterRelease(adapter);
     wgpuInstanceRelease(instance);

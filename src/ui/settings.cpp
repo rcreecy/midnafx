@@ -38,6 +38,7 @@ struct NumberSetting {
 };
 
 Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
+    look_bypass{"look_bypass"},
     passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"},
     auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
@@ -58,6 +59,10 @@ NumberSetting smoothing_angle_setting{
 NumberSetting detail_strength_setting{
     "detail_strength", "Detail strength (%)", 0, 50, 20, 20, true};
 NumberSetting debug_mode_setting{"debug_mode", "Debug view", 0, 6, 0, 0, false};
+NumberSetting color_look_setting{"color_look", "Color Look", 0, 2, 0, 0, false};
+NumberSetting look_intensity_setting{"look_intensity", "Look Intensity (%)", 0, 100, 100, 100, false};
+constexpr std::array<const char*, 3> LookLabels{"Neutral", "MidnaFX Natural", "Twilight"};
+float look_twilight_blend = 0.0f;
 NumberSetting split_setting{"split_percent", "A/B split position (%)", 10, 90, 50, 50, false};
 NumberSetting twilight_transition{
     "twilight_transition_cs", "Twilight transition (0.01 s)", 0, 300, 100, 100, false};
@@ -125,6 +130,7 @@ twilight::State logged_twilight_state = twilight::State::Unavailable;
 int logged_twilight_endpoint = -1;
 bool twilight_log_initialized = false;
 UiElementHandle status_element = 0, detail_element = 0, camera_element = 0;
+UiElementHandle look_element = 0;
 UiElementHandle geometry_element = 0;
 std::chrono::steady_clock::time_point next_refresh{};
 bool warned_ui = false;
@@ -342,7 +348,8 @@ void on_number_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
     if (!value || value->type != CONFIG_VAR_INT)
         return;
     auto& setting = *static_cast<NumberSetting*>(user);
-    setting.value = std::clamp(value->int_value, setting.min, setting.max);
+    setting.value = (&setting == &color_look_setting && (value->int_value < 0 || value->int_value > 2))
+        ? 0 : std::clamp(value->int_value, setting.min, setting.max);
     if (!applying_preset) {
         if (setting.preset_value)
             mark_custom();
@@ -364,7 +371,8 @@ void register_number(NumberSetting& setting) {
     }
     std::int64_t saved = setting.initial;
     if (svc_config->get_int(mod_ctx, setting.handle, &saved) == MOD_OK)
-        setting.value = std::clamp(saved, setting.min, setting.max);
+        setting.value = (&setting == &color_look_setting && (saved < 0 || saved > 2))
+            ? 0 : std::clamp(saved, setting.min, setting.max);
     (void)svc_config->subscribe(mod_ctx, setting.handle, on_number_config, &setting, nullptr);
 }
 void on_effect_config(ModContext*, ConfigVarHandle variable, const ConfigVarValue* value,
@@ -460,7 +468,8 @@ void get_number(ModContext*, void* user, UiControlValue* out) {
 }
 void set_number(ModContext*, void* user, const UiControlValue* in) {
     auto& setting = *static_cast<NumberSetting*>(user);
-    const auto value = std::clamp(in->int_value, setting.min, setting.max);
+    const auto value = (&setting == &color_look_setting && (in->int_value < 0 || in->int_value > 2))
+        ? 0 : std::clamp(in->int_value, setting.min, setting.max);
     if (svc_config && setting.handle &&
         svc_config->set_int(mod_ctx, setting.handle, value) != MOD_OK) {
         warn("Could not save number setting.");
@@ -782,12 +791,26 @@ void refresh_status() {
         check_ui(svc_ui->elem_set_text(mod_ctx, geometry_element, text));
     }
     const auto data = render::diagnostics();
+    if (look_element) {
+        char text[448];
+        std::snprintf(text, sizeof(text),
+            "Selected: %s | Intensity: %lld%% | Twilight blend: %.1f%% | Bypass requested: %s\n"
+            "33 x 33 x 33 RGBA16Float | scene-code RGB [0,1] | Cached layout sets: %u | Look draws: %llu\n"
+            "Two tables per layout (574,992 texel bytes); no per-frame upload. GPU duration unavailable.",
+            LookLabels[static_cast<unsigned>(color_look_setting.value)],
+            static_cast<long long>(look_intensity_setting.value), 100.0f * look_twilight_blend,
+            look_intensity() <= 0 || passthrough.value || debug_mode_setting.value != 0 ||
+                atmosphere_depth_view.value || dof_coc_view.value ||
+                water_scene_capture_diagnostic.value || water_thickness_diagnostic.value ? "yes" : "no",
+            data.look_resource_sets, static_cast<unsigned long long>(data.look_encoded));
+        check_ui(svc_ui->elem_set_text(mod_ctx, look_element, text));
+    }
     char status[512];
     const auto active_grade = prepared_grade();
     const bool detail_active = active_grade.uniforms.detail_strength > 0.0f;
     const auto mode = visual::debug_mode(debug_mode_setting.value);
     std::snprintf(status, sizeof(status), "%s | %s | %u x %u",
-                  master.value ? (active_grade.neutral && !detail_active && !anti_aliasing.value &&
+                  master.value ? (active_grade.neutral && !detail_active && !anti_aliasing.value && look_intensity() <= 0 &&
                                           mode == visual::DebugMode::Final && !passthrough.value
                                       ? "Neutral"
                                       : "Processing")
@@ -881,6 +904,19 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
     add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
+    UiControlDesc look = UI_CONTROL_DESC_INIT;
+    look.kind = UI_CONTROL_DROPDOWN;
+    look.label = "Color Look";
+    look.get = get_number;
+    look.set = set_number;
+    look.user_data = &color_look_setting;
+    look.options = LookLabels.data();
+    look.option_count = LookLabels.size();
+    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &look, nullptr));
+    add_number(panel, look_intensity_setting);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Neutral preserves the existing image. Natural and Twilight are experimental color looks. "
+        "Twilight follows the game's world transition. Enable grading controls both tone and color looks.", nullptr));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Anti-aliasing defaults on and operates independently of grading and saved looks. "
         "Disable it here for an unfiltered scene. Visual qualification remains incomplete.", nullptr));
@@ -989,6 +1025,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "Hard normal splits and material boundaries are always preserved. Unsupported or ambiguous models are skipped. "
         "Enable before loading a scene. Disable restores source normals; enabling again requires a scene reload.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
+    add_toggle(panel, "Bypass color look", look_bypass);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel, "Color look resources pending", &look_element));
     UiControlDesc debug = UI_CONTROL_DESC_INIT;
     debug.kind = UI_CONTROL_DROPDOWN;
     debug.label = "Debug view";
@@ -1065,6 +1103,7 @@ ModResult update_panel(ModContext*, void*, ModError*) {
 
 bool initialize() {
     register_toggle(master);
+    register_toggle(look_bypass);
     register_toggle(diagnostics_toggle);
     register_toggle(passthrough);
     register_toggle(detail_toggle);
@@ -1090,6 +1129,9 @@ bool initialize() {
     register_number(smoothing_angle_setting);
     register_number(detail_strength_setting);
     register_number(debug_mode_setting);
+    register_number(color_look_setting);
+    register_number(look_intensity_setting);
+    look_twilight_blend = 0.0f;
     register_number(split_setting);
     register_number(twilight_transition);
     register_number(camera_fov_setting);
@@ -1191,6 +1233,9 @@ float dof_focus_transition_seconds() {
     return static_cast<float>(dof_focus_transition_setting.value) / 100.0f;
 }
 bool anti_aliasing_enabled() { return anti_aliasing.value; }
+unsigned color_look() { return master.value ? unsigned(color_look_setting.value) : 0; }
+float look_intensity() { return color_look() && !look_bypass.value ? float(look_intensity_setting.value) / 100.0f : 0.0f; }
+float look_twilight_weight() { return color_look() == 2 ? look_twilight_blend : 0.0f; }
 bool passthrough_test() { return passthrough.value; }
 std::int64_t split_percent() { return split_setting.value; }
 grade::Prepared prepared_grade() {
@@ -1262,6 +1307,8 @@ void update_diagnostics() {
     diagnostics_log_written = true;
 }
 void update_twilight(twilight::State state, float elapsed_seconds) {
+    look_twilight_blend = twilight::advance(look_twilight_blend, state, elapsed_seconds,
+                                            static_cast<float>(twilight_transition.value) / 100.0f);
     twilight_state = state;
     if (!auto_twilight.value || !has_twilight_target) {
         twilight_weight = 0.0f;
@@ -1288,5 +1335,5 @@ void update_twilight(twilight::State state, float elapsed_seconds) {
         twilight_log_initialized = true;
     }
 }
-void shutdown() { status_element = detail_element = camera_element = geometry_element = preset_control = 0; }
+void shutdown() { status_element = detail_element = camera_element = geometry_element = preset_control = look_element = 0; }
 } // namespace midnafx::settings
