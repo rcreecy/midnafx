@@ -11,6 +11,30 @@
 
 namespace {
 using Pixel = std::array<unsigned char, 4>;
+
+// Keep failure output bounded while distinguishing missing pixels, channel
+// corruption, and coordinate errors on remote GPU runners.
+void report_difference(const char* label, unsigned width,
+                       const std::vector<Pixel>& expected,
+                       const std::vector<Pixel>& actual) {
+    if (actual.size() != expected.size()) {
+        std::fprintf(stderr, "%s: expected %zu pixels, received %zu\n",
+                     label, expected.size(), actual.size());
+        return;
+    }
+    for (size_t i = 0; i < expected.size(); ++i) {
+        if (expected[i] == actual[i]) continue;
+        const auto& e = expected[i];
+        const auto& a = actual[i];
+        std::fprintf(stderr,
+                     "%s: first difference at (%zu,%zu), expected RGBA=%u,%u,%u,%u; actual=%u,%u,%u,%u\n",
+                     label, i % width, i / width,
+                     unsigned(e[0]), unsigned(e[1]), unsigned(e[2]), unsigned(e[3]),
+                     unsigned(a[0]), unsigned(a[1]), unsigned(a[2]), unsigned(a[3]));
+        return;
+    }
+}
+
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
     info.future = future;
@@ -257,6 +281,15 @@ int main() {
             else valid &= changed > 0;
             std::printf("%ux%u pattern=%d changed=%u: %s\n", width, height, pattern, changed,
                         valid ? "PASS" : "FAIL");
+            if (!valid) {
+                std::fprintf(stderr, "Failure diagnostics: %ux%u pattern=%d\n", width, height, pattern);
+                report_difference("neutral identity", width, source, baseline);
+                report_difference("zero-detail parity", width, aa, detail_zero);
+                if (pattern < 2 || pattern == 4 || source.size() == 1)
+                    report_difference("AA identity", width, source, aa);
+                if (pattern == 3)
+                    report_difference("edge/detail parity", width, aa, detail_active);
+            }
             ok &= valid;
             ++cases;
         }
