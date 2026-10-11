@@ -1,5 +1,9 @@
 # MidnaFX M1 architecture decision
 
+For the current M13 LUT extension, see [the continuation contract](m13-continuation.md).
+It adds cached 3D textures and a sampler to selected existing grading/water
+pipelines; the M1 description below is the historical passthrough baseline.
+
 Decision date: 2026-09-16. Source baseline: Dusklight
 `edf42c6a7202647b56dd2fcdef02d17671bc814b`, Aurora
 `7f2801cd0133c9333eadb4e2e6b24100c328d328`. This decision precedes implementation.

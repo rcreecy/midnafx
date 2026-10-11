@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Add opt-in Neutral, MidnaFX Natural, and contextual Twilight color looks with
+  persistent intensity controls. Neutral remains the default and bypasses LUT sampling.
+- Fuse cached 33-cubed RGBA16Float LUT sampling into existing grading and water
+  draws, preserving alpha, AA/detail behavior, downstream DOF, and native HUD order.
+- Blend Natural and Twilight results using the existing semantic transition timing.
+  Grading-off and developer diagnostic modes bypass the creative transform.
+- Add identity readback coverage across ordinary/water/AA/detail paths, exposure
+  extremes, odd dimensions, RGB/BGRA boundaries, and creative blend invariants.
+- Creative art qualification, physical Mac gameplay, and GPU duration measurements
+  remain incomplete. No creative default or release version change is included.
+
 ## 1.2.0 - 2026-10-08
 
 - Enable experimental pre-HUD AA by default for new configurations; preserve saved off choices and expose the toggle in Basic.

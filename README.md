@@ -3,11 +3,19 @@
 MidnaFX is an experimental native visual processing mod for Dusklight. It provides a fused
 pre-HUD grading shader with exposure, black point, contrast, gamma, saturation, highlight
 rolloff, temperature and tint controls, plus optional five-tap detail enhancement.
-Neutral grading with detail and AA off bypasses the grading pass. Save,
+Neutral grading with detail and AA off and Color Look set to Neutral bypasses the grading pass. Save,
 load, and duplicate looks under Basic: visual profile; Vanilla restores neutral settings and
 Custom retains its own live look across preset switches. A forced RGBA passthrough remains
 available for validating the render path. Developer views provide A/B split, luminance,
 highlight/shadow clipping, and amplified difference using the same scene snapshot.
+The development build adds opt-in **Color Look** and **Look Intensity** controls.
+Neutral preserves the existing image. MidnaFX Natural adds restrained tonal
+separation; Twilight smoothly blends toward a cooler table during active Twilight.
+Both creative looks remain experimental. Enable grading to use them. Selection
+and intensity persist independently of visual profiles; changing a profile does
+not replace the selected color look. Developer diagnostics include a bypass and
+resource counters. See [the LUT contract and qualification record](docs/m13-continuation.md).
+
 The development build enables experimental pre-HUD anti-aliasing by default.
 Its Basic toggle operates independently of grading and saved looks; existing
 saved AA-off values are preserved. The five-tap filter shares source samples
@@ -42,7 +50,7 @@ movement, resize, and clean shutdown. New Ordon on/off captures show an intact
 Link silhouette and HUD, but are not frame-matched and do not close the full
 art-quality matrix. Intel Mac/Metal runtime validation remains deferred.
 
-Post-v1 development also includes a default-off enhanced-water path for a
+Since v1.1, new configurations enable an enhanced-water path by default for a
 small exact allowlist of validated TP water materials. It preserves gameplay
 water, authored animation, splashes, particles, and geometry while adding
 restrained depth absorption, animated surface detail, bounded refraction,
@@ -59,8 +67,8 @@ Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
 in Dusklight's mods folder. Each package contains one platform's native library.
 The macOS package is CI-built but has not received an Intel Mac runtime pass.
 
-MidnaFX includes **Natural / Vivid Realism** under **Basic: visual profile** in
-the development build (the released build uses **Presets > Current preset**).
+MidnaFX includes **Natural / Vivid Realism** under **Basic: visual profile**.
+This parametric profile is separate from the new **MidnaFX Natural** Color Look.
 Turn on **Enable grading** to use it. The look adds restrained color,
 a small midtone lift, softer highlights, and subtle detail while preserving neutral
 white balance and the black floor. Save or duplicate it to create an editable copy;

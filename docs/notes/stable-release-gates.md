@@ -3,6 +3,11 @@
 Status on 2026-10-09: release candidate evidence, not a stable qualification.
 The published v1.2.0 Windows package remains unchanged and AA remains experimental.
 
+M13 LUT continuation on 2026-10-10 adds an opt-in candidate with all 16 Windows
+and Intel Mac CI tests passing, plus three consecutive expanded Metal pixel
+suites. See [the current implementation and remaining gates](../m13-continuation.md).
+These tests do not close the visual and physical-hardware checks below.
+
 ## Completed evidence
 
 - All 16 Windows and Intel Mac CI tests pass.

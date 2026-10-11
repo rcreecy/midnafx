@@ -1,5 +1,17 @@
 # M4 performance instrumentation and measurement
 
+## M13 LUT addition
+
+The opt-in LUT adds a 16-byte uniform and one trilinear 3D lookup for Natural,
+or two lookups for a nonzero Twilight blend, inside the existing grading/water
+draw. It adds no fullscreen pass or full-resolution image. Neutral retains the
+old entry points with no LUT lookup. Two tables total 574,992 texel bytes per
+cached layout, plus eight additional pipeline variants. They are initialized
+once per layout, including when Neutral is selected. GPU duration and driver
+allocation overhead remain unmeasured. See [M13 evidence](m13-continuation.md).
+
+## Historical baseline
+
 The native Windows package, portable tests, and a source-matched Windows runtime have
 been run. The target Intel Mac GPU is not available, so **GPU timings at 1080p, 1440p,
 and 4K have not been measured**. The basic grading target remains less than
