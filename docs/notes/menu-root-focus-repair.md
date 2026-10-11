@@ -1,5 +1,25 @@
 # Native menu root-focus repair (2026-10-09)
 
+## Closed-console follow-up (2026-10-10)
+
+The M13 LUT capture attempt found a second focus case: after closing the native
+command console, F1 targeted the inactive `console` element instead of the
+context root. A controlled reproduction with no freeze command produced
+`MENU_TRACE target=console id=console owner= root=0 top_menu=1`, whereas initial
+gameplay produced `target=#root ... root=1 top_menu=1`. Evidence is retained in
+`build/m13-aa-runtime/lut-menu-command-trace/stderr.log`.
+
+The patch now handles a Menu event in the root capture phase only when MenuBar
+is the top active document and the target is either the context root or an
+element owned by an inactive command console. Other documents and active
+console input retain their existing routing. Temporary tracing was removed
+before rebuilding; reverse-apply validation passes.
+
+`build/m13-aa-runtime/lut-menu-console-fixed` verifies that F1 leaves an active
+console open, and then opens and dismisses the menu after executing `freeze`.
+This repair is confined to the local test host and tracked host patch. It does
+not change or ship with the MidnaFX native package.
+
 F1 failed to open Dusklight's native menu in isolated stage launches. Temporary
 host logging proved that SDL delivered F1 (`key=1073741882`, `scancode=58`),
 the debug UI did not capture it, and RmlUi mapped it to key 107. Focus was on
