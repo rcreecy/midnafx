@@ -1,0 +1,39 @@
+diff --git a/src/dusk/commands.cpp b/src/dusk/commands.cpp
+index b426770..ec41dde 100644
+--- a/src/dusk/commands.cpp
++++ b/src/dusk/commands.cpp
+@@ -554,8 +554,8 @@ void runCommand(std::string_view cmdLine, CommandState& state, const CommandOutp
+     if (cmd == "rate") {
+         if (args.size() >= 2) {
+             const auto hz = ParseLong(args[1]);
+-            if (!hz || *hz <= 0) {
+-                output("Error: rate must be a positive integer");
++            if (!hz || *hz < 0) {
++                output("Error: rate must be a nonnegative integer (0 pauses simulation)");
+                 return;
+             }
+             dusk::game_clock::set_sim_rate((float)*hz);
+@@ -861,7 +861,7 @@ void runCommand(std::string_view cmdLine, CommandState& state, const CommandOutp
+         output("killall <id|name>                           Delete all actors of a type");
+         output("list [id|name]                              List actors in scene");
+         output("pos                                         Print player position and stage");
+-        output("rate [hz]                                   Get or set sim rate (1-480, default 30)");
++        output("rate [hz]                                   Get or set sim rate (0 pauses, 1-480, default 30)");
+         output("reset                                       Soft reset");
+         output("rupees [amount]                             Get or set rupee count");
+         output("spawn <id|name> [params] [x y z] [angle]    Spawn actor");
+diff --git a/src/dusk/game_clock.cpp b/src/dusk/game_clock.cpp
+index 52472f4..d430687 100644
+--- a/src/dusk/game_clock.cpp
++++ b/src/dusk/game_clock.cpp
+@@ -65,7 +65,9 @@ void reset() {
+ 
+ void set_sim_rate(float hz) {
+     const float maximumHz = aurora::time::kMaximumTimeScale / kSimPeriod;
+-    aurora::time::set_scale(std::clamp(hz, 1.0f, maximumHz) * kSimPeriod);
++    // Preserve the existing positive-rate minimum while exposing the clock's
++    // zero-scale pause for deterministic captures. Presentation remains active.
++    aurora::time::set_scale(hz == 0.0f ? 0.0f : std::clamp(hz, 1.0f, maximumHz) * kSimPeriod);
+     reset();
+ }
+ 

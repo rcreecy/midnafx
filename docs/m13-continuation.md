@@ -176,6 +176,21 @@ repeat check are required before accepting matched visual evidence.
 The repaired host closes cleanly with 437,349 LUT draws, one cached layout, and
 all mods unloaded. No test host remains running.
 
+### Controlled clock follow-up, 2026-10-11
+
+The [capture-clock host patch and procedure](notes/capture-clock-pause.md) expose
+the existing zero-speed clock through `rate 0`, preserving UI and presentation.
+Unlike actor freeze, it produces identical decoded repeat captures in the tested
+Ordon regions, both with Neutral/AA-off and Natural/AA-on. `rate 30` resumes
+animation. The native mod panel works throughout. Evidence is in
+`build/m13-aa-runtime/lut-clock-zero`.
+
+Matched comparisons show the AA edge/detail-softening tradeoff and a restrained
+Natural tonal change. This closes the initial static-capture control prerequisite
+for Ordon, not the complete visual corpus or temporal gate. The capture provider
+encodes JPEG, including older artifacts misnamed `.png`; screenshot differences
+must not be treated as lossless shader readback or exact HUD identity evidence.
+
 ## Current release disposition
 
 Conditional development candidate; not a production-qualified LUT release.
@@ -193,7 +208,7 @@ Outstanding qualification gates:
   level; the original pre-LUT intermittent failure still has no proven cause.
 - Measured GPU duration for baseline versus combined effects.
 
-Prioritize reproducible lighting/time control alongside simulation/camera control,
-then repeat the unchanged-frame check before collecting scene comparisons,
-then transition/lifecycle coverage and GPU instrumentation. Do not expand into
+Extend the verified clock-pause procedure to the remaining scene corpus, with
+unchanged-repeat controls per scene, then complete motion, transition/lifecycle
+coverage and GPU instrumentation. Do not expand into
 SMAA, TAA, external LUT import, or new water effects to substitute for these gates.
