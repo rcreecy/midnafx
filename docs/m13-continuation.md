@@ -203,6 +203,10 @@ close that observability gap. The subsequent
 [host focus repair](notes/menu-root-focus-repair.md#hidden-panel-recovery-after-console-warp)
 also restores the hidden Mods panel after console warp. A controlled trace,
 rebuilt-host reproduction, and repeated F1 toggles verify that workflow.
+The [combined lifecycle smoke check](notes/lut-combined-lifecycle.md) additionally
+passes Natural, AA, enhanced water, and DOF together through maximize/restore and
+mod reload in Fishing Pond on Windows D3D12. This covers one combined case;
+it does not close the full lifecycle matrix or driver-memory gate.
 
 Conditional development candidate; not a production-qualified LUT release.
 No release tag or version bump is part of this work. The published v1.2.0 assets
@@ -214,7 +218,7 @@ Outstanding qualification gates:
 - Frame-matched AA and LUT comparisons across the requested scene corpus,
   including temporal shimmering, fine geometry, characters, underwater and HUD.
 - Frame-by-frame Twilight transition quality and timing, save/load, a complete combination matrix,
-  combined-water/DOF resize coverage and driver-memory growth measurements.
+  broader combined-water/DOF resize coverage and driver-memory growth measurements.
 - Physical Intel Mac gameplay. Hosted Metal execution is a separate evidence
   level; the original pre-LUT intermittent failure still has no proven cause.
 - Measured GPU duration for baseline versus combined effects.
