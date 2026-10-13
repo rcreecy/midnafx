@@ -129,6 +129,9 @@ float twilight_weight = 0.0f;
 twilight::State logged_twilight_state = twilight::State::Unavailable;
 int logged_twilight_endpoint = -1;
 bool twilight_log_initialized = false;
+twilight::State logged_look_state = twilight::State::Unavailable;
+int logged_look_endpoint = -1;
+bool look_log_initialized = false;
 UiElementHandle status_element = 0, detail_element = 0, camera_element = 0;
 UiElementHandle look_element = 0;
 UiElementHandle geometry_element = 0;
@@ -1132,6 +1135,7 @@ bool initialize() {
     register_number(color_look_setting);
     register_number(look_intensity_setting);
     look_twilight_blend = 0.0f;
+    look_log_initialized = false;
     register_number(split_setting);
     register_number(twilight_transition);
     register_number(camera_fov_setting);
@@ -1310,6 +1314,25 @@ void update_twilight(twilight::State state, float elapsed_seconds) {
     look_twilight_blend = twilight::advance(look_twilight_blend, state, elapsed_seconds,
                                             static_cast<float>(twilight_transition.value) / 100.0f);
     twilight_state = state;
+    // The creative look does not require a captured legacy grading target.
+    // Report state changes and blend endpoints without logging every frame.
+    if (diagnostics_toggle.value && color_look() == 2 && svc_log != nullptr) {
+        const int endpoint = look_twilight_blend <= 0.0f ? 0 :
+                             (look_twilight_blend >= 1.0f ? 1 : -1);
+        if (!look_log_initialized || state != logged_look_state ||
+            (endpoint >= 0 && endpoint != logged_look_endpoint)) {
+            char message[160];
+            std::snprintf(message, sizeof(message),
+                          "Color look transition: state=%s requested_blend=%.1f%%",
+                          twilight::label(state), 100.0f * look_twilight_blend);
+            svc_log->info(mod_ctx, message);
+            logged_look_state = state;
+            logged_look_endpoint = endpoint;
+            look_log_initialized = true;
+        }
+    } else {
+        look_log_initialized = false;
+    }
     if (!auto_twilight.value || !has_twilight_target) {
         twilight_weight = 0.0f;
         twilight_log_initialized = false;

@@ -60,3 +60,23 @@ Creative looks remain experimental and default-neutral. Next qualification work
 is the same controlled comparison in representative additional scenes, followed
 by motion and active-Twilight transition checks. Clock pause alone does not prove
 wall-clock-driven mod effects stop; repeat controls are required per scenario.
+
+## Fishing Pond follow-up
+
+`build/m13-aa-runtime/lut-clock-pond` extends the procedure to `F_SP127,0,0,0`.
+With enhanced water enabled, unchanged repeats differ: the water rectangle has
+1.599 mean absolute decoded RGB code values of change. The renderer supplies
+water animation from `std::chrono::steady_clock`, independently of the host's
+paused simulation. These captures do not qualify a matched combined-water pair.
+
+After disabling enhanced water, unchanged Neutral/AA-off and Natural/AA-on
+repeats are identical in the measured water, character, and ground rectangles.
+The matched AA pair again shows softened character and shoreline detail. Mean
+absolute character-region change is 2.396 code values for AA and 1.310 for
+Natural. Natural remains restrained in this scene. JPEG compression is included
+in these measurements; they are not perceptual quality scores. The native HUD
+remains readable. This adds a second static scene, not motion qualification.
+
+The run closes with 1,494 look draws, one cached layout, zero water-capture
+failures, and all mods unloaded. Exact regions and comparisons are retained in
+`comparison-metrics.json` beside the images.

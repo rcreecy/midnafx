@@ -8,6 +8,8 @@
   draws, preserving alpha, AA/detail behavior, downstream DOF, and native HUD order.
 - Blend Natural and Twilight results using the existing semantic transition timing.
   Grading-off and developer diagnostic modes bypass the creative transform.
+- Log creative Twilight state changes and blend endpoints independently of legacy
+  grading targets when diagnostics are enabled.
 - Add identity readback coverage across ordinary/water/AA/detail paths, exposure
   extremes, odd dimensions, RGB/BGRA boundaries, and creative blend invariants.
 - Creative art qualification, physical Mac gameplay, and GPU duration measurements
