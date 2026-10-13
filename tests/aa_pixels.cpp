@@ -425,6 +425,43 @@ int main() {
     }
     std::printf("Creative endpoints, monotonic ramp, Twilight midpoint, zero-strength bypass: %s\n", creative_ok ? "PASS" : "FAIL");
     ok &= creative_ok;
+    // Check creative controls through every production entry point, using
+    // independent channels so channel-order mistakes cannot hide in a gray ramp.
+    std::vector<Pixel> colors(17 * 3);
+    for (unsigned i = 0; i < colors.size(); ++i)
+        colors[i] = {static_cast<unsigned char>((i * 37 + 17) % 256),
+                     static_cast<unsigned char>((i * 73 + 83) % 256),
+                     static_cast<unsigned char>((i * 19 + 151) % 256),
+                     static_cast<unsigned char>((i * 29) % 256)};
+    for (auto format : {WGPUTextureFormat_RGBA8Unorm, WGPUTextureFormat_BGRA8Unorm}) {
+        for (auto entry : {"fs_main", "fs_detail", "fs_fxaa", "fs_fxaa_detail",
+                           "fs_absorption", "fs_absorption_detail", "fs_absorption_fxaa", "fs_absorption_fxaa_detail"}) {
+            const auto base = render(instance, device, entry, 17, 3, colors, 0.5f, -1, 1, 1, 0, format);
+            const auto zero = render(instance, device, entry, 17, 3, colors, 0.5f, 0, 1, 1, 1, format);
+            const auto natural_full = render(instance, device, entry, 17, 3, colors, 0.5f, 1, 1, 1, 0, format);
+            const auto twilight_full = render(instance, device, entry, 17, 3, colors, 0.5f, 1, 1, 1, 1, format);
+            const auto blend_half = render(instance, device, entry, 17, 3, colors, 0.5f, 1, 1, 1, 0.5f, format);
+            const auto intensity_half = render(instance, device, entry, 17, 3, colors, 0.5f, 0.5f, 1, 1, 1, format);
+            bool valid = base.size() == colors.size() && zero == base &&
+                natural_full.size() == colors.size() && twilight_full.size() == colors.size() &&
+                blend_half.size() == colors.size() && intensity_half.size() == colors.size();
+            if (valid) {
+                valid &= natural_full != base && twilight_full != natural_full;
+                for (unsigned i = 0; i < colors.size(); ++i) {
+                    for (const auto* result : {&base, &zero, &natural_full, &twilight_full, &blend_half, &intensity_half})
+                        valid &= (*result)[i][3] == colors[i][3];
+                    for (unsigned c = 0; c < 3; ++c) {
+                        // Compare independently quantized outputs, allowing two
+                        // code values for the doubled midpoint's rounding.
+                        valid &= std::abs(2 * int(blend_half[i][c]) - int(natural_full[i][c]) - int(twilight_full[i][c])) <= 2;
+                        valid &= std::abs(2 * int(intensity_half[i][c]) - int(base[i][c]) - int(twilight_full[i][c])) <= 2;
+                    }
+                }
+            }
+            std::printf("Creative controls %s format=%u: %s\n", entry, unsigned(format), valid ? "PASS" : "FAIL");
+            ok &= valid;
+        }
+    }
     wgpuDeviceRelease(device);
     wgpuAdapterRelease(adapter);
     wgpuInstanceRelease(instance);

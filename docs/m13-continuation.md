@@ -207,6 +207,10 @@ The [combined lifecycle smoke check](notes/lut-combined-lifecycle.md) additional
 passes Natural, AA, enhanced water, and DOF together through maximize/restore and
 mod reload in Fishing Pond on Windows D3D12. This covers one combined case;
 it does not close the full lifecycle matrix or driver-memory gate.
+The same record includes a subsequent creative GPU control matrix: all eight
+shader entry points in both color formats pass zero-intensity bypass, alpha,
+and blend/intensity midpoint checks on local D3D12. Hosted Metal verification
+of this expanded matrix remains pending.
 
 Conditional development candidate; not a production-qualified LUT release.
 No release tag or version bump is part of this work. The published v1.2.0 assets

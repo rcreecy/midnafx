@@ -32,3 +32,25 @@ It does not establish driver-memory stability, every resize dimension, the full
 combination matrix, save/load, GPU duration, or physical Mac behavior. A single
 cached layout is not a GPU memory measurement. No product code, default, version,
 or release asset changes are part of this check.
+
+## Creative GPU control matrix
+
+On 2026-10-13, the current Windows suite passed 16/16 tests in 28.95 seconds.
+Review then identified that creative LUT control checks covered only `fs_main`;
+the existing eight-entry-point matrix used identity tables.
+
+`tests/aa_pixels.cpp` now exercises creative tables through all eight ordinary,
+AA, detail, and water entry points in both RGBA8Unorm and BGRA8Unorm. Each of
+the 16 combinations uses a 17-by-3 image with independent RGB values and varying
+alpha. Six draws check baseline, exact zero-intensity bypass, Natural, Twilight,
+half Twilight blend, and half intensity. Alpha must remain exact; each midpoint
+must agree with independently quantized endpoint outputs within two code values
+after doubling. Natural must differ from baseline and Twilight from Natural.
+
+The expanded GPU test passed all 16 combinations and the existing checks in
+35.07 seconds on local Windows D3D12, without a skip. Logs are
+`build/m13-current-suite.log` and `build/m13-creative-matrix-test.log`.
+This adds 96 GPU draws and changes tests only. The water inputs in this fixture
+are neutral; this is a control-propagation check, not water optical correctness.
+The new matrix has not yet run on hosted Metal. Physical gameplay, motion,
+driver-memory measurements, and the remaining lifecycle matrix stay open.
