@@ -52,5 +52,21 @@ The expanded GPU test passed all 16 combinations and the existing checks in
 `build/m13-current-suite.log` and `build/m13-creative-matrix-test.log`.
 This adds 96 GPU draws and changes tests only. The water inputs in this fixture
 are neutral; this is a control-propagation check, not water optical correctness.
-The new matrix has not yet run on hosted Metal. Physical gameplay, motion,
-driver-memory measurements, and the remaining lifecycle matrix stay open.
+Physical gameplay, motion, driver-memory measurements, and the remaining
+lifecycle matrix stay open.
+
+## Hosted verification
+
+[CI run 38409881321](https://github.com/rcreecy/midnafx/actions/runs/38409881321)
+completed successfully on 2026-10-13 for exact commit
+`8d66a35f0b99657344e92f96e094fb930ebd1f69`. Windows and Intel macOS each passed
+16/16 tests, including the expanded GPU matrix; their pixel tests took 40.83
+and 25.94 seconds respectively. The additional Metal until-fail gate passed
+three consecutive complete pixel runs in 13.27, 13.10, and 11.84 seconds.
+Each repeat reports all 16 creative shader/format combinations passing on the
+Apple Paravirtual adapter. No tests were skipped.
+
+Both platform packages were uploaded as CI artifacts. The release job was
+skipped because this was a branch workflow dispatch, not a release tag.
+The archived log is `build/m13-creative-ci.log`. These hosted Metal results do
+not replace physical Mac gameplay or explain the earlier intermittent failure.
