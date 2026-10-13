@@ -1,21 +1,24 @@
 diff --git a/src/dusk/ui/menu_bar.cpp b/src/dusk/ui/menu_bar.cpp
-index 614c28b..77e4c87 100644
+index 614c28b..9c1d25f 100644
 --- a/src/dusk/ui/menu_bar.cpp
 +++ b/src/dusk/ui/menu_bar.cpp
-@@ -67,6 +67,19 @@ MenuBar::MenuBar()
+@@ -67,6 +67,22 @@ MenuBar::MenuBar()
          }
      });
  
-+    // Root focus or stale focus in the closed console cannot reach the menu's
-+    // document listener. Never intercept an active console or another dialog.
++    // Root focus or stale focus in the closed console cannot reach the hidden
++    // top document. Restore only the menu or a hidden window, never a dialog.
 +    auto* root = mDocument->GetContext()->GetRootElement();
 +    listen(root, Rml::EventId::Keydown, [this, root](Rml::Event& event) {
-+        if (map_nav_event(event) != NavCommand::Menu || top_document() != this)
++        auto* top = top_document();
++        if (map_nav_event(event) != NavCommand::Menu || top == nullptr)
++            return;
++        if (top != this && (top->scope() != DocumentScope::Window || top->visible()))
 +            return;
 +        auto* console = find_document(DocumentScope::CommandConsole);
 +        const bool closed_console = console != nullptr && !console->active() &&
 +                                    console->owns_element(event.GetTargetElement());
-+        if ((event.GetTargetElement() == root || closed_console) && handle_nav_event(event)) {
++        if ((event.GetTargetElement() == root || closed_console) && top->handle_nav_event(event)) {
 +            event.StopPropagation();
 +        }
 +    }, true);

@@ -199,8 +199,10 @@ animation continues on its own clock, so combined matched captures remain open.
 The [Twilight round-trip record](notes/lut-twilight-transition.md) verifies live
 activation to 100%, fallback to 0% during loading and in Ordon, and reentry to
 100% in Kakariko without a captured legacy target. Sparse independent LUT logs
-close that observability gap. Native menu reopening after console warp remains
-an unresolved host workflow issue.
+close that observability gap. The subsequent
+[host focus repair](notes/menu-root-focus-repair.md#hidden-panel-recovery-after-console-warp)
+also restores the hidden Mods panel after console warp. A controlled trace,
+rebuilt-host reproduction, and repeated F1 toggles verify that workflow.
 
 Conditional development candidate; not a production-qualified LUT release.
 No release tag or version bump is part of this work. The published v1.2.0 assets

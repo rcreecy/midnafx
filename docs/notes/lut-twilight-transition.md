@@ -11,8 +11,11 @@ Kakariko startup `F_SP109,0,14,0` reports 100% Twilight blend with bypass off,
 one cached layout, and advancing look draws. The diagnostic and scene images
 are in `build/m13-aa-runtime/lut-kakariko-state-check`. Warping to Ordon works,
 but F1 fails to reopen the native menu afterward, including after refocusing the
-scene. The previous host focus repair does not cover this workflow. Its cause
-is not established; it is not evidence of a shader failure.
+scene. The previous host focus repair did not cover this workflow. Subsequent
+[host tracing and repair](menu-root-focus-repair.md#hidden-panel-recovery-after-console-warp)
+identified the hidden Mods panel as the top document while the closed console
+retained focus. The repaired host restores that panel after the same warp.
+This was a host focus failure, not evidence of a shader failure.
 
 ## Independent transition diagnostics
 

@@ -111,3 +111,34 @@ path activation. The earlier Hyrule Field / layer -1 failure is not a general
 failure of native Warp or an AA-dependent failure. Its specific cause remains
 unresolved. Both destination and layer differ in the successful test, so this
 does not establish that changing the layer alone fixes Hyrule Field.
+
+## Hidden-panel recovery after console warp
+
+On 2026-10-12, `lut-warp-menu-trace` reproduced the remaining failure with the
+current package: start Kakariko (`F_SP109,0,14,0`), open MidnaFX in Mods, hide
+the panel with F1, then execute `warp F_SP103 27 0 0` in the native console.
+Ordon renders, but F1 does not restore the panel. A temporary root event trace
+records `target=console id=console top_scope=3 top_menu=0 top_visible=0
+top_active=1`. Scope 3 is Window: the hidden Mods panel remains active above
+MenuBar. The previous recovery hook required MenuBar to be topmost and therefore
+returned before dispatching the key. Warp itself is not established as necessary
+to trigger this focus state.
+
+The patch now dispatches the menu command to the active top document when it is
+MenuBar or a hidden Window. It still requires the context root or an inactive
+console to own the event target. Visible windows, active consoles, and other
+document scopes retain their existing handling. Temporary tracing was removed
+before the final build.
+
+The rebuilt host passed the same sequence in `lut-warp-menu-fixed`. F1 restores
+the MidnaFX panel after Ordon loads, then dismisses and reopens it. Pressing F1
+while the console is active leaves the console active. Initial root-focus menu
+opening also passes. JPEG screenshots record these states; logs report 2,378
+look draws, one cached layout, 2,247 water captures, zero capture failures, and
+all mods unloaded. Existing buffer-mapping/device-destruction teardown warnings
+remain. No test host remains running.
+
+The host build and patch reverse-application check pass. This is a local D3D12
+host workflow check, not a new LUT visual qualification or a physical Mac test.
+The MidnaFX package remains unchanged at SHA-256
+`ABEE0EB4F0DE421A6AC8D0FA6CF6D0D497860800B7DBE724B331F03C14046AA6`.
