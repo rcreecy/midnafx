@@ -213,6 +213,10 @@ and blend/intensity midpoint checks on local D3D12. Hosted
 [CI run 38409881321](https://github.com/rcreecy/midnafx/actions/runs/38409881321)
 then passed 16/16 tests on Windows and Intel macOS at `8d66a35`, plus three
 consecutive expanded Metal pixel runs without skips. The release job was skipped.
+The [GPU process-memory probe](notes/lut-memory-probe.md) adds three successful
+combined-effect reloads and valid Windows counter samples. Committed memory
+increases, including during the no-reload idle control; stability and attribution
+remain unresolved. Do not describe the cached-layout count as a memory result.
 
 Conditional development candidate; not a production-qualified LUT release.
 No release tag or version bump is part of this work. The published v1.2.0 assets
