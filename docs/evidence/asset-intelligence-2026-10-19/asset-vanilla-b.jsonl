@@ -1,0 +1,31 @@
+{"archive": "pumpkin", "bytes": 17824, "event": "resource", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "provenance": "archive-pre-load", "resource": "pumpkin.bmd", "schema": 1}
+{"event": "material", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "material": 0, "provenance": "loaded-J3D-initial-slots", "schema": 1, "texture_slots": [3, 65535, null, null, null, null, null, null]}
+{"event": "material", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "material": 1, "provenance": "loaded-J3D-initial-slots", "schema": 1, "texture_slots": [2, 65535, null, null, null, null, null, null]}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 1, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 2, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 3, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 4, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 5, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 6, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 7, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 8, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 9, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 10, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 11, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 12, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "archive-delete", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "schema": 1}
+{"archive": "pumpkin", "bytes": 17824, "event": "resource", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "provenance": "archive-pre-load", "resource": "pumpkin.bmd", "schema": 1}
+{"event": "material", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "material": 0, "provenance": "loaded-J3D-initial-slots", "schema": 1, "texture_slots": [3, 65535, null, null, null, null, null, null]}
+{"event": "material", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "material": 1, "provenance": "loaded-J3D-initial-slots", "schema": 1, "texture_slots": [2, 65535, null, null, null, null, null, null]}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 1, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 2, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 3, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 4, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 5, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 6, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 7, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 8, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 9, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 10, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 11, "provenance": "mDoExt-model-create", "schema": 1}
+{"event": "creation", "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421", "ordinal": 12, "provenance": "mDoExt-model-create", "schema": 1}

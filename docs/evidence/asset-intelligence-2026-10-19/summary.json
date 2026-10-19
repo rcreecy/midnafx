@@ -1,0 +1,78 @@
+{
+  "replacement_graph_comparison": "PASS: all original fields equal with actual 4K pack enabled; 12 creations; one exact candidate per texture entry; selected GPU replacement unobserved",
+  "schema": 1,
+  "scope": "Windows D3D12; original pumpkin; diagnostic working tree based on a72340e",
+  "sessions": {
+    "asset-disabled-d": {
+      "asset_events": 0,
+      "limitations": [],
+      "log_sha256": "2f35b27be0fb6e10230789d0880bee9dc94a23febff62a2547c2116544de12b0",
+      "native_reload_observed": false,
+      "normal_shutdown_observed": true,
+      "package_sha256": "a3b010759ca76a8bd96577b98c5074604587a50e1a5f60353f90e001bd34f861",
+      "preload_measurements": 0,
+      "preload_us_max": 0,
+      "preload_us_sum": 0,
+      "pumpkin_creations": 0,
+      "pumpkin_deletes": 0,
+      "pumpkin_loads": 0,
+      "retained_metadata_bytes_estimate_max": null,
+      "retained_records_max": 0
+    },
+    "asset-pack-e": {
+      "asset_events": 723,
+      "limitations": [
+        "resource limit reached; discovery incomplete"
+      ],
+      "log_sha256": "2fcc05b035c34ed0fc20d3289422c0d6d9da0907d7c9d0227bd520d9a580d392",
+      "native_reload_observed": false,
+      "normal_shutdown_observed": true,
+      "package_sha256": "a3b010759ca76a8bd96577b98c5074604587a50e1a5f60353f90e001bd34f861",
+      "preload_measurements": 55,
+      "preload_us_max": 1293,
+      "preload_us_sum": 6817,
+      "pumpkin_creations": 12,
+      "pumpkin_deletes": 0,
+      "pumpkin_loads": 1,
+      "retained_metadata_bytes_estimate_max": 16320,
+      "retained_records_max": 128
+    },
+    "asset-vanilla-b": {
+      "asset_events": 2054,
+      "limitations": [
+        "resource limit reached; discovery incomplete"
+      ],
+      "log_sha256": "b0a938bca19e616cd5d4adea57e3deef4d741ab8eb5ab6235670cb56cfa11226",
+      "native_reload_observed": false,
+      "normal_shutdown_observed": true,
+      "package_sha256": "37061a752c3e3f4a798f394f217e8d87f108be05f6a55449c329cdbb8e1fc7c3",
+      "preload_measurements": 133,
+      "preload_us_max": 31236,
+      "preload_us_sum": 94203,
+      "pumpkin_creations": 24,
+      "pumpkin_deletes": 1,
+      "pumpkin_loads": 2,
+      "retained_metadata_bytes_estimate_max": null,
+      "retained_records_max": 128
+    },
+    "asset-vanilla-c": {
+      "asset_events": 735,
+      "limitations": [
+        "resource limit reached; discovery incomplete"
+      ],
+      "log_sha256": "89164b88f810f254e23f09f89d914792e74c58f93a5107caee6985729fa15edc",
+      "native_reload_observed": true,
+      "normal_shutdown_observed": true,
+      "package_sha256": "a3b010759ca76a8bd96577b98c5074604587a50e1a5f60353f90e001bd34f861",
+      "preload_measurements": 55,
+      "preload_us_max": 1287,
+      "preload_us_sum": 7014,
+      "pumpkin_creations": 12,
+      "pumpkin_deletes": 0,
+      "pumpkin_loads": 1,
+      "retained_metadata_bytes_estimate_max": 16320,
+      "retained_records_max": 128
+    }
+  },
+  "stable_graph_comparison": "PASS: all original model/material/texture fields equal across both launches and two loads in b"
+}

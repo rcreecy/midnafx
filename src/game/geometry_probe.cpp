@@ -1,4 +1,5 @@
 #include "geometry_probe.hpp"
+#include "asset_probe.hpp"
 
 #include "bmd_rebuild.hpp"
 #include "services.hpp"
@@ -129,6 +130,7 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
     if (!args || !model_load_registered || !delete_registered)
         return HOOK_CONTINUE;
     auto* info = mods::arg<dRes_info_c*>(args, 0);
+    asset_probe::begin(info);
     if (info)
         loading_owners.push_back(info);
     if (!info || !info->mArchive || !info->mDataHeap || !info->mArchiveName)
@@ -681,6 +683,7 @@ void describe_model(const dRes_info_c& info, u32 type, u32 file_index) {
     auto* model = static_cast<J3DModelData*>(info.mRes[file_index]);
     if (!entry || !model)
         return;
+    asset_probe::loaded(const_cast<dRes_info_c*>(&info), file_index, model);
 
     const char* file_name = archive->mStringTable + (entry->type_flags_and_name_offset & 0xFFFFFF);
     maybe_mutate(const_cast<dRes_info_c&>(info), file_name, *model);
@@ -727,7 +730,7 @@ void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
     }
     if ((!settings::geometry_diagnostics_enabled() && !settings::geometry_mutation_test_enabled() &&
          !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled() &&
-         !settings::geometry_skinned_smoothing_enabled()) ||
+         !settings::geometry_skinned_smoothing_enabled() && !settings::asset_diagnostics_enabled()) ||
         !args || !retval || *static_cast<int*>(retval) < 0)
         return;
     if (!info || !info->mArchive || !info->mRes)
@@ -751,6 +754,7 @@ HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
     auto* owner = args ? mods::arg<dRes_info_c*>(args, 0) : nullptr;
     if (!owner)
         return HOOK_CONTINUE;
+    asset_probe::erase(owner);
     if (std::any_of(mutations.begin(), mutations.end(), [owner](const MutationBackup& item) {
             return item.owner == owner && is_smoothing(item.kind);
         }))
@@ -767,6 +771,7 @@ HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
 void on_model_created(ModContext*, void* args, void* retval, void*) {
     if (!args || !retval || !*static_cast<J3DModel**>(retval))
         return;
+    asset_probe::created(mods::arg<J3DModelData*>(args, 0));
     auto found = find_mutation(mods::arg<J3DModelData*>(args, 0));
     if (found == mutations.end() || !is_smoothing(found->kind))
         return;
@@ -778,6 +783,7 @@ void on_model_created(ModContext*, void* args, void* retval, void*) {
 } // namespace
 
 void initialize() {
+    asset_probe::reset();
     load_registered = false;
     delete_registered = false;
     create_registered = false;
@@ -810,6 +816,7 @@ void initialize() {
 }
 
 void shutdown() {
+    asset_probe::reset();
     if (load_registered)
         (void)mods::hook::uninstall<ResourceLoad>();
     restore_mutations();

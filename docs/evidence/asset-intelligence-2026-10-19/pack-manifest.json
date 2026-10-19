@@ -1,0 +1,23 @@
+{
+  "archive_name": "ZTP 4K 4.0d (4K, PC Edition).zip",
+  "archive_sha256": "f6fd6f868b1a87bd26f3b7a2a75a62e76dfb4df7b7c8deaf5022e8cc0ec3eb1a",
+  "host_registrations": 1759,
+  "pumpkin_files": [
+    {
+      "bytes": 1398276,
+      "dds_fourcc": "DX10",
+      "dds_height": 1024,
+      "dds_width": 1024,
+      "path": "HenrikosTP4K_4.0d_4K/1) Ordon Province/Ordon Village/Outdoors/tex1_64x64_000e342106676e31_14.dds",
+      "sha256": "ef46efe02e8ebd33992e407d782f0292466074d06d77cc08ac0109cb3cf5c9de"
+    },
+    {
+      "bytes": 5592580,
+      "dds_fourcc": "DX10",
+      "dds_height": 2048,
+      "dds_width": 2048,
+      "path": "HenrikosTP4K_4.0d_4K/1) Ordon Province/Ordon Village/Outdoors/tex1_64x64_630d5c7bc606585d_14.dds",
+      "sha256": "b6ffce0e16b137ad73fa5ba3aea78d982f89dc1355e367ac40bc745e4439e86f"
+    }
+  ]
+}

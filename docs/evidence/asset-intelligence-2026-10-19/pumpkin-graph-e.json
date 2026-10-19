@@ -1,0 +1,123 @@
+{
+  "backend": "d3d12",
+  "dusklight_revision": "edf42c6a7202647b56dd2fcdef02d17671bc814b",
+  "failures": [],
+  "midnafx_revision": "a72340e+asset-probe-working-tree",
+  "models": [
+    {
+      "archive": "pumpkin.arc",
+      "bytes": 17824,
+      "confidence": "established-original-file",
+      "id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421",
+      "materials": [
+        {
+          "index": 0,
+          "name": "pumpkin_happa_m",
+          "provenance": "original-MAT3-remap",
+          "texture_slots": [
+            3,
+            65535,
+            65535,
+            65535,
+            65535,
+            65535,
+            65535,
+            65535
+          ]
+        },
+        {
+          "index": 1,
+          "name": "pumpkin_m",
+          "provenance": "original-MAT3-remap",
+          "texture_slots": [
+            2,
+            65535,
+            65535,
+            65535,
+            65535,
+            65535,
+            65535,
+            65535
+          ]
+        }
+      ],
+      "rendered_object": "not-observed",
+      "resource": "pumpkin.bmd",
+      "resource_load_observations": 1,
+      "runtime_creations": 12,
+      "runtime_materials": [
+        0,
+        1
+      ],
+      "sha256": "dc05ad71242f45680a2a6b68add972a2a7877f52e74a9206e5041439de20c70c",
+      "textures": [
+        {
+          "index": 0,
+          "name": "pumpkin",
+          "provenance": "original-TEX1-base-mip",
+          "replacement_candidates": [
+            "HenrikosTP4K_4.0d_4K/1) Ordon Province/Ordon Village/Outdoors/tex1_64x64_000e342106676e31_14.dds"
+          ],
+          "replacement_selection": "unavailable-through-TextureService-v1",
+          "source_key": {
+            "gx_format": 14,
+            "height": 64,
+            "texture_hash": "000e342106676e31",
+            "width": 64
+          }
+        },
+        {
+          "index": 1,
+          "name": "pumpkin_happa",
+          "provenance": "original-TEX1-base-mip",
+          "replacement_candidates": [
+            "HenrikosTP4K_4.0d_4K/1) Ordon Province/Ordon Village/Outdoors/tex1_64x64_630d5c7bc606585d_14.dds"
+          ],
+          "replacement_selection": "unavailable-through-TextureService-v1",
+          "source_key": {
+            "gx_format": 14,
+            "height": 64,
+            "texture_hash": "630d5c7bc606585d",
+            "width": 64
+          }
+        },
+        {
+          "index": 2,
+          "name": "pumpkin",
+          "provenance": "original-TEX1-base-mip",
+          "replacement_candidates": [
+            "HenrikosTP4K_4.0d_4K/1) Ordon Province/Ordon Village/Outdoors/tex1_64x64_000e342106676e31_14.dds"
+          ],
+          "replacement_selection": "unavailable-through-TextureService-v1",
+          "source_key": {
+            "gx_format": 14,
+            "height": 64,
+            "texture_hash": "000e342106676e31",
+            "width": 64
+          }
+        },
+        {
+          "index": 3,
+          "name": "pumpkin_happa",
+          "provenance": "original-TEX1-base-mip",
+          "replacement_candidates": [
+            "HenrikosTP4K_4.0d_4K/1) Ordon Province/Ordon Village/Outdoors/tex1_64x64_630d5c7bc606585d_14.dds"
+          ],
+          "replacement_selection": "unavailable-through-TextureService-v1",
+          "source_key": {
+            "gx_format": 14,
+            "height": 64,
+            "texture_hash": "630d5c7bc606585d",
+            "width": 64
+          }
+        }
+      ]
+    }
+  ],
+  "platform": "windows-amd64",
+  "runtime_limitations": [
+    "resource limit reached; discovery incomplete"
+  ],
+  "scene": "F_SP103,0,27,0",
+  "schema": 1
+}
