@@ -52,7 +52,9 @@ The existing Release build/package completed successfully. Full Windows CTest pa
 
 [Native asset tests](../tests/asset_identity.cpp) verify every supported TEV subclass capacity and unsupported tags. [Python tests](../tests/asset_intelligence.py) cover repeated read-only model parsing, material slots, malformed bounds, palette bounds, shared creation/delete observations, schema rejection, actual source-key filename matching fixtures, missing directory and structured CLI failures. XXH64 vectors across 31/32/33/63/64/127/2048 bytes were independently generated using the pinned upstream `xxhash.h`; the parser agrees. Palette coverage is synthetic C4 evidence, not live qualification of all indexed formats.
 
-Logs: local `build/asset-build.log`, `build/asset-tests-final.log`. CI uses synthetic assets only; it does not need the game or the pack. A native macOS gameplay session is **NOT TESTED**.
+Hosted [CI run 39322759033](https://github.com/rcreecy/midnafx/actions/runs/39322759033) passed at implementation commit `dcdcd1d`: Windows **18/18** in 46.88 seconds and macOS Intel **18/18** in 33.89 seconds. Three additional Metal AA pixel repeats passed (17.04, 13.39 and 10.83 seconds). Both native packages were produced; the release job was skipped.
+
+Logs: local `build/asset-build.log`, `build/asset-tests-final.log`, `build/asset-ci.log`. CI uses synthetic assets and metadata-only recorded evidence; it does not need the game or the pack. A native macOS gameplay session is **NOT TESTED**. Documentation-only clarification after `dcdcd1d` does not change the tested implementation.
 
 ## Overhead and safety
 

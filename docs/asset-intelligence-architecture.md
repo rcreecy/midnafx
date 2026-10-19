@@ -26,6 +26,8 @@ The end-to-end path is implemented in:
 
 The runtime hashes archive data before the native loader processes it. The offline parser joins only the exact resource fingerprint. It computes material and texture metadata from the matching original file; this does **not** mean the runtime has captured every GPU texture binding. Runtime slots outside a concrete TEV block's capacity are `null` (unobserved), while original MAT3 unused slots are `65535`. The join checks every observed slot and does not treat `null` as a match claim.
 
+Original fingerprints, table indices and source-key calculations depend on asset bytes, not the rendering backend. Native bindings still depend on the pinned host ABI and its resource lifecycle. Cross-backend identity stability is a design property of those calculations, not a live Metal result; this experiment only exercised D3D12 gameplay. Animated materials and texture matrices are not sampled after initial load.
+
 ## Lifecycle and bounds
 
 Bindings contain copied identity strings and non-owning owner/model addresses. Archive deletion erases all bindings for that owner before the game frees them. No instance address is retained. Mod initialize/shutdown clears bindings and releases vector capacity. Turning diagnostics off stops new discovery/material/creation work; delete cleanup still runs, so retained bindings cannot outlive archive ownership. Turning it on does not retrospectively scan already loaded models.
