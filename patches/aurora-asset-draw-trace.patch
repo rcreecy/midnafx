@@ -13,6 +13,21 @@ index 94504b1..dc85424 100644
  #define AURORA_GFX_DEBUG_GROUPS
  #endif
  
+diff --git a/include/aurora/gfx.hpp b/include/aurora/gfx.hpp
+index aacbfb6..f594684 100644
+--- a/include/aurora/gfx.hpp
++++ b/include/aurora/gfx.hpp
+@@ -8,7 +8,9 @@
+ 
+ namespace aurora::gfx {
+ 
+-inline constexpr size_t InlineDrawPayloadSize = 128;
++// Experimental asset binding metadata. Fixed +32 bytes per inline payload;
++// no change to production builds unless this diagnostic patch is applied.
++inline constexpr size_t InlineDrawPayloadSize = 160;
+ inline constexpr size_t MaxColorAttachments = 8;
+ inline constexpr uint32_t SceneColorAttachmentIndex = 0;
+ 
 diff --git a/lib/gfx/encoding.cpp b/lib/gfx/encoding.cpp
 index b3054be..575b094 100644
 --- a/lib/gfx/encoding.cpp
@@ -76,11 +91,53 @@ index d04db0f..79229c0 100644
    return &inline_payload<gx::DrawData>(last.data.draw.payload.data());
  }
  
+diff --git a/lib/gx/gx.cpp b/lib/gx/gx.cpp
+index b12b327..88504b1 100644
+--- a/lib/gx/gx.cpp
++++ b/lib/gx/gx.cpp
+@@ -497,9 +497,20 @@ GXBindGroups build_bind_groups(const ShaderInfo& info) noexcept {
+       .entryCount = textureEntries.size(),
+       .entries = textureEntries.data(),
+   };
+-  return {
+-      .textureBindGroup = gfx::bind_group_ref(textureBindGroupDescriptor),
+-  };
++  GXBindGroups result{.textureBindGroup = gfx::bind_group_ref(textureBindGroupDescriptor)};
++  const auto& slot0 = g_gxState.textures[0];
++  if (slot0 && (info.sampledTextures[0] || info.sampledIndTextures[0])) {
++    if (slot0.ref->size.width <= UINT16_MAX && slot0.ref->size.height <= UINT16_MAX && slot0.ref->mipCount <= UINT16_MAX) {
++      result.assetSlot0Bound = 1;
++      result.assetSlot0Replacement = slot0.ref->isReplacement;
++      result.assetSlot0Width = static_cast<uint16_t>(slot0.ref->size.width);
++      result.assetSlot0Height = static_cast<uint16_t>(slot0.ref->size.height);
++      result.assetSlot0Mips = static_cast<uint16_t>(slot0.ref->mipCount);
++    } else {
++      result.assetSlot0Bound = 2; // Unsupported metadata; offline validation rejects this record.
++    }
++  }
++  return result;
+ }
+ 
+ void initialize() noexcept {
+diff --git a/lib/gx/gx.hpp b/lib/gx/gx.hpp
+index a97b987..6481164 100644
+--- a/lib/gx/gx.hpp
++++ b/lib/gx/gx.hpp
+@@ -511,6 +511,9 @@ struct PipelineConfig;
+ 
+ struct GXBindGroups {
+   gfx::BindGroupRef textureBindGroup;
++  // Experimental probe: values copied from the same slot-0 view used by the bind group.
++  uint16_t assetSlot0Width = 0, assetSlot0Height = 0, assetSlot0Mips = 0;
++  uint8_t assetSlot0Bound = 0, assetSlot0Replacement = 0;
+ };
+ // Output info from shader generation
+ struct ShaderInfo {
 diff --git a/lib/gx/pipeline.cpp b/lib/gx/pipeline.cpp
-index 0c3631c..ddfa577 100644
+index 0c3631c..70ade42 100644
 --- a/lib/gx/pipeline.cpp
 +++ b/lib/gx/pipeline.cpp
-@@ -43,6 +43,15 @@ void render(const DrawData& data, const wgpu::RenderPassEncoder& pass) {
+@@ -43,6 +43,17 @@ void render(const DrawData& data, const wgpu::RenderPassEncoder& pass) {
    } else {
      pass.DrawIndexed(data.indexCount, data.instanceCount);
    }
@@ -90,8 +147,10 @@ index 0c3631c..ddfa577 100644
 +  if (gfx::asset_trace_label && asset_trace_events < 4096) {
 +    ++asset_trace_events;
 +    static constexpr Module AssetLog{"aurora::asset"};
-+    AssetLog.info("AssetDraw {{\"schema\":1,\"event\":\"encoded\",\"label\":\"{}\",\"frame\":{},\"vertices\":{},\"indices\":{},\"instances\":{}}}",
-+             gfx::asset_trace_label, gfx::asset_trace_frame, data.vtxCount, data.indexCount, data.instanceCount);
++    const auto& b = data.bindGroups;
++    AssetLog.info("AssetDraw {{\"schema\":1,\"event\":\"encoded\",\"label\":\"{}\",\"frame\":{},\"vertices\":{},\"indices\":{},\"instances\":{},\"slot0\":{{\"bound\":{},\"replacement\":{},\"width\":{},\"height\":{},\"mips\":{}}}}}",
++             gfx::asset_trace_label, gfx::asset_trace_frame, data.vtxCount, data.indexCount, data.instanceCount,
++             b.assetSlot0Bound, b.assetSlot0Replacement, b.assetSlot0Width, b.assetSlot0Height, b.assetSlot0Mips);
 +  }
  }
  

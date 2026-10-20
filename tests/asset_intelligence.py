@@ -188,4 +188,35 @@ class AssetTests(unittest.TestCase):
             self.assertEqual([t['source_key'] for t in item['textures']],
                              [t['source_key'] for t in models[0]['textures']])
 
+    def test_selected_slot_requires_bound_handle_evidence(self):
+        item=a.model(fixture(),'x','y')
+        label=dict(schema=1,event='draw-label',id=item['id'],material=0,label='MidnaFXAssetV1:30:1')
+        encoded=dict(schema=1,event='encoded',label=label['label'],frame=1,vertices=3,indices=0,instances=1,
+                     slot0=dict(bound=1,replacement=1,width=1024,height=1024,mips=11))
+        lines=['AssetGraph '+json.dumps(label),'AssetDraw '+json.dumps(encoded)]
+        a.join_runtime({'models':[item]},lines)
+        self.assertEqual(item['runtime_slot0_bindings'],[dict(material=0,**encoded['slot0'])])
+        self.assertIn('unavailable',item['textures'][0]['replacement_selection'])
+        for slot in (None,{},dict(encoded['slot0'],bound=0),dict(encoded['slot0'],width=0),dict(encoded['slot0'],replacement=True)):
+            with self.assertRaises(ValueError):
+                a.join_runtime({'models':[a.model(fixture(),'x','y')]},['AssetDraw '+json.dumps(dict(encoded,slot0=slot))])
+
+    def test_recorded_binding_transition(self):
+        root=Path(__file__).parents[1]/'docs/evidence/asset-selection-2026-10-20'
+        models=[]
+        for suffix,count in [('i',32),('j',64),('k',0)]:
+            graph=json.loads((root/f'pumpkin-graph-{suffix}.json').read_text())
+            self.assertEqual(graph['failures'],[])
+            item=graph['models'][0]
+            models.append(item)
+            self.assertEqual(item.get('runtime_encoded_draws',0),count)
+        self.assertEqual([(s['material'],s['replacement'],s['width']) for s in models[0]['runtime_slot0_bindings']],
+                         [(0,0,64),(1,0,64)])
+        self.assertEqual([(s['material'],s['replacement'],s['width']) for s in models[1]['runtime_slot0_bindings']],
+                         [(0,1,64),(0,1,2048),(1,1,64),(1,1,1024)])
+        self.assertNotIn('runtime_slot0_bindings',models[2])
+        self.assertEqual(models[1]['resource_load_observations'],2)
+        self.assertEqual(models[1]['archive_delete_observations'],1)
+        self.assertTrue(all(m['materials']==models[0]['materials'] for m in models))
+
 if __name__=='__main__': unittest.main()

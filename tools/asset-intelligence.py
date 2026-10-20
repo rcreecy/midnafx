@@ -155,6 +155,14 @@ def join_runtime(graph, lines):
                 raise ValueError('invalid encoded draw counts')
             if not event['instances'] or not (event['vertices'] or event['indices']):
                 raise ValueError('empty encoded draw')
+            if 'slot0' in event:
+                slot=event['slot0']
+                if not isinstance(slot,dict) or not all(type(slot.get(k)) is int for k in ('bound','replacement','width','height','mips')):
+                    raise ValueError('invalid slot-0 binding')
+                if slot['bound'] not in (0,1) or slot['replacement'] not in (0,1):
+                    raise ValueError('invalid slot-0 flags')
+                if (slot['bound'] and not all(slot[k]>0 for k in ('width','height','mips'))) or (not slot['bound'] and any(slot.values())):
+                    raise ValueError('inconsistent slot-0 binding')
             encoded.append(event)
             continue
         if 'AssetGraph ' not in line:
@@ -201,10 +209,16 @@ def join_runtime(graph, lines):
         item['runtime_encoded_draws']=item.get('runtime_encoded_draws',0)+1
         item.setdefault('runtime_encoded_materials',[]).append(index)
         item['rendered_object']='native-WebGPU-draw-encoded; visibility-and-GPU-completion-unobserved'
+        if 'slot0' in event:
+            observation={'material':index,**event['slot0']}
+            observations=item.setdefault('runtime_slot0_bindings',[])
+            if observation not in observations: observations.append(observation)
     for label,(item,index) in labels.items():
         item['runtime_draw_labels']=item.get('runtime_draw_labels',0)+1
         if label not in matched: item['runtime_unencoded_labels']=item.get('runtime_unencoded_labels',0)+1
     for item in by_id.values():
+        if 'runtime_slot0_bindings' in item:
+            item['runtime_slot0_bindings'].sort(key=lambda s:(s['material'],s['bound'],s['replacement'],s['width'],s['height'],s['mips']))
         if 'runtime_encoded_materials' in item:
             item['runtime_encoded_materials']=sorted(set(item['runtime_encoded_materials']))
 

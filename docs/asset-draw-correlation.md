@@ -1,5 +1,7 @@
 # Pumpkin native draw correlation
 
+Follow-up: [sampled texture binding](asset-texture-binding.md) now records actual slot-0 replacement status and dimensions, including thumbnail-to-full-size observations. Exact provider/file selection remains unobserved.
+
 ## Result and scope
 
 The isolated Windows D3D12 experiment connects both original pumpkin materials to native WebGPU draw encoding, with vanilla textures and the user's Henriko pack. This extends the [original identity proof](asset-intelligence-validation.md). It does not prove GPU completion, visibility after depth testing, resolved replacement selection, or generic material shader control.
