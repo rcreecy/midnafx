@@ -1,5 +1,7 @@
 # Asset intelligence architecture
 
+The [October 20 native draw extension](asset-draw-correlation.md) adds a separate opt-in shape hook and experimental host patch. This document describes the original resource-only observer; its no-frame-work statement does not cover that extension.
+
 ## Scope and implementation
 
 The diagnostic observes newly loaded `J3D2bmd3` resources. It does not modify resources, hook arguments, material state, texture registration, or render submissions. `asset_diagnostics` defaults to false and appears in the developer qualification section as “Asset identity diagnostics (new loads only).” Existing rendering defaults are unchanged.

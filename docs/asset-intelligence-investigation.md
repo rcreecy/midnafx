@@ -1,5 +1,7 @@
 # Asset intelligence investigation
 
+Follow-up: the [filtered native draw experiment](asset-draw-correlation.md) now proves pumpkin material-to-WebGPU encoding on Windows using an explicit experimental host patch. Replacement selection and GPU completion remain unobserved.
+
 Date: 2026-10-19. Scope: an opt-in, read-only identity proof, not a shading implementation or release. The existing package version remains 1.2.0. The working baseline was `a72340e` on `codex/m12-water`.
 
 ## Evidence and compatibility boundary

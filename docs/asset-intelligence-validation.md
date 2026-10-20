@@ -1,5 +1,7 @@
 # Asset intelligence validation
 
+The subsequent [native draw experiment](asset-draw-correlation.md) establishes pumpkin material-to-WebGPU encoding on Windows. The tables below retain the original October 19 baseline; its native-draw blocker is superseded only within that experiment's narrow scope.
+
 Date: 2026-10-19. The proof is limited to the naturally instantiated Ordon pumpkin on Windows D3D12. The diagnostics are experimental, disabled by default, and are not a new release.
 
 ## Outcome matrix

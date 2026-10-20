@@ -1,0 +1,98 @@
+diff --git a/include/aurora/gfx.h b/include/aurora/gfx.h
+index 94504b1..dc85424 100644
+--- a/include/aurora/gfx.h
++++ b/include/aurora/gfx.h
+@@ -9,7 +9,9 @@ extern "C" {
+ #include "stdint.h"
+ #endif
+ 
+-#if !defined(NDEBUG) && !defined(AURORA_GFX_DEBUG_GROUPS)
++// Experimental MidnaFX host probe: keep copied GX labels in frame packets.
++// This patch is opt-in and must not be included in a production host build.
++#if !defined(AURORA_GFX_DEBUG_GROUPS)
+ #define AURORA_GFX_DEBUG_GROUPS
+ #endif
+ 
+diff --git a/lib/gfx/encoding.cpp b/lib/gfx/encoding.cpp
+index b3054be..575b094 100644
+--- a/lib/gfx/encoding.cpp
++++ b/lib/gfx/encoding.cpp
+@@ -26,6 +26,8 @@
+ #include <tracy/Tracy.hpp>
+ 
+ namespace aurora::gfx {
++thread_local const char* asset_trace_label = nullptr;
++thread_local uint64_t asset_trace_frame = 0;
+ using namespace detail;
+ using webgpu::g_device;
+ using webgpu::g_queue;
+@@ -154,9 +156,15 @@ void render_pass(const wgpu::RenderPassEncoder& pass, FramePacket& frame, Render
+     } break;
+     case CommandType::Draw: {
+       auto& draw = cmd.data.draw;
++      asset_trace_label = nullptr;
++      asset_trace_frame = frame.frameId;
++      for (const auto& label : cmd.debugGroupStack) {
++        if (label.starts_with("MidnaFXAssetV1:")) asset_trace_label = label.c_str();
++      }
+       if (draw.encoder != nullptr) {
+         draw.encoder(draw.payload.data(), pass, passInfo);
+       }
++      asset_trace_label = nullptr;
+     } break;
+     case CommandType::CustomDraw: {
+       render_custom_draw(cmd.data.customDraw, pass, passInfo);
+diff --git a/lib/gfx/encoding.hpp b/lib/gfx/encoding.hpp
+index 1b25b3d..9df3655 100644
+--- a/lib/gfx/encoding.hpp
++++ b/lib/gfx/encoding.hpp
+@@ -4,6 +4,10 @@
+ 
+ namespace aurora::gfx {
+ 
++// Borrowed only while a copied frame command is synchronously encoded.
++extern thread_local const char* asset_trace_label;
++extern thread_local uint64_t asset_trace_frame;
++
+ bool bind_pipeline(PipelineRef ref, const wgpu::RenderPassEncoder& pass);
+ 
+ namespace detail {
+diff --git a/lib/gfx/recording.cpp b/lib/gfx/recording.cpp
+index d04db0f..79229c0 100644
+--- a/lib/gfx/recording.cpp
++++ b/lib/gfx/recording.cpp
+@@ -751,6 +751,14 @@ gx::DrawData* get_last_draw_command() {
+   if (last.type != CommandType::Draw || last.data.draw.encoder != encode_draw<gx::render, gx::DrawData>) {
+     return nullptr;
+   }
++  // A trace scope cannot inherit vertices from another scope through batching.
++  const auto traced = [](const auto& stack) {
++    return std::any_of(stack.begin(), stack.end(), [](const auto& label) {
++      return label.starts_with("MidnaFXAssetV1:");
++    });
++  };
++  if ((traced(last.debugGroupStack) || traced(g_recorder.debugGroupStack)) &&
++      last.debugGroupStack != g_recorder.debugGroupStack) return nullptr;
+   return &inline_payload<gx::DrawData>(last.data.draw.payload.data());
+ }
+ 
+diff --git a/lib/gx/pipeline.cpp b/lib/gx/pipeline.cpp
+index 0c3631c..ddfa577 100644
+--- a/lib/gx/pipeline.cpp
++++ b/lib/gx/pipeline.cpp
+@@ -43,6 +43,15 @@ void render(const DrawData& data, const wgpu::RenderPassEncoder& pass) {
+   } else {
+     pass.DrawIndexed(data.indexCount, data.instanceCount);
+   }
++  // This is after successful pipeline binding and the actual WebGPU draw call.
++  // It proves encoding, not GPU completion or visibility after depth testing.
++  static thread_local unsigned asset_trace_events = 0;
++  if (gfx::asset_trace_label && asset_trace_events < 4096) {
++    ++asset_trace_events;
++    static constexpr Module AssetLog{"aurora::asset"};
++    AssetLog.info("AssetDraw {{\"schema\":1,\"event\":\"encoded\",\"label\":\"{}\",\"frame\":{},\"vertices\":{},\"indices\":{},\"instances\":{}}}",
++             gfx::asset_trace_label, gfx::asset_trace_frame, data.vtxCount, data.indexCount, data.instanceCount);
++  }
+ }
+ 
+ } // namespace aurora::gx

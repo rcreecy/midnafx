@@ -4,6 +4,9 @@
 #include "ui/settings.hpp"
 #include <JSystem/J3DGraphAnimator/J3DModelData.h>
 #include <JSystem/J3DGraphBase/J3DMaterial.h>
+#include <JSystem/J3DGraphBase/J3DShape.h>
+#include <dolphin/gx/GXAurora.h>
+#include <mods/svc/hook.hpp>
 #include <JSystem/JKernel/JKRArchive.h>
 #include <d/d_resorce.h>
 #include <algorithm>
@@ -23,10 +26,27 @@ struct Record {
     J3DModelData* model = nullptr;
     std::string id;
     unsigned creations = 0;
+    unsigned draw_samples = 0;
 };
 std::vector<Record> records;
 unsigned events = 0;
 bool limited = false;
+DEFINE_HOOK(&J3DShape::drawFast, AssetShapeDraw);
+bool draw_hook = false;
+bool draw_scopes[8]{};
+unsigned draw_depth = 0;
+unsigned long long draw_epoch = 0;
+unsigned long long draw_token = 0;
+J3DMaterial* pumpkin_materials[2]{};
+dRes_info_c* pumpkin_owner = nullptr;
+unsigned long long draw_probe_calls = 0, draw_probe_ns = 0;
+struct DrawProbeTimer {
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    ~DrawProbeTimer() {
+        draw_probe_ns += static_cast<unsigned long long>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now() - start).count());
+    }
+};
 std::string quote(const char* s) {
     std::string out = "\"";
     for (unsigned i = 0; s && s[i]; ++i) {
@@ -48,6 +68,71 @@ void emit(const std::string& body) {
 void failure() noexcept {
     if (svc_log) svc_log->warn(mod_ctx, "AssetGraph diagnostic failed; game resource unchanged");
 }
+HookAction before_shape(ModContext*, void* args, void*, void*) {
+    if (!draw_depth && (!settings::asset_draw_diagnostics_enabled() || !settings::asset_diagnostics_enabled()))
+        return HOOK_CONTINUE;
+    DrawProbeTimer timer;
+    ++draw_probe_calls;
+    const auto depth = draw_depth++;
+    if (depth >= 8) return HOOK_CONTINUE;
+    draw_scopes[depth] = false;
+    if (!args) return HOOK_CONTINUE;
+    try {
+        const auto* shape = mods::arg<const J3DShape*>(args, 0);
+        auto* material = shape ? shape->getMaterial() : nullptr;
+        if (!material || (material != pumpkin_materials[0] && material != pumpkin_materials[1]))
+            return HOOK_CONTINUE;
+        for (auto& record : records) {
+            if (record.id != "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421" ||
+                !record.model || record.draw_samples >= 32) continue;
+            const auto index = material->getIndex();
+            if (index >= record.model->getMaterialNum() || record.model->getMaterialNodePointer(index) != material)
+                continue;
+            const auto token = ++draw_token;
+            const auto label = "MidnaFXAssetV1:" + std::to_string(draw_epoch) + ":" + std::to_string(token);
+            emit("\"event\":\"draw-label\",\"id\":" + quote(record.id.c_str()) +
+                 ",\"material\":" + std::to_string(index) + ",\"label\":" + quote(label.c_str()) +
+                 ",\"provenance\":\"J3DShape-drawFast-entry-not-GPU-proof\"");
+            GXPushDebugGroup(label.c_str());
+            draw_scopes[depth] = true;
+            ++record.draw_samples;
+            if (record.draw_samples == 32) pumpkin_materials[0] = pumpkin_materials[1] = nullptr;
+            break;
+        }
+    } catch (...) { failure(); }
+    return HOOK_CONTINUE;
+}
+void after_shape(ModContext*, void*, void*, void*) {
+    if (!draw_depth) return;
+    DrawProbeTimer timer;
+    const auto depth = --draw_depth;
+    if (depth < 8 && draw_scopes[depth]) {
+        GXPopDebugGroup();
+        draw_scopes[depth] = false;
+    }
+}
+}
+void initialize_draw_probe() {
+    draw_epoch = static_cast<unsigned long long>(std::chrono::steady_clock::now().time_since_epoch().count());
+    draw_token = 0;
+    draw_probe_calls = draw_probe_ns = 0;
+    if (!svc_hook) return;
+    draw_hook = mods::hook::add_pre<AssetShapeDraw>(before_shape) == MOD_OK &&
+                mods::hook::add_post<AssetShapeDraw>(after_shape) == MOD_OK;
+    if (!draw_hook) {
+        (void)mods::hook::uninstall<AssetShapeDraw>();
+        if (svc_log) svc_log->warn(mod_ctx, "Asset draw probe unavailable; labels disabled");
+    }
+}
+void shutdown_draw_probe() {
+    if (draw_probe_calls) {
+        try { emit("\"event\":\"draw-cost\",\"callbacks\":" + std::to_string(draw_probe_calls) +
+                   ",\"observer_ns\":" + std::to_string(draw_probe_ns)); }
+        catch (...) { failure(); }
+    }
+    if (draw_hook) (void)mods::hook::uninstall<AssetShapeDraw>();
+    draw_hook = false;
+    draw_depth = 0;
 }
 void begin(dRes_info_c* owner) noexcept {
     if (!settings::asset_diagnostics_enabled() || !owner || !owner->mArchive || !owner->mArchiveName) return;
@@ -95,6 +180,10 @@ void loaded(dRes_info_c* owner, unsigned index, J3DModelData* model) noexcept {
         auto it = std::find_if(records.begin(), records.end(), [&](const Record& r) {return r.owner==owner && r.index==index;});
         if (it == records.end()) return;
         it->model = model;
+        if (it->id == "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421" && model->getMaterialNum() == 2) {
+            pumpkin_owner = owner;
+            for (unsigned m = 0; m < 2; ++m) pumpkin_materials[m] = model->getMaterialNodePointer(m);
+        }
         if (model->getMaterialNum() > 256) { emit("\"event\":\"unsupported\",\"reason\":\"material limit\""); return; }
         for (unsigned m=0; m<model->getMaterialNum(); ++m) {
             auto* material = model->getMaterialNodePointer(m);
@@ -118,6 +207,10 @@ void created(J3DModelData* model) noexcept {
     } catch (...) { failure(); }
 }
 void erase(dRes_info_c* owner) noexcept {
+    if (owner == pumpkin_owner) {
+        pumpkin_materials[0] = pumpkin_materials[1] = nullptr;
+        pumpkin_owner = nullptr;
+    }
     try {
         for (const auto& r:records) if(r.owner==owner && settings::asset_diagnostics_enabled())
             emit("\"event\":\"archive-delete\",\"id\":"+quote(r.id.c_str()));
@@ -125,6 +218,8 @@ void erase(dRes_info_c* owner) noexcept {
     std::erase_if(records,[&](const Record& r){return r.owner==owner;});
 }
 void reset() noexcept {
+    pumpkin_materials[0] = pumpkin_materials[1] = nullptr;
+    pumpkin_owner = nullptr;
     // Release diagnostic storage on mod shutdown/reload, including vector capacity.
     std::vector<Record>().swap(records);
     events=0;

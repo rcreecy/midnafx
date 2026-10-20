@@ -144,4 +144,48 @@ class AssetTests(unittest.TestCase):
         self.assertEqual(models[2]['runtime_materials'],[0,1])
         self.assertTrue(all(len(t['replacement_candidates'])==1 for t in models[2]['textures']))
 
+    def test_draw_encoding_requires_matching_host_evidence(self):
+        item=a.model(fixture(),'x','y')
+        graph={'models':[item]}
+        label={'schema':1,'event':'draw-label','id':item['id'],'material':0,'label':'MidnaFXAssetV1:12:1'}
+        encoded={'schema':1,'event':'encoded','label':label['label'],'frame':2,'vertices':3,'indices':3,'instances':1}
+        # Worker log order is not the binding contract; labels are copied tokens.
+        a.join_runtime(graph,['AssetDraw '+json.dumps(encoded),'AssetGraph '+json.dumps(label)])
+        self.assertEqual(item['runtime_encoded_draws'],1)
+        self.assertEqual(item['runtime_encoded_materials'],[0])
+        other=a.model(fixture(),'x','y')
+        a.join_runtime({'models':[other]},['AssetGraph '+json.dumps(label)])
+        self.assertEqual(other['rendered_object'],'not-observed')
+        self.assertEqual(other['runtime_unencoded_labels'],1)
+        with self.assertRaises(ValueError):
+            a.join_runtime({'models':[other]},['AssetGraph '+json.dumps(label)]*2)
+        encoded['instances']=0
+        with self.assertRaises(ValueError): a.join_runtime(graph,['AssetDraw '+json.dumps(encoded)])
+        for invalid in ([], None, dict(encoded,label=[]), dict(encoded,instances=True)):
+            with self.assertRaises(ValueError):
+                a.join_runtime(graph,['AssetDraw '+json.dumps(invalid)])
+        with self.assertRaises(ValueError):
+            a.join_runtime(graph,['AssetGraph '+json.dumps(dict(label,label=[]))])
+
+    def test_recorded_draw_correlation(self):
+        root=Path(__file__).parents[1]/'docs/evidence/asset-draw-2026-10-20'
+        models=[]
+        for suffix,count in [('f',64),('g',32),('h',0)]:
+            graph=json.loads((root/f'pumpkin-graph-{suffix}.json').read_text())
+            self.assertEqual(graph['failures'],[])
+            item=graph['models'][0]
+            models.append(item)
+            self.assertEqual(item.get('runtime_draw_labels',0),count)
+            self.assertEqual(item.get('runtime_encoded_draws',0),count)
+            self.assertEqual(item.get('runtime_unencoded_labels',0),0)
+            if count:
+                self.assertEqual(item['runtime_encoded_materials'],[0,1])
+            else:
+                self.assertEqual(item['rendered_object'],'not-observed')
+        for item in models[1:]:
+            self.assertEqual(item['id'],models[0]['id'])
+            self.assertEqual(item['materials'],models[0]['materials'])
+            self.assertEqual([t['source_key'] for t in item['textures']],
+                             [t['source_key'] for t in models[0]['textures']])
+
 if __name__=='__main__': unittest.main()

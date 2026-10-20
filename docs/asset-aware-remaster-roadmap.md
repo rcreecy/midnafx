@@ -1,5 +1,7 @@
 # Asset-aware remaster roadmap
 
+October 20 update: the [native draw experiment](asset-draw-correlation.md) proves both pumpkin materials reach WebGPU encoding in vanilla and pack-enabled Windows sessions. The original priorities below remain useful; the submission-identity gap is now narrowed to generalization, resolved replacement selection, complete overhead measurement, and experimental Metal-host validation.
+
 The pumpkin proof establishes original resource, material, texture and shared creation relationships, including preservation with the tested Henriko pack. It does not establish an actor census, visibility, native draw attribution or material shader control. See [validation](asset-intelligence-validation.md) and [the source audit](asset-intelligence-investigation.md).
 
 ## Priorities

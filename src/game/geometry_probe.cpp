@@ -784,6 +784,7 @@ void on_model_created(ModContext*, void* args, void* retval, void*) {
 
 void initialize() {
     asset_probe::reset();
+    asset_probe::initialize_draw_probe();
     load_registered = false;
     delete_registered = false;
     create_registered = false;
@@ -816,6 +817,7 @@ void initialize() {
 }
 
 void shutdown() {
+    asset_probe::shutdown_draw_probe();
     asset_probe::reset();
     if (load_registered)
         (void)mods::hook::uninstall<ResourceLoad>();

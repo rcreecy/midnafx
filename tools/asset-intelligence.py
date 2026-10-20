@@ -143,7 +143,20 @@ def model(data, archive, name):
 
 def join_runtime(graph, lines):
     by_id={m['id']:m for m in graph['models']}
+    labels, encoded = {}, []
     for line in lines:
+        if 'AssetDraw ' in line:
+            event=json.loads(line.split('AssetDraw ',1)[1])
+            if not isinstance(event,dict) or event.get('schema')!=1 or event.get('event')!='encoded':
+                raise ValueError('unsupported draw schema')
+            if not isinstance(event.get('label'),str) or not re.fullmatch(r'MidnaFXAssetV1:\d+:\d+',event['label']):
+                raise ValueError('invalid encoded draw label')
+            if not all(type(event.get(k)) is int and event[k]>=0 for k in ('frame','vertices','indices','instances')):
+                raise ValueError('invalid encoded draw counts')
+            if not event['instances'] or not (event['vertices'] or event['indices']):
+                raise ValueError('empty encoded draw')
+            encoded.append(event)
+            continue
         if 'AssetGraph ' not in line:
             continue
         event=json.loads(line.split('AssetGraph ',1)[1])
@@ -154,6 +167,14 @@ def join_runtime(graph, lines):
         item=by_id.get(event.get('id'))
         if not item:
             continue
+        if event['event']=='draw-label':
+            label=event.get('label','')
+            index=event.get('material')
+            if not isinstance(label,str) or not re.fullmatch(r'MidnaFXAssetV1:\d+:\d+',label) or label in labels:
+                raise ValueError('invalid or reused draw label')
+            if type(index) is not int or not 0<=index<len(item['materials']):
+                raise ValueError('draw material index out of range')
+            labels[label]=(item,index)
         if event['event']=='creation':
             item['runtime_creations'] += 1
         if event['event']=='resource':
@@ -171,6 +192,21 @@ def join_runtime(graph, lines):
     for item in by_id.values():
         item['runtime_materials']=sorted(set(item.get('runtime_materials',[])))
     graph['runtime_limitations']=sorted(set(graph.get('runtime_limitations',[])))
+    matched=set()
+    for event in encoded:
+        binding=labels.get(event.get('label'))
+        if not binding: continue
+        item,index=binding
+        matched.add(event['label'])
+        item['runtime_encoded_draws']=item.get('runtime_encoded_draws',0)+1
+        item.setdefault('runtime_encoded_materials',[]).append(index)
+        item['rendered_object']='native-WebGPU-draw-encoded; visibility-and-GPU-completion-unobserved'
+    for label,(item,index) in labels.items():
+        item['runtime_draw_labels']=item.get('runtime_draw_labels',0)+1
+        if label not in matched: item['runtime_unencoded_labels']=item.get('runtime_unencoded_labels',0)+1
+    for item in by_id.values():
+        if 'runtime_encoded_materials' in item:
+            item['runtime_encoded_materials']=sorted(set(item['runtime_encoded_materials']))
 
 def replacements(graph, directory):
     if not directory.is_dir():

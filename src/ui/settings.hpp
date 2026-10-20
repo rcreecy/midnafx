@@ -8,6 +8,7 @@ bool enabled();
 bool diagnostics_enabled();
 bool geometry_diagnostics_enabled();
 bool asset_diagnostics_enabled();
+bool asset_draw_diagnostics_enabled();
 bool topology_diagnostics_enabled();
 bool geometry_mutation_test_enabled();
 bool geometry_smoothing_enabled();

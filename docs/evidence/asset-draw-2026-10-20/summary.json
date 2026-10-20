@@ -1,0 +1,82 @@
+{
+  "claim": "Native WebGPU draw encoding only; visibility, GPU completion and replacement selection unobserved",
+  "host_patch_sha256": "8bdb5d551dfb89e2eed42f36a93e5cc3b1f64b1bbbd6d5ad6e6055efdad44fb0",
+  "host_sha256": "1c8aa4e578ba10e8dd9d20e454b070097750aa88392003ab171595237df0f761",
+  "schema": 1,
+  "sessions": {
+    "f": {
+      "config": {
+        "game.enableTextureReplacements": false,
+        "mod.com_midnafx_midnafx.asset_diagnostics": true,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": true
+      },
+      "draw_cost": [
+        {
+          "callbacks": 518662,
+          "event": "draw-cost",
+          "observer_ns": 32854300,
+          "schema": 1,
+          "source": "AssetGraph"
+        },
+        {
+          "callbacks": 28861,
+          "event": "draw-cost",
+          "observer_ns": 1009500,
+          "schema": 1,
+          "source": "AssetGraph"
+        }
+      ],
+      "draw_labels": 64,
+      "encoded_draws": 64,
+      "graph_failures": [],
+      "name": "asset-draw-vanilla-f",
+      "normal_mod_shutdown": true,
+      "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+      "reload_observed": true,
+      "stderr_sha256": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout_sha256": "d1c0f1779949ae6bc42990fab70f897414e2d4890824a7f01950949d87c9c283"
+    },
+    "g": {
+      "config": {
+        "game.enableTextureReplacements": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": true,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": true
+      },
+      "draw_cost": [
+        {
+          "callbacks": 68577,
+          "event": "draw-cost",
+          "observer_ns": 2659300,
+          "schema": 1,
+          "source": "AssetGraph"
+        }
+      ],
+      "draw_labels": 32,
+      "encoded_draws": 32,
+      "graph_failures": [],
+      "name": "asset-draw-pack-g",
+      "normal_mod_shutdown": true,
+      "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+      "reload_observed": false,
+      "stderr_sha256": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout_sha256": "d584cea29efdc0608af1c65201eac9c00ec6baba3faf523585b5914c64edcc2d"
+    },
+    "h": {
+      "config": {
+        "game.enableTextureReplacements": false,
+        "mod.com_midnafx_midnafx.asset_diagnostics": true,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": false
+      },
+      "draw_cost": [],
+      "draw_labels": 0,
+      "encoded_draws": 0,
+      "graph_failures": [],
+      "name": "asset-draw-disabled-h",
+      "normal_mod_shutdown": true,
+      "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+      "reload_observed": false,
+      "stderr_sha256": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout_sha256": "fea5ca3ce6c8968e10e1eaa4167d2b30b1515531d554b7a00f7cac97a5c7617b"
+    }
+  }
+}
