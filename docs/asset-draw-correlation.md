@@ -44,6 +44,8 @@ The existing resource discovery cap can prevent discovery of later assets. This 
 
 The Windows Release package build and isolated experimental host build pass. Windows CTest passes **18/18** in **37.62 seconds**. The final Python asset suite passes **10/10**, including recorded vanilla/pack/disabled joins and malformed host records. Patch reverse-applicability and whitespace checks pass. These tests do not substitute for the untested full-overhead and Metal-host gates.
 
+Hosted [CI run 39434827154](https://github.com/rcreecy/midnafx/actions/runs/39434827154) passes at implementation commit `76366b3`: Windows **18/18** in 43.07 seconds and macOS Intel **18/18** in 17.92 seconds. Three additional Metal AA pixel runs pass in 8.81, 9.45 and 8.80 seconds. Both native packages are produced; the release job is skipped. CI builds the mod against the ordinary pinned SDK, not the experimental Aurora host patch.
+
 ## Reproduction
 
 Apply the patch with `python tools/asset-draw-host-patch.py --apply`, then rebuild the isolated host. Enable both asset settings in an isolated user directory before loading Ordon. Repeat with the existing pack, then with draw diagnostics disabled. Close the host before parsing redirected output.
