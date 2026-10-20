@@ -26,6 +26,8 @@ Every session reaches the rendered scene and shuts down normally. The original m
 
 The experimental host build passes after increasing payload capacity. Windows CTest passes **18/18** in **48.18 seconds**. The final Python suite contains **12 tests**, including malformed binding records and recorded streaming transitions. No new native macOS host or GPU-completion claim follows from these Windows sessions.
 
+Hosted [CI run 39511389148](https://github.com/rcreecy/midnafx/actions/runs/39511389148) passes at implementation commit `fbc84c8`: Windows **18/18** in 41.58 seconds and macOS Intel **18/18** in 26.36 seconds. Three Metal AA repeats pass in 11.61, 10.38 and 10.47 seconds. Both ordinary native packages are produced; no release is published. CI does not build the experimental host patch.
+
 ## Reproduction
 
 Use the same isolated launcher and Ordon scene as the prior draw experiment. Apply the version-pinned patch with `tools/asset-draw-host-patch.py --apply`, rebuild the host, enable both diagnostic settings, and compare vanilla, pack-enabled and draw-disabled sessions. Close the host before exporting graphs. The mod package itself is unchanged.
