@@ -31,6 +31,8 @@ The tested package SHA-256 is `15ec60f960a1277f4441fd26358ef13196534018b8be29ab7
 
 Full local Windows CTest passes **18/18** in 42.67 seconds. Whitespace checks also pass. Native macOS gameplay remains untested.
 
+Hosted [CI run 39539957849](https://github.com/rcreecy/midnafx/actions/runs/39539957849) passes at implementation commit `e43f68e`: Windows **18/18** in 33.47 seconds and macOS Intel **18/18** in 28.09 seconds. Three Metal AA repeats pass in 12.26, 14.53 and 15.79 seconds. Both ordinary native packages are produced; the release job is skipped. CI builds the new mod control and checks recorded metadata, but does not exercise native macOS gameplay or compile the experimental host patch.
+
 The mod observer reports cumulative 111.1358 ms across 2,061,519 enabled shape callbacks. This measures its pre/post bodies, excludes native draw execution, and does not measure complete host metadata/logging/allocation costs. It is not a controlled overhead benchmark.
 
 ## Reproduction and limits
