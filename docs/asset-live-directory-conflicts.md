@@ -1,5 +1,7 @@
 # Live duplicate replacement files and fallback
 
+Follow-up: [live reload](asset-hot-reload.md) now samples provider removal, original fallback and re-addition without a scene reload or host restart. Exact in-flight frame overlap and GPU completion remain unobserved.
+
 The Windows D3D12 experiment confirms how the pinned host handles duplicate source keys within one replacement-directory load. It selects the first candidate in sorted relative-path order and registers that key once. This occurs before the [registry priority rules](asset-replacement-conflicts.md): the loader's `registeredKeys` set skips later duplicate files. Equal-priority registry entries still use the latest registration, but this directory loader does not create those competing entries.
 
 ## Experiment and result

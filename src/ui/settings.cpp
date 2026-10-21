@@ -2,6 +2,7 @@
 #include "config/presets.hpp"
 #include "config/visual.hpp"
 #include "game/camera_probe.hpp"
+#include "game/asset_probe.hpp"
 #include "game/geometry_probe.hpp"
 #include "game/twilight.hpp"
 #include "render/renderer.hpp"
@@ -661,6 +662,9 @@ void reset_timing(ModContext*, void*) {
     render::reset_timing_samples();
     diagnostics_log_written = false;
 }
+void resample_asset_draws(ModContext*, void*) {
+    asset_probe::request_draw_sample();
+}
 void register_twilight_target() {
     has_twilight_target = false;
     twilight_target_handle = 0;
@@ -1068,6 +1072,9 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
     add_toggle(panel, "Asset identity diagnostics (new loads only)", asset_diagnostics);
     add_toggle(panel, "Pumpkin draw labels (experimental host probe)", asset_draw_diagnostics);
+    button.label = "Sample pumpkin draws again";
+    button.on_pressed = resample_asset_draws;
+    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
     add_toggle(panel, "Log topology for loaded models (developer)", topology_diagnostics);
     add_toggle(panel, "Mutation test: metal box only", geometry_mutation_test);
 

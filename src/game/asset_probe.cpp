@@ -10,6 +10,7 @@
 #include <JSystem/JKernel/JKRArchive.h>
 #include <d/d_resorce.h>
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
@@ -40,6 +41,7 @@ unsigned long long draw_token = 0;
 J3DMaterial* pumpkin_materials[2]{};
 dRes_info_c* pumpkin_owner = nullptr;
 unsigned long long draw_probe_calls = 0, draw_probe_ns = 0;
+std::atomic<bool> draw_sample_requested{false};
 struct DrawProbeTimer {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     ~DrawProbeTimer() {
@@ -78,6 +80,21 @@ HookAction before_shape(ModContext*, void* args, void*, void*) {
     draw_scopes[depth] = false;
     if (!args) return HOOK_CONTINUE;
     try {
+        if (!depth && draw_sample_requested.load(std::memory_order_relaxed) &&
+            draw_sample_requested.exchange(false, std::memory_order_relaxed)) {
+            // Only an explicit request scans the bounded registry. All model
+            // dereferences stay on the shape callback's game thread.
+            for (auto& record : records) {
+                if (record.id != "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421" ||
+                    !record.model || record.model->getMaterialNum() != 2) continue;
+                record.draw_samples = 0;
+                pumpkin_owner = record.owner;
+                for (unsigned m = 0; m < 2; ++m) pumpkin_materials[m] = record.model->getMaterialNodePointer(m);
+                emit("\"event\":\"draw-resample\",\"id\":" + quote(record.id.c_str()) +
+                     ",\"next_token\":" + std::to_string(draw_token + 1));
+                break;
+            }
+        }
         const auto* shape = mods::arg<const J3DShape*>(args, 0);
         auto* material = shape ? shape->getMaterial() : nullptr;
         if (!material || (material != pumpkin_materials[0] && material != pumpkin_materials[1]))
@@ -111,6 +128,10 @@ void after_shape(ModContext*, void*, void*, void*) {
         draw_scopes[depth] = false;
     }
 }
+}
+void request_draw_sample() noexcept {
+    if (settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled())
+        draw_sample_requested.store(true, std::memory_order_relaxed);
 }
 void initialize_draw_probe() {
     draw_epoch = static_cast<unsigned long long>(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -218,6 +239,7 @@ void erase(dRes_info_c* owner) noexcept {
     std::erase_if(records,[&](const Record& r){return r.owner==owner;});
 }
 void reset() noexcept {
+    draw_sample_requested.store(false, std::memory_order_relaxed);
     pumpkin_materials[0] = pumpkin_materials[1] = nullptr;
     pumpkin_owner = nullptr;
     // Release diagnostic storage on mod shutdown/reload, including vector capacity.

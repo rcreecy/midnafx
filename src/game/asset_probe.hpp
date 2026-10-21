@@ -9,4 +9,5 @@ void erase(dRes_info_c* owner) noexcept;
 void reset() noexcept;
 void initialize_draw_probe();
 void shutdown_draw_probe();
+void request_draw_sample() noexcept;
 }

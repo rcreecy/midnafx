@@ -1,5 +1,7 @@
 # Pumpkin native draw correlation
 
+The [manual resample control](asset-hot-reload.md) extends the original 32-sample lifetime budget with explicit bounded requests. Labels continue increasing; discovery still observes new loads only unless a known resource is explicitly resampled.
+
 Follow-up: [sampled texture binding](asset-texture-binding.md) now records actual slot-0 replacement status and dimensions, including thumbnail-to-full-size observations. Exact provider/file selection remains unobserved.
 
 ## Result and scope

@@ -1,0 +1,166 @@
+{
+  "archive_deletes": 0,
+  "creations": 12,
+  "disabled_request_added_samples": false,
+  "draw_cost": [
+    {
+      "callbacks": 2061519,
+      "event": "draw-cost",
+      "observer_ns": 111135800,
+      "schema": 1,
+      "source": "AssetGraph"
+    }
+  ],
+  "draw_labels": 128,
+  "encoded_draws": 128,
+  "host_sha256": "482aa1fcc8c4789297ba3b4d8476582a8e1868c33be578a982628ca35e8f3e8b",
+  "limitations": [
+    "GPU completion and exact in-flight frame overlap unobserved",
+    "full observer overhead unmeasured",
+    "native Metal gameplay untested"
+  ],
+  "normal_shutdown": true,
+  "package_sha256": "15ec60f960a1277f4441fd26358ef13196534018b8be29ab77e25bb6ab9dbcb3",
+  "phases": [
+    {
+      "bindings": [
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 1,
+          "mips": 7,
+          "registration": 1,
+          "replacement": 1,
+          "width": 64
+        },
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 0,
+          "mips": 7,
+          "registration": 2,
+          "replacement": 1,
+          "width": 64
+        },
+        {
+          "bound": 1,
+          "height": 1024,
+          "material": 1,
+          "mips": 11,
+          "registration": 1,
+          "replacement": 1,
+          "width": 1024
+        },
+        {
+          "bound": 1,
+          "height": 2048,
+          "material": 0,
+          "mips": 12,
+          "registration": 2,
+          "replacement": 1,
+          "width": 2048
+        }
+      ],
+      "encoded_draws": 32,
+      "provider": "A-first",
+      "tokens": [
+        1,
+        32
+      ]
+    },
+    {
+      "bindings": [
+        {
+          "bound": 1,
+          "height": 1024,
+          "material": 1,
+          "mips": 11,
+          "registration": 8,
+          "replacement": 1,
+          "width": 1024
+        },
+        {
+          "bound": 1,
+          "height": 2048,
+          "material": 0,
+          "mips": 12,
+          "registration": 9,
+          "replacement": 1,
+          "width": 2048
+        }
+      ],
+      "encoded_draws": 32,
+      "provider": "z-second",
+      "tokens": [
+        33,
+        64
+      ]
+    },
+    {
+      "bindings": [
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 1,
+          "mips": 1,
+          "registration": 0,
+          "replacement": 0,
+          "width": 64
+        },
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 0,
+          "mips": 1,
+          "registration": 0,
+          "replacement": 0,
+          "width": 64
+        }
+      ],
+      "encoded_draws": 32,
+      "provider": "none",
+      "tokens": [
+        65,
+        96
+      ]
+    },
+    {
+      "bindings": [
+        {
+          "bound": 1,
+          "height": 1024,
+          "material": 1,
+          "mips": 11,
+          "registration": 10,
+          "replacement": 1,
+          "width": 1024
+        },
+        {
+          "bound": 1,
+          "height": 2048,
+          "material": 0,
+          "mips": 12,
+          "registration": 11,
+          "replacement": 1,
+          "width": 2048
+        }
+      ],
+      "encoded_draws": 32,
+      "provider": "A-first",
+      "tokens": [
+        97,
+        128
+      ]
+    }
+  ],
+  "resample_next_tokens": [
+    33,
+    65,
+    97
+  ],
+  "resource_loads": 1,
+  "result": "PASS",
+  "schema": 1,
+  "session": "asset-hot-reload-r",
+  "stdout_sha256": "5fedcdc248c50119eae58bf7cc7aad131886ffd050230e966357f6c3b3661ef7"
+}

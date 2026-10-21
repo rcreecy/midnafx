@@ -294,4 +294,31 @@ class AssetTests(unittest.TestCase):
             self.assertEqual(fresh['runtime_slot0_bindings'],item['runtime_slot0_bindings'])
         self.assertEqual(stable,[stable[0]]*3)
 
+    def test_recorded_hot_reload_preserves_resource_and_refreshes_binding(self):
+        root=Path(__file__).parents[1]/'docs/evidence/asset-hot-reload-2026-10-20'
+        events=[json.loads(line) for line in (root/'asset-hot-reload-r.jsonl').read_text().splitlines()]
+        graph=json.loads((root/'pumpkin-graph-r.json').read_text())
+        item=graph['models'][0]
+        self.assertEqual(graph['failures'],[])
+        self.assertEqual(item['resource_load_observations'],1)
+        self.assertEqual(item['runtime_creations'],12)
+        self.assertEqual(item.get('archive_delete_observations',0),0)
+        self.assertEqual([e['next_token'] for e in events if e['event']=='draw-resample'],[33,65,97])
+        labels={e['label']:e for e in events if e['event']=='draw-label'}
+        encoded=[e for e in events if e['event']=='encoded']
+        self.assertEqual(len(labels),128)
+        self.assertEqual({e['label'] for e in encoded},set(labels))
+        expected=({1,2},{8,9},{0},{10,11})
+        for phase,registrations in enumerate(expected):
+            draws=[e for e in encoded if phase*32<int(e['label'].rsplit(':',1)[1])<=(phase+1)*32]
+            self.assertEqual(len(draws),32)
+            self.assertEqual({e['slot0']['registration'] for e in draws},registrations)
+            self.assertEqual({labels[e['label']]['material'] for e in draws},{0,1})
+            if phase==2:
+                self.assertTrue(all(e['slot0']['replacement']==0 and e['slot0']['width']==64 for e in draws))
+        fresh={k:copy.deepcopy(v) for k,v in item.items() if not k.startswith('runtime_') and not k.endswith('_observations')}
+        fresh.update(runtime_creations=0,rendered_object='not-observed')
+        a.join_runtime({'models':[fresh]},[e['source']+' '+json.dumps({k:v for k,v in e.items() if k!='source'}) for e in events])
+        self.assertEqual(fresh['runtime_slot0_bindings'],item['runtime_slot0_bindings'])
+
 if __name__=='__main__': unittest.main()
