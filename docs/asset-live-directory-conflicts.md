@@ -28,6 +28,8 @@ The Python asset suite passes **15/15**. The added regression case recomputes lo
 
 Local Windows CTest passes **18/18** in 41.25 seconds. All three saved settings snapshots retain replacement support, identity diagnostics and draw diagnostics enabled. Defaults and installed user settings remain unchanged.
 
+Hosted [CI run 39528675887](https://github.com/rcreecy/midnafx/actions/runs/39528675887) passes at `f50f6d5`: Windows **18/18** in 42.21 seconds and macOS Intel **18/18** in 23.98 seconds. Three Metal AA repeats pass in 10.48, 10.51 and 10.94 seconds. Both ordinary packages are produced; the release job is skipped. CI revalidates the metadata evidence, not native macOS gameplay or the experimental host patch.
+
 ## Reproduction and remaining work
 
 Use the pinned experimental host and existing diagnostic package. Create a fresh isolated replacement root with `A-first` and `z-second` subdirectories. Copy `tex1_64x64_000e342106676e31_14.dds` and `tex1_64x64_630d5c7bc606585d_14.dds` from the verified pack into both directories. Load Ordon `F_SP103,0,27,0` with both asset settings and replacements enabled, using isolated user/mod directories.
