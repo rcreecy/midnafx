@@ -1,0 +1,2972 @@
+[
+  {
+    "capture": {
+      "name": "b1",
+      "samples": [
+        {
+          "cpu_seconds": 20.96875,
+          "handles": 705,
+          "private_bytes": 1647845376,
+          "seconds": 0,
+          "threads": 45,
+          "working_set_bytes": 1429921792
+        },
+        {
+          "cpu_seconds": 21.234375,
+          "handles": 705,
+          "private_bytes": 1647845376,
+          "seconds": 1.0667785,
+          "threads": 45,
+          "working_set_bytes": 1429921792
+        },
+        {
+          "cpu_seconds": 21.59375,
+          "handles": 705,
+          "private_bytes": 1647845376,
+          "seconds": 2.086854,
+          "threads": 45,
+          "working_set_bytes": 1429921792
+        },
+        {
+          "cpu_seconds": 22.015625,
+          "handles": 705,
+          "private_bytes": 1647845376,
+          "seconds": 3.0935369,
+          "threads": 45,
+          "working_set_bytes": 1429921792
+        },
+        {
+          "cpu_seconds": 22.453125,
+          "handles": 705,
+          "private_bytes": 1647845376,
+          "seconds": 4.1030517,
+          "threads": 45,
+          "working_set_bytes": 1429921792
+        },
+        {
+          "cpu_seconds": 22.953125,
+          "handles": 705,
+          "private_bytes": 1647845376,
+          "seconds": 5.110224,
+          "threads": 45,
+          "working_set_bytes": 1429921792
+        },
+        {
+          "cpu_seconds": 23.28125,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 6.1177566,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 23.75,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 7.1259614,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 24.25,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 8.1362351,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 24.71875,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 9.1488559,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 25.1875,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 10.1697297,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 25.578125,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 11.1820907,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 25.90625,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 12.1896518,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 26.375,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 13.2012998,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 26.75,
+          "handles": 705,
+          "private_bytes": 1647849472,
+          "seconds": 14.2135348,
+          "threads": 45,
+          "working_set_bytes": 1429925888
+        },
+        {
+          "cpu_seconds": 27.09375,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 15.2218694,
+          "threads": 45,
+          "working_set_bytes": 1429950464
+        },
+        {
+          "cpu_seconds": 27.5,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 16.2288286,
+          "threads": 45,
+          "working_set_bytes": 1429958656
+        },
+        {
+          "cpu_seconds": 27.859375,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 17.2411413,
+          "threads": 45,
+          "working_set_bytes": 1429958656
+        },
+        {
+          "cpu_seconds": 28.171875,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 18.2502178,
+          "threads": 45,
+          "working_set_bytes": 1429958656
+        },
+        {
+          "cpu_seconds": 28.5625,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 19.2591138,
+          "threads": 45,
+          "working_set_bytes": 1429958656
+        },
+        {
+          "cpu_seconds": 28.90625,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 20.2674986,
+          "threads": 45,
+          "working_set_bytes": 1429958656
+        },
+        {
+          "cpu_seconds": 29.234375,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 21.283002,
+          "threads": 45,
+          "working_set_bytes": 1430056960
+        },
+        {
+          "cpu_seconds": 29.625,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 22.2877142,
+          "threads": 45,
+          "working_set_bytes": 1430056960
+        },
+        {
+          "cpu_seconds": 29.953125,
+          "handles": 705,
+          "private_bytes": 1647861760,
+          "seconds": 23.3004643,
+          "threads": 45,
+          "working_set_bytes": 1430056960
+        },
+        {
+          "cpu_seconds": 30.296875,
+          "handles": 697,
+          "private_bytes": 1647714304,
+          "seconds": 24.3081224,
+          "threads": 41,
+          "working_set_bytes": 1429970944
+        },
+        {
+          "cpu_seconds": 30.640625,
+          "handles": 697,
+          "private_bytes": 1647714304,
+          "seconds": 25.3203132,
+          "threads": 41,
+          "working_set_bytes": 1429970944
+        },
+        {
+          "cpu_seconds": 31.046875,
+          "handles": 697,
+          "private_bytes": 1647714304,
+          "seconds": 26.329803,
+          "threads": 41,
+          "working_set_bytes": 1429970944
+        },
+        {
+          "cpu_seconds": 31.421875,
+          "handles": 668,
+          "private_bytes": 1647697920,
+          "seconds": 27.3462353,
+          "threads": 41,
+          "working_set_bytes": 1429823488
+        },
+        {
+          "cpu_seconds": 31.8125,
+          "handles": 670,
+          "private_bytes": 1647697920,
+          "seconds": 28.3515972,
+          "threads": 41,
+          "working_set_bytes": 1429823488
+        },
+        {
+          "cpu_seconds": 32.25,
+          "handles": 670,
+          "private_bytes": 1647697920,
+          "seconds": 29.3586166,
+          "threads": 41,
+          "working_set_bytes": 1429823488
+        },
+        {
+          "cpu_seconds": 32.59375,
+          "handles": 670,
+          "private_bytes": 1647697920,
+          "seconds": 30.3699022,
+          "threads": 41,
+          "working_set_bytes": 1429823488
+        }
+      ],
+      "variant": "baseline",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [],
+        "AssetProvider": []
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "6a8ebb73e7734e9859a8c7c51a62cdcd04581adad596bfe7bf97faf3ac86aade",
+      "scene.jpg": "2fac85f80783f1da42e1fdd833f5051cdccc8f609482432d4fd2db2a0460ad1a",
+      "session.json": "2f72647bffa83dec649ff48a1ef342166e8691a3da25240e43a1b28252c72c45",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "f93a740e72969a3ed48baefcaa1af83f654c516c41015b8bf983a73b5f68159b"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": false,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "F1645430F7DBDBB9B1AF6ADE6B2E4B72CB017A7D934319349EF9A425139AB2DE",
+      "name": "b1",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:38:16.5674562Z",
+      "variant": "baseline"
+    }
+  },
+  {
+    "capture": {
+      "name": "o1",
+      "samples": [
+        {
+          "cpu_seconds": 23.53125,
+          "handles": 712,
+          "private_bytes": 1647837184,
+          "seconds": 0,
+          "threads": 46,
+          "working_set_bytes": 1429807104
+        },
+        {
+          "cpu_seconds": 24.0,
+          "handles": 712,
+          "private_bytes": 1648623616,
+          "seconds": 1.0567038,
+          "threads": 46,
+          "working_set_bytes": 1430638592
+        },
+        {
+          "cpu_seconds": 24.390625,
+          "handles": 712,
+          "private_bytes": 1648623616,
+          "seconds": 2.0801419,
+          "threads": 46,
+          "working_set_bytes": 1430638592
+        },
+        {
+          "cpu_seconds": 24.828125,
+          "handles": 712,
+          "private_bytes": 1648623616,
+          "seconds": 3.0998157,
+          "threads": 46,
+          "working_set_bytes": 1430638592
+        },
+        {
+          "cpu_seconds": 25.234375,
+          "handles": 712,
+          "private_bytes": 1648623616,
+          "seconds": 4.1231952,
+          "threads": 46,
+          "working_set_bytes": 1430638592
+        },
+        {
+          "cpu_seconds": 25.59375,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 5.1332538,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 26.0625,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 6.1539378,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 26.515625,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 7.1669124,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 26.859375,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 8.1778889,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 27.21875,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 9.194075,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 27.625,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 10.2063309,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 27.9375,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 11.2122214,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 28.296875,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 12.2222254,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 28.703125,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 13.2395467,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 29.0625,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 14.2482373,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 29.421875,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 15.2568476,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 29.8125,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 16.2631458,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 30.15625,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 17.2741744,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 30.484375,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 18.2805697,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 30.859375,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 19.2936427,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 31.203125,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 20.3031064,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 31.625,
+          "handles": 707,
+          "private_bytes": 1648521216,
+          "seconds": 21.3131501,
+          "threads": 45,
+          "working_set_bytes": 1430568960
+        },
+        {
+          "cpu_seconds": 32.0,
+          "handles": 707,
+          "private_bytes": 1648533504,
+          "seconds": 22.3370182,
+          "threads": 45,
+          "working_set_bytes": 1430581248
+        },
+        {
+          "cpu_seconds": 32.375,
+          "handles": 707,
+          "private_bytes": 1648533504,
+          "seconds": 23.3460269,
+          "threads": 45,
+          "working_set_bytes": 1430581248
+        },
+        {
+          "cpu_seconds": 32.78125,
+          "handles": 707,
+          "private_bytes": 1648533504,
+          "seconds": 24.36035,
+          "threads": 45,
+          "working_set_bytes": 1430589440
+        },
+        {
+          "cpu_seconds": 33.203125,
+          "handles": 707,
+          "private_bytes": 1648533504,
+          "seconds": 25.3671144,
+          "threads": 45,
+          "working_set_bytes": 1430589440
+        },
+        {
+          "cpu_seconds": 33.65625,
+          "handles": 707,
+          "private_bytes": 1648533504,
+          "seconds": 26.3778577,
+          "threads": 45,
+          "working_set_bytes": 1430597632
+        },
+        {
+          "cpu_seconds": 33.953125,
+          "handles": 707,
+          "private_bytes": 1648533504,
+          "seconds": 27.3895275,
+          "threads": 45,
+          "working_set_bytes": 1430597632
+        },
+        {
+          "cpu_seconds": 34.34375,
+          "handles": 707,
+          "private_bytes": 1648443392,
+          "seconds": 28.4009102,
+          "threads": 45,
+          "working_set_bytes": 1430507520
+        },
+        {
+          "cpu_seconds": 34.75,
+          "handles": 707,
+          "private_bytes": 1648443392,
+          "seconds": 29.4135096,
+          "threads": 45,
+          "working_set_bytes": 1430507520
+        },
+        {
+          "cpu_seconds": 35.171875,
+          "handles": 707,
+          "private_bytes": 1648443392,
+          "seconds": 30.4238936,
+          "threads": 45,
+          "working_set_bytes": 1430544384
+        }
+      ],
+      "variant": "patched-off",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [],
+        "AssetProvider": [
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "c7d54bb7c9d9bf15",
+            "registration": 1,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "a486760c12e3a471",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "a486760c12e3a471",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "c7d54bb7c9d9bf15",
+            "registration": 1,
+            "schema": 1
+          }
+        ]
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "8f8343aa06a084c061b0b778ddfd11436e7be8bcad49256e288d5c1984ec0d61",
+      "scene.jpg": "a882b052556332044af91ba96192c96665f6bd93b8902d015c188bd0e5cfff05",
+      "session.json": "8fb51c8a67cbcd76c51777aac395843a2245cd2aaaddcea07d7abdcbf6d18b37",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "f53bdd0a08132ff3e4b9813aabd73b230c04e60f42960aa90f01e409db7ad4c2"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": false,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+      "name": "o1",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:40:06.8975477Z",
+      "variant": "patched-off"
+    }
+  },
+  {
+    "capture": {
+      "name": "e1",
+      "samples": [
+        {
+          "cpu_seconds": 19.359375,
+          "handles": 700,
+          "private_bytes": 1634181120,
+          "seconds": 0,
+          "threads": 46,
+          "working_set_bytes": 1406574592
+        },
+        {
+          "cpu_seconds": 19.796875,
+          "handles": 700,
+          "private_bytes": 1634181120,
+          "seconds": 1.0584636,
+          "threads": 46,
+          "working_set_bytes": 1406574592
+        },
+        {
+          "cpu_seconds": 20.1875,
+          "handles": 700,
+          "private_bytes": 1634181120,
+          "seconds": 2.0790431,
+          "threads": 46,
+          "working_set_bytes": 1406656512
+        },
+        {
+          "cpu_seconds": 20.53125,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 3.0883637,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 21.015625,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 4.103529,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 21.421875,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 5.1117291,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 21.734375,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 6.1254915,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 22.140625,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 7.138915,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 22.625,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 8.1474418,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 23.0625,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 9.1571596,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 23.484375,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 10.1674995,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 23.953125,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 11.1857683,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 24.390625,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 12.1931735,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 24.890625,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 13.2089962,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 25.28125,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 14.2189482,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 25.6875,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 15.2264684,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 26.046875,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 16.2357754,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 26.421875,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 17.2446082,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 26.796875,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 18.2554564,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 27.3125,
+          "handles": 695,
+          "private_bytes": 1634078720,
+          "seconds": 19.2667928,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 27.765625,
+          "handles": 695,
+          "private_bytes": 1634582528,
+          "seconds": 20.2748112,
+          "threads": 45,
+          "working_set_bytes": 1407090688
+        },
+        {
+          "cpu_seconds": 28.25,
+          "handles": 695,
+          "private_bytes": 1634582528,
+          "seconds": 21.2833253,
+          "threads": 45,
+          "working_set_bytes": 1407201280
+        },
+        {
+          "cpu_seconds": 28.75,
+          "handles": 695,
+          "private_bytes": 1634582528,
+          "seconds": 22.2991098,
+          "threads": 45,
+          "working_set_bytes": 1407209472
+        },
+        {
+          "cpu_seconds": 29.1875,
+          "handles": 695,
+          "private_bytes": 1635086336,
+          "seconds": 23.3042855,
+          "threads": 45,
+          "working_set_bytes": 1407725568
+        },
+        {
+          "cpu_seconds": 29.65625,
+          "handles": 695,
+          "private_bytes": 1635086336,
+          "seconds": 24.3133378,
+          "threads": 45,
+          "working_set_bytes": 1407725568
+        },
+        {
+          "cpu_seconds": 30.171875,
+          "handles": 695,
+          "private_bytes": 1635086336,
+          "seconds": 25.3269266,
+          "threads": 45,
+          "working_set_bytes": 1407725568
+        },
+        {
+          "cpu_seconds": 30.53125,
+          "handles": 695,
+          "private_bytes": 1635086336,
+          "seconds": 26.3407698,
+          "threads": 45,
+          "working_set_bytes": 1407725568
+        },
+        {
+          "cpu_seconds": 30.90625,
+          "handles": 695,
+          "private_bytes": 1635020800,
+          "seconds": 27.3555412,
+          "threads": 45,
+          "working_set_bytes": 1407709184
+        },
+        {
+          "cpu_seconds": 31.3125,
+          "handles": 695,
+          "private_bytes": 1635020800,
+          "seconds": 28.3753485,
+          "threads": 45,
+          "working_set_bytes": 1407717376
+        },
+        {
+          "cpu_seconds": 31.8125,
+          "handles": 695,
+          "private_bytes": 1635020800,
+          "seconds": 29.3839616,
+          "threads": 45,
+          "working_set_bytes": 1407717376
+        },
+        {
+          "cpu_seconds": 32.1875,
+          "handles": 695,
+          "private_bytes": 1635020800,
+          "seconds": 30.3935356,
+          "threads": 45,
+          "working_set_bytes": 1407717376
+        }
+      ],
+      "variant": "patched-on",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [
+          {
+            "callbacks": 416905,
+            "event": "draw-cost",
+            "observer_ns": 19241600,
+            "schema": 1
+          }
+        ],
+        "AssetProvider": [
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "7789632fc077bcbf",
+            "registration": 1,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "cf12465494cd684f",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "cf12465494cd684f",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "7789632fc077bcbf",
+            "registration": 1,
+            "schema": 1
+          }
+        ]
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "6b5843a6ea67dae70aad30f0545e668fb2f782825c5f690a191482b49c715f6e",
+      "scene.jpg": "a77315d6f860d7e83d397cfde7a3e1703584543baf7e9442e260e43c190a3b15",
+      "session.json": "94b50c6600465759f73781e5c91699f5330ce3cc392071b52e3fda53fe22f16a",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "9e447759fb91c15fb300847ce3a821fcb5dda3d6028f7dbec633e5d6b18bb567"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": true,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": true,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+      "name": "e1",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:41:36.8846029Z",
+      "variant": "patched-on"
+    }
+  },
+  {
+    "capture": {
+      "name": "e2",
+      "samples": [
+        {
+          "cpu_seconds": 21.390625,
+          "handles": 702,
+          "private_bytes": 1632129024,
+          "seconds": 0,
+          "threads": 46,
+          "working_set_bytes": 1405677568
+        },
+        {
+          "cpu_seconds": 21.796875,
+          "handles": 702,
+          "private_bytes": 1632129024,
+          "seconds": 1.0549701,
+          "threads": 46,
+          "working_set_bytes": 1405677568
+        },
+        {
+          "cpu_seconds": 22.203125,
+          "handles": 697,
+          "private_bytes": 1632026624,
+          "seconds": 2.0766531,
+          "threads": 45,
+          "working_set_bytes": 1405607936
+        },
+        {
+          "cpu_seconds": 22.609375,
+          "handles": 697,
+          "private_bytes": 1632047104,
+          "seconds": 3.0854241,
+          "threads": 45,
+          "working_set_bytes": 1405624320
+        },
+        {
+          "cpu_seconds": 23.03125,
+          "handles": 697,
+          "private_bytes": 1632047104,
+          "seconds": 4.0961292,
+          "threads": 45,
+          "working_set_bytes": 1405624320
+        },
+        {
+          "cpu_seconds": 23.515625,
+          "handles": 697,
+          "private_bytes": 1632047104,
+          "seconds": 5.1014045,
+          "threads": 45,
+          "working_set_bytes": 1405624320
+        },
+        {
+          "cpu_seconds": 24.109375,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 6.1070329,
+          "threads": 45,
+          "working_set_bytes": 1405640704
+        },
+        {
+          "cpu_seconds": 24.5625,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 7.121091,
+          "threads": 45,
+          "working_set_bytes": 1405640704
+        },
+        {
+          "cpu_seconds": 24.953125,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 8.1448584,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 25.375,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 9.1641324,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 25.6875,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 10.1715852,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 26.0625,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 11.1911842,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 26.46875,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 12.210124,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 26.84375,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 13.2192441,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 27.21875,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 14.2394915,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 27.640625,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 15.2476166,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 28.0,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 16.2664388,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 28.484375,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 17.2864919,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 28.84375,
+          "handles": 697,
+          "private_bytes": 1632067584,
+          "seconds": 18.2916677,
+          "threads": 45,
+          "working_set_bytes": 1405644800
+        },
+        {
+          "cpu_seconds": 29.21875,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 19.3007556,
+          "threads": 45,
+          "working_set_bytes": 1405689856
+        },
+        {
+          "cpu_seconds": 29.578125,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 20.3062418,
+          "threads": 45,
+          "working_set_bytes": 1405689856
+        },
+        {
+          "cpu_seconds": 29.921875,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 21.3131538,
+          "threads": 45,
+          "working_set_bytes": 1405689856
+        },
+        {
+          "cpu_seconds": 30.328125,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 22.3243383,
+          "threads": 45,
+          "working_set_bytes": 1405689856
+        },
+        {
+          "cpu_seconds": 30.6875,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 23.3360823,
+          "threads": 45,
+          "working_set_bytes": 1405689856
+        },
+        {
+          "cpu_seconds": 31.03125,
+          "handles": 697,
+          "private_bytes": 1632182272,
+          "seconds": 24.3556432,
+          "threads": 45,
+          "working_set_bytes": 1405751296
+        },
+        {
+          "cpu_seconds": 31.40625,
+          "handles": 697,
+          "private_bytes": 1632706560,
+          "seconds": 25.3652091,
+          "threads": 45,
+          "working_set_bytes": 1406328832
+        },
+        {
+          "cpu_seconds": 31.78125,
+          "handles": 697,
+          "private_bytes": 1633038336,
+          "seconds": 26.3751078,
+          "threads": 45,
+          "working_set_bytes": 1406705664
+        },
+        {
+          "cpu_seconds": 32.21875,
+          "handles": 697,
+          "private_bytes": 1633038336,
+          "seconds": 27.3870024,
+          "threads": 45,
+          "working_set_bytes": 1406705664
+        },
+        {
+          "cpu_seconds": 32.578125,
+          "handles": 697,
+          "private_bytes": 1633038336,
+          "seconds": 28.3965807,
+          "threads": 45,
+          "working_set_bytes": 1406705664
+        },
+        {
+          "cpu_seconds": 33.0,
+          "handles": 697,
+          "private_bytes": 1633038336,
+          "seconds": 29.4073668,
+          "threads": 45,
+          "working_set_bytes": 1406705664
+        },
+        {
+          "cpu_seconds": 33.359375,
+          "handles": 689,
+          "private_bytes": 1633026048,
+          "seconds": 30.4173755,
+          "threads": 41,
+          "working_set_bytes": 1406709760
+        }
+      ],
+      "variant": "patched-on",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [
+          {
+            "callbacks": 386010,
+            "event": "draw-cost",
+            "observer_ns": 17630500,
+            "schema": 1
+          }
+        ],
+        "AssetProvider": [
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "45e54ca78ed6fd1c",
+            "registration": 1,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "16983689d67ad184",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "16983689d67ad184",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "45e54ca78ed6fd1c",
+            "registration": 1,
+            "schema": 1
+          }
+        ]
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "c6fe157bf8eb57488c71fb4814930661dc5b3b01e1f1acd119fb5bc2976595b3",
+      "scene.jpg": "2e8c3463265129f006f377c20fa8d371fc952ce145da6463af909e72162163c0",
+      "session.json": "47ccd55a264eed0b8c84e2cba8d1114ca1781bc1d5fa18b130281edf2753090d",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "4177dcad156af191f8fd3feaf88cc1356a02d8408c7d44bc354209b2619f4b7b"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": true,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": true,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+      "name": "e2",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:43:30.0368005Z",
+      "variant": "patched-on"
+    }
+  },
+  {
+    "capture": {
+      "name": "b2",
+      "samples": [
+        {
+          "cpu_seconds": 21.71875,
+          "handles": 697,
+          "private_bytes": 1631866880,
+          "seconds": 0,
+          "threads": 45,
+          "working_set_bytes": 1406685184
+        },
+        {
+          "cpu_seconds": 22.09375,
+          "handles": 697,
+          "private_bytes": 1631866880,
+          "seconds": 1.0616669,
+          "threads": 45,
+          "working_set_bytes": 1406685184
+        },
+        {
+          "cpu_seconds": 22.453125,
+          "handles": 697,
+          "private_bytes": 1631866880,
+          "seconds": 2.0825372,
+          "threads": 45,
+          "working_set_bytes": 1406574592
+        },
+        {
+          "cpu_seconds": 22.796875,
+          "handles": 697,
+          "private_bytes": 1631866880,
+          "seconds": 3.094661,
+          "threads": 45,
+          "working_set_bytes": 1406574592
+        },
+        {
+          "cpu_seconds": 23.140625,
+          "handles": 697,
+          "private_bytes": 1631887360,
+          "seconds": 4.1017468,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 23.546875,
+          "handles": 697,
+          "private_bytes": 1631887360,
+          "seconds": 5.1118242,
+          "threads": 45,
+          "working_set_bytes": 1406586880
+        },
+        {
+          "cpu_seconds": 23.921875,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 6.124296,
+          "threads": 45,
+          "working_set_bytes": 1406607360
+        },
+        {
+          "cpu_seconds": 24.296875,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 7.1329782,
+          "threads": 45,
+          "working_set_bytes": 1406607360
+        },
+        {
+          "cpu_seconds": 24.796875,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 8.1500891,
+          "threads": 45,
+          "working_set_bytes": 1406607360
+        },
+        {
+          "cpu_seconds": 25.390625,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 9.1704056,
+          "threads": 45,
+          "working_set_bytes": 1406607360
+        },
+        {
+          "cpu_seconds": 25.75,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 10.1767463,
+          "threads": 45,
+          "working_set_bytes": 1406607360
+        },
+        {
+          "cpu_seconds": 26.109375,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 11.1854095,
+          "threads": 45,
+          "working_set_bytes": 1406607360
+        },
+        {
+          "cpu_seconds": 26.46875,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 12.1949031,
+          "threads": 45,
+          "working_set_bytes": 1406615552
+        },
+        {
+          "cpu_seconds": 26.921875,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 13.2104475,
+          "threads": 45,
+          "working_set_bytes": 1406615552
+        },
+        {
+          "cpu_seconds": 27.359375,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 14.2184376,
+          "threads": 45,
+          "working_set_bytes": 1406615552
+        },
+        {
+          "cpu_seconds": 27.75,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 15.2300643,
+          "threads": 45,
+          "working_set_bytes": 1406615552
+        },
+        {
+          "cpu_seconds": 28.203125,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 16.2415893,
+          "threads": 45,
+          "working_set_bytes": 1406615552
+        },
+        {
+          "cpu_seconds": 28.703125,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 17.26142,
+          "threads": 45,
+          "working_set_bytes": 1406615552
+        },
+        {
+          "cpu_seconds": 29.078125,
+          "handles": 697,
+          "private_bytes": 1631907840,
+          "seconds": 18.2695036,
+          "threads": 45,
+          "working_set_bytes": 1406615552
+        },
+        {
+          "cpu_seconds": 29.390625,
+          "handles": 697,
+          "private_bytes": 1631989760,
+          "seconds": 19.2793396,
+          "threads": 45,
+          "working_set_bytes": 1406685184
+        },
+        {
+          "cpu_seconds": 29.75,
+          "handles": 697,
+          "private_bytes": 1631989760,
+          "seconds": 20.2892689,
+          "threads": 45,
+          "working_set_bytes": 1406697472
+        },
+        {
+          "cpu_seconds": 30.109375,
+          "handles": 697,
+          "private_bytes": 1631989760,
+          "seconds": 21.2974515,
+          "threads": 45,
+          "working_set_bytes": 1406697472
+        },
+        {
+          "cpu_seconds": 30.5,
+          "handles": 697,
+          "private_bytes": 1631989760,
+          "seconds": 22.3157679,
+          "threads": 45,
+          "working_set_bytes": 1406705664
+        },
+        {
+          "cpu_seconds": 30.921875,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 23.3243535,
+          "threads": 45,
+          "working_set_bytes": 1406812160
+        },
+        {
+          "cpu_seconds": 31.21875,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 24.3318086,
+          "threads": 45,
+          "working_set_bytes": 1406812160
+        },
+        {
+          "cpu_seconds": 31.59375,
+          "handles": 697,
+          "private_bytes": 1632395264,
+          "seconds": 25.3407699,
+          "threads": 45,
+          "working_set_bytes": 1407021056
+        },
+        {
+          "cpu_seconds": 31.921875,
+          "handles": 697,
+          "private_bytes": 1632395264,
+          "seconds": 26.3513168,
+          "threads": 45,
+          "working_set_bytes": 1407029248
+        },
+        {
+          "cpu_seconds": 32.359375,
+          "handles": 697,
+          "private_bytes": 1632395264,
+          "seconds": 27.3635733,
+          "threads": 45,
+          "working_set_bytes": 1407029248
+        },
+        {
+          "cpu_seconds": 32.703125,
+          "handles": 689,
+          "private_bytes": 1632243712,
+          "seconds": 28.3842047,
+          "threads": 41,
+          "working_set_bytes": 1406939136
+        },
+        {
+          "cpu_seconds": 33.109375,
+          "handles": 689,
+          "private_bytes": 1632243712,
+          "seconds": 29.3897726,
+          "threads": 41,
+          "working_set_bytes": 1406939136
+        },
+        {
+          "cpu_seconds": 33.40625,
+          "handles": 658,
+          "private_bytes": 1632227328,
+          "seconds": 30.3940335,
+          "threads": 41,
+          "working_set_bytes": 1406799872
+        }
+      ],
+      "variant": "baseline",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [],
+        "AssetProvider": []
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "6571ac5c1daa6eef72a6c56eb142b475010234d1690acbe88e8cb0e4509af2a9",
+      "scene.jpg": "868a2914e177fed71bce08307b2da7111ffcd704b6fbe49ed2738e70adea5680",
+      "session.json": "4286337505c86479bbc37a7dd907838d24b667e81e4d723687e390c21eb086de",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "47cc6000d31c78fd9c131d25e77b65b24ad7fdf9ddbd9a7da7b71c0f7fa014d4"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": false,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "F1645430F7DBDBB9B1AF6ADE6B2E4B72CB017A7D934319349EF9A425139AB2DE",
+      "name": "b2",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:45:00.6340170Z",
+      "variant": "baseline"
+    }
+  },
+  {
+    "capture": {
+      "name": "o2",
+      "samples": [
+        {
+          "cpu_seconds": 16.75,
+          "handles": 700,
+          "private_bytes": 1633456128,
+          "seconds": 0,
+          "threads": 46,
+          "working_set_bytes": 1406799872
+        },
+        {
+          "cpu_seconds": 17.171875,
+          "handles": 700,
+          "private_bytes": 1633456128,
+          "seconds": 1.0607198,
+          "threads": 46,
+          "working_set_bytes": 1406799872
+        },
+        {
+          "cpu_seconds": 17.515625,
+          "handles": 700,
+          "private_bytes": 1633456128,
+          "seconds": 2.0694566,
+          "threads": 46,
+          "working_set_bytes": 1406828544
+        },
+        {
+          "cpu_seconds": 17.84375,
+          "handles": 695,
+          "private_bytes": 1633353728,
+          "seconds": 3.0885355,
+          "threads": 45,
+          "working_set_bytes": 1406758912
+        },
+        {
+          "cpu_seconds": 18.1875,
+          "handles": 695,
+          "private_bytes": 1633353728,
+          "seconds": 4.0958793,
+          "threads": 45,
+          "working_set_bytes": 1406758912
+        },
+        {
+          "cpu_seconds": 18.546875,
+          "handles": 695,
+          "private_bytes": 1633308672,
+          "seconds": 5.1041593,
+          "threads": 45,
+          "working_set_bytes": 1406713856
+        },
+        {
+          "cpu_seconds": 18.890625,
+          "handles": 695,
+          "private_bytes": 1633308672,
+          "seconds": 6.1131977,
+          "threads": 45,
+          "working_set_bytes": 1406713856
+        },
+        {
+          "cpu_seconds": 19.3125,
+          "handles": 695,
+          "private_bytes": 1633525760,
+          "seconds": 7.1191764,
+          "threads": 45,
+          "working_set_bytes": 1406947328
+        },
+        {
+          "cpu_seconds": 19.640625,
+          "handles": 695,
+          "private_bytes": 1633525760,
+          "seconds": 8.1408048,
+          "threads": 45,
+          "working_set_bytes": 1406947328
+        },
+        {
+          "cpu_seconds": 20.03125,
+          "handles": 695,
+          "private_bytes": 1633525760,
+          "seconds": 9.1494188,
+          "threads": 45,
+          "working_set_bytes": 1406947328
+        },
+        {
+          "cpu_seconds": 20.4375,
+          "handles": 695,
+          "private_bytes": 1633525760,
+          "seconds": 10.1609423,
+          "threads": 45,
+          "working_set_bytes": 1406947328
+        },
+        {
+          "cpu_seconds": 20.8125,
+          "handles": 695,
+          "private_bytes": 1633525760,
+          "seconds": 11.1723798,
+          "threads": 45,
+          "working_set_bytes": 1406947328
+        },
+        {
+          "cpu_seconds": 21.265625,
+          "handles": 695,
+          "private_bytes": 1633947648,
+          "seconds": 12.1803665,
+          "threads": 45,
+          "working_set_bytes": 1407365120
+        },
+        {
+          "cpu_seconds": 21.6875,
+          "handles": 695,
+          "private_bytes": 1633947648,
+          "seconds": 13.1893561,
+          "threads": 45,
+          "working_set_bytes": 1407397888
+        },
+        {
+          "cpu_seconds": 22.109375,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 14.2003277,
+          "threads": 45,
+          "working_set_bytes": 1407332352
+        },
+        {
+          "cpu_seconds": 22.4375,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 15.2145034,
+          "threads": 45,
+          "working_set_bytes": 1407332352
+        },
+        {
+          "cpu_seconds": 22.828125,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 16.2207244,
+          "threads": 45,
+          "working_set_bytes": 1407332352
+        },
+        {
+          "cpu_seconds": 23.234375,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 17.2334333,
+          "threads": 45,
+          "working_set_bytes": 1407332352
+        },
+        {
+          "cpu_seconds": 23.6875,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 18.2450064,
+          "threads": 45,
+          "working_set_bytes": 1407332352
+        },
+        {
+          "cpu_seconds": 24.0,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 19.2520968,
+          "threads": 45,
+          "working_set_bytes": 1407344640
+        },
+        {
+          "cpu_seconds": 24.390625,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 20.2596248,
+          "threads": 45,
+          "working_set_bytes": 1407344640
+        },
+        {
+          "cpu_seconds": 24.796875,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 21.271431,
+          "threads": 45,
+          "working_set_bytes": 1407344640
+        },
+        {
+          "cpu_seconds": 25.265625,
+          "handles": 695,
+          "private_bytes": 1633882112,
+          "seconds": 22.2811159,
+          "threads": 45,
+          "working_set_bytes": 1407344640
+        },
+        {
+          "cpu_seconds": 25.625,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 23.2878281,
+          "threads": 45,
+          "working_set_bytes": 1407348736
+        },
+        {
+          "cpu_seconds": 25.984375,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 24.2990509,
+          "threads": 45,
+          "working_set_bytes": 1407438848
+        },
+        {
+          "cpu_seconds": 26.4375,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 25.3081341,
+          "threads": 45,
+          "working_set_bytes": 1407451136
+        },
+        {
+          "cpu_seconds": 26.796875,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 26.3297839,
+          "threads": 45,
+          "working_set_bytes": 1407451136
+        },
+        {
+          "cpu_seconds": 27.34375,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 27.3498375,
+          "threads": 45,
+          "working_set_bytes": 1407451136
+        },
+        {
+          "cpu_seconds": 27.84375,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 28.368951,
+          "threads": 45,
+          "working_set_bytes": 1407451136
+        },
+        {
+          "cpu_seconds": 28.28125,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 29.3781466,
+          "threads": 45,
+          "working_set_bytes": 1407467520
+        },
+        {
+          "cpu_seconds": 28.6875,
+          "handles": 695,
+          "private_bytes": 1633886208,
+          "seconds": 30.3842078,
+          "threads": 45,
+          "working_set_bytes": 1407508480
+        }
+      ],
+      "variant": "patched-off",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [],
+        "AssetProvider": [
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "5c29e366202b8d9e",
+            "registration": 1,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "20d7b76d10306732",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "20d7b76d10306732",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "5c29e366202b8d9e",
+            "registration": 1,
+            "schema": 1
+          }
+        ]
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "398a9929319082e40cc5b1601789477aca80019ea1243c3f00314442232b7c79",
+      "scene.jpg": "088f1cbaa2f77824076c58d18aae88b1b7c358a43f1eac31aafeec6223ab68c1",
+      "session.json": "d2603195c9bde2e605e308ed8c029d79e918208daded7837e30859848ddb99d6",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "aefcb29203d1974d558ad69b0b722835771ba554309219cc050f4e5c0cd62a05"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": false,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+      "name": "o2",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:46:34.7846252Z",
+      "variant": "patched-off"
+    }
+  },
+  {
+    "capture": {
+      "name": "o3",
+      "samples": [
+        {
+          "cpu_seconds": 17.8125,
+          "handles": 700,
+          "private_bytes": 1633558528,
+          "seconds": 0,
+          "threads": 46,
+          "working_set_bytes": 1406451712
+        },
+        {
+          "cpu_seconds": 18.3125,
+          "handles": 700,
+          "private_bytes": 1633558528,
+          "seconds": 1.058441,
+          "threads": 46,
+          "working_set_bytes": 1406451712
+        },
+        {
+          "cpu_seconds": 18.65625,
+          "handles": 700,
+          "private_bytes": 1633558528,
+          "seconds": 2.0639646,
+          "threads": 46,
+          "working_set_bytes": 1406451712
+        },
+        {
+          "cpu_seconds": 19.046875,
+          "handles": 700,
+          "private_bytes": 1633558528,
+          "seconds": 3.0767097,
+          "threads": 46,
+          "working_set_bytes": 1406451712
+        },
+        {
+          "cpu_seconds": 19.4375,
+          "handles": 695,
+          "private_bytes": 1633456128,
+          "seconds": 4.0818174,
+          "threads": 45,
+          "working_set_bytes": 1406382080
+        },
+        {
+          "cpu_seconds": 19.875,
+          "handles": 695,
+          "private_bytes": 1633456128,
+          "seconds": 5.0994948,
+          "threads": 45,
+          "working_set_bytes": 1406382080
+        },
+        {
+          "cpu_seconds": 20.265625,
+          "handles": 695,
+          "private_bytes": 1633456128,
+          "seconds": 6.1064124,
+          "threads": 45,
+          "working_set_bytes": 1406382080
+        },
+        {
+          "cpu_seconds": 20.765625,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 7.1173455,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 21.171875,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 8.1396372,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 21.59375,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 9.1468606,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 21.984375,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 10.1602504,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 22.421875,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 11.1665008,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 22.859375,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 12.1797722,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 23.28125,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 13.1955683,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 23.59375,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 14.2059324,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 23.859375,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 15.2173404,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 24.1875,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 16.2243191,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 24.5625,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 17.2401783,
+          "threads": 45,
+          "working_set_bytes": 1407000576
+        },
+        {
+          "cpu_seconds": 24.890625,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 18.2531123,
+          "threads": 45,
+          "working_set_bytes": 1407037440
+        },
+        {
+          "cpu_seconds": 25.40625,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 19.2608112,
+          "threads": 45,
+          "working_set_bytes": 1407037440
+        },
+        {
+          "cpu_seconds": 25.75,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 20.2730635,
+          "threads": 45,
+          "working_set_bytes": 1407037440
+        },
+        {
+          "cpu_seconds": 26.078125,
+          "handles": 695,
+          "private_bytes": 1633959936,
+          "seconds": 21.2861873,
+          "threads": 45,
+          "working_set_bytes": 1407037440
+        },
+        {
+          "cpu_seconds": 26.375,
+          "handles": 695,
+          "private_bytes": 1633964032,
+          "seconds": 22.297111,
+          "threads": 45,
+          "working_set_bytes": 1407041536
+        },
+        {
+          "cpu_seconds": 26.734375,
+          "handles": 695,
+          "private_bytes": 1633964032,
+          "seconds": 23.3106697,
+          "threads": 45,
+          "working_set_bytes": 1407041536
+        },
+        {
+          "cpu_seconds": 27.21875,
+          "handles": 695,
+          "private_bytes": 1634467840,
+          "seconds": 24.3225698,
+          "threads": 45,
+          "working_set_bytes": 1407553536
+        },
+        {
+          "cpu_seconds": 27.796875,
+          "handles": 695,
+          "private_bytes": 1634467840,
+          "seconds": 25.3316677,
+          "threads": 45,
+          "working_set_bytes": 1407553536
+        },
+        {
+          "cpu_seconds": 28.109375,
+          "handles": 695,
+          "private_bytes": 1634467840,
+          "seconds": 26.347987,
+          "threads": 45,
+          "working_set_bytes": 1407553536
+        },
+        {
+          "cpu_seconds": 28.453125,
+          "handles": 695,
+          "private_bytes": 1634467840,
+          "seconds": 27.3561496,
+          "threads": 45,
+          "working_set_bytes": 1407553536
+        },
+        {
+          "cpu_seconds": 28.8125,
+          "handles": 695,
+          "private_bytes": 1634467840,
+          "seconds": 28.3682446,
+          "threads": 45,
+          "working_set_bytes": 1407553536
+        },
+        {
+          "cpu_seconds": 29.140625,
+          "handles": 695,
+          "private_bytes": 1634467840,
+          "seconds": 29.3820385,
+          "threads": 45,
+          "working_set_bytes": 1407676416
+        },
+        {
+          "cpu_seconds": 29.5,
+          "handles": 695,
+          "private_bytes": 1634467840,
+          "seconds": 30.3899663,
+          "threads": 45,
+          "working_set_bytes": 1407676416
+        }
+      ],
+      "variant": "patched-off",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [],
+        "AssetProvider": [
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "d3874a30fa7f9463",
+            "registration": 1,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "05b9e9e96cfaa253",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "05b9e9e96cfaa253",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "d3874a30fa7f9463",
+            "registration": 1,
+            "schema": 1
+          }
+        ]
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "9114ded36607c840bf91441413adf52c2f55d1892d9e4e028b9e8fb7a41370ae",
+      "scene.jpg": "50973e80a0538feea2e25141476408e94977d62a0f593b52239c81e3400d7a1b",
+      "session.json": "665b06168bfa5eff73ea8fe27b7ff4cc9a70d4cb5bfd5fa6177e63ba058e5545",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "c5e95431bf8c87b0e26ada17804d31849b8da39940cfd578874e5339837d8295"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": false,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+      "name": "o3",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:48:20.5554710Z",
+      "variant": "patched-off"
+    }
+  },
+  {
+    "capture": {
+      "name": "e3",
+      "samples": [
+        {
+          "cpu_seconds": 17.078125,
+          "handles": 700,
+          "private_bytes": 1633349632,
+          "seconds": 0,
+          "threads": 46,
+          "working_set_bytes": 1406226432
+        },
+        {
+          "cpu_seconds": 17.59375,
+          "handles": 700,
+          "private_bytes": 1633349632,
+          "seconds": 1.0549123,
+          "threads": 46,
+          "working_set_bytes": 1406226432
+        },
+        {
+          "cpu_seconds": 18.015625,
+          "handles": 695,
+          "private_bytes": 1633255424,
+          "seconds": 2.071295,
+          "threads": 45,
+          "working_set_bytes": 1406164992
+        },
+        {
+          "cpu_seconds": 18.375,
+          "handles": 695,
+          "private_bytes": 1633259520,
+          "seconds": 3.081838,
+          "threads": 45,
+          "working_set_bytes": 1406169088
+        },
+        {
+          "cpu_seconds": 18.828125,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 4.093125,
+          "threads": 45,
+          "working_set_bytes": 1406681088
+        },
+        {
+          "cpu_seconds": 19.265625,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 5.1022536,
+          "threads": 45,
+          "working_set_bytes": 1406681088
+        },
+        {
+          "cpu_seconds": 19.609375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 6.1150082,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 20.03125,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 7.1291179,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 20.40625,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 8.140245,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 20.734375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 9.1531465,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 21.140625,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 10.171194,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 21.625,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 11.1781485,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 22.015625,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 12.1867499,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 22.484375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 13.1979224,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 22.9375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 14.2163771,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 23.5,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 15.2363243,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 23.953125,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 16.2549961,
+          "threads": 45,
+          "working_set_bytes": 1406857216
+        },
+        {
+          "cpu_seconds": 24.5,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 17.275811,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 24.90625,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 18.2867057,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 25.46875,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 19.3061891,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 25.859375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 20.325792,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 26.328125,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 21.3376062,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 26.734375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 22.3547727,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 27.234375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 23.3657105,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 27.734375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 24.3750986,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 28.09375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 25.3830779,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 28.5625,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 26.393093,
+          "threads": 45,
+          "working_set_bytes": 1407086592
+        },
+        {
+          "cpu_seconds": 28.984375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 27.401528,
+          "threads": 45,
+          "working_set_bytes": 1407172608
+        },
+        {
+          "cpu_seconds": 29.484375,
+          "handles": 695,
+          "private_bytes": 1633775616,
+          "seconds": 28.4212988,
+          "threads": 45,
+          "working_set_bytes": 1407283200
+        },
+        {
+          "cpu_seconds": 29.953125,
+          "handles": 695,
+          "private_bytes": 1634541568,
+          "seconds": 29.441687,
+          "threads": 45,
+          "working_set_bytes": 1407823872
+        },
+        {
+          "cpu_seconds": 30.421875,
+          "handles": 687,
+          "private_bytes": 1634390016,
+          "seconds": 30.4567646,
+          "threads": 41,
+          "working_set_bytes": 1407733760
+        }
+      ],
+      "variant": "patched-on",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [
+          {
+            "callbacks": 788438,
+            "event": "draw-cost",
+            "observer_ns": 34739500,
+            "schema": 1
+          }
+        ],
+        "AssetProvider": [
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "a1892ed83c895391",
+            "registration": 1,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "bb6dc85bc6ae9d9d",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "bb6dc85bc6ae9d9d",
+            "registration": 2,
+            "schema": 1
+          },
+          {
+            "event": "handle-created",
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "a1892ed83c895391",
+            "registration": 1,
+            "schema": 1
+          }
+        ]
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "d718e927c51b774b75122083d7ef08482a6e94b7a145009242b25e71c56c758e",
+      "scene.jpg": "9303ebbecec261e20023e345171a88a9fc3965eb60beaf07833f249617a9cc52",
+      "session.json": "4a7a0f8b45a65115ef9d639af919d4a1c3379043207c64d39db2749ae6a7a4f3",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "c9f3fe0c06f516e719938ae5a9898eea4453818f54580cb1275337a4978b94c4"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": true,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": true,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+      "name": "e3",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:50:02.1487857Z",
+      "variant": "patched-on"
+    }
+  },
+  {
+    "capture": {
+      "name": "b3",
+      "samples": [
+        {
+          "cpu_seconds": 23.890625,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 0,
+          "threads": 45,
+          "working_set_bytes": 1405571072
+        },
+        {
+          "cpu_seconds": 24.265625,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 1.0526571,
+          "threads": 45,
+          "working_set_bytes": 1405583360
+        },
+        {
+          "cpu_seconds": 24.59375,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 2.0592613,
+          "threads": 45,
+          "working_set_bytes": 1405583360
+        },
+        {
+          "cpu_seconds": 24.90625,
+          "handles": 697,
+          "private_bytes": 1632124928,
+          "seconds": 3.0733837,
+          "threads": 45,
+          "working_set_bytes": 1405583360
+        },
+        {
+          "cpu_seconds": 25.203125,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 4.0859726,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 25.59375,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 5.091879,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 25.96875,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 6.1019055,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 26.390625,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 7.1088894,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 26.796875,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 8.1189968,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 27.203125,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 9.1233275,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 27.546875,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 10.1350012,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 27.890625,
+          "handles": 697,
+          "private_bytes": 1632079872,
+          "seconds": 11.1423863,
+          "threads": 45,
+          "working_set_bytes": 1405538304
+        },
+        {
+          "cpu_seconds": 28.28125,
+          "handles": 697,
+          "private_bytes": 1632583680,
+          "seconds": 12.1575487,
+          "threads": 45,
+          "working_set_bytes": 1406042112
+        },
+        {
+          "cpu_seconds": 28.6875,
+          "handles": 697,
+          "private_bytes": 1632583680,
+          "seconds": 13.1697265,
+          "threads": 45,
+          "working_set_bytes": 1406042112
+        },
+        {
+          "cpu_seconds": 28.984375,
+          "handles": 697,
+          "private_bytes": 1632583680,
+          "seconds": 14.1819572,
+          "threads": 45,
+          "working_set_bytes": 1406042112
+        },
+        {
+          "cpu_seconds": 29.328125,
+          "handles": 697,
+          "private_bytes": 1632583680,
+          "seconds": 15.1940693,
+          "threads": 45,
+          "working_set_bytes": 1406042112
+        },
+        {
+          "cpu_seconds": 29.734375,
+          "handles": 697,
+          "private_bytes": 1632583680,
+          "seconds": 16.2039634,
+          "threads": 45,
+          "working_set_bytes": 1406042112
+        },
+        {
+          "cpu_seconds": 30.09375,
+          "handles": 697,
+          "private_bytes": 1632583680,
+          "seconds": 17.2153434,
+          "threads": 45,
+          "working_set_bytes": 1406078976
+        },
+        {
+          "cpu_seconds": 30.515625,
+          "handles": 697,
+          "private_bytes": 1632583680,
+          "seconds": 18.2264261,
+          "threads": 45,
+          "working_set_bytes": 1406251008
+        },
+        {
+          "cpu_seconds": 30.90625,
+          "handles": 697,
+          "private_bytes": 1632452608,
+          "seconds": 19.2370809,
+          "threads": 45,
+          "working_set_bytes": 1406148608
+        },
+        {
+          "cpu_seconds": 31.25,
+          "handles": 697,
+          "private_bytes": 1632452608,
+          "seconds": 20.2491481,
+          "threads": 45,
+          "working_set_bytes": 1406148608
+        },
+        {
+          "cpu_seconds": 31.640625,
+          "handles": 697,
+          "private_bytes": 1632452608,
+          "seconds": 21.2595104,
+          "threads": 45,
+          "working_set_bytes": 1406148608
+        },
+        {
+          "cpu_seconds": 32.015625,
+          "handles": 697,
+          "private_bytes": 1632452608,
+          "seconds": 22.2717654,
+          "threads": 45,
+          "working_set_bytes": 1406148608
+        },
+        {
+          "cpu_seconds": 32.40625,
+          "handles": 697,
+          "private_bytes": 1632452608,
+          "seconds": 23.2835345,
+          "threads": 45,
+          "working_set_bytes": 1406148608
+        },
+        {
+          "cpu_seconds": 32.75,
+          "handles": 697,
+          "private_bytes": 1632452608,
+          "seconds": 24.2921979,
+          "threads": 45,
+          "working_set_bytes": 1406148608
+        },
+        {
+          "cpu_seconds": 33.109375,
+          "handles": 689,
+          "private_bytes": 1632305152,
+          "seconds": 25.3078497,
+          "threads": 41,
+          "working_set_bytes": 1406062592
+        },
+        {
+          "cpu_seconds": 33.453125,
+          "handles": 689,
+          "private_bytes": 1632305152,
+          "seconds": 26.3181479,
+          "threads": 41,
+          "working_set_bytes": 1406062592
+        },
+        {
+          "cpu_seconds": 33.921875,
+          "handles": 658,
+          "private_bytes": 1632288768,
+          "seconds": 27.3236824,
+          "threads": 41,
+          "working_set_bytes": 1405923328
+        },
+        {
+          "cpu_seconds": 34.265625,
+          "handles": 660,
+          "private_bytes": 1632296960,
+          "seconds": 28.3284469,
+          "threads": 41,
+          "working_set_bytes": 1405947904
+        },
+        {
+          "cpu_seconds": 34.625,
+          "handles": 660,
+          "private_bytes": 1633107968,
+          "seconds": 29.3377776,
+          "threads": 41,
+          "working_set_bytes": 1406803968
+        },
+        {
+          "cpu_seconds": 35.046875,
+          "handles": 660,
+          "private_bytes": 1633173504,
+          "seconds": 30.352642,
+          "threads": 41,
+          "working_set_bytes": 1406889984
+        }
+      ],
+      "variant": "baseline",
+      "warmup_after_visual_check_seconds": 20
+    },
+    "log_observations": {
+      "adapter": "Intel(R) UHD Graphics 630 (IntegratedGPU)",
+      "adapter_verified": true,
+      "backend": "D3D12",
+      "events": {
+        "AssetDraw": [],
+        "AssetGraph": [],
+        "AssetProvider": []
+      },
+      "normal_shutdown": true,
+      "shutdown_warnings": [
+        "[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.",
+        "[WARNING | aurora::gpu] Device lost: Device was destroyed."
+      ],
+      "stderr_lines": [
+        "[ERROR | aurora::card] Failed to open file: gczelda2"
+      ],
+      "stdout_errors": []
+    },
+    "original_sha256": {
+      "process-samples.json": "ec7554160471d7d5ed7ef254ce909e274fabe14655d183301aa9e056fa381862",
+      "scene.jpg": "63c1108f69f24b65b6d35e66d4f179625998e8ef8cb64c8f9d4016a2c00ec978",
+      "session.json": "2b8a9d904c1584d377b960144d24511327a9d3b0324735cb7334cac4a5d6e3b6",
+      "stderr.log": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout.log": "4321cb478549266d105ed9d496c57dbb92b65f89ae46142f3f5bbfed15f89d56"
+    },
+    "session": {
+      "config": {
+        "backend.enableAdvancedSettings": true,
+        "backend.isoPath": "[same local RVZ path redacted]",
+        "backend.isoVerification": 0,
+        "backend.wasPresetChosen": true,
+        "game.autoSave": false,
+        "game.enableControllerToasts": false,
+        "game.enableTextureReplacements": true,
+        "game.pauseOnFocusLost": false,
+        "mod.com_midnafx_midnafx.anti_aliasing": true,
+        "mod.com_midnafx_midnafx.asset_diagnostics": false,
+        "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+        "video.enableFullscreen": false,
+        "video.enableVsync": true,
+        "video.lastWindowHeight": 720,
+        "video.lastWindowWidth": 960,
+        "video.rememberWindowSize": true
+      },
+      "host_sha256": "F1645430F7DBDBB9B1AF6ADE6B2E4B72CB017A7D934319349EF9A425139AB2DE",
+      "name": "b3",
+      "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+      "utc_start": "2026-10-21T12:53:05.3690740Z",
+      "variant": "baseline"
+    }
+  }
+]

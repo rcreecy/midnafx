@@ -1,0 +1,26 @@
+{
+  "cpu": [
+    {
+      "Name": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+      "NumberOfLogicalProcessors": 16
+    }
+  ],
+  "gpu": [
+    {
+      "DriverVersion": "31.0.101.2140",
+      "Name": "Intel(R) UHD Graphics 630"
+    },
+    {
+      "DriverVersion": "10.0.26100.9711",
+      "Name": "Microsoft Remote Display Adapter"
+    }
+  ],
+  "logical_processors": 16,
+  "os": [
+    {
+      "BuildNumber": "26200",
+      "Caption": "Microsoft Windows 11 Pro",
+      "Version": "10.0.26200"
+    }
+  ]
+}

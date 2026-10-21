@@ -1,5 +1,7 @@
 # Live replacement reload on an existing pumpkin resource
 
+October 21 follow-up: [process-counter and native layout measurements](asset-observer-overhead.md) compare baseline, patched-off and enabled callbacks. The enabled trials produce no identity or draw-label events, so full observer overhead remains open.
+
 The Windows D3D12 session switches from the initial replacement provider to another provider, then to original textures, then back to the initial provider with fresh registrations. The host keeps rendering the same scene throughout. The pumpkin archive loads once, records 12 creations, and is never deleted during the session. No scene warp, mod reload or host restart occurs between the sampled phases.
 
 ## Bounded resampling

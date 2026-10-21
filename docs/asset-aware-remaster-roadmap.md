@@ -1,5 +1,7 @@
 # Asset-aware remaster roadmap
 
+October 21 overhead update: [nine Windows trials and native object sizes](asset-observer-overhead.md) quantify process CPU/retained memory and a 56-byte command-size increase. Enabled trials lack identity records and encoded labels; populated-observer timing/allocation and experimental Metal qualification remain open. Diagnose that discovery shortfall before extending rendering behavior.
+
 Directory compatibility update: [live duplicate-file evidence](asset-live-directory-conflicts.md) confirms first-sorted-file selection within one directory load and fallback after provider removal between launches. This is distinct from priority among separate registry entries.
 
 October 20 update: the [native draw experiment](asset-draw-correlation.md) proves both pumpkin materials reach WebGPU encoding in vanilla and pack-enabled Windows sessions. The original priorities below remain useful; the submission-identity gap is now narrowed to generalization, resolved replacement selection, complete overhead measurement, and experimental Metal-host validation.
