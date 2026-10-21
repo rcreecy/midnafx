@@ -19,6 +19,8 @@ The Windows `RelWithDebInfo` native streaming executable passes **10/10** tests 
 
 The [metadata summary](evidence/asset-conflicts-2026-10-20/summary.json) records the tested executable, patch and log hashes, test names and results. The test patch reverses and reapplies cleanly while preserving the existing experimental host edits. The existing Python asset suite passes **14/14**. No native macOS conflict test execution or live conflicting-pack rendering is claimed.
 
+Hosted [CI run 39525378066](https://github.com/rcreecy/midnafx/actions/runs/39525378066) passes at `a656678`. Both clean platforms accept the test patch. Ordinary package tests pass **18/18** on Windows in 43.61 seconds and **18/18** on macOS Intel in 46.56 seconds. Three Metal AA repeats pass in 18.21, 14.42 and 15.65 seconds. Both packages are produced; the release job is skipped. These CI results cover patch applicability and existing package checks, not execution of the new native registry cases on macOS.
+
 ## Reproduction
 
 Apply the test-only patch with `python tools/asset-draw-host-patch.py --selection-tests --apply`. The helper checks Aurora revision `7f2801cd0133c9333eadb4e2e6b24100c328d328`, preserves unrelated edits, and supports reversal with `--selection-tests --reverse`. This patch changes only the existing upstream test source. The experimental draw host patch is not required by these registry cases.
