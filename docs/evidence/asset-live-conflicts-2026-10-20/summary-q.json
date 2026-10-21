@@ -1,0 +1,20 @@
+{
+  "candidates": [],
+  "draw_labels": 32,
+  "encoded_draws": 32,
+  "expected_provider": "none",
+  "host_registrations": 0,
+  "host_sha256": "482aa1fcc8c4789297ba3b4d8476582a8e1868c33be578a982628ca35e8f3e8b",
+  "normal_shutdown": true,
+  "original_id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421",
+  "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+  "result": "PASS",
+  "selected": [],
+  "session": "asset-live-conflict-q",
+  "stdout_sha256": "53be91ea33ba14a803b86f2cba156a8434ee615189bfb5e3960af5fd4f3df535",
+  "settings": {
+    "game.enableTextureReplacements": true,
+    "mod.com_midnafx_midnafx.asset_diagnostics": true,
+    "mod.com_midnafx_midnafx.asset_draw_diagnostics": true
+  }
+}

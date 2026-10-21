@@ -257,4 +257,41 @@ class AssetTests(unittest.TestCase):
             else:
                 self.assertNotIn('runtime_slot0_bindings',item)
 
+    def test_recorded_live_directory_conflicts(self):
+        root=Path(__file__).parents[1]/'docs/evidence/asset-live-conflicts-2026-10-20'
+        stable=[]
+        for suffix,count,expected in [('o',4,'A-first'),('p',2,'z-second'),('q',0,'none')]:
+            summary=json.loads((root/f'summary-{suffix}.json').read_text())
+            graph=json.loads((root/f'pumpkin-graph-{suffix}.json').read_text())
+            self.assertEqual(graph['failures'],[])
+            self.assertEqual(len(summary['candidates']),count)
+            self.assertEqual(summary['expected_provider'],expected)
+            self.assertEqual(summary['host_registrations'],2 if count else 0)
+            item=graph['models'][0]
+            stable.append({**{k:item[k] for k in ('id','materials','sha256')},'keys':[t['source_key'] for t in item['textures']]})
+            self.assertTrue(all(summary['settings'].values()))
+            self.assertEqual(item['runtime_draw_labels'],32)
+            self.assertEqual(item['runtime_encoded_draws'],32)
+            self.assertEqual(item['runtime_encoded_materials'],[0,1])
+            for candidate in summary['candidates']:
+                logical='C:\\dev\\midnafx\\build\\m13-aa-runtime\\'+summary['session']+'\\user\\texture_replacements\\'+candidate['path'].replace('/','\\')
+                self.assertEqual(a.fnv(logical.encode()),candidate['path_fnv1a64'])
+            for binding in item['runtime_slot0_bindings']:
+                if count:
+                    matches=[c for c in summary['candidates'] if c['path_fnv1a64']==binding['provider']['path_fnv1a64']]
+                    self.assertEqual(len(matches),1)
+                    self.assertTrue(matches[0]['path'].startswith(expected+'/'))
+                else:
+                    self.assertEqual(binding['replacement'],0)
+                    self.assertEqual(binding['registration'],0)
+                    self.assertNotIn('provider',binding)
+            # Re-run the join against raw captured metadata, not just exported fields.
+            fresh={k:copy.deepcopy(v) for k,v in item.items() if not k.startswith('runtime_') and not k.endswith('_observations')}
+            fresh.update(runtime_creations=0,rendered_object='not-observed')
+            events=[json.loads(line) for line in (root/f"{summary['session']}.jsonl").read_text().splitlines()]
+            lines=[e['source']+' '+json.dumps({k:v for k,v in e.items() if k!='source'}) for e in events]
+            a.join_runtime({'models':[fresh]},lines)
+            self.assertEqual(fresh['runtime_slot0_bindings'],item['runtime_slot0_bindings'])
+        self.assertEqual(stable,[stable[0]]*3)
+
 if __name__=='__main__': unittest.main()

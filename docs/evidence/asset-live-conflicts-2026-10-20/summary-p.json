@@ -1,0 +1,54 @@
+{
+  "candidates": [
+    {
+      "bytes": 1398276,
+      "path": "z-second/tex1_64x64_000e342106676e31_14.dds",
+      "path_fnv1a64": "883c4cd9482c5867",
+      "sha256": "ef46efe02e8ebd33992e407d782f0292466074d06d77cc08ac0109cb3cf5c9de"
+    },
+    {
+      "bytes": 5592580,
+      "path": "z-second/tex1_64x64_630d5c7bc606585d_14.dds",
+      "path_fnv1a64": "25506c3b013c0ec7",
+      "sha256": "b6ffce0e16b137ad73fa5ba3aea78d982f89dc1355e367ac40bc745e4439e86f"
+    }
+  ],
+  "draw_labels": 32,
+  "encoded_draws": 32,
+  "expected_provider": "z-second",
+  "host_registrations": 2,
+  "host_sha256": "482aa1fcc8c4789297ba3b4d8476582a8e1868c33be578a982628ca35e8f3e8b",
+  "normal_shutdown": true,
+  "original_id": "pumpkin.arc/pumpkin.bmd#fnv1a64:9b2ddb5ecbd95421",
+  "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+  "result": "PASS",
+  "selected": [
+    {
+      "candidate": "z-second/tex1_64x64_630d5c7bc606585d_14.dds",
+      "material": 0,
+      "registration": 2
+    },
+    {
+      "candidate": "z-second/tex1_64x64_630d5c7bc606585d_14.dds",
+      "material": 0,
+      "registration": 2
+    },
+    {
+      "candidate": "z-second/tex1_64x64_000e342106676e31_14.dds",
+      "material": 1,
+      "registration": 1
+    },
+    {
+      "candidate": "z-second/tex1_64x64_000e342106676e31_14.dds",
+      "material": 1,
+      "registration": 1
+    }
+  ],
+  "session": "asset-live-conflict-p",
+  "stdout_sha256": "28875fa83d6984a9b87ac4e935b1d0d0a39d37d2f726d4dcd86066a2e159d97d",
+  "settings": {
+    "game.enableTextureReplacements": true,
+    "mod.com_midnafx_midnafx.asset_diagnostics": true,
+    "mod.com_midnafx_midnafx.asset_draw_diagnostics": true
+  }
+}

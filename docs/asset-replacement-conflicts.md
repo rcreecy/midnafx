@@ -1,5 +1,7 @@
 # Replacement conflict qualification
 
+Follow-up: [live directory conflicts](asset-live-directory-conflicts.md) now prove duplicate-file selection and fallback between launches. Directory loading keeps the first sorted candidate per key; the registry rules below apply only to entries that are actually registered.
+
 This milestone adds four synthetic tests to the pinned Aurora registry test harness. It exercises the real `register_virtual_replacement`, `find_source_replacement`, unregistration and clearing paths. No game archive, texture pack, image decoder result or GPU device is required. This complements the earlier [sampled file-registration proof](asset-provider-correlation.md).
 
 Workers remain paused during these cases, so registration selection is intentionally separate from payload availability. A selected ID with an empty handle does not prove a replacement was bound. Live conflicting pack draws, async publication races and total observer overhead remain separate gates.
