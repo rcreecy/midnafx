@@ -22,6 +22,8 @@ The [summary](evidence/asset-provider-2026-10-20/summary.json) records host, pat
 
 All three sessions render and shut down normally. The experimental Windows D3D12 host builds successfully. Windows CTest passes **18/18** in 37.81 seconds. Fourteen Python cases cover legacy logs, provider conflicts, missing metadata, source matching and recorded observations. The helper confirms reverse-applicability at the pinned Aurora revision. No game or replacement texture payload is committed.
 
+Hosted [CI run 39523310202](https://github.com/rcreecy/midnafx/actions/runs/39523310202) passes at implementation commit `3001f81`: Windows **18/18** in 34.86 seconds and macOS Intel **18/18** in 28.34 seconds. Three Metal AA repeats pass in 14.99, 14.82 and 13.08 seconds. Both ordinary native packages are produced; the release job is skipped. CI does not compile the experimental Aurora host patch.
+
 ## Cost and remaining scope
 
 The extension adds one 64-bit provenance field to each host texture reference and one to the bind-group snapshot. It remains within the experimental 160-byte payload capacity established previously; aligned structure costs may exceed field sizes. Complete CPU/allocation overhead, conflicting pack priority scenarios, registration removal/re-addition, virtual providers, native Metal-host builds, GPU completion and full file-content attestation remain unverified. No rendering effect or release default changes.
