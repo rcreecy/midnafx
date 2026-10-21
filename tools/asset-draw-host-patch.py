@@ -14,23 +14,25 @@ PATCH = ROOT/'patches/aurora-asset-draw-trace.patch'
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--aurora-dir',type=Path,default=ROOT/'upstream/dusklight/extern/aurora')
+    parser.add_argument('--selection-tests',action='store_true',help='Check/apply/reverse only the synthetic registry qualification tests')
     mode=parser.add_mutually_exclusive_group()
     mode.add_argument('--apply',action='store_true')
     mode.add_argument('--reverse',action='store_true')
     args=parser.parse_args()
+    patch=ROOT/'patches/aurora-replacement-selection-tests.patch' if args.selection_tests else PATCH
     def git(*argv):
         return subprocess.run(['git','-C',str(args.aurora_dir),*argv],capture_output=True,text=True)
     revision=git('rev-parse','HEAD')
     if revision.returncode or revision.stdout.strip()!=PIN:
         parser.error(f'Aurora must be pinned to {PIN}')
-    forward=git('apply','--check',str(PATCH))
-    reverse=git('apply','--reverse','--check',str(PATCH))
+    forward=git('apply','--check',str(patch))
+    reverse=git('apply','--reverse','--check',str(patch))
     if forward.returncode and reverse.returncode:
         parser.error('Patch neither applies nor reverses cleanly; preserve existing edits and inspect conflicts')
     if args.apply and forward.returncode==0:
-        result=git('apply',str(PATCH))
+        result=git('apply',str(patch))
     elif args.reverse and reverse.returncode==0:
-        result=git('apply','--reverse',str(PATCH))
+        result=git('apply','--reverse',str(patch))
     else:
         print('Experimental patch is already applied' if reverse.returncode==0 else 'Experimental patch applies cleanly')
         return

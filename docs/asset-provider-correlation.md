@@ -1,5 +1,7 @@
 # Sampled replacement registration identity
 
+Follow-up: [registry conflict qualification](asset-replacement-conflicts.md) tests priority, equal-priority ordering, wildcard fallback, clearing and stale registration IDs in the native Aurora harness. Live conflicting-pack draws remain a separate gate.
+
 The experimental host now carries the replacement registry's monotonically assigned ID on each newly created texture handle. The slot-0 bind-group snapshot copies that value into the native draw command. A matching `AssetProvider` record supplies the actual file entry's basename and an FNV-1a fingerprint of its path. Only the two known pumpkin DDS basenames are logged; raw and virtual providers remain unqualified.
 
 This extends [texture binding evidence](asset-texture-binding.md). It distinguishes an actual bound registration from a candidate filename found offline. The ID identifies a registration within one host process; it is not a persistent asset ID, content hash, provider generation, or cross-session key. Thumbnail and full-size handles can retain the same registration ID. A created handle alone does not prove selection: the offline join requires a sampled encoded draw carrying that registration.

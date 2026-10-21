@@ -1,0 +1,92 @@
+diff --git a/tests/texture_replacement_streaming_test.cpp b/tests/texture_replacement_streaming_test.cpp
+index 18da654..3c0c0b5 100644
+--- a/tests/texture_replacement_streaming_test.cpp
++++ b/tests/texture_replacement_streaming_test.cpp
+@@ -152,6 +152,87 @@ TEST_F(ReplacementStreamingTest, StaleFailureDoesNotPoisonNewRegistration) {
+   texture::unregister_replacement(newRegistration);
+ }
+ 
++// MidnaFX qualification: exercise the real registry without GPU/device setup.
++// Paused workers keep payload availability separate from registration selection.
++uint64_t selected_registration_id(const texture::TextureSourceKey& key) {
++  const auto selected = find_source_replacement(GXTexObj_{}, key);
++  return selected ? selected->id : 0;
++}
++
++TEST_F(ReplacementStreamingTest, MidnaFXPriorityRemovalAndReregistration) {
++  RecordingSource source;
++  testing::set_workers_paused(true);
++  const auto low = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source}, {.priority = -5});
++  const auto high = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source}, {.priority = 9});
++  const auto laterLow = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source}, {.priority = 0});
++  ASSERT_NE(low.id, 0u);
++  const auto key = std::get<texture::TextureSourceKey>(low.key);
++  const GXTexObj_ obj{};
++  auto selected = find_source_replacement(obj, key);
++  ASSERT_TRUE(selected.has_value());
++  EXPECT_EQ(selected->id, high.id);
++  EXPECT_FALSE(selected->handle); // Selection is not proof of a bound replacement.
++  texture::unregister_replacement(high);
++  EXPECT_EQ(selected_registration_id(key), laterLow.id);
++  texture::unregister_replacement(laterLow);
++  EXPECT_EQ(selected_registration_id(key), low.id);
++  texture::unregister_replacement(low);
++  EXPECT_FALSE(find_source_replacement(obj, key).has_value());
++  const auto fresh = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source});
++  EXPECT_GT(fresh.id, laterLow.id);
++  EXPECT_EQ(selected_registration_id(key), fresh.id);
++  texture::unregister_replacement(high); // Stale token cannot remove a fresh registration.
++  EXPECT_EQ(selected_registration_id(key), fresh.id);
++  texture::unregister_replacement(fresh);
++  EXPECT_TRUE(source.paths.empty());
++}
++
++TEST_F(ReplacementStreamingTest, MidnaFXEqualPriorityUsesLatestRegistration) {
++  RecordingSource source;
++  testing::set_workers_paused(true);
++  const auto first = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source});
++  const auto second = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source});
++  const auto key = std::get<texture::TextureSourceKey>(first.key);
++  const GXTexObj_ obj{};
++  ASSERT_TRUE(find_source_replacement(obj, key).has_value());
++  EXPECT_EQ(selected_registration_id(key), second.id);
++  texture::unregister_replacement(second);
++  EXPECT_EQ(selected_registration_id(key), first.id);
++  texture::unregister_replacement(first);
++}
++
++TEST_F(ReplacementStreamingTest, MidnaFXExactKeyPrecedesHigherPriorityWildcard) {
++  RecordingSource source;
++  testing::set_workers_paused(true);
++  const auto wildcard = texture::register_virtual_replacement("tex1_4x4_$_6.dds", {&RecordingSource::read, &source}, {.priority = 99});
++  const auto exact = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source}, {.priority = -9});
++  ASSERT_NE(wildcard.id, 0u);
++  const auto key = std::get<texture::TextureSourceKey>(exact.key);
++  const GXTexObj_ obj{};
++  ASSERT_TRUE(find_source_replacement(obj, key).has_value());
++  EXPECT_EQ(selected_registration_id(key), exact.id);
++  texture::unregister_replacement(exact);
++  EXPECT_EQ(selected_registration_id(key), wildcard.id);
++  texture::unregister_replacement(wildcard);
++  EXPECT_FALSE(find_source_replacement(obj, key).has_value());
++}
++
++TEST_F(ReplacementStreamingTest, MidnaFXClearRemovesAllConflicts) {
++  RecordingSource source;
++  testing::set_workers_paused(true);
++  const auto first = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source});
++  const auto second = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source}, {.priority = 4});
++  const auto key = std::get<texture::TextureSourceKey>(first.key);
++  texture::clear_replacements();
++  EXPECT_FALSE(find_source_replacement(GXTexObj_{}, key).has_value());
++  const auto fresh = texture::register_virtual_replacement(VirtualPathA, {&RecordingSource::read, &source});
++  EXPECT_GT(fresh.id, second.id);
++  EXPECT_EQ(selected_registration_id(key), fresh.id);
++  texture::unregister_replacement(first);
++  EXPECT_EQ(selected_registration_id(key), fresh.id);
++  texture::unregister_replacement(fresh);
++}
++
+ template <typename T>
+ void write_u32(std::vector<uint8_t>& bytes, size_t offset, T value) {
+   const uint32_t word = static_cast<uint32_t>(value);

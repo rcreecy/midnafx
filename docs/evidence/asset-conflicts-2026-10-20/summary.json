@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "aurora_revision": "7f2801cd0133c9333eadb4e2e6b24100c328d328",
+  "platform": "windows-amd64",
+  "configuration": "RelWithDebInfo",
+  "backend": "none; registry tests do not initialize a GPU",
+  "test_patch_sha256": "da561c8ae4f7e7f46d0b05a9a544db2457a81777276ac46dc8ea744f4dac6fcf",
+  "experimental_host_patch_sha256": "b3fb8ecb397695fa4b594d67d43130192c88f59bdb2e792c16563cd701144145",
+  "test_executable_sha256": "675fcd8796dae8575a1a5f0e17a1d0bf0c8eb0b0a18860d09ab262eb89bf7af7",
+  "full_stdout_sha256": "cf1b516b5889be6efa17f3771c8e44aa917469ceb1b36e829c56a7eee48730b7",
+  "repeat_stdout_sha256": "f8177fff6c922bb44e079433ad7cf735b22366d4edb0a651f70c01b9921b1c37",
+  "suite_tests": 10,
+  "suite_failures": 0,
+  "suite_seconds": 0.074,
+  "new_cases": 4,
+  "repeat_iterations": 10,
+  "repeat_case_passes": 40,
+  "patch_reverse_forward_roundtrip": "PASS",
+  "tests": [
+    {
+      "name": "ReplacementStreamingTest.UnregisterWaitsForInFlightVirtualRead",
+      "seconds": 0.065,
+      "status": "completed"
+    },
+    {
+      "name": "ReplacementStreamingTest.CancelledQueuedVirtualJobNeverReads",
+      "seconds": 0.0,
+      "status": "completed"
+    },
+    {
+      "name": "ReplacementStreamingTest.HighPriorityFullLoadRunsBeforeThumbnailQueue",
+      "seconds": 0.0,
+      "status": "completed"
+    },
+    {
+      "name": "ReplacementStreamingTest.StaleFailureDoesNotPoisonNewRegistration",
+      "seconds": 0.0,
+      "status": "completed"
+    },
+    {
+      "name": "ReplacementStreamingTest.MidnaFXPriorityRemovalAndReregistration",
+      "seconds": 0.0,
+      "status": "completed"
+    },
+    {
+      "name": "ReplacementStreamingTest.MidnaFXEqualPriorityUsesLatestRegistration",
+      "seconds": 0.0,
+      "status": "completed"
+    },
+    {
+      "name": "ReplacementStreamingTest.MidnaFXExactKeyPrecedesHigherPriorityWildcard",
+      "seconds": 0.0,
+      "status": "completed"
+    },
+    {
+      "name": "ReplacementStreamingTest.MidnaFXClearRemovesAllConflicts",
+      "seconds": 0.0,
+      "status": "completed"
+    },
+    {
+      "name": "DdsMipTailTest.SlicesTheSameTailAsFullDecode",
+      "seconds": 0.007,
+      "status": "completed"
+    },
+    {
+      "name": "DdsMipTailTest.RejectsMiplessLargeTextureButKeepsSmallWholeTexture",
+      "seconds": 0.0,
+      "status": "completed"
+    }
+  ],
+  "limitations": [
+    "synthetic virtual providers; no live conflicting pack draws",
+    "paused workers; no successful texture payload or GPU binding proof",
+    "native macOS conflict tests and total observer overhead untested"
+  ]
+}
