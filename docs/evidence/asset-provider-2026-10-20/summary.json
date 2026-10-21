@@ -1,0 +1,113 @@
+{
+  "claim": "Sampled slot-0 registration identity and file basename; GPU completion and file bytes unobserved",
+  "host_patch_sha256": "b3fb8ecb397695fa4b594d67d43130192c88f59bdb2e792c16563cd701144145",
+  "host_sha256": "482aa1fcc8c4789297ba3b4d8476582a8e1868c33be578a982628ca35e8f3e8b",
+  "schema": 1,
+  "sessions": {
+    "l": {
+      "bindings": [
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 0,
+          "mips": 1,
+          "registration": 0,
+          "replacement": 0,
+          "width": 64
+        },
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 1,
+          "mips": 1,
+          "registration": 0,
+          "replacement": 0,
+          "width": 64
+        }
+      ],
+      "draw_labels": 32,
+      "encoded_draws": 32,
+      "graph_failures": [],
+      "name": "asset-provider-vanilla-l",
+      "normal_mod_shutdown": true,
+      "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+      "stderr_sha256": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout_sha256": "417f36a316bb1ba670ae59bd4f35921c8cf79d7f7461bf519c190d3415a4a490"
+    },
+    "m": {
+      "bindings": [
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 0,
+          "mips": 7,
+          "provider": {
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "03e30ab7da8dd143"
+          },
+          "registration": 148,
+          "replacement": 1,
+          "width": 64
+        },
+        {
+          "bound": 1,
+          "height": 2048,
+          "material": 0,
+          "mips": 12,
+          "provider": {
+            "file": "tex1_64x64_630d5c7bc606585d_14.dds",
+            "path_fnv1a64": "03e30ab7da8dd143"
+          },
+          "registration": 148,
+          "replacement": 1,
+          "width": 2048
+        },
+        {
+          "bound": 1,
+          "height": 64,
+          "material": 1,
+          "mips": 7,
+          "provider": {
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "42c428ecaaed7233"
+          },
+          "registration": 146,
+          "replacement": 1,
+          "width": 64
+        },
+        {
+          "bound": 1,
+          "height": 1024,
+          "material": 1,
+          "mips": 11,
+          "provider": {
+            "file": "tex1_64x64_000e342106676e31_14.dds",
+            "path_fnv1a64": "42c428ecaaed7233"
+          },
+          "registration": 146,
+          "replacement": 1,
+          "width": 1024
+        }
+      ],
+      "draw_labels": 64,
+      "encoded_draws": 64,
+      "graph_failures": [],
+      "name": "asset-provider-pack-m",
+      "normal_mod_shutdown": true,
+      "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+      "stderr_sha256": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout_sha256": "8204d0e481c2b5f385be769112b13caea3facbeb643aacc4bdc72a6ec5dd8113"
+    },
+    "n": {
+      "bindings": [],
+      "draw_labels": 0,
+      "encoded_draws": 0,
+      "graph_failures": [],
+      "name": "asset-provider-disabled-n",
+      "normal_mod_shutdown": true,
+      "package_sha256": "7443ef6468082f48ee3311aadb490518e54ecafbe72da20bb2398338667a9287",
+      "stderr_sha256": "fd2ce92628a9f64f1ce7282226ac6eebc5be408fb711e508704b6473d89e24b8",
+      "stdout_sha256": "5b362e281dd126f028a26a7b1156b761fca2c64dcf9f9ce87c4b103ef9032b1d"
+    }
+  }
+}

@@ -91,11 +91,56 @@ index d04db0f..79229c0 100644
    return &inline_payload<gx::DrawData>(last.data.draw.payload.data());
  }
  
+diff --git a/lib/gfx/texture.hpp b/lib/gfx/texture.hpp
+index 600a430..20a154e 100644
+--- a/lib/gfx/texture.hpp
++++ b/lib/gfx/texture.hpp
+@@ -43,6 +43,7 @@ struct TextureRef {
+   u32 gxFormat;
+   bool hasArbitraryMips = false;
+   bool isReplacement = false;
++  uint64_t assetRegistrationId = 0; // Experimental immutable handle provenance.
+ 
+   TextureRef(wgpu::Texture texture, wgpu::TextureView sampleTextureView, wgpu::TextureView attachmentTextureView,
+              wgpu::Extent3D size, wgpu::TextureFormat format, uint32_t mipCount, u32 gxFormat)
+diff --git a/lib/gfx/texture_replacement.cpp b/lib/gfx/texture_replacement.cpp
+index 03dda46..7549f37 100644
+--- a/lib/gfx/texture_replacement.cpp
++++ b/lib/gfx/texture_replacement.cpp
+@@ -987,6 +987,20 @@ gfx::TextureHandle create_converted_texture_handle(const EntryLoadSnapshot& entr
+   auto handle = std::make_shared<gfx::TextureRef>(std::move(texture), std::move(textureView), wgpu::TextureView{}, size,
+                                                   replacement.format, replacement.mips, gfx::InvalidTextureFormat);
+   handle->isReplacement = true;
++  handle->assetRegistrationId = entry.id;
++  // Narrow file provenance only. Other providers remain explicitly unobserved.
++  const auto filename = io::fs_path_to_string(entry.path.filename());
++  if (entry.kind == EntryKind::File &&
++      (filename == "tex1_64x64_000e342106676e31_14.dds" || filename == "tex1_64x64_630d5c7bc606585d_14.dds")) {
++    static unsigned observations = 0;
++    if (observations < 4096) {
++      ++observations;
++      uint64_t pathHash = 14695981039346656037ull;
++      for (unsigned char c : io::fs_path_to_string(entry.path)) { pathHash ^= c; pathHash *= 1099511628211ull; }
++      static constexpr Module AssetLog{"aurora::asset"};
++      AssetLog.info("AssetProvider {{\"schema\":1,\"event\":\"handle-created\",\"registration\":{},\"file\":\"{}\",\"path_fnv1a64\":\"{:016x}\"}}", entry.id, filename, pathHash);
++    }
++  }
+   aurora::gfx::write_texture(*handle, replacement.data);
+   return handle;
+ }
+@@ -1012,6 +1026,7 @@ gfx::TextureHandle create_raw_texture_handle(const ReplacementEntry& entry) noex
+                                            {entry.bytes.data(), entry.bytes.size()}, false, textureLabel.c_str());
+   if (handle) {
+     handle->isReplacement = true;
++    handle->assetRegistrationId = entry.id;
+   }
+   return handle;
+ }
 diff --git a/lib/gx/gx.cpp b/lib/gx/gx.cpp
-index b12b327..88504b1 100644
+index b12b327..1fced7b 100644
 --- a/lib/gx/gx.cpp
 +++ b/lib/gx/gx.cpp
-@@ -497,9 +497,20 @@ GXBindGroups build_bind_groups(const ShaderInfo& info) noexcept {
+@@ -497,9 +497,21 @@ GXBindGroups build_bind_groups(const ShaderInfo& info) noexcept {
        .entryCount = textureEntries.size(),
        .entries = textureEntries.data(),
    };
@@ -108,6 +153,7 @@ index b12b327..88504b1 100644
 +    if (slot0.ref->size.width <= UINT16_MAX && slot0.ref->size.height <= UINT16_MAX && slot0.ref->mipCount <= UINT16_MAX) {
 +      result.assetSlot0Bound = 1;
 +      result.assetSlot0Replacement = slot0.ref->isReplacement;
++      result.assetSlot0Registration = slot0.ref->assetRegistrationId;
 +      result.assetSlot0Width = static_cast<uint16_t>(slot0.ref->size.width);
 +      result.assetSlot0Height = static_cast<uint16_t>(slot0.ref->size.height);
 +      result.assetSlot0Mips = static_cast<uint16_t>(slot0.ref->mipCount);
@@ -120,13 +166,14 @@ index b12b327..88504b1 100644
  
  void initialize() noexcept {
 diff --git a/lib/gx/gx.hpp b/lib/gx/gx.hpp
-index a97b987..6481164 100644
+index a97b987..2f0216d 100644
 --- a/lib/gx/gx.hpp
 +++ b/lib/gx/gx.hpp
-@@ -511,6 +511,9 @@ struct PipelineConfig;
+@@ -511,6 +511,10 @@ struct PipelineConfig;
  
  struct GXBindGroups {
    gfx::BindGroupRef textureBindGroup;
++  uint64_t assetSlot0Registration = 0;
 +  // Experimental probe: values copied from the same slot-0 view used by the bind group.
 +  uint16_t assetSlot0Width = 0, assetSlot0Height = 0, assetSlot0Mips = 0;
 +  uint8_t assetSlot0Bound = 0, assetSlot0Replacement = 0;
@@ -134,7 +181,7 @@ index a97b987..6481164 100644
  // Output info from shader generation
  struct ShaderInfo {
 diff --git a/lib/gx/pipeline.cpp b/lib/gx/pipeline.cpp
-index 0c3631c..70ade42 100644
+index 0c3631c..aa3b10e 100644
 --- a/lib/gx/pipeline.cpp
 +++ b/lib/gx/pipeline.cpp
 @@ -43,6 +43,17 @@ void render(const DrawData& data, const wgpu::RenderPassEncoder& pass) {
@@ -148,9 +195,9 @@ index 0c3631c..70ade42 100644
 +    ++asset_trace_events;
 +    static constexpr Module AssetLog{"aurora::asset"};
 +    const auto& b = data.bindGroups;
-+    AssetLog.info("AssetDraw {{\"schema\":1,\"event\":\"encoded\",\"label\":\"{}\",\"frame\":{},\"vertices\":{},\"indices\":{},\"instances\":{},\"slot0\":{{\"bound\":{},\"replacement\":{},\"width\":{},\"height\":{},\"mips\":{}}}}}",
++    AssetLog.info("AssetDraw {{\"schema\":1,\"event\":\"encoded\",\"label\":\"{}\",\"frame\":{},\"vertices\":{},\"indices\":{},\"instances\":{},\"slot0\":{{\"bound\":{},\"replacement\":{},\"width\":{},\"height\":{},\"mips\":{},\"registration\":{}}}}}",
 +             gfx::asset_trace_label, gfx::asset_trace_frame, data.vtxCount, data.indexCount, data.instanceCount,
-+             b.assetSlot0Bound, b.assetSlot0Replacement, b.assetSlot0Width, b.assetSlot0Height, b.assetSlot0Mips);
++             b.assetSlot0Bound, b.assetSlot0Replacement, b.assetSlot0Width, b.assetSlot0Height, b.assetSlot0Mips, b.assetSlot0Registration);
 +  }
  }
  

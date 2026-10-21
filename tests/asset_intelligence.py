@@ -219,4 +219,42 @@ class AssetTests(unittest.TestCase):
         self.assertEqual(models[1]['archive_delete_observations'],1)
         self.assertTrue(all(m['materials']==models[0]['materials'] for m in models))
 
+    def test_provider_requires_matching_registration_and_source(self):
+        root=Path(__file__).parents[1]/'docs/evidence/asset-selection-2026-10-20'
+        item=json.loads((root/'pumpkin-graph-i.json').read_text())['models'][0]
+        item.pop('runtime_slot0_bindings',None)
+        label=dict(schema=1,event='draw-label',id=item['id'],material=0,label='MidnaFXAssetV1:50:1')
+        encoded=dict(schema=1,event='encoded',label=label['label'],frame=1,vertices=3,indices=0,instances=1,
+                     slot0=dict(bound=1,replacement=1,width=2048,height=2048,mips=12,registration=7))
+        provider=dict(schema=1,event='handle-created',registration=7,file='tex1_64x64_630d5c7bc606585d_14.dds',path_fnv1a64='1234567890abcdef')
+        lines=['AssetDraw '+json.dumps(encoded),'AssetGraph '+json.dumps(label)]
+        a.join_runtime({'models':[item]},lines)
+        self.assertNotIn('provider',item['runtime_slot0_bindings'][0])
+        item.pop('runtime_slot0_bindings')
+        # Creation records may precede or follow worker encoding logs; duplicates are idempotent.
+        a.join_runtime({'models':[item]},lines+['AssetProvider '+json.dumps(provider)]*2)
+        self.assertEqual(item['runtime_slot0_bindings'][0]['provider']['file'],provider['file'])
+        with self.assertRaises(ValueError):
+            a.join_runtime({'models':[item]},lines+['AssetProvider '+json.dumps(dict(provider,file='tex1_64x64_000e342106676e31_14.dds'))])
+        with self.assertRaises(ValueError):
+            a.join_runtime({'models':[item]},['AssetProvider '+json.dumps(provider),'AssetProvider '+json.dumps(dict(provider,path_fnv1a64='0'*16))])
+
+    def test_recorded_provider_identity(self):
+        root=Path(__file__).parents[1]/'docs/evidence/asset-provider-2026-10-20'
+        for suffix,count in [('l',32),('m',64),('n',0)]:
+            graph=json.loads((root/f'pumpkin-graph-{suffix}.json').read_text())
+            self.assertEqual(graph['failures'],[])
+            item=graph['models'][0]
+            self.assertEqual(item.get('runtime_encoded_draws',0),count)
+            if suffix=='m':
+                for binding in item['runtime_slot0_bindings']:
+                    self.assertEqual(binding['registration'],148 if binding['material']==0 else 146)
+                    self.assertIn('provider',binding)
+                self.assertEqual(item['resource_load_observations'],2)
+                self.assertEqual(item['archive_delete_observations'],1)
+            elif suffix=='l':
+                self.assertTrue(all(b['registration']==0 and 'provider' not in b for b in item['runtime_slot0_bindings']))
+            else:
+                self.assertNotIn('runtime_slot0_bindings',item)
+
 if __name__=='__main__': unittest.main()

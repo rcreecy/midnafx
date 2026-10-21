@@ -1,5 +1,7 @@
 # Sampled pumpkin texture binding
 
+Follow-up: [registration identity](asset-provider-correlation.md) connects the two sampled file-backed replacement handles to their actual registration IDs and basenames. Full file bytes and broader providers remain unobserved.
+
 This extension to the [draw correlation experiment](asset-draw-correlation.md) observes slot 0 of the actual native texture bind group. It records whether the slot has a texture, the resolved handle's `isReplacement` flag, dimensions and mip count. The values are copied when the bind group is built, cached with that bind group, copied into the frame command, and logged only after successful native WebGPU draw encoding.
 
 This establishes resolved replacement status for the sampled binding. It does not identify a provider, registration generation, filename, full-resolution streaming tier, or GPU completion. The original MAT3/TEX1 identity remains separate. A replacement handle can contain a streaming thumbnail; dimensions must be interpreted as the bound handle's dimensions rather than the source file's advertised size.

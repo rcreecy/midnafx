@@ -143,8 +143,24 @@ def model(data, archive, name):
 
 def join_runtime(graph, lines):
     by_id={m['id']:m for m in graph['models']}
-    labels, encoded = {}, []
+    labels, encoded, providers = {}, [], {}
     for line in lines:
+        if 'AssetProvider ' in line:
+            provider=json.loads(line.split('AssetProvider ',1)[1])
+            if not isinstance(provider,dict) or provider.get('schema')!=1 or provider.get('event')!='handle-created':
+                raise ValueError('unsupported provider schema')
+            registration=provider.get('registration')
+            if type(registration) is not int or registration<=0:
+                raise ValueError('invalid provider registration')
+            if provider.get('file') not in ('tex1_64x64_000e342106676e31_14.dds','tex1_64x64_630d5c7bc606585d_14.dds'):
+                raise ValueError('unsupported provider file')
+            fingerprint=provider.get('path_fnv1a64')
+            if not isinstance(fingerprint,str) or not re.fullmatch(r'[0-9a-f]{16}',fingerprint):
+                raise ValueError('invalid provider path fingerprint')
+            if registration in providers and providers[registration]!=provider:
+                raise ValueError('conflicting provider registration')
+            providers[registration]=provider
+            continue
         if 'AssetDraw ' in line:
             event=json.loads(line.split('AssetDraw ',1)[1])
             if not isinstance(event,dict) or event.get('schema')!=1 or event.get('event')!='encoded':
@@ -163,6 +179,10 @@ def join_runtime(graph, lines):
                     raise ValueError('invalid slot-0 flags')
                 if (slot['bound'] and not all(slot[k]>0 for k in ('width','height','mips'))) or (not slot['bound'] and any(slot.values())):
                     raise ValueError('inconsistent slot-0 binding')
+                if 'registration' in slot:
+                    registration=slot['registration']
+                    if type(registration) is not int or registration<0 or (registration and not slot['replacement']):
+                        raise ValueError('inconsistent binding registration')
             encoded.append(event)
             continue
         if 'AssetGraph ' not in line:
@@ -211,6 +231,15 @@ def join_runtime(graph, lines):
         item['rendered_object']='native-WebGPU-draw-encoded; visibility-and-GPU-completion-unobserved'
         if 'slot0' in event:
             observation={'material':index,**event['slot0']}
+            provider=providers.get(observation.get('registration'))
+            if provider:
+                texture_index=item['materials'][index]['texture_slots'][0]
+                texture=next((t for t in item['textures'] if t['index']==texture_index),None)
+                key=texture['source_key'] if texture else {}
+                expected=f"tex1_{key.get('width')}x{key.get('height')}_{key.get('texture_hash')}_{key.get('gx_format')}.dds"
+                if 'tlut_hash' in key or provider['file']!=expected:
+                    raise ValueError('provider differs from original slot-0 source')
+                observation['provider']={k:provider[k] for k in ('file','path_fnv1a64')}
             observations=item.setdefault('runtime_slot0_bindings',[])
             if observation not in observations: observations.append(observation)
     for label,(item,index) in labels.items():
