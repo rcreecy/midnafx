@@ -54,6 +54,6 @@ To reproduce, prepare complete baseline and traced runtimes in separate director
 
 ## Remaining work and macOS acceptance
 
-Next measurements must capture allocation counts/bytes, frame timing, active sampling and reload costs. The baseline shutdown stall also needs diagnosis. Experimental Metal-host compilation remains a development check separate from ordinary package CI.
+Next measurements must capture allocation counts/bytes, frame timing, active sampling and reload costs. The baseline shutdown stall also needs diagnosis. Metal validation is conditional on execution on the current working host; it is unavailable on this Windows/D3D12 host and is not a required gate. Remote hosted Metal runs are excluded under the [working-host policy](development.md#validation-on-the-working-host).
 
-The user owns native macOS gameplay testing separately and chooses successful launch/gameplay without a crash as the minimum acceptance criterion. That result remains pending; it will not be represented as pixel, performance or broad material-control qualification. Hosted package/Metal checks continue. Both asset diagnostics remain disabled by default; no release or visual behavior changes in this measurement milestone.
+The user owns native macOS gameplay testing separately and chooses successful launch/gameplay without a crash as the minimum acceptance criterion. That result remains pending; it will not be represented as pixel, performance or broad material-control qualification. Hosted macOS package/portable checks continue without Metal execution. Earlier Metal results above describe historical runs, not current requirements. Both asset diagnostics remain disabled by default; no release or visual behavior changes in this measurement milestone.

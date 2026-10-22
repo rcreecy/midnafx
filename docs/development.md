@@ -10,6 +10,14 @@ mods folder listed below. Platform artifacts are separate; do not rename one pla
 package as a combined release. This removes the need for users to compile MidnaFX locally.
 CI validates compilation and package structure, not game loading, Metal output, or latency.
 
+## Validation on the working host
+
+Required Metal validation is conditional on being executable on the current working host. The current host is Windows/D3D12 and cannot execute Metal, so Metal checks are unavailable here and are not validation or release gates. Historical hosted Metal results remain historical evidence only; do not schedule remote Metal checks to satisfy this requirement.
+
+Hosted macOS jobs still compile and package the Intel build and run portable/null-backend tests. They exclude `aa_pixels`, which selects Metal on macOS, and do not run the former Metal repeatability step. Windows jobs retain their D3D12 pixel test. If the working host later supports Metal, its local pixel test can be included and reported with its actual adapter/backend.
+
+The user separately owns native macOS gameplay testing and chooses launch/gameplay without a crash as the minimum acceptance criterion. The broader Mac procedures below are optional reference work, not additional gates on this Windows host.
+
 MidnaFX uses the standalone Dusklight SDK at commit `edf42c6a7202647b56dd2fcdef02d17671bc814b`, including its pinned Aurora submodule `7f2801cd0133c9333eadb4e2e6b24100c328d328`. Research reference: official mod template commit `ece6d0dae843675fbd1e3f2308a0f1f782da5d80`. See `notes/render.md` for renderer contracts.
 
 The candidate CPU-skinning host fix is tracked as
@@ -127,7 +135,7 @@ If a shader or pipeline validation error appears, leave passthrough disabled and
 the log and host revision for diagnosis. A successful package build does not prove
 Metal execution or image parity.
 
-A successful compile/package is not host runtime validation. Verify startup, enable/disable, neutral image identity, HUD exclusion, resize, stage changes, reload and shutdown in an actual host. For M1 test both successful single-sample rendering and clean MSAA bypass. Record host revision, backend, architecture, render resolution, texture packs and Dawnlight version. Intel Mac/Metal 4K performance remains a separate required hardware check.
+A successful compile/package is not host runtime validation. For broader runtime qualification, verify startup, enable/disable, neutral image identity, HUD exclusion, resize, stage changes, reload and shutdown in an actual host. For M1 test both successful single-sample rendering and clean MSAA bypass. Record host revision, backend, architecture, render resolution, texture packs and Dawnlight version. Intel Mac/Metal 4K profiling is optional hardware work under the working-host policy above.
 
 For M2, first use **Force passthrough comparison** with **Enable grading** to repeat the M1
 neutral test. Then turn passthrough off: all neutral sliders should produce the disabled

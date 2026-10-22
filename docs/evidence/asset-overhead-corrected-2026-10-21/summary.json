@@ -261,9 +261,13 @@
   "remaining": [
     "allocation counts and bytes",
     "frame/GPU timing",
-    "active resample and reload costs",
-    "experimental Metal-host compilation"
+    "active resample and reload costs"
   ],
+  "metal_validation": {
+    "status": "unavailable on current Windows/D3D12 host",
+    "required": false,
+    "policy": "Include only when executable on the current working host; no remote hosted Metal gate"
+  },
   "replaced_invalid_study": "../asset-overhead-2026-10-21/summary.json",
   "replacement_files": [
     {
