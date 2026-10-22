@@ -18,8 +18,8 @@ Preserve gameplay, authored material boundaries, animation/skinning, transparenc
 
 | Slice | Observable completion | Current state |
 |---|---|---|
-| R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; bounded CPU timing collector passes native smoke; paired cost/allocation measurements and historical stall attribution remain open |
-| R1: selective material control | Toggle a visible change on the fingerprinted pumpkin body while leaves and surrounding scene remain unchanged; disabling/restoring/reloading recovers original state; original and high-resolution replacements work | Visible reversible RGB-scale control passes original/pack comparisons; archive round trip and mod reload remain pending; see material-control.md |
+| R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |
+| R1: selective material control | Toggle a visible change on the fingerprinted pumpkin body while leaves and surrounding scene remain unchanged; disabling/restoring/reloading recovers original state; original and high-resolution replacements work | Visible reversible RGB-scale control passes original/pack comparisons; cached-binding reload defect repaired and final-package reload passes; complete archive round trip remains pending; see material-control.md |
 | R2: authored material enhancement | Apply bounded profiles to several distinct material classes using original identities; support predictable color/specular/normal inputs only where rendering data and control are sufficient; document effects and fallback | Requires R1 control seam and material/shader capability audit |
 | R3: geometry and character consistency | Improve selected silhouettes/normals without seam, skinning, animation or shared-instance corruption; broaden verified asset coverage beyond existing allowlists | Narrow geometry/smoothing foundations exist; broad coverage is incomplete |
 | R4: coherent environment rendering | Integrate existing grading/LUT, atmosphere, depth, water and camera capabilities with material-aware exclusions and quality presets; add lighting/reflection/shadow capabilities only with suitable inputs and measured control | Several effects exist; generic material-aware integration remains incomplete |
@@ -53,9 +53,22 @@ completes. The CPU timing collector emits 1,484 consistent frames with no drops
 in its smoke trial. See [material control](material-control.md),
 [shutdown repair](decomp-shutdown.md) and [frame timing](frame-timing.md).
 
-The goal's usage limit stops this iteration before the full program is complete.
-Resume with R1 archive departure/return and mod reload qualification, then paired
-R0 settled/sampling/replacement-reload frame measurements and actual allocation
-capture where available. Broader authored material profiles, geometry/character
-coverage, coherent environment rendering and product qualification remain open.
-Preserve the confirmed Nintendo Switch 2 reference and best-effort macOS policy.
+The resumed iteration repairs a reproduced cached-archive binding gap. Scene
+self-reload can retain the archive, so requiring another scene load was unreliable.
+One-shot cached binding now qualifies the original resident model without fetches
+or reference changes. Independent native endian simulation explains every loaded
+source-byte change; only twelve unspecified padding bytes are normalized during
+hashing. Final-package native mod reload passes with diagnostics off, replacement
+textures on and a non-tracing host. Normal closes retain balanced draw restoration.
+
+Eight repeated settled frame captures compare baseline, tracing host with
+diagnostics off/on, and material control separately. Median presentation intervals
+remain near the native 30 Hz cap. Material control has a larger tail in one repeat;
+GPU and execution-time overhead are not established. Full raw timings and the
+unresolved black Hyrule Field transition remain in the evidence ledger.
+
+Continue with a complete successful R1 archive departure/return, active sampling
+and replacement-reload measurement, and allocation capture where available.
+Broader authored material profiles, geometry/character coverage, coherent
+environment rendering and product qualification remain open. Preserve the
+confirmed Nintendo Switch 2 reference and best-effort macOS policy.

@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "measurement": "CPU monotonic wall timing; successful present-call completion intervals",
+  "unit": "ms",
+  "percentile_method": "linear interpolation at (count - 1) * percentile",
+  "window": {
+    "start_seconds": 20,
+    "duration_seconds": 30,
+    "origin_ns": 89012488275100,
+    "start_ns": 89032488275100,
+    "end_ns": 89062488275100
+  },
+  "source": {
+    "producer_count": 2346,
+    "present_count": 2346,
+    "begin_attempts": 2346,
+    "failed_begins": 0,
+    "incomplete_begins": 0,
+    "truncated": false,
+    "producer_end_ns": 89090459464200,
+    "present_end_ns": 89090461345700
+  },
+  "selected": {
+    "complete_producer_frames": 899,
+    "successful_presents": 900,
+    "matching_frame_ids": 899
+  },
+  "metrics": {
+    "acquisition_wall": {
+      "count": 899,
+      "min": 0.0005,
+      "max": 0.004,
+      "p50": 0.001,
+      "p95": 0.002,
+      "p99": 0.0028
+    },
+    "producer_record_wall": {
+      "count": 899,
+      "min": 27.092,
+      "max": 38.8086,
+      "p50": 33.1562,
+      "p95": 34.060300000000005,
+      "p99": 34.772154
+    },
+    "end_enqueue_wall": {
+      "count": 899,
+      "min": 0.001,
+      "max": 0.0049,
+      "p50": 0.0015,
+      "p95": 0.0024,
+      "p99": 0.0033
+    },
+    "total_producer_wall": {
+      "count": 899,
+      "min": 27.1145,
+      "max": 38.8206,
+      "p50": 33.1672,
+      "p95": 34.07932,
+      "p99": 34.787718
+    },
+    "consecutive_begin_interval": {
+      "count": 899,
+      "min": 27.2629,
+      "max": 39.1168,
+      "p50": 33.3047,
+      "p95": 34.32271,
+      "p99": 34.95067
+    },
+    "successful_present_completion_interval": {
+      "count": 899,
+      "min": 27.8842,
+      "max": 46.5947,
+      "p50": 33.2957,
+      "p95": 34.76186,
+      "p99": 36.312722
+    }
+  },
+  "encoding_time": null,
+  "gpu_time": null,
+  "heap_allocations": null,
+  "limitations": [
+    "Wall durations include waits and scheduling; they are not CPU execution time.",
+    "Successful present-call completion is not physical scanout or display latency.",
+    "Producer and render streams overlap; present may precede producer enqueue return.",
+    "Failed and incomplete begins are counted for the whole capture, not located within the window."
+  ],
+  "input": "frame-timing.json"
+}

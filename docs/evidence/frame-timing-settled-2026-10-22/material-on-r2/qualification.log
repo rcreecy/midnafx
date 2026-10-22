@@ -1,0 +1,4 @@
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-pumpkin-body requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=enabled requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=1 bound=1 applies=13116 restores=13116 rejected=0
+[INFO | dusk::mods::loader] all mods unloaded

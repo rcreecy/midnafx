@@ -1,0 +1,578 @@
+{
+  "schema": 1,
+  "order": [
+    "baseline-r1",
+    "patched-off-r1",
+    "patched-on-r1",
+    "material-on-r1",
+    "material-on-r2",
+    "patched-on-r2",
+    "patched-off-r2",
+    "baseline-r2"
+  ],
+  "hardware": {
+    "cpu": "Intel Core i7-10700 @ 2.90GHz",
+    "gpu": "Intel UHD Graphics 630"
+  },
+  "backend": "D3D12",
+  "configured_client_size": [
+    960,
+    720
+  ],
+  "warmup_seconds": 20,
+  "measure_seconds": 30,
+  "rows": [
+    {
+      "trial": "baseline-r1",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 899,
+          "min": 0.0005,
+          "max": 0.0049,
+          "p50": 0.0009,
+          "p95": 0.0017099999999999908,
+          "p99": 0.0025039999999999962
+        },
+        "producer_record_wall": {
+          "count": 899,
+          "min": 31.0707,
+          "max": 35.3103,
+          "p50": 33.1908,
+          "p95": 33.995239999999995,
+          "p99": 34.553171999999996
+        },
+        "end_enqueue_wall": {
+          "count": 899,
+          "min": 0.001,
+          "max": 0.0046,
+          "p50": 0.0016,
+          "p95": 0.0024,
+          "p99": 0.003501999999999998
+        },
+        "total_producer_wall": {
+          "count": 899,
+          "min": 31.0847,
+          "max": 35.3202,
+          "p50": 33.2024,
+          "p95": 34.00667,
+          "p99": 34.56298
+        },
+        "consecutive_begin_interval": {
+          "count": 899,
+          "min": 31.2705,
+          "max": 35.4232,
+          "p50": 33.33,
+          "p95": 34.14163,
+          "p99": 34.698862
+        },
+        "successful_present_completion_interval": {
+          "count": 899,
+          "min": 26.7506,
+          "max": 45.1858,
+          "p50": 33.2785,
+          "p95": 34.71752,
+          "p99": 39.44303599999998
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 899,
+        "successful_presents": 900,
+        "matching_frame_ids": 899
+      },
+      "source": {
+        "producer_count": 2330,
+        "present_count": 2330,
+        "begin_attempts": 2330,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 88922726308900,
+        "present_end_ns": 88922729844600
+      }
+    },
+    {
+      "trial": "patched-off-r1",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 899,
+          "min": 0.0005,
+          "max": 0.0046,
+          "p50": 0.0011,
+          "p95": 0.0019,
+          "p99": 0.002501999999999998
+        },
+        "producer_record_wall": {
+          "count": 899,
+          "min": 29.8681,
+          "max": 36.364,
+          "p50": 33.1651,
+          "p95": 34.1515,
+          "p99": 34.935508
+        },
+        "end_enqueue_wall": {
+          "count": 899,
+          "min": 0.001,
+          "max": 0.0208,
+          "p50": 0.0016,
+          "p95": 0.0027,
+          "p99": 0.0039
+        },
+        "total_producer_wall": {
+          "count": 899,
+          "min": 29.8825,
+          "max": 36.3774,
+          "p50": 33.1781,
+          "p95": 34.16485,
+          "p99": 34.947878
+        },
+        "consecutive_begin_interval": {
+          "count": 899,
+          "min": 30.0688,
+          "max": 36.5042,
+          "p50": 33.2935,
+          "p95": 34.36403,
+          "p99": 35.089478
+        },
+        "successful_present_completion_interval": {
+          "count": 900,
+          "min": 28.4112,
+          "max": 47.0979,
+          "p50": 33.2783,
+          "p95": 34.959064999999995,
+          "p99": 40.681825
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 899,
+        "successful_presents": 901,
+        "matching_frame_ids": 899
+      },
+      "source": {
+        "producer_count": 2252,
+        "present_count": 2252,
+        "begin_attempts": 2252,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 89009890285000,
+        "present_end_ns": 89009892429500
+      }
+    },
+    {
+      "trial": "patched-on-r1",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 899,
+          "min": 0.0005,
+          "max": 0.004,
+          "p50": 0.001,
+          "p95": 0.002,
+          "p99": 0.0028
+        },
+        "producer_record_wall": {
+          "count": 899,
+          "min": 27.092,
+          "max": 38.8086,
+          "p50": 33.1562,
+          "p95": 34.060300000000005,
+          "p99": 34.772154
+        },
+        "end_enqueue_wall": {
+          "count": 899,
+          "min": 0.001,
+          "max": 0.0049,
+          "p50": 0.0015,
+          "p95": 0.0024,
+          "p99": 0.0033
+        },
+        "total_producer_wall": {
+          "count": 899,
+          "min": 27.1145,
+          "max": 38.8206,
+          "p50": 33.1672,
+          "p95": 34.07932,
+          "p99": 34.787718
+        },
+        "consecutive_begin_interval": {
+          "count": 899,
+          "min": 27.2629,
+          "max": 39.1168,
+          "p50": 33.3047,
+          "p95": 34.32271,
+          "p99": 34.95067
+        },
+        "successful_present_completion_interval": {
+          "count": 899,
+          "min": 27.8842,
+          "max": 46.5947,
+          "p50": 33.2957,
+          "p95": 34.76186,
+          "p99": 36.312722
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 899,
+        "successful_presents": 900,
+        "matching_frame_ids": 899
+      },
+      "source": {
+        "producer_count": 2346,
+        "present_count": 2346,
+        "begin_attempts": 2346,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 89090459464200,
+        "present_end_ns": 89090461345700
+      }
+    },
+    {
+      "trial": "material-on-r1",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 899,
+          "min": 0.0006,
+          "max": 12.4212,
+          "p50": 0.001,
+          "p95": 0.002,
+          "p99": 3.5485299999999755
+        },
+        "producer_record_wall": {
+          "count": 899,
+          "min": 21.1714,
+          "max": 36.6535,
+          "p50": 33.1628,
+          "p95": 33.973800000000004,
+          "p99": 34.58592
+        },
+        "end_enqueue_wall": {
+          "count": 899,
+          "min": 0.0009,
+          "max": 0.0044,
+          "p50": 0.0016,
+          "p95": 0.0024,
+          "p99": 0.0032
+        },
+        "total_producer_wall": {
+          "count": 899,
+          "min": 30.7424,
+          "max": 36.6652,
+          "p50": 33.1789,
+          "p95": 33.98554,
+          "p99": 34.597698
+        },
+        "consecutive_begin_interval": {
+          "count": 899,
+          "min": 30.8921,
+          "max": 36.7876,
+          "p50": 33.306,
+          "p95": 34.20174,
+          "p99": 34.842104
+        },
+        "successful_present_completion_interval": {
+          "count": 898,
+          "min": 27.9153,
+          "max": 47.8772,
+          "p50": 33.2238,
+          "p95": 35.193725,
+          "p99": 45.80205399999999
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 899,
+        "successful_presents": 899,
+        "matching_frame_ids": 898
+      },
+      "source": {
+        "producer_count": 2224,
+        "present_count": 2224,
+        "begin_attempts": 2224,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 89166844575400,
+        "present_end_ns": 89166846179500
+      }
+    },
+    {
+      "trial": "material-on-r2",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 898,
+          "min": 0.0006,
+          "max": 39.5505,
+          "p50": 0.001,
+          "p95": 17.24814,
+          "p99": 26.289004999999946
+        },
+        "producer_record_wall": {
+          "count": 898,
+          "min": 4.4485,
+          "max": 38.2792,
+          "p50": 33.0899,
+          "p95": 33.980955,
+          "p99": 34.89795699999999
+        },
+        "end_enqueue_wall": {
+          "count": 898,
+          "min": 0.0009,
+          "max": 0.0195,
+          "p50": 0.0017,
+          "p95": 0.0027,
+          "p99": 0.004602999999999997
+        },
+        "total_producer_wall": {
+          "count": 898,
+          "min": 26.1283,
+          "max": 44.3134,
+          "p50": 33.2,
+          "p95": 34.09658,
+          "p99": 35.865805999999985
+        },
+        "consecutive_begin_interval": {
+          "count": 898,
+          "min": 26.2929,
+          "max": 44.3981,
+          "p50": 33.328450000000004,
+          "p95": 34.296295,
+          "p99": 36.276260999999984
+        },
+        "successful_present_completion_interval": {
+          "count": 899,
+          "min": 27.7989,
+          "max": 46.8432,
+          "p50": 33.0837,
+          "p95": 41.74413999999987,
+          "p99": 45.906032
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 898,
+        "successful_presents": 900,
+        "matching_frame_ids": 898
+      },
+      "source": {
+        "producer_count": 2277,
+        "present_count": 2277,
+        "begin_attempts": 2277,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 89270691931400,
+        "present_end_ns": 89270694479400
+      }
+    },
+    {
+      "trial": "patched-on-r2",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 899,
+          "min": 0.0006,
+          "max": 0.0031,
+          "p50": 0.001,
+          "p95": 0.0018,
+          "p99": 0.0025
+        },
+        "producer_record_wall": {
+          "count": 899,
+          "min": 25.6574,
+          "max": 40.539,
+          "p50": 33.1915,
+          "p95": 33.96147,
+          "p99": 34.280144
+        },
+        "end_enqueue_wall": {
+          "count": 899,
+          "min": 0.0009,
+          "max": 0.0543,
+          "p50": 0.0014,
+          "p95": 0.0022,
+          "p99": 0.0034059999999999945
+        },
+        "total_producer_wall": {
+          "count": 899,
+          "min": 25.6771,
+          "max": 40.5488,
+          "p50": 33.2049,
+          "p95": 33.97209,
+          "p99": 34.29003
+        },
+        "consecutive_begin_interval": {
+          "count": 899,
+          "min": 25.7585,
+          "max": 40.6676,
+          "p50": 33.3344,
+          "p95": 34.11801,
+          "p99": 34.763442
+        },
+        "successful_present_completion_interval": {
+          "count": 899,
+          "min": 24.3055,
+          "max": 47.9514,
+          "p50": 33.2684,
+          "p95": 34.703829999999996,
+          "p99": 44.646164
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 899,
+        "successful_presents": 900,
+        "matching_frame_ids": 899
+      },
+      "source": {
+        "producer_count": 2048,
+        "present_count": 2048,
+        "begin_attempts": 2048,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 89341445497200,
+        "present_end_ns": 89341447887000
+      }
+    },
+    {
+      "trial": "patched-off-r2",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 899,
+          "min": 0.0005,
+          "max": 35.6041,
+          "p50": 0.001,
+          "p95": 0.002,
+          "p99": 11.984399999999985
+        },
+        "producer_record_wall": {
+          "count": 899,
+          "min": 4.5605,
+          "max": 46.2641,
+          "p50": 33.175,
+          "p95": 33.89152,
+          "p99": 34.449896
+        },
+        "end_enqueue_wall": {
+          "count": 899,
+          "min": 0.0008,
+          "max": 0.004,
+          "p50": 0.0013,
+          "p95": 0.0021,
+          "p99": 0.002901999999999998
+        },
+        "total_producer_wall": {
+          "count": 899,
+          "min": 20.3714,
+          "max": 46.2748,
+          "p50": 33.1982,
+          "p95": 33.90514,
+          "p99": 34.471218
+        },
+        "consecutive_begin_interval": {
+          "count": 899,
+          "min": 20.4574,
+          "max": 46.5557,
+          "p50": 33.3258,
+          "p95": 34.10167,
+          "p99": 34.62471
+        },
+        "successful_present_completion_interval": {
+          "count": 898,
+          "min": 20.1623,
+          "max": 47.5774,
+          "p50": 33.2153,
+          "p95": 35.275569999999995,
+          "p99": 45.125445
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 899,
+        "successful_presents": 899,
+        "matching_frame_ids": 898
+      },
+      "source": {
+        "producer_count": 2032,
+        "present_count": 2032,
+        "begin_attempts": 2032,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 89411404663100,
+        "present_end_ns": 89411414225500
+      }
+    },
+    {
+      "trial": "baseline-r2",
+      "metrics": {
+        "acquisition_wall": {
+          "count": 899,
+          "min": 0.0006,
+          "max": 3.0679,
+          "p50": 0.0009,
+          "p95": 0.0017,
+          "p99": 0.0026
+        },
+        "producer_record_wall": {
+          "count": 899,
+          "min": 28.049,
+          "max": 36.3914,
+          "p50": 33.1798,
+          "p95": 34.01769,
+          "p99": 34.831848
+        },
+        "end_enqueue_wall": {
+          "count": 899,
+          "min": 0.001,
+          "max": 0.0051,
+          "p50": 0.0016,
+          "p95": 0.0023,
+          "p99": 0.003601999999999998
+        },
+        "total_producer_wall": {
+          "count": 899,
+          "min": 28.0744,
+          "max": 36.4046,
+          "p50": 33.1894,
+          "p95": 34.02766,
+          "p99": 34.857094
+        },
+        "consecutive_begin_interval": {
+          "count": 899,
+          "min": 28.3823,
+          "max": 37.066,
+          "p50": 33.3209,
+          "p95": 34.267379999999996,
+          "p99": 35.061583999999996
+        },
+        "successful_present_completion_interval": {
+          "count": 899,
+          "min": 28.4952,
+          "max": 47.0065,
+          "p50": 33.2378,
+          "p95": 35.21972,
+          "p99": 45.494928
+        }
+      },
+      "selected": {
+        "complete_producer_frames": 899,
+        "successful_presents": 900,
+        "matching_frame_ids": 899
+      },
+      "source": {
+        "producer_count": 2367,
+        "present_count": 2367,
+        "begin_attempts": 2367,
+        "failed_begins": 0,
+        "incomplete_begins": 0,
+        "truncated": false,
+        "producer_end_ns": 89492398074900,
+        "present_end_ns": 89492400005700
+      }
+    }
+  ],
+  "limits": [
+    "Two trials per condition; game simulation runs at its default 30 Hz.",
+    "Live idle scene, not a deterministic replay; camera and scene are matched.",
+    "Wall time includes waits and scheduling; no execution-time overhead estimate.",
+    "Present return is not scanout, GPU time, or allocation measurement.",
+    "No other build/test ran during selected windows; no menu input during them.",
+    "Diagnostics-on is settled after the initial 32 draw labels; active sampling and texture reload are separate pending phases."
+  ]
+}

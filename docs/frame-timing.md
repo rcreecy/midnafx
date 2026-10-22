@@ -66,14 +66,49 @@ collection/analysis, not settled performance or observer overhead. Retained
 source data, summary, session identity and capture hashes are under
 [evidence/frame-timing-smoke-2026-10-22](evidence/frame-timing-smoke-2026-10-22).
 
+## Settled comparison: 2026-10-22
+
+Eight valid captures compare four conditions twice, reversing the order for the
+second set. All use the same final mod package, D3D12, configured 960 × 720 client,
+VSync, default 30 Hz simulation, Ordon point 27/layer 0 and the two external DDS
+replacements. Hardware is Intel Core i7-10700 / UHD 630. Both hosts contain the
+same CPU timing and decompressor repair patches; only the traced host includes
+the draw-trace patch. Host hashes and settings are retained per trial.
+
+Every selected window is 20–50 seconds after first producer begin. No build/test
+or menu input runs during those windows. The live idle scene is matched, but it
+is not a deterministic replay. All eight captures have zero failed/incomplete
+begins, zero dropped records, no truncation and a normal close.
+
+Successful present-call completion intervals, range across the two trials (ms):
+
+| Condition | p50 | p95 | p99 |
+|---|---:|---:|---:|
+| Non-tracing host, diagnostics/body control off | 33.238–33.279 | 34.718–35.220 | 39.443–45.495 |
+| Tracing host, diagnostics/body control off | 33.215–33.278 | 34.959–35.276 | 40.682–45.125 |
+| Tracing host, diagnostics on, body control off | 33.268–33.296 | 34.704–34.762 | 36.313–44.646 |
+| Non-tracing host, diagnostics off, body control on | 33.084–33.224 | 35.194–41.744 | 45.802–45.906 |
+
+Total producer-span medians range from 33.167 to 33.205 ms across all trials.
+These spans include native pacing and waits. Similar medians at the 30 Hz cap
+do not establish zero execution/GPU overhead. Material control has a worse p95
+in one repeat; tail spikes also increase in several later controls. Two trials
+do not establish cause or bound worst-case cost. Retain the result, including
+that tail, rather than claiming a performance pass beyond the measured scene.
+
+The diagnostics-on windows are settled: their initial bounded 32 draw labels
+finish before measurement. They are not active-resampling windows. Body-control
+trials retain balanced apply/restore totals and zero rejected stages. Full source
+captures, analysis, screenshots, hashes, control logs and comparison metadata:
+[frame-timing-settled-2026-10-22](evidence/frame-timing-settled-2026-10-22).
+
 ## Remaining qualification
 
-Build source-matched baseline/off/on hosts with identical timing storage and
-instrumentation. Collect repeated settled, active sampling and replacement
-reload windows; keep scene/settings/pack/backend/hardware and host-image identity
-explicit. Do not compare these metrics with old uninstrumented process counters
-as if they were the same measurement. No paired timing result is established
-by this smoke trial.
+Collect active sampling and replacement-reload windows; broaden representative
+scenes and investigate any repeatable material tail regression. Keep
+scene/settings/pack/backend/hardware and host-image identity explicit. Do not
+compare these metrics with old uninstrumented process counters as if they were
+the same measurement. The settled comparison does not replace those phases.
 
 Actual allocations still require an appropriate allocation capture with stacks.
 The current shell is not elevated and no heap trace was started. Retained

@@ -1,0 +1,33 @@
+{
+  "utc_start": "2026-10-22T19:57:43.4330838Z",
+  "config": {
+    "mod.com_midnafx_midnafx.pumpkin_body_control": true,
+    "backend.isoVerification": 0,
+    "video.lastWindowWidth": 960,
+    "mod.com_midnafx_midnafx.anti_aliasing": true,
+    "game.enableControllerToasts": false,
+    "mod.com_midnafx_midnafx.asset_diagnostics": false,
+    "game.pauseOnFocusLost": false,
+    "game.enableTextureReplacements": true,
+    "backend.wasPresetChosen": true,
+    "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+    "video.enableVsync": true,
+    "game.autoSave": false,
+    "video.rememberWindowSize": true,
+    "backend.enableAdvancedSettings": true,
+    "video.enableFullscreen": false,
+    "video.lastWindowHeight": 720
+  },
+  "host_images": [
+    {
+      "name": "dusklight.exe",
+      "sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4"
+    }
+  ],
+  "host_executable_name": "dusklight.exe",
+  "package_sha256": "CD656465B9A98E86191495D557FDD1CD908C921A6D6BF0C19B41CA1DE199791B",
+  "frame_timing_requested": true,
+  "name": "material-on-r1",
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+  "variant": "baseline"
+}

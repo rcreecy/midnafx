@@ -1,0 +1,3 @@
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] AssetGraph {"schema":1,"event":"draw-cost","callbacks":296917,"observer_ns":12012900}
+[INFO | dusk::mods::loader] all mods unloaded
