@@ -1,0 +1,562 @@
+[
+  {
+    "iteration": 1,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 2,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 3,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 4,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 5,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 6,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 7,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 8,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 9,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 10,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 11,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 12,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 13,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 14,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 15,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 16,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 17,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 18,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 19,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 20,
+    "case": "empty",
+    "exit_code": 0,
+    "result": {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 1,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 2,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 3,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 4,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 5,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 6,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 7,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 8,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 9,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 10,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 11,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 12,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 13,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 14,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 15,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 16,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 17,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 18,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 19,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  },
+  {
+    "iteration": 20,
+    "case": "full",
+    "exit_code": 0,
+    "result": {
+      "case": "full",
+      "passed": true,
+      "commands_processed": 8,
+      "sentinel_accepted": true,
+      "sentinel_flags": 1,
+      "recovery_used": false,
+      "worker_exited": true
+    }
+  }
+]

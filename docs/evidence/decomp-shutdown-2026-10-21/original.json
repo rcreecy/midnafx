@@ -1,0 +1,32 @@
+{
+  "source": "upstream/dusklight/libs/JSystem/src/JKernel/JKRDecomp.cpp",
+  "source_sha256": "d80043e67b0cdcc2ed684360b1b4c17d3d619cb4fc6c8056f32573d0f15f3c43",
+  "harness_sha256": "701a9fc5eabdf3aecaf0351ae2fc0fa828e7c19df7c81f3b05fe1d3e772afdde",
+  "compiler_project": "build/runtime-host/JSystem_JKernel.vcxproj",
+  "limitations": [
+    "The OS queue/thread functions are controlled test seams.",
+    "This test does not attribute the historical baseline stall."
+  ],
+  "cases": [
+    {
+      "case": "empty",
+      "passed": true,
+      "commands_processed": 0,
+      "sentinel_accepted": true,
+      "sentinel_flags": 0,
+      "recovery_used": false,
+      "worker_exited": true,
+      "exit_code": 0
+    },
+    {
+      "case": "full",
+      "passed": false,
+      "commands_processed": 8,
+      "sentinel_accepted": false,
+      "sentinel_flags": 0,
+      "recovery_used": true,
+      "worker_exited": true,
+      "exit_code": 1
+    }
+  ]
+}

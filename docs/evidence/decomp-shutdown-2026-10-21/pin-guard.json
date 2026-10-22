@@ -1,0 +1,4 @@
+{
+  "exit_code": 2,
+  "output": "usage: decomp-shutdown-host-patch.py [-h] [--dusklight-dir DUSKLIGHT_DIR]\n                                     [--apply | --reverse]\ndecomp-shutdown-host-patch.py: error: Dusklight must be pinned to edf42c6a7202647b56dd2fcdef02d17671bc814b"
+}

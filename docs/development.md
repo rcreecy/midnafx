@@ -33,6 +33,13 @@ validated MidnaFX release without its own runtime and platform testing.
 
 ## Prerequisites and checkout
 
+The full-queue decompressor shutdown repair is a separate native host patch.
+See [its qualification and limitations](decomp-shutdown.md). Check it with
+`python tools/decomp-shutdown-host-patch.py`; add `--apply` before rebuilding
+the native host, or `--reverse` to remove only that repair. The SDK mod package
+does not contain this repair. CI checks source compatibility on both platforms;
+the controlled thread/queue regression harness runs on this Windows host.
+
 Use CMake 3.26+ (the Windows VS 2026 preset requires a CMake supporting that generator), Git, a C++20 compiler, and Python 3 for convenience scripts. On macOS use Xcode command-line tools and Ninja. The Intel target is `x86_64`; this is not a universal binary. A Windows build cannot validate Metal or produce the Intel Mac release by itself.
 
 If the research checkout is absent:

@@ -1,0 +1,14 @@
+diff --git a/libs/JSystem/src/JKernel/JKRDecomp.cpp b/libs/JSystem/src/JKernel/JKRDecomp.cpp
+--- a/libs/JSystem/src/JKernel/JKRDecomp.cpp
++++ b/libs/JSystem/src/JKernel/JKRDecomp.cpp
+@@ -24,7 +24,9 @@
+ void JKRDecomp::destroy() {
+     if (sDecompObject) {
+-        OSSendMessage(&sMessageQueue, nullptr, OS_MESSAGE_NOBLOCK);
++        // The worker remains live until it receives this sentinel. Wait for
++        // queue space so a full queue cannot discard its shutdown request.
++        OSSendMessage(&sMessageQueue, nullptr, OS_MESSAGE_BLOCK);
+         OSJoinThread(sDecompObject->getThreadRecord(), nullptr);
+     }
+ }
+ #endif
