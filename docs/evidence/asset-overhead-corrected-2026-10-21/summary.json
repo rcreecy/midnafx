@@ -226,9 +226,11 @@
   "full_overhead_gate_closed": false,
   "layout_reference": "../asset-overhead-2026-10-21/summary.json#/layout",
   "macos_gameplay": {
-    "acceptance": "Launch and gameplay without a crash",
+    "acceptance": "Launch and gameplay without a crash if user testing becomes available",
     "owner": "user",
-    "status": "pending separate user test"
+    "status": "unavailable",
+    "support": "best effort; macOS remains in scope",
+    "required_for_release": false
   },
   "pins": {
     "aurora": "7f2801cd0133c9333eadb4e2e6b24100c328d328",

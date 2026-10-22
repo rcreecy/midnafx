@@ -16,7 +16,7 @@ Required Metal validation is conditional on being executable on the current work
 
 Hosted macOS jobs still compile and package the Intel build and run portable/null-backend tests. They exclude `aa_pixels`, which selects Metal on macOS, and do not run the former Metal repeatability step. Windows jobs retain their D3D12 pixel test. If the working host later supports Metal, its local pixel test can be included and reported with its actual adapter/backend.
 
-The user separately owns native macOS gameplay testing and chooses launch/gameplay without a crash as the minimum acceptance criterion. The broader Mac procedures below are optional reference work, not additional gates on this Windows host.
+macOS remains a supported release target on a best-effort basis. Continue its package builds, portable checks and compatibility work. Native macOS gameplay/Metal verification is currently unavailable; record that status explicitly and do not make it a development or release blocker. If the user can test later, launch/gameplay without a crash is the chosen minimum smoke check. The broader Mac procedures below are optional reference work, not additional gates on this Windows host.
 
 [Policy validation run 39707359928](https://github.com/rcreecy/midnafx/actions/runs/39707359928), at commit `c0a97e1`, passes Windows **19/19** in 44.17 seconds and macOS **18/18** in 1.10 seconds. The macOS log contains no executed `aa_pixels` test or Metal repeatability step. Both platform packages are produced; the release job is skipped.
 
