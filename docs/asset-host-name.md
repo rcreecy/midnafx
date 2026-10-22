@@ -31,6 +31,8 @@ Regression tests check actual Windows launcher rejection before any filesystem m
 
 The local Windows Python suite passes **12/12**, including a strict CLI check with Windows UTF-8 BOM session files. The remaining 18 CTest entries also pass, including the AA pixel test in 38.92 seconds. The corrected evidence assertion retains the host's independent provider records; it rejects mod discovery and draw events in the alias case. Whitespace and experimental patch checks pass. The primary host executable keeps the original traced SHA-256 listed above.
 
+Hosted [CI run 39703544999](https://github.com/rcreecy/midnafx/actions/runs/39703544999) passes at fix commit `14b3f63`: Windows **19/19** in 43.56 seconds and macOS Intel **19/19** in 27.80 seconds. Three consecutive Metal AA checks pass in 11.76, 12.88 and 12.08 seconds on the Apple Paravirtual adapter. Both ordinary native package artifacts are produced; the release job is skipped. The Windows launcher rejection case runs on Windows; macOS skips that case and runs the portable checks. CI does not reproduce the live module experiment, compile the experimental host patch, or qualify native macOS gameplay.
+
 ## Limits and next measurement
 
 These paired bootstrap runs omit runtime fonts. Both report font-load failures, so they are import/discovery diagnostics, not graphical acceptance or performance measurements. A subsequent run with the complete resource tree also restores discovery; its forcibly stopped logs retain 29 encoded records and are not substituted for the paired 32/32 evidence. The repaired launcher now checks the runtime font prerequisite.
