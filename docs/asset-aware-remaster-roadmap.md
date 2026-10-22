@@ -1,5 +1,9 @@
 # Asset-aware remaster roadmap
 
+User acceptance update: native macOS gameplay testing is owned separately by the user, with successful launch and gameplay without a crash as the chosen minimum. That result is pending and will not be represented as automated visual or performance qualification. Hosted package/Metal checks remain part of development validation.
+
+Corrected overhead follow-up: [nine trials with populated diagnostics](asset-overhead-corrected.md) record verified host identity and 32/32 encoded draws in each enabled run. Process CPU/memory observations are available; allocation/frame timing, active bursts and an observed baseline shutdown stall remain open. Full material control is still unproven.
+
 October 21 correction: [renamed Windows host loading](asset-host-name.md) explains missing discovery and invalidates the nine-run CPU/memory comparison. The repaired launcher preserves `dusklight.exe` and verifies one host image. The standalone 56-byte command-size increase remains valid. Repeat overhead measurements with populated records before extending rendering behavior; timing/allocation and experimental Metal qualification remain open.
 
 Directory compatibility update: [live duplicate-file evidence](asset-live-directory-conflicts.md) confirms first-sorted-file selection within one directory load and fallback after provider removal between launches. This is distinct from priority among separate registry entries.

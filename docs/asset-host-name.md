@@ -1,5 +1,7 @@
 # Windows observer launch identity correction
 
+Follow-up: [corrected process measurements](asset-overhead-corrected.md) now use complete runtimes and verified module inventories. All enabled trials restore 32/32 encoded draws. Allocation/frame timing and one observed baseline shutdown stall remain open.
+
 The missing asset discovery is caused by launching the native Windows host under an executable alias. The SDK import library names `dusklight.exe`. The preserved mod DLL also lists that exact dependency. Running `dusklight-asset-traced.exe` while `dusklight.exe` is present loads both executable images into one process. Restoring the original filename restores asset discovery and 32 matching encoded draws, using the same executable bytes and preserved mod package.
 
 This invalidates the CPU and retained-memory comparison in the [original nine-run study](asset-observer-overhead.md). Its raw counters and arithmetic remain available for audit, but cannot establish observer overhead. In particular, an aliased baseline can resolve native imports to the separate primary host, defeating the intended build isolation. Those historical trials did not record module inventories. The standalone object-layout probes remain valid because they load no host or native mod.

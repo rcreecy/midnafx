@@ -1,5 +1,7 @@
 # Asset observer overhead: Windows process counters
 
+The [corrected nine-run study](asset-overhead-corrected.md) supersedes the CPU/memory comparison below. This document retains the invalid experiment and the still-valid standalone native layout results.
+
 **Correction:** the [launch identity investigation](asset-host-name.md) invalidates this CPU and retained-memory comparison. The launcher renamed the Windows executable, while native mod imports require `dusklight.exe`. A paired reproduction loads two host images under the alias and restores discovery with the original filename. The nine trials below remain historical observations only; their differences must not be used as observer overhead estimates. The standalone native layout measurements are unaffected.
 
 The experimental host patch remains separate from the ordinary package. Both asset diagnostic settings remain disabled by default. No visual behavior, production default or release version changes in this milestone.

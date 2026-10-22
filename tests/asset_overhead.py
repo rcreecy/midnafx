@@ -36,12 +36,28 @@ def fixture():
 
 
 class OverheadTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Windows sampler contract')
+    def test_sampler_requires_visual_acknowledgement_before_reading_files(self):
+        shell=shutil.which('pwsh') or shutil.which('powershell')
+        self.assertIsNotNone(shell)
+        with tempfile.TemporaryDirectory() as folder:
+            directory=Path(folder)/'absent'
+            result=subprocess.run([shell,'-NoProfile','-NonInteractive','-File',
+                                   str(ROOT/'tools/asset-overhead-sample.ps1'),'-RunDirectory',str(directory)],
+                                  capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0)
+            self.assertIn('visual scene check is required',result.stdout+result.stderr)
+            self.assertFalse(directory.exists())
+
     def test_strict_cli_accepts_verified_windows_utf8_bom_sessions(self):
         with tempfile.TemporaryDirectory() as folder:
             directories=[]
             for session,capture in fixture():
                 session['host_executable_name']='dusklight.exe'
                 session['host_images']=[dict(name='dusklight.exe',sha256=session['host_sha256'])]
+                capture['host_images_before']=copy.deepcopy(session['host_images'])
+                capture['host_images_after']=copy.deepcopy(session['host_images'])
+                capture['visual_check_confirmed']=True
                 session['config']['label']='caf\u00e9'
                 directory=Path(folder)/session['name']
                 directory.mkdir()
@@ -52,6 +68,14 @@ class OverheadTests(unittest.TestCase):
                                    '--require-host-identity',*directories],capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stderr)
             self.assertEqual(json.loads(result.stdout)['controls']['label'],'caf\u00e9')
+            first=Path(directories[0])/'process-samples.json'
+            capture=json.loads(first.read_text(encoding='utf-8-sig'))
+            capture['host_images_after'].append(dict(name='dusklight-alias.exe',sha256='a'*64))
+            first.write_text(json.dumps(capture),encoding='utf-8-sig')
+            rejected=subprocess.run([sys.executable,str(ROOT/'tools/asset-overhead.py'),
+                                     '--require-host-identity',*directories],capture_output=True,text=True)
+            self.assertNotEqual(rejected.returncode,0)
+            self.assertIn('one matching loaded host image',rejected.stderr)
 
     def test_host_identity_requires_import_name_and_one_matching_image(self):
         valid=dict(host_executable_name='dusklight.exe', host_sha256='b'*64,
@@ -209,6 +233,43 @@ class OverheadTests(unittest.TestCase):
                 self.assertTrue(all(event['kind']=='AssetProvider' for event in events))
                 self.assertEqual(len(labels),0)
                 self.assertEqual(len(draws),0)
+
+    def test_corrected_recording_has_populated_workload_and_verified_hosts(self):
+        root=ROOT/'docs/evidence/asset-overhead-corrected-2026-10-21'
+        runs=json.loads((root/'runs.json').read_text())
+        summary=json.loads((root/'summary.json').read_text())
+        self.assertEqual(overhead.analyze([(r['session'],r['capture']) for r in runs]),summary['analysis'])
+        events=[json.loads(line) for line in (root/'metadata-events.jsonl').read_text().splitlines()]
+        forced=[]
+        for run in runs:
+            session,capture=run['session'],run['capture']
+            overhead.validate_host_identity(session)
+            self.assertTrue(capture['visual_check_confirmed'])
+            for key in ('host_images_before','host_images_after'):
+                overhead.validate_host_identity(dict(session,host_images=capture[key]))
+            selected=[e for e in events if e['run']==session['name']]
+            labels=[e['data'] for e in selected if e['kind']=='AssetGraph' and e['data']['event']=='draw-label']
+            draws=[e['data'] for e in selected if e['kind']=='AssetDraw']
+            self.assertEqual(len(labels),run['log_observations']['counts']['draw_labels'])
+            self.assertEqual(len(draws),run['log_observations']['counts']['encoded_draws'])
+            if session['variant']=='patched-on':
+                self.assertEqual(len(labels),32)
+                self.assertEqual(len(draws),32)
+                self.assertEqual({e['label'] for e in labels},{e['label'] for e in draws})
+                self.assertEqual(len({e['label'] for e in labels}),32)
+                self.assertEqual({e['material'] for e in labels},{0,1})
+                self.assertGreater(run['log_observations']['counts']['graph']['resource'],0)
+            else:
+                self.assertEqual(labels,[])
+                self.assertEqual(draws,[])
+                self.assertEqual(run['log_observations']['counts']['graph'],{})
+            self.assertTrue(run['log_observations']['mod_unload_confirmed'])
+            if not run['log_observations']['normal_shutdown']:
+                forced.append(session['name'])
+                self.assertIsNotNone(run['log_observations']['termination'])
+        self.assertEqual(forced,['b2'])
+        self.assertFalse(summary['full_overhead_gate_closed'])
+        self.assertEqual(summary['macos_gameplay']['owner'],'user')
 
 
 if __name__ == '__main__':

@@ -86,8 +86,12 @@ def main():
         inputs=[(json.loads((p/'session.json').read_text(encoding='utf-8-sig')),
                  json.loads((p/'process-samples.json').read_text(encoding='utf-8-sig'))) for p in args.run_directories]
         if args.require_host_identity:
-            for session,_ in inputs:
+            for session,capture in inputs:
                 validate_host_identity(session)
+                for key in ('host_images_before','host_images_after'):
+                    validate_host_identity(dict(session,host_images=capture.get(key,[])))
+                if capture.get('visual_check_confirmed') is not True:
+                    raise ValueError('profiling requires a confirmed visual scene check')
         print(json.dumps(analyze(inputs),sort_keys=True,indent=2))
     except (ValueError,KeyError,OSError,TypeError) as error:
         parser.exit(1,str(error)+'\n')

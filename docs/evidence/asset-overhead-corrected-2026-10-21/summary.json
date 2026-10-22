@@ -1,0 +1,281 @@
+{
+  "analysis": {
+    "controls": {
+      "backend.enableAdvancedSettings": true,
+      "backend.isoVerification": 0,
+      "backend.wasPresetChosen": true,
+      "game.autoSave": false,
+      "game.enableControllerToasts": false,
+      "game.enableTextureReplacements": true,
+      "game.pauseOnFocusLost": false,
+      "mod.com_midnafx_midnafx.anti_aliasing": true,
+      "video.enableFullscreen": false,
+      "video.enableVsync": true,
+      "video.lastWindowHeight": 720,
+      "video.lastWindowWidth": 960,
+      "video.rememberWindowSize": true
+    },
+    "groups": {
+      "baseline": {
+        "cpu_ms_per_wall_second": {
+          "max": 504.4825250166065,
+          "median": 413.0053279732276,
+          "min": 391.3312436202414
+        },
+        "host_sha256": "F1645430F7DBDBB9B1AF6ADE6B2E4B72CB017A7D934319349EF9A425139AB2DE",
+        "median_private_mib": {
+          "max": 1595.3125,
+          "median": 1583.83203125,
+          "min": 1581.58203125
+        },
+        "median_working_set_mib": {
+          "max": 1390.60546875,
+          "median": 1371.6953125,
+          "min": 1369.10546875
+        },
+        "runs": 3
+      },
+      "patched-off": {
+        "cpu_ms_per_wall_second": {
+          "max": 436.19549572587493,
+          "median": 380.49927039408874,
+          "min": 333.4135953528245
+        },
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "median_private_mib": {
+          "max": 1597.76953125,
+          "median": 1584.37890625,
+          "min": 1583.86328125
+        },
+        "median_working_set_mib": {
+          "max": 1390.5546875,
+          "median": 1370.046875,
+          "min": 1368.6328125
+        },
+        "runs": 3
+      },
+      "patched-on": {
+        "cpu_ms_per_wall_second": {
+          "max": 455.833761050143,
+          "median": 443.20885025200954,
+          "min": 348.61850274204926
+        },
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "median_private_mib": {
+          "max": 1585.39453125,
+          "median": 1585.09765625,
+          "min": 1584.34765625
+        },
+        "median_working_set_mib": {
+          "max": 1370.7578125,
+          "median": 1370.1328125,
+          "min": 1369.9765625
+        },
+        "runs": 3
+      }
+    },
+    "limitations": [
+      "three trials are observations, not statistical confidence intervals",
+      "dynamic scene and host scheduling remain uncontrolled",
+      "no FPS, GPU, allocation-rate or active resample-burst measurement"
+    ],
+    "measurement": "steady process CPU and retained memory; inspect companion logs for exercised diagnostic paths",
+    "median_deltas": {
+      "enabled_probe": {
+        "cpu_ms_per_wall_second": 62.7095798579208,
+        "median_private_mib": 0.71875,
+        "median_working_set_mib": 0.0859375
+      },
+      "host_patch": {
+        "cpu_ms_per_wall_second": -32.50605757913888,
+        "median_private_mib": 0.546875,
+        "median_working_set_mib": -1.6484375
+      }
+    },
+    "runs": [
+      {
+        "cpu_ms_per_wall_second": 391.3312436202414,
+        "host_sha256": "F1645430F7DBDBB9B1AF6ADE6B2E4B72CB017A7D934319349EF9A425139AB2DE",
+        "measured_seconds": 30.3850643,
+        "median_private_mib": 1595.3125,
+        "median_working_set_mib": 1390.60546875,
+        "name": "b1",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1595.3125,
+          1595.3125
+        ],
+        "variant": "baseline"
+      },
+      {
+        "cpu_ms_per_wall_second": 333.4135953528245,
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "measured_seconds": 30.4145516,
+        "median_private_mib": 1597.76953125,
+        "median_working_set_mib": 1390.5546875,
+        "name": "o1",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1597.68359375,
+          1599.65234375
+        ],
+        "variant": "patched-off"
+      },
+      {
+        "cpu_ms_per_wall_second": 348.61850274204926,
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "measured_seconds": 30.3878019,
+        "median_private_mib": 1585.39453125,
+        "median_working_set_mib": 1370.7578125,
+        "name": "e1",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1584.3671875,
+          1585.4375
+        ],
+        "variant": "patched-on"
+      },
+      {
+        "cpu_ms_per_wall_second": 443.20885025200954,
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "measured_seconds": 30.4244263,
+        "median_private_mib": 1584.34765625,
+        "median_working_set_mib": 1370.1328125,
+        "name": "e2",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1583.8125,
+          1584.515625
+        ],
+        "variant": "patched-on"
+      },
+      {
+        "cpu_ms_per_wall_second": 504.4825250166065,
+        "host_sha256": "F1645430F7DBDBB9B1AF6ADE6B2E4B72CB017A7D934319349EF9A425139AB2DE",
+        "measured_seconds": 30.3838572,
+        "median_private_mib": 1583.83203125,
+        "median_working_set_mib": 1371.6953125,
+        "name": "b2",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1583.70703125,
+          1584.17578125
+        ],
+        "variant": "baseline"
+      },
+      {
+        "cpu_ms_per_wall_second": 436.19549572587493,
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "measured_seconds": 30.3404669,
+        "median_private_mib": 1584.37890625,
+        "median_working_set_mib": 1370.046875,
+        "name": "o2",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1584.37890625,
+          1585.03515625
+        ],
+        "variant": "patched-off"
+      },
+      {
+        "cpu_ms_per_wall_second": 380.49927039408874,
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "measured_seconds": 30.3877061,
+        "median_private_mib": 1583.86328125,
+        "median_working_set_mib": 1368.6328125,
+        "name": "o3",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1583.48046875,
+          1584.34765625
+        ],
+        "variant": "patched-off"
+      },
+      {
+        "cpu_ms_per_wall_second": 455.833761050143,
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "measured_seconds": 30.3701726,
+        "median_private_mib": 1585.09765625,
+        "median_working_set_mib": 1369.9765625,
+        "name": "e3",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1584.87890625,
+          1585.515625
+        ],
+        "variant": "patched-on"
+      },
+      {
+        "cpu_ms_per_wall_second": 413.0053279732276,
+        "host_sha256": "F1645430F7DBDBB9B1AF6ADE6B2E4B72CB017A7D934319349EF9A425139AB2DE",
+        "measured_seconds": 30.3794507,
+        "median_private_mib": 1581.58203125,
+        "median_working_set_mib": 1369.10546875,
+        "name": "b3",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "private_range_mib": [
+          1581.0,
+          1581.71484375
+        ],
+        "variant": "baseline"
+      }
+    ],
+    "schema": 1
+  },
+  "date": "2026-10-21",
+  "full_overhead_gate_closed": false,
+  "layout_reference": "../asset-overhead-2026-10-21/summary.json#/layout",
+  "macos_gameplay": {
+    "acceptance": "Launch and gameplay without a crash",
+    "owner": "user",
+    "status": "pending separate user test"
+  },
+  "pins": {
+    "aurora": "7f2801cd0133c9333eadb4e2e6b24100c328d328",
+    "dusklight": "edf42c6a7202647b56dd2fcdef02d17671bc814b"
+  },
+  "protocol": {
+    "client_size": [
+      960,
+      720
+    ],
+    "host_identity_verified_at_start_and_end": true,
+    "intervals": 30,
+    "no_input_during_measurement": true,
+    "nominal_interval_seconds": 1,
+    "order": [
+      "b1",
+      "o1",
+      "e1",
+      "e2",
+      "b2",
+      "o2",
+      "o3",
+      "e3",
+      "b3"
+    ],
+    "stage": "F_SP103,0,27,0",
+    "visual_check_before_and_after": true,
+    "warmup_seconds": 20
+  },
+  "remaining": [
+    "allocation counts and bytes",
+    "frame/GPU timing",
+    "active resample and reload costs",
+    "experimental Metal-host compilation"
+  ],
+  "replaced_invalid_study": "../asset-overhead-2026-10-21/summary.json",
+  "replacement_files": [
+    {
+      "bytes": 1398276,
+      "file": "A-first/tex1_64x64_000e342106676e31_14.dds",
+      "sha256": "ef46efe02e8ebd33992e407d782f0292466074d06d77cc08ac0109cb3cf5c9de"
+    },
+    {
+      "bytes": 5592580,
+      "file": "A-first/tex1_64x64_630d5c7bc606585d_14.dds",
+      "sha256": "b6ffce0e16b137ad73fa5ba3aea78d982f89dc1355e367ac40bc745e4439e86f"
+    }
+  ],
+  "scope": "Three trials per variant; process CPU and retained memory after warm-up, with populated enabled diagnostics"
+}
