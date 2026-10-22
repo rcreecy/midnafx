@@ -18,6 +18,8 @@ Hosted macOS jobs still compile and package the Intel build and run portable/nul
 
 The user separately owns native macOS gameplay testing and chooses launch/gameplay without a crash as the minimum acceptance criterion. The broader Mac procedures below are optional reference work, not additional gates on this Windows host.
 
+[Policy validation run 39707359928](https://github.com/rcreecy/midnafx/actions/runs/39707359928), at commit `c0a97e1`, passes Windows **19/19** in 44.17 seconds and macOS **18/18** in 1.10 seconds. The macOS log contains no executed `aa_pixels` test or Metal repeatability step. Both platform packages are produced; the release job is skipped.
+
 MidnaFX uses the standalone Dusklight SDK at commit `edf42c6a7202647b56dd2fcdef02d17671bc814b`, including its pinned Aurora submodule `7f2801cd0133c9333eadb4e2e6b24100c328d328`. Research reference: official mod template commit `ece6d0dae843675fbd1e3f2308a0f1f782da5d80`. See `notes/render.md` for renderer contracts.
 
 The candidate CPU-skinning host fix is tracked as
