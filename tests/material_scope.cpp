@@ -1,4 +1,5 @@
 #include "game/material_scope.hpp"
+#include "game/material_identity.hpp"
 
 #include <array>
 #include <cstddef>
@@ -58,6 +59,23 @@ void execute(const CommandBuffer& command, Registers& registers) {
 
 int main() {
     using namespace midnafx::material_scope;
+    // Independent fixed digest for 17,824 zero bytes with just the twelve native
+    // padding bytes canonicalized. Every semantic byte must still affect identity.
+    std::array<unsigned char, 17824> source{};
+    constexpr std::uint64_t normalized = 0x3da090435a3d8425ULL;
+    check(midnafx::material_identity::source_hash(source, true) == normalized);
+    constexpr std::array<std::size_t, 12> padding{0xcd, 0xce, 0xcf, 0xdd, 0xde, 0xdf,
+                                                0xed, 0xee, 0xef, 0xfd, 0xfe, 0xff};
+    for (std::size_t byte = 0; byte < source.size(); ++byte) {
+        source[byte] = 0x7f;
+        bool ignored = false;
+        for (auto offset : padding) if (byte == offset) ignored = true;
+        check((midnafx::material_identity::source_hash(source, true) == normalized) == ignored);
+        source[byte] = 0;
+    }
+    const auto original_hash = midnafx::material_identity::source_hash(source, false);
+    source[0xcd] = 0x7f;
+    check(midnafx::material_identity::source_hash(source, false) != original_hash);
     check(qualifies_stage(1, 0x28, 0xf8, 0xaf));
     for (unsigned byte = 0; byte < 256; ++byte) {
         check(qualifies_stage(1, static_cast<std::uint8_t>(byte), 0xf8, 0xaf) ==

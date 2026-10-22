@@ -10,7 +10,9 @@ param(
     [Parameter(Mandatory=$true)][string]$OutputRoot,
     [switch]$PumpkinBodyControl,
     [switch]$DisableReplacements,
-    [switch]$FrameTiming
+    [switch]$FrameTiming,
+    [ValidatePattern('^[A-Z0-9_]{1,8},[0-9]{1,3},-?[0-9]{1,5},-?[0-9]{1,2}$')]
+    [string]$Stage='F_SP103,0,27,0'
 )
 $ErrorActionPreference='Stop'
 # The SDK import library names dusklight.exe. An alias loads a second host image.
@@ -45,7 +47,7 @@ New-Item -ItemType Junction -Path "$runRoot/user/texture_replacements" -Target $
 Copy-Item -LiteralPath $ModPackage -Destination "$runRoot/mods/midnafx.dusk"
 # Start-Process joins this array into a Windows command line; quote path arguments.
 $runArgs=@('--backend','d3d12','--log-level','debug','--log-dir',"`"$runRoot/logs`"",
-           '--user-dir',"`"$runRoot/user`"",'--mods',"`"$runRoot/mods`"",'--stage','F_SP103,0,27,0',"`"$DiscPath`"")
+           '--user-dir',"`"$runRoot/user`"",'--mods',"`"$runRoot/mods`"",'--stage',$Stage,"`"$DiscPath`"")
 $previousTimingFile=[Environment]::GetEnvironmentVariable('MIDNAFX_FRAME_TIMING_FILE','Process')
 try {
     # Scope this opt-in to the child host. A caller's inherited value must not

@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "scope": "Pinned Dusklight/Aurora little-endian native loader; original pumpkin BMDR only.",
+  "source_bytes": 17824,
+  "original_fnv1a64": "9b2ddb5ecbd95421",
+  "original_sha256": "dc05ad71242f45680a2a6b68add972a2a7877f52e74a9206e5041439de20c70c",
+  "observed_post_load_fnv1a64": "b20b313337216b2d",
+  "observed_post_load_sha256": "0b79b94366240276737ff73b87a05f188abd10cbd45de50de336f6332dee6273",
+  "normalized_post_load_fnv1a64": "7073c7ae329d074d",
+  "normalized_post_load_sha256": "cc8558f9587aaba7708d45500ee45332b4fd782f2b2894c5cfb02cdb59b20d63",
+  "padding_substitute": 255,
+  "padding_offsets": [
+    205,
+    206,
+    207,
+    221,
+    222,
+    223,
+    237,
+    238,
+    239,
+    253,
+    254,
+    255
+  ],
+  "padding_reason": "GXVtxAttrFmtList::swap returns an aggregate without defined padding. All four original padding triplets are 0xffffff.",
+  "normalized_source_simulation": {
+    "matches_all_bytes": true,
+    "mismatched_bytes": 0,
+    "swap_operations": 2254,
+    "steps": [
+      "VTX1 attribute enum fields and typed vertex arrays follow J3DModelLoader::readVertex/readVertexData.",
+      "JNT1 index table and joint scalar/vector fields follow J3DJointFactory.",
+      "SHP1 complete vertex descriptor list follows J3DShapeFactory.",
+      "All remaining original bytes remain unchanged; normalize only four known padding triplets."
+    ]
+  },
+  "observed_changed_bytes_by_block": {
+    "INF1": 0,
+    "VTX1": 6258,
+    "EVP1": 0,
+    "DRW1": 0,
+    "JNT1": 40,
+    "SHP1": 14,
+    "MAT3": 0,
+    "TEX1": 0
+  },
+  "runtime_metadata": {
+    "pid": 12220,
+    "host_sha256": "e87d962c48f386288664caae9c8ce5757e264531ce541a93c41258fde0828319",
+    "resource_reference_count": 13,
+    "mDMCommand_null": true,
+    "mDataHeap_null": true,
+    "model_raw_source_equals_resident_archive_source": true,
+    "typed_resource_index": 3,
+    "native_node_type": "BMDR",
+    "precoldload_proof": "stdout.log line1584 bound-pumpkin-body follows original strict fingerprint qualification.",
+    "debugger_mode": "cdb -pv -p; detached after each read; no target writes"
+  },
+  "limitations": [
+    "One live process dump; deterministic source transformation separately matched every byte.",
+    "Normalized fingerprint rejects any other byte change, including unsupported normal edits.",
+    "Resident pointer equality remains required to reject overlays and rebuilt model inputs.",
+    "Raw game bytes remain in ignored local build output only."
+  ]
+}

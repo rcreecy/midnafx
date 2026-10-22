@@ -785,7 +785,6 @@ void on_model_created(ModContext*, void* args, void* retval, void*) {
 
 void initialize() {
     asset_probe::reset();
-    asset_probe::initialize_draw_probe();
     load_registered = false;
     delete_registered = false;
     create_registered = false;
@@ -815,6 +814,7 @@ void initialize() {
         create_registered = true;
     else
         (void)mods::hook::uninstall<ModelCreate>();
+    asset_probe::initialize_draw_probe(load_registered && delete_registered && model_load_registered);
 }
 
 void shutdown() {
@@ -842,4 +842,5 @@ void restore_smoothing(bool skinned) {
                               : MutationBackup::Kind::RigidSmoothing);
 }
 Summary summary() { return current_summary; }
+bool resource_load_active() noexcept { return !loading_owners.empty(); }
 } // namespace midnafx::geometry_probe

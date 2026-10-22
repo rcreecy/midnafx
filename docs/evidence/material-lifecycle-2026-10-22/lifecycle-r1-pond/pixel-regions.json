@@ -1,0 +1,68 @@
+{
+  "body_left": {
+    "bounds": [
+      218,
+      310,
+      246,
+      328
+    ],
+    "off_on_mean_abs": 25.007275132275133,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "body_center": {
+    "bounds": [
+      384,
+      272,
+      403,
+      286
+    ],
+    "off_on_mean_abs": 13.917293233082706,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "leaves": {
+    "bounds": [
+      280,
+      340,
+      330,
+      366
+    ],
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "ground": {
+    "bounds": [
+      600,
+      400,
+      680,
+      460
+    ],
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "architecture": {
+    "bounds": [
+      500,
+      80,
+      600,
+      180
+    ],
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "player": {
+    "bounds": [
+      470,
+      380,
+      530,
+      470
+    ],
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  }
+}

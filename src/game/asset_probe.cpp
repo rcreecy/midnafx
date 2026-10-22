@@ -1,6 +1,8 @@
 #include "asset_probe.hpp"
 #include "asset_identity.hpp"
+#include "geometry_probe.hpp"
 #include "material_scope.hpp"
+#include "material_identity.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
 #include <JSystem/J3DGraphAnimator/J3DModelData.h>
@@ -10,6 +12,8 @@
 #include <dolphin/gx/GXDispList.h>
 #include <mods/svc/hook.hpp>
 #include <JSystem/JKernel/JKRArchive.h>
+#include <JSystem/JKernel/JKRMemArchive.h>
+#include <d/d_com_inf_game.h>
 #include <d/d_resorce.h>
 #include <algorithm>
 #include <atomic>
@@ -72,6 +76,82 @@ bool qualifies_body(J3DMaterial* material) noexcept {
     return stage && stage->field_0x0 == 0xc0 && material_scope::qualifies_stage(
         block->getTevStageNum(), stage->mTevColorOp, stage->mTevColorAB, stage->mTevColorCD);
 }
+bool qualifies_body_source(const unsigned char* bytes, unsigned size, bool native_loaded = false) noexcept {
+    if (!bytes || size != 17824 || std::memcmp(bytes, "J3D2bmd3", 8)) return false;
+    const auto hash = material_identity::source_hash({bytes, size}, native_loaded);
+    // The pinned little-endian native loader swaps vertex/joint/VCD fields in
+    // place. Cached bytes therefore have a separate, qualified fingerprint.
+    return hash == (native_loaded ? 0x7073c7ae329d074dULL : 0x9b2ddb5ecbd95421ULL);
+}
+void bind_body(dRes_info_c* owner, unsigned index, J3DModelData* model, const char* event) {
+    auto* material = model && model->getMaterialNum() == 2 ? model->getMaterialNodePointer(1) : nullptr;
+    if (qualifies_body(material)) {
+        body_binding = {owner, index, material};
+        body_event(event);
+    } else {
+        body_binding = {};
+        ++body_rejections;
+        body_event("model-rejected");
+    }
+}
+void bind_cached_body() {
+    // This runs once per observed enable transition, on the game thread. The
+    // native lookup neither loads nor increments references. Do not fetch an
+    // archive resource here: fetch can read a changed overlay from disk.
+    if (body_binding.material || geometry_probe::resource_load_active()) return;
+    auto* owner = dComIfG_getObjectResInfo("pumpkin");
+    if (!owner || !owner->mCount || owner->mDMCommand || !owner->mRes || !owner->mArchive) return;
+    auto* archive = owner->mArchive;
+    if (!archive->isMounted() || archive->getMountMode() != JKRArchive::MOUNT_MEM) return;
+    const auto* memory = static_cast<const JKRMemArchive*>(archive);
+    const auto* header = memory->mArcHeader;
+    if (!header || header->signature != 0x52415243) return;
+    const std::uint64_t length = header->file_length;
+    const std::uint64_t header_length = header->header_length;
+    const std::uint64_t data_offset = header_length + std::uint64_t(header->file_data_offset);
+    const std::uint64_t data_length = header->file_data_length;
+    if (length < sizeof(SArcHeader) || length > 8 * 1024 * 1024 ||
+        header_length < sizeof(SArcHeader) || data_offset > length || data_length > length - data_offset)
+        return;
+    const auto base = reinterpret_cast<std::uintptr_t>(header);
+    const auto contains = [base, length](const void* pointer, std::uint64_t size) {
+        const auto address = reinterpret_cast<std::uintptr_t>(pointer);
+        return address >= base && address - base <= length && size <= length - (address - base);
+    };
+    if (!contains(archive->mArcInfoBlock, sizeof(SArcDataInfo)) ||
+        reinterpret_cast<std::uintptr_t>(memory->mArchiveData) - base != data_offset) return;
+    const unsigned count = archive->mArcInfoBlock->num_file_entries;
+    const unsigned nodes = archive->mArcInfoBlock->num_nodes;
+    const unsigned strings = archive->mArcInfoBlock->string_table_length;
+    if (!count || count > 4096 || nodes > 256 ||
+        !contains(archive->mFiles, std::uint64_t(count) * sizeof(JKRArchive::SDIFileEntry)) ||
+        !contains(archive->mNodes, std::uint64_t(nodes) * sizeof(JKRArchive::SDIDirEntry)) ||
+        !contains(archive->mStringTable, strings)) return;
+    for (unsigned n = 0; n < nodes; ++n) {
+        const auto& node = archive->mNodes[n];
+        if (node.type != 0x424d4452) continue; // BMDR is converted to J3DModelData by the native loader.
+        const unsigned first = node.first_file_index, entries = node.num_entries;
+        if (first > count || entries > count - first) return;
+        for (unsigned i = first; i < first + entries; ++i) {
+            const auto& entry = archive->mFiles[i];
+            const auto name = entry.getNameOffset();
+            if (!entry.isUnknownFlag1() || entry.isDirectory() || entry.isCompressed() ||
+                name > strings || sizeof("pumpkin.bmd") > strings - name ||
+                std::memcmp(archive->mStringTable + name, "pumpkin.bmd", sizeof("pumpkin.bmd"))) continue;
+            const std::uint64_t offset = entry.data_offset;
+            const unsigned size = entry.data_size;
+            if (offset > data_length || size > data_length - offset) return;
+            const auto* source = memory->mArchiveData + offset;
+            if (!qualifies_body_source(source, size, true) || !owner->mRes[i]) return;
+            auto* model = static_cast<J3DModelData*>(owner->mRes[i]);
+            // Overlay and rebuilt inputs need separate ownership proof. DDS
+            // texture replacement leaves this original BMD pointer unchanged.
+            if (model->getRawData() != source) { body_event("cached-source-rejected"); return; }
+            bind_body(owner, i, model, "bound-cached-pumpkin-body");
+            return;
+        }
+    }
+}
 struct DrawProbeTimer {
     bool active;
     std::chrono::steady_clock::time_point start;
@@ -107,9 +187,10 @@ void failure() noexcept {
 }
 HookAction before_shape(ModContext*, void* args, void*, void*) {
     const bool control = body_control_requested.load(std::memory_order_relaxed);
-    if (control != body_control_last) {
+    if (!draw_depth && control != body_control_last) {
         body_control_last = control;
         body_event(control ? "enabled" : "disabled");
+        if (control) bind_cached_body();
     }
     const bool observe = settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled();
     if (!draw_depth && !observe && !control) return HOOK_CONTINUE;
@@ -204,13 +285,13 @@ void request_draw_sample() noexcept {
     if (settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled())
         draw_sample_requested.store(true, std::memory_order_relaxed);
 }
-void initialize_draw_probe() {
+void initialize_draw_probe(bool resource_hooks_ready) {
     draw_epoch = static_cast<unsigned long long>(std::chrono::steady_clock::now().time_since_epoch().count());
     draw_token = 0;
     draw_probe_calls = draw_probe_ns = 0;
     body_applies = body_restores = body_rejections = 0;
     body_control_last = false;
-    if (!svc_hook) return;
+    if (!svc_hook || !resource_hooks_ready) return;
     draw_hook = mods::hook::add_pre<AssetShapeDraw>(before_shape) == MOD_OK &&
                 mods::hook::add_post<AssetShapeDraw>(after_shape) == MOD_OK;
     if (!draw_hook) {
@@ -232,8 +313,7 @@ void shutdown_draw_probe() {
 void begin(dRes_info_c* owner) noexcept {
     if (!owner || !owner->mArchive || !owner->mArchiveName) return;
     try {
-        // Independent of discovery limits and diagnostic logging. Enabling after
-        // an unobserved load requires reloading that archive.
+        // Independent of discovery limits and diagnostic logging.
         if (draw_hook && body_control_enabled() && !std::strcmp(owner->mArchiveName, "pumpkin")) {
             body_binding = {};
             auto* archive = owner->mArchive;
@@ -245,10 +325,7 @@ void begin(dRes_info_c* owner) noexcept {
                 if (std::strcmp(name, "pumpkin.bmd")) continue;
                 const auto* bytes = static_cast<const unsigned char*>(archive->getIdxResource(i));
                 const auto size = bytes ? archive->getExpandedResSize(bytes) : 0;
-                if (!bytes || size < 32 || size > 8 * 1024 * 1024 || std::memcmp(bytes, "J3D2bmd3", 8)) break;
-                unsigned long long hash = 14695981039346656037ULL;
-                for (unsigned j = 0; j < size; ++j) { hash ^= bytes[j]; hash *= 1099511628211ULL; }
-                if (hash == 0x9b2ddb5ecbd95421ULL) body_binding = {owner, i, nullptr};
+                if (qualifies_body_source(bytes, size)) body_binding = {owner, i, nullptr};
                 else body_event("fingerprint-rejected");
                 break;
             }
@@ -295,15 +372,7 @@ void loaded(dRes_info_c* owner, unsigned index, J3DModelData* model) noexcept {
     if (!model) return;
     try {
         if (owner == body_binding.owner && index == body_binding.index) {
-            auto* material = model->getMaterialNum() == 2 ? model->getMaterialNodePointer(1) : nullptr;
-            if (qualifies_body(material)) {
-                body_binding.material = material;
-                body_event("bound-pumpkin-body");
-            } else {
-                body_binding = {};
-                ++body_rejections;
-                body_event("model-rejected");
-            }
+            bind_body(owner, index, model, "bound-pumpkin-body");
         }
         if (!settings::asset_diagnostics_enabled()) return;
         auto it = std::find_if(records.begin(), records.end(), [&](const Record& r) {return r.owner==owner && r.index==index;});

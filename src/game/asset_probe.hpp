@@ -7,7 +7,7 @@ void loaded(dRes_info_c* owner, unsigned index, J3DModelData* model) noexcept;
 void created(J3DModelData* model) noexcept;
 void erase(dRes_info_c* owner) noexcept;
 void reset() noexcept;
-void initialize_draw_probe();
+void initialize_draw_probe(bool resource_hooks_ready);
 void shutdown_draw_probe();
 void request_draw_sample() noexcept;
 void set_body_control(bool enabled) noexcept;

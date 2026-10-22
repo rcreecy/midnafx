@@ -1077,7 +1077,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Pumpkin draw labels (experimental host probe)", asset_draw_diagnostics);
     add_toggle(panel, "Material proof: dim pumpkin bodies", pumpkin_body_control);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Enable before loading pumpkins. A new binding requires a scene reload. "
+        "Supports the original pumpkin model, including already loaded archives. "
         "Changes all matching pumpkin bodies; leaves and texture replacements are preserved. "
         "Disabling restores the original draw operation.", nullptr));
     button.label = "Sample pumpkin draws again";

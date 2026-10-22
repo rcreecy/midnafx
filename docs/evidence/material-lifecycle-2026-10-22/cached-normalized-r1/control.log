@@ -1,0 +1,8 @@
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-pumpkin-body requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=enabled requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=1 bound=1 applies=11394 restores=11394 rejected=0
+[INFO | com.midnafx.midnafx] reloading from <workspace>\build\material-control\cached-normalized-r1\mods\midnafx.dusk
+[INFO | com.midnafx.midnafx] MaterialControl event=enabled requested=1 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-cached-pumpkin-body requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=1 bound=1 applies=5802 restores=5802 rejected=0
+[INFO | dusk::mods::loader] all mods unloaded

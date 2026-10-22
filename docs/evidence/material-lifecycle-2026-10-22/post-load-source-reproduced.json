@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "scope": "Pinned little-endian Dusklight loader; original pumpkin BMDR only",
+  "source_bytes": 17824,
+  "original_fnv1a64": "9b2ddb5ecbd95421",
+  "original_sha256": "dc05ad71242f45680a2a6b68add972a2a7877f52e74a9206e5041439de20c70c",
+  "normalized_post_load_fnv1a64": "7073c7ae329d074d",
+  "normalized_post_load_sha256": "cc8558f9587aaba7708d45500ee45332b4fd782f2b2894c5cfb02cdb59b20d63",
+  "padding_offsets": [
+    205,
+    206,
+    207,
+    221,
+    222,
+    223,
+    237,
+    238,
+    239,
+    253,
+    254,
+    255
+  ],
+  "padding_substitute": 255,
+  "swap_operations": 2254,
+  "post_load_source_compared": true,
+  "passed": true,
+  "observed_post_load_fnv1a64": "b20b313337216b2d",
+  "observed_post_load_sha256": "0b79b94366240276737ff73b87a05f188abd10cbd45de50de336f6332dee6273",
+  "observed_normalized_fnv1a64": "7073c7ae329d074d",
+  "mismatched_bytes": 0,
+  "first_mismatch_offsets": [],
+  "observed_changed_bytes_by_block": {
+    "INF1": 0,
+    "VTX1": 6258,
+    "EVP1": 0,
+    "DRW1": 0,
+    "JNT1": 40,
+    "SHP1": 14,
+    "MAT3": 0,
+    "TEX1": 0
+  }
+}

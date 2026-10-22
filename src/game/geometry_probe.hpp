@@ -9,6 +9,7 @@ struct Summary {
     bool known_good = false;
 };
 Summary summary();
+bool resource_load_active() noexcept;
 void initialize();
 void shutdown();
 void restore_mutation();

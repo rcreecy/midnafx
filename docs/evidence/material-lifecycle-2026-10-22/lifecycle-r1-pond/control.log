@@ -1,0 +1,14 @@
+[INFO | com.midnafx.midnafx] MaterialControl event=enabled requested=1 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-pumpkin-body requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=1 bound=1 applies=4878 restores=4878 rejected=0
+[INFO | com.midnafx.midnafx] reloading from <workspace>\build\material-control\lifecycle-r1-pond\mods\midnafx.dusk
+[INFO | com.midnafx.midnafx] MaterialControl event=enabled requested=1 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=1 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] reloading from <workspace>\build\material-control\lifecycle-r1-pond\mods\midnafx.dusk
+[INFO | com.midnafx.midnafx] MaterialControl event=enabled requested=1 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-cached-pumpkin-body requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=disabled requested=0 bound=1 applies=28794 restores=28794 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=enabled requested=1 bound=1 applies=28794 restores=28794 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=disabled requested=0 bound=1 applies=39570 restores=39570 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=1 applies=39570 restores=39570 rejected=0
+[INFO | dusk::mods::loader] all mods unloaded
