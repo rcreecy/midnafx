@@ -7,7 +7,9 @@ param(
     [Parameter(Mandatory=$true)][string]$ModPackage,
     [Parameter(Mandatory=$true)][string]$DiscPath,
     [Parameter(Mandatory=$true)][string]$ReplacementRoot,
-    [Parameter(Mandatory=$true)][string]$OutputRoot
+    [Parameter(Mandatory=$true)][string]$OutputRoot,
+    [switch]$PumpkinBodyControl,
+    [switch]$DisableReplacements
 )
 $ErrorActionPreference='Stop'
 # The SDK import library names dusklight.exe. An alias loads a second host image.
@@ -31,10 +33,11 @@ $runConfig=@{
     'backend.wasPresetChosen'=$true; 'backend.enableAdvancedSettings'=$true
     'video.enableFullscreen'=$false; 'video.enableVsync'=$true; 'video.rememberWindowSize'=$true
     'video.lastWindowWidth'=960; 'video.lastWindowHeight'=720; 'game.pauseOnFocusLost'=$false
-    'game.autoSave'=$false; 'game.enableControllerToasts'=$false; 'game.enableTextureReplacements'=$true
+    'game.autoSave'=$false; 'game.enableControllerToasts'=$false; 'game.enableTextureReplacements'=!$DisableReplacements
     'mod.com_midnafx_midnafx.anti_aliasing'=$true
     'mod.com_midnafx_midnafx.asset_diagnostics'=$enabled
     'mod.com_midnafx_midnafx.asset_draw_diagnostics'=$enabled
+    'mod.com_midnafx_midnafx.pumpkin_body_control'=[bool]$PumpkinBodyControl
 }
 $runConfig | ConvertTo-Json | Set-Content -Encoding utf8 -LiteralPath "$runRoot/user/config.json"
 New-Item -ItemType Junction -Path "$runRoot/user/texture_replacements" -Target $ReplacementRoot | Out-Null

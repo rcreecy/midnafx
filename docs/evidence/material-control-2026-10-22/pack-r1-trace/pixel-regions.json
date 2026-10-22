@@ -1,0 +1,80 @@
+{
+  "body_left": {
+    "bounds": [
+      206,
+      315,
+      240,
+      340
+    ],
+    "off_mean": 71.38196078431372,
+    "on_mean": 39.56117647058824,
+    "off_on_mean_abs": 32.9878431372549,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "body_center": {
+    "bounds": [
+      362,
+      280,
+      386,
+      296
+    ],
+    "off_mean": 63.66493055555556,
+    "on_mean": 42.35069444444444,
+    "off_on_mean_abs": 24.61111111111111,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "leaves": {
+    "bounds": [
+      280,
+      340,
+      330,
+      366
+    ],
+    "off_mean": 37.41538461538462,
+    "on_mean": 37.41538461538462,
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "ground": {
+    "bounds": [
+      580,
+      384,
+      680,
+      464
+    ],
+    "off_mean": 77.423875,
+    "on_mean": 77.423875,
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "architecture": {
+    "bounds": [
+      500,
+      80,
+      600,
+      180
+    ],
+    "off_mean": 58.7015,
+    "on_mean": 58.7015,
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  },
+  "player": {
+    "bounds": [
+      470,
+      380,
+      530,
+      470
+    ],
+    "off_mean": 72.66191358024692,
+    "on_mean": 72.66191358024692,
+    "off_on_mean_abs": 0.0,
+    "off_restore_mean_abs": 0.0,
+    "off_restore_max_abs": 0
+  }
+}

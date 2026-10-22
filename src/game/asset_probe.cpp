@@ -1,11 +1,13 @@
 #include "asset_probe.hpp"
 #include "asset_identity.hpp"
+#include "material_scope.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
 #include <JSystem/J3DGraphAnimator/J3DModelData.h>
 #include <JSystem/J3DGraphBase/J3DMaterial.h>
 #include <JSystem/J3DGraphBase/J3DShape.h>
 #include <dolphin/gx/GXAurora.h>
+#include <dolphin/gx/GXDispList.h>
 #include <mods/svc/hook.hpp>
 #include <JSystem/JKernel/JKRArchive.h>
 #include <d/d_resorce.h>
@@ -35,6 +37,8 @@ bool limited = false;
 DEFINE_HOOK(&J3DShape::drawFast, AssetShapeDraw);
 bool draw_hook = false;
 bool draw_scopes[8]{};
+bool body_scopes[8]{};
+void* draw_args[8]{};
 unsigned draw_depth = 0;
 unsigned long long draw_epoch = 0;
 unsigned long long draw_token = 0;
@@ -42,9 +46,40 @@ J3DMaterial* pumpkin_materials[2]{};
 dRes_info_c* pumpkin_owner = nullptr;
 unsigned long long draw_probe_calls = 0, draw_probe_ns = 0;
 std::atomic<bool> draw_sample_requested{false};
+std::atomic<bool> body_control_requested{false};
+struct BodyBinding {
+    dRes_info_c* owner = nullptr;
+    unsigned index = 0;
+    J3DMaterial* material = nullptr;
+} body_binding;
+bool body_control_last = false;
+unsigned long long body_applies = 0, body_restores = 0, body_rejections = 0;
+void body_event(const char* event) noexcept {
+    if (!svc_log) return;
+    char message[256];
+    std::snprintf(message, sizeof(message),
+        "MaterialControl event=%s requested=%u bound=%u applies=%llu restores=%llu rejected=%llu",
+        event, unsigned(body_control_requested.load(std::memory_order_relaxed)),
+        unsigned(body_binding.material != nullptr), body_applies, body_restores, body_rejections);
+    svc_log->info(mod_ctx, message);
+}
+bool qualifies_body(J3DMaterial* material) noexcept {
+    if (!material || material->getIndex() != 1 || !material->getTevBlock() ||
+        !texture_capacity(material->getTevBlock()->getType())) return false;
+    auto* block = material->getTevBlock();
+    if (block->getTevStageNum() != 1) return false;
+    const auto* stage = block->getTevStage(0);
+    return stage && stage->field_0x0 == 0xc0 && material_scope::qualifies_stage(
+        block->getTevStageNum(), stage->mTevColorOp, stage->mTevColorAB, stage->mTevColorCD);
+}
 struct DrawProbeTimer {
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    bool active;
+    std::chrono::steady_clock::time_point start;
+    explicit DrawProbeTimer(bool enabled) : active(enabled) {
+        if (active) start = std::chrono::steady_clock::now();
+    }
     ~DrawProbeTimer() {
+        if (!active) return;
         draw_probe_ns += static_cast<unsigned long long>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - start).count());
     }
@@ -71,15 +106,37 @@ void failure() noexcept {
     if (svc_log) svc_log->warn(mod_ctx, "AssetGraph diagnostic failed; game resource unchanged");
 }
 HookAction before_shape(ModContext*, void* args, void*, void*) {
-    if (!draw_depth && (!settings::asset_draw_diagnostics_enabled() || !settings::asset_diagnostics_enabled()))
-        return HOOK_CONTINUE;
-    DrawProbeTimer timer;
-    ++draw_probe_calls;
+    const bool control = body_control_requested.load(std::memory_order_relaxed);
+    if (control != body_control_last) {
+        body_control_last = control;
+        body_event(control ? "enabled" : "disabled");
+    }
+    const bool observe = settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled();
+    if (!draw_depth && !observe && !control) return HOOK_CONTINUE;
+    if (!args || draw_depth >= 8) return HOOK_CONTINUE;
+    DrawProbeTimer timer(observe);
+    if (observe) ++draw_probe_calls;
     const auto depth = draw_depth++;
-    if (depth >= 8) return HOOK_CONTINUE;
+    draw_args[depth] = args;
     draw_scopes[depth] = false;
-    if (!args) return HOOK_CONTINUE;
+    body_scopes[depth] = false;
     try {
+        const auto* shape = mods::arg<const J3DShape*>(args, 0);
+        auto* material = shape ? shape->getMaterial() : nullptr;
+        // The pinned drawFast path is non-recursive and leaves TEV state alone.
+        // This is a static, qualified SCALE_4 restore, not a generic state stack.
+        if (control && !depth && material && material == body_binding.material) {
+            if (qualifies_body(material)) {
+                GXCallDisplayList(material_scope::apply.bytes.data(), sizeof(material_scope::apply));
+                body_scopes[depth] = true;
+                ++body_applies;
+            } else {
+                ++body_rejections;
+                body_binding.material = nullptr;
+                body_event("stage-rejected");
+            }
+        }
+        if (!observe) return HOOK_CONTINUE;
         if (!depth && draw_sample_requested.load(std::memory_order_relaxed) &&
             draw_sample_requested.exchange(false, std::memory_order_relaxed)) {
             // Only an explicit request scans the bounded registry. All model
@@ -95,8 +152,6 @@ HookAction before_shape(ModContext*, void* args, void*, void*) {
                 break;
             }
         }
-        const auto* shape = mods::arg<const J3DShape*>(args, 0);
-        auto* material = shape ? shape->getMaterial() : nullptr;
         if (!material || (material != pumpkin_materials[0] && material != pumpkin_materials[1]))
             return HOOK_CONTINUE;
         for (auto& record : records) {
@@ -119,15 +174,31 @@ HookAction before_shape(ModContext*, void* args, void*, void*) {
     } catch (...) { failure(); }
     return HOOK_CONTINUE;
 }
-void after_shape(ModContext*, void*, void*, void*) {
-    if (!draw_depth) return;
-    DrawProbeTimer timer;
+void after_shape(ModContext*, void* args, void*, void*) {
+    // A preceding hook may skip our pre callback while all post callbacks still
+    // execute. Match the trampoline's invocation array before consuming a scope.
+    if (!draw_depth || draw_args[draw_depth - 1] != args) return;
+    DrawProbeTimer timer(settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled());
     const auto depth = --draw_depth;
+    draw_args[depth] = nullptr;
+    // Restoration cannot depend on the current UI request: it may change between
+    // callbacks. The copied FIFO bytes hold no pointer into the game material.
+    if (depth < 8 && body_scopes[depth]) {
+        GXCallDisplayList(material_scope::restore.bytes.data(), sizeof(material_scope::restore));
+        body_scopes[depth] = false;
+        ++body_restores;
+    }
     if (depth < 8 && draw_scopes[depth]) {
         GXPopDebugGroup();
         draw_scopes[depth] = false;
     }
 }
+}
+void set_body_control(bool enabled) noexcept {
+    body_control_requested.store(enabled, std::memory_order_relaxed);
+}
+bool body_control_enabled() noexcept {
+    return body_control_requested.load(std::memory_order_relaxed);
 }
 void request_draw_sample() noexcept {
     if (settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled())
@@ -137,15 +208,18 @@ void initialize_draw_probe() {
     draw_epoch = static_cast<unsigned long long>(std::chrono::steady_clock::now().time_since_epoch().count());
     draw_token = 0;
     draw_probe_calls = draw_probe_ns = 0;
+    body_applies = body_restores = body_rejections = 0;
+    body_control_last = false;
     if (!svc_hook) return;
     draw_hook = mods::hook::add_pre<AssetShapeDraw>(before_shape) == MOD_OK &&
                 mods::hook::add_post<AssetShapeDraw>(after_shape) == MOD_OK;
     if (!draw_hook) {
         (void)mods::hook::uninstall<AssetShapeDraw>();
-        if (svc_log) svc_log->warn(mod_ctx, "Asset draw probe unavailable; labels disabled");
+        if (svc_log) svc_log->warn(mod_ctx, "Asset shape hooks unavailable; labels and body control disabled");
     }
 }
 void shutdown_draw_probe() {
+    body_event("shutdown");
     if (draw_probe_calls) {
         try { emit("\"event\":\"draw-cost\",\"callbacks\":" + std::to_string(draw_probe_calls) +
                    ",\"observer_ns\":" + std::to_string(draw_probe_ns)); }
@@ -156,8 +230,30 @@ void shutdown_draw_probe() {
     draw_depth = 0;
 }
 void begin(dRes_info_c* owner) noexcept {
-    if (!settings::asset_diagnostics_enabled() || !owner || !owner->mArchive || !owner->mArchiveName) return;
+    if (!owner || !owner->mArchive || !owner->mArchiveName) return;
     try {
+        // Independent of discovery limits and diagnostic logging. Enabling after
+        // an unobserved load requires reloading that archive.
+        if (draw_hook && body_control_enabled() && !std::strcmp(owner->mArchiveName, "pumpkin")) {
+            body_binding = {};
+            auto* archive = owner->mArchive;
+            for (unsigned i = 0; i < unsigned(archive->countFile()); ++i) {
+                if (!archive->isFileEntry(i)) continue;
+                auto* entry = archive->findIdxResource(i);
+                if (!entry) continue;
+                const char* name = archive->mStringTable + (entry->type_flags_and_name_offset & 0xffffff);
+                if (std::strcmp(name, "pumpkin.bmd")) continue;
+                const auto* bytes = static_cast<const unsigned char*>(archive->getIdxResource(i));
+                const auto size = bytes ? archive->getExpandedResSize(bytes) : 0;
+                if (!bytes || size < 32 || size > 8 * 1024 * 1024 || std::memcmp(bytes, "J3D2bmd3", 8)) break;
+                unsigned long long hash = 14695981039346656037ULL;
+                for (unsigned j = 0; j < size; ++j) { hash ^= bytes[j]; hash *= 1099511628211ULL; }
+                if (hash == 0x9b2ddb5ecbd95421ULL) body_binding = {owner, i, nullptr};
+                else body_event("fingerprint-rejected");
+                break;
+            }
+        }
+        if (!settings::asset_diagnostics_enabled()) return;
         const auto start = std::chrono::steady_clock::now();
         auto* archive = owner->mArchive;
         if (records.size() == 128 && !limited) {
@@ -196,8 +292,20 @@ void begin(dRes_info_c* owner) noexcept {
     } catch (...) { failure(); }
 }
 void loaded(dRes_info_c* owner, unsigned index, J3DModelData* model) noexcept {
-    if (!settings::asset_diagnostics_enabled() || !model) return;
+    if (!model) return;
     try {
+        if (owner == body_binding.owner && index == body_binding.index) {
+            auto* material = model->getMaterialNum() == 2 ? model->getMaterialNodePointer(1) : nullptr;
+            if (qualifies_body(material)) {
+                body_binding.material = material;
+                body_event("bound-pumpkin-body");
+            } else {
+                body_binding = {};
+                ++body_rejections;
+                body_event("model-rejected");
+            }
+        }
+        if (!settings::asset_diagnostics_enabled()) return;
         auto it = std::find_if(records.begin(), records.end(), [&](const Record& r) {return r.owner==owner && r.index==index;});
         if (it == records.end()) return;
         it->model = model;
@@ -228,6 +336,10 @@ void created(J3DModelData* model) noexcept {
     } catch (...) { failure(); }
 }
 void erase(dRes_info_c* owner) noexcept {
+    if (owner && owner == body_binding.owner) {
+        body_binding = {};
+        body_event("archive-delete");
+    }
     if (owner == pumpkin_owner) {
         pumpkin_materials[0] = pumpkin_materials[1] = nullptr;
         pumpkin_owner = nullptr;
@@ -239,6 +351,7 @@ void erase(dRes_info_c* owner) noexcept {
     std::erase_if(records,[&](const Record& r){return r.owner==owner;});
 }
 void reset() noexcept {
+    body_binding = {};
     draw_sample_requested.store(false, std::memory_order_relaxed);
     pumpkin_materials[0] = pumpkin_materials[1] = nullptr;
     pumpkin_owner = nullptr;

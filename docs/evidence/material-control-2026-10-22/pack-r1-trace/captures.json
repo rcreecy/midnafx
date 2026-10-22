@@ -1,0 +1,17 @@
+[
+  {
+    "file": "off-before.jpg",
+    "sha256": "ef30e03d4e7c2dfe358203118a6c2bcae88b69ad52936bcb18ee602b97cf2648",
+    "bytes": 117602
+  },
+  {
+    "file": "on.jpg",
+    "sha256": "cc1c6afe646d733c754e8c9eb56152486a3cb50c00e514f322067753535dbb8a",
+    "bytes": 117316
+  },
+  {
+    "file": "off-after.jpg",
+    "sha256": "ef30e03d4e7c2dfe358203118a6c2bcae88b69ad52936bcb18ee602b97cf2648",
+    "bytes": 117602
+  }
+]

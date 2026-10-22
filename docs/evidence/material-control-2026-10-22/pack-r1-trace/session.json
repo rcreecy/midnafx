@@ -1,0 +1,34 @@
+{
+  "name": "pack-r1-trace",
+  "variant": "patched-on",
+  "utc_start": "2026-10-22T15:02:27.4013010Z",
+  "host_sha256": "B8B0409BF0081E406296D920B3D8A34A4E6E8E0D44C35B828A74FEDED810F0A7",
+  "package_sha256": "0AB9DD429411216CBDD006834E0617375C7E858AE4FA8F8AC214E5163979CC10",
+  "host_executable_name": "dusklight.exe",
+  "host_images": [
+    {
+      "base_address": "7ff7472c0000",
+      "name": "dusklight.exe",
+      "sha256": "B8B0409BF0081E406296D920B3D8A34A4E6E8E0D44C35B828A74FEDED810F0A7"
+    }
+  ],
+  "config": {
+    "video.rememberWindowSize": true,
+    "video.enableFullscreen": false,
+    "backend.enableAdvancedSettings": true,
+    "game.autoSave": false,
+    "video.lastWindowHeight": 720,
+    "backend.wasPresetChosen": true,
+    "mod.com_midnafx_midnafx.pumpkin_body_control": true,
+    "video.lastWindowWidth": 960,
+    "game.enableControllerToasts": false,
+    "game.pauseOnFocusLost": false,
+    "mod.com_midnafx_midnafx.asset_draw_diagnostics": true,
+    "game.enableTextureReplacements": true,
+    "mod.com_midnafx_midnafx.asset_diagnostics": true,
+    "mod.com_midnafx_midnafx.anti_aliasing": true,
+    "video.enableVsync": true
+  },
+  "normal_exit_observed": true,
+  "simulation_rate_hz_for_captures": 0
+}

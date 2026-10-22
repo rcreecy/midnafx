@@ -44,6 +44,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"},
     asset_diagnostics{"asset_diagnostics"},
     asset_draw_diagnostics{"asset_draw_diagnostics"},
+    pumpkin_body_control{"pumpkin_body_control"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
     geometry_smoothing{"geometry_smoothing"},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
@@ -336,6 +337,8 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
                       const ConfigVarValue*, void* user) {
     if (value && value->type == CONFIG_VAR_BOOL) {
         static_cast<Toggle*>(user)->value = value->bool_value;
+        if (user == &pumpkin_body_control)
+            asset_probe::set_body_control(value->bool_value);
         if (user == &geometry_mutation_test && !value->bool_value)
             geometry_probe::restore_mutation();
         if ((user == &geometry_smoothing || user == &geometry_skinned_smoothing) &&
@@ -1072,6 +1075,11 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Log model catalog on resource load", geometry_diagnostics);
     add_toggle(panel, "Asset identity diagnostics (new loads only)", asset_diagnostics);
     add_toggle(panel, "Pumpkin draw labels (experimental host probe)", asset_draw_diagnostics);
+    add_toggle(panel, "Material proof: dim pumpkin bodies", pumpkin_body_control);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Enable before loading pumpkins. A new binding requires a scene reload. "
+        "Changes all matching pumpkin bodies; leaves and texture replacements are preserved. "
+        "Disabling restores the original draw operation.", nullptr));
     button.label = "Sample pumpkin draws again";
     button.on_pressed = resample_asset_draws;
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
@@ -1125,6 +1133,8 @@ bool initialize() {
     register_toggle(geometry_diagnostics);
     register_toggle(asset_diagnostics);
     register_toggle(asset_draw_diagnostics);
+    register_toggle(pumpkin_body_control);
+    asset_probe::set_body_control(pumpkin_body_control.value);
     register_toggle(topology_diagnostics);
     register_toggle(geometry_mutation_test);
     register_toggle(geometry_smoothing);
@@ -1190,6 +1200,7 @@ bool diagnostics_enabled() { return diagnostics_toggle.value; }
 bool geometry_diagnostics_enabled() { return geometry_diagnostics.value; }
 bool asset_diagnostics_enabled() { return asset_diagnostics.value; }
 bool asset_draw_diagnostics_enabled() { return asset_draw_diagnostics.value; }
+bool pumpkin_body_control_enabled() { return asset_probe::body_control_enabled(); }
 bool topology_diagnostics_enabled() { return topology_diagnostics.value; }
 bool geometry_mutation_test_enabled() { return geometry_mutation_test.value; }
 bool geometry_smoothing_enabled() { return geometry_smoothing.value; }
