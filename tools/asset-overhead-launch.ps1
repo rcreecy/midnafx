@@ -9,7 +9,8 @@ param(
     [Parameter(Mandatory=$true)][string]$ReplacementRoot,
     [Parameter(Mandatory=$true)][string]$OutputRoot,
     [switch]$PumpkinBodyControl,
-    [switch]$DisableReplacements
+    [switch]$DisableReplacements,
+    [switch]$FrameTiming
 )
 $ErrorActionPreference='Stop'
 # The SDK import library names dusklight.exe. An alias loads a second host image.
@@ -45,11 +46,21 @@ Copy-Item -LiteralPath $ModPackage -Destination "$runRoot/mods/midnafx.dusk"
 # Start-Process joins this array into a Windows command line; quote path arguments.
 $runArgs=@('--backend','d3d12','--log-level','debug','--log-dir',"`"$runRoot/logs`"",
            '--user-dir',"`"$runRoot/user`"",'--mods',"`"$runRoot/mods`"",'--stage','F_SP103,0,27,0',"`"$DiscPath`"")
-$runProcess=Start-Process -FilePath $HostExecutable -ArgumentList $runArgs -WorkingDirectory (Split-Path $HostExecutable) -WindowStyle Hidden -RedirectStandardOutput "$runRoot/stdout.log" -RedirectStandardError "$runRoot/stderr.log" -PassThru
+$previousTimingFile=[Environment]::GetEnvironmentVariable('MIDNAFX_FRAME_TIMING_FILE','Process')
+try {
+    # Scope this opt-in to the child host. A caller's inherited value must not
+    # silently turn an ordinary observer trial into a timing capture.
+    $timingFile=if ($FrameTiming) { Join-Path $runRoot 'frame-timing.json' } else { $null }
+    [Environment]::SetEnvironmentVariable('MIDNAFX_FRAME_TIMING_FILE',$timingFile,'Process')
+    $runProcess=Start-Process -FilePath $HostExecutable -ArgumentList $runArgs -WorkingDirectory (Split-Path $HostExecutable) -WindowStyle Hidden -RedirectStandardOutput "$runRoot/stdout.log" -RedirectStandardError "$runRoot/stderr.log" -PassThru
+} finally {
+    [Environment]::SetEnvironmentVariable('MIDNAFX_FRAME_TIMING_FILE',$previousTimingFile,'Process')
+}
 $runSession=@{name=$Name; variant=$Variant; pid=$runProcess.Id; utc_start=[DateTime]::UtcNow.ToString('o')
     host_sha256=(Get-FileHash -LiteralPath $HostExecutable).Hash
     package_sha256=(Get-FileHash -LiteralPath "$runRoot/mods/midnafx.dusk").Hash
-    config=$runConfig; arguments=$runArgs; host_executable_name=(Split-Path -Leaf $HostExecutable)}
+    config=$runConfig; arguments=$runArgs; host_executable_name=(Split-Path -Leaf $HostExecutable)
+    frame_timing_requested=[bool]$FrameTiming; frame_timing_file=$timingFile}
 $runSession | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 -LiteralPath "$runRoot/session.json"
 $ready=$false
 for ($attempt=0; $attempt -lt 120; $attempt++) {

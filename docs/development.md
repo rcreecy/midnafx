@@ -33,6 +33,10 @@ validated MidnaFX release without its own runtime and platform testing.
 
 ## Prerequisites and checkout
 
+[Bounded CPU frame telemetry](frame-timing.md) is another separate native host
+experiment. It records producer wall spans and successful present-call completion
+intervals; it does not measure GPU execution, physical scanout or heap allocations.
+
 The full-queue decompressor shutdown repair is a separate native host patch.
 See [its qualification and limitations](decomp-shutdown.md). Check it with
 `python tools/decomp-shutdown-host-patch.py`; add `--apply` before rebuilding

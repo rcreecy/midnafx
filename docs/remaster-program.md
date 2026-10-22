@@ -18,7 +18,7 @@ Preserve gameplay, authored material boundaries, animation/skinning, transparenc
 
 | Slice | Observable completion | Current state |
 |---|---|---|
-| R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; historical stall attribution and full cost measurements remain open |
+| R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; bounded CPU timing collector passes native smoke; paired cost/allocation measurements and historical stall attribution remain open |
 | R1: selective material control | Toggle a visible change on the fingerprinted pumpkin body while leaves and surrounding scene remain unchanged; disabling/restoring/reloading recovers original state; original and high-resolution replacements work | Visible reversible RGB-scale control passes original/pack comparisons; archive round trip and mod reload remain pending; see material-control.md |
 | R2: authored material enhancement | Apply bounded profiles to several distinct material classes using original identities; support predictable color/specular/normal inputs only where rendering data and control are sufficient; document effects and fallback | Requires R1 control seam and material/shader capability audit |
 | R3: geometry and character consistency | Improve selected silhouettes/normals without seam, skinning, animation or shared-instance corruption; broaden verified asset coverage beyond existing allowlists | Narrow geometry/smoothing foundations exist; broad coverage is incomplete |
@@ -43,3 +43,19 @@ Grow coverage through outdoor foliage/architecture, interiors/dungeons, water, n
 Performance targets must be tied to measured hardware and quality profiles. The available Intel UHD 630 host cannot attest high-end GPU or 4K performance. Retain low-cost bypass and sensible quality tiers; publish measured cost instead of a universal FPS promise. No unsupported GPU feature may prevent basic rendering.
 
 Commit and validate coherent slices, continue to the next supported slice, and publish versions with accurate feature/platform limitations. The overall program is complete only when the accepted feature/quality ledger supports a remaster-quality experience; isolated pumpkin control or another successful CI run does not complete it.
+
+## Checkpoint: 2026-10-22
+
+Windows package build and all 21 CTest entries pass, including D3D12 pixels and
+the 12-case frame analyzer suite. Original/pack material comparisons restore all
+sampled rectangles exactly; their apply/restore totals balance and normal close
+completes. The CPU timing collector emits 1,484 consistent frames with no drops
+in its smoke trial. See [material control](material-control.md),
+[shutdown repair](decomp-shutdown.md) and [frame timing](frame-timing.md).
+
+The goal's usage limit stops this iteration before the full program is complete.
+Resume with R1 archive departure/return and mod reload qualification, then paired
+R0 settled/sampling/replacement-reload frame measurements and actual allocation
+capture where available. Broader authored material profiles, geometry/character
+coverage, coherent environment rendering and product qualification remain open.
+Preserve the confirmed Nintendo Switch 2 reference and best-effort macOS policy.

@@ -56,6 +56,10 @@ jobs:
         shell: bash
         run: python tools/asset-draw-host-patch.py --selection-tests
 
+      - name: Check bounded CPU frame telemetry patch
+        shell: bash
+        run: python tools/frame-timing-host-patch.py
+
       - name: Apply camera FOV host patch
         shell: bash
         run: python tools/camera-host-patch.py --dusklight-dir upstream/dusklight --apply

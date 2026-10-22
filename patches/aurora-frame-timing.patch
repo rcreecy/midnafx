@@ -1,0 +1,220 @@
+diff --git a/lib/gfx/frame.cpp b/lib/gfx/frame.cpp
+--- a/lib/gfx/frame.cpp
++++ b/lib/gfx/frame.cpp
+@@ -19,6 +19,8 @@
+ #include <atomic>
+ #include <chrono>
+ #include <cstdint>
++#include <cstdio>
++#include <cstdlib>
+ #include <deque>
+ #include <mutex>
+ #include <optional>
+@@ -128,6 +130,98 @@
+ 
+ int64_t duration_ns(PresentClock::duration duration) {
+   return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
++}
++
++// Qualification only: producer and render-thread records have separate writers.
++// Read them only after the render worker joins. Recording performs no I/O or
++// dynamic allocation. The environment is read once before starting that worker.
++constexpr size_t FrameTimingCapacity = 16384;
++struct ProducerTiming {
++  uint64_t frameId = 0;
++  int64_t beginEntryNs = 0;
++  int64_t acquisitionCompleteNs = 0;
++  int64_t recordStartNs = 0;
++  int64_t endEntryNs = 0;
++  int64_t endEnqueueCompleteNs = 0;
++};
++struct PresentTiming {
++  uint64_t frameId = 0;
++  int64_t completionNs = 0;
++  int64_t intervalNs = -1;
++};
++std::array<ProducerTiming, FrameTimingCapacity> g_producerTimings;
++std::array<PresentTiming, FrameTimingCapacity> g_presentTimings;
++std::string g_frameTimingOutput;
++size_t g_producerTimingCount = 0, g_presentTimingCount = 0;
++uint64_t g_producerTimingDropped = 0, g_presentTimingDropped = 0;
++uint64_t g_timingBeginAttempts = 0, g_timingFailedBegins = 0, g_timingIncompleteBegins = 0;
++ProducerTiming g_pendingProducerTiming;
++bool g_producerTimingPending = false;
++// These two variables are written only by the render worker, independently of
++// producer records and frame slots that the producer may already have reused.
++uint64_t g_timingPresentFrameId = 0;
++int64_t g_timingLastPresentNs = 0;
++
++void initialize_frame_timing() {
++  const char* output = std::getenv("MIDNAFX_FRAME_TIMING_FILE");
++  g_frameTimingOutput = output != nullptr ? output : "";
++  g_producerTimingCount = g_presentTimingCount = 0;
++  g_producerTimingDropped = g_presentTimingDropped = 0;
++  g_timingBeginAttempts = g_timingFailedBegins = g_timingIncompleteBegins = 0;
++  g_pendingProducerTiming = {};
++  g_producerTimingPending = false;
++  g_timingPresentFrameId = 0;
++  g_timingLastPresentNs = 0;
++}
++
++void flush_frame_timing() {
++  if (g_frameTimingOutput.empty()) return;
++  if (g_producerTimingPending) ++g_timingIncompleteBegins;
++  FILE* output = std::fopen(g_frameTimingOutput.c_str(), "wb");
++  if (output == nullptr) {
++    Log.warn("Could not open frame timing output: {}", g_frameTimingOutput);
++    g_frameTimingOutput.clear();
++    return;
++  }
++  std::fprintf(output,
++      "{\"schema\":1,\"clock\":\"std::chrono::steady_clock\",\"unit\":\"ns\","
++      "\"semantics\":{\"producer\":\"CPU monotonic wall timestamps; not CPU execution time\","
++      "\"present\":\"Successful Surface.Present call completion; not physical scanout\","
++      "\"failed_begin\":\"Counted separately; no frame ID or producer row is assigned\","
++      "\"first_present_interval\":\"null; later intervals use consecutive successful call completions\","
++      "\"encoding_time\":null,\"gpu_time\":null,\"heap_allocations\":null},"
++      "\"capacity_per_stream\":%zu,\"producer_count\":%zu,\"producer_dropped\":%llu,"
++      "\"present_count\":%zu,\"present_dropped\":%llu,\"begin_attempts\":%llu,"
++      "\"failed_begins\":%llu,\"incomplete_begins\":%llu,\"truncated\":%s,\"producer\":[",
++      FrameTimingCapacity, g_producerTimingCount, static_cast<unsigned long long>(g_producerTimingDropped),
++      g_presentTimingCount, static_cast<unsigned long long>(g_presentTimingDropped),
++      static_cast<unsigned long long>(g_timingBeginAttempts), static_cast<unsigned long long>(g_timingFailedBegins),
++      static_cast<unsigned long long>(g_timingIncompleteBegins),
++      g_producerTimingDropped || g_presentTimingDropped ? "true" : "false");
++  for (size_t i = 0; i < g_producerTimingCount; ++i) {
++    const auto& row = g_producerTimings[i];
++    std::fprintf(output,
++        "%s{\"frame_id\":%llu,\"begin_entry_ns\":%lld,\"acquisition_complete_ns\":%lld,"
++        "\"record_start_ns\":%lld,\"end_entry_ns\":%lld,\"end_enqueue_complete_ns\":%lld}",
++        i ? "," : "", static_cast<unsigned long long>(row.frameId),
++        static_cast<long long>(row.beginEntryNs), static_cast<long long>(row.acquisitionCompleteNs),
++        static_cast<long long>(row.recordStartNs), static_cast<long long>(row.endEntryNs),
++        static_cast<long long>(row.endEnqueueCompleteNs));
++  }
++  std::fputs("],\"present\":[", output);
++  for (size_t i = 0; i < g_presentTimingCount; ++i) {
++    const auto& row = g_presentTimings[i];
++    std::fprintf(output, "%s{\"frame_id\":%llu,\"completion_ns\":%lld,\"interval_ns\":",
++                 i ? "," : "", static_cast<unsigned long long>(row.frameId), static_cast<long long>(row.completionNs));
++    if (row.intervalNs < 0) std::fputs("null", output);
++    else std::fprintf(output, "%lld", static_cast<long long>(row.intervalNs));
++    std::fputc('}', output);
++  }
++  std::fputs("]}\n", output);
++  const bool failed = std::ferror(output) != 0;
++  const int closeResult = std::fclose(output);
++  if (failed || closeResult != 0) Log.warn("Could not finish frame timing output: {}", g_frameTimingOutput);
++  g_frameTimingOutput.clear();
+ }
+ 
+ void update_ema(std::atomic_int64_t& value, int64_t sample) {
+@@ -374,6 +468,7 @@
+ }
+ 
+ void initialize() {
++  initialize_frame_timing();
+   g_frameIndex = 0;
+   g_processEventsQueued.store(false, std::memory_order_release);
+   g_lastPresentNs.store(0, std::memory_order_release);
+@@ -521,6 +616,7 @@
+ void shutdown() {
+   render_worker::synchronize();
+   render_worker::shutdown();
++  flush_frame_timing();
+   g_processEventsQueued.store(false, std::memory_order_release);
+   g_lastPresentNs.store(0, std::memory_order_release);
+   g_presentPeriodNs.store(0, std::memory_order_release);
+@@ -614,17 +710,28 @@
+ 
+ bool begin_frame() {
+   ZoneScoped;
++  const bool timing = !g_frameTimingOutput.empty();
++  if (timing) {
++    ++g_timingBeginAttempts;
++    if (g_producerTimingPending) ++g_timingIncompleteBegins;
++    g_pendingProducerTiming = {};
++    g_producerTimingPending = false;
++    g_pendingProducerTiming.beginEntryNs = timestamp_ns(PresentClock::now());
++  }
+   // pace_frame_start();
+   const size_t frameSlot = acquire_frame_slot();
+   const auto stagingSlot = acquire_mapped_staging_buffer();
+   if (!stagingSlot) {
+     g_frameSlots.release(frameSlot);
++    if (timing) ++g_timingFailedBegins;
+     return false;
+   }
++  if (timing) g_pendingProducerTiming.acquisitionCompleteNs = timestamp_ns(PresentClock::now());
+ 
+   auto& frame = g_framePackets[frameSlot];
+   frame = {};
+   frame.frameId = g_nextFrameId++;
++  if (timing) g_pendingProducerTiming.frameId = frame.frameId;
+   frame.frameIndex = g_frameIndex;
+   frame.stagingBuffer = *stagingSlot;
+   size_t bufferOffset = 0;
+@@ -652,11 +759,17 @@
+     webgpu::gpu_prof::frame_begin(g_framePackets[frameSlot].encoder);
+   });
+   g_cpuFrameStart = PresentClock::now();
++  if (timing) {
++    g_pendingProducerTiming.recordStartNs = timestamp_ns(g_cpuFrameStart);
++    g_producerTimingPending = true;
++  }
+   return true;
+ }
+ 
+ void end_frame(EndFrameCallback callback) {
+   ZoneScoped;
++  const bool timing = !g_frameTimingOutput.empty();
++  const int64_t endEntryNs = timing ? timestamp_ns(PresentClock::now()) : 0;
+   if (g_cpuFrameStart.time_since_epoch().count() != 0) {
+     const auto cpuFrameTime = PresentClock::now() - g_cpuFrameStart;
+     update_ema(g_cpuFrameTimeNs, duration_ns(cpuFrameTime));
+@@ -676,6 +789,7 @@
+     g_stagingBuffers[stagingSlot].Unmap();
+     g_mappingStates[stagingSlot].store(BufferMapState::Unmapped, std::memory_order_release);
+     auto encoder = std::move(packet.encoder);
++    const uint64_t presentFrameId = packet.frameId;
+     const auto stats = packet.stats;
+     auto afterSubmitCallbacks = std::move(packet.afterSubmitCallbacks);
+     packet = {};
+@@ -687,13 +801,23 @@
+     g_resources.stats.lastStorageSize = stats.lastStorageSize;
+     g_resources.stats.lastTextureUploadSize = stats.lastTextureUploadSize;
+     if (callback) {
++      g_timingPresentFrameId = presentFrameId;
+       callback(encoder, std::move(afterSubmitCallbacks));
++      g_timingPresentFrameId = 0;
+     }
+     g_frameSlots.release(frameSlot);
+     expire_cached_bind_groups();
+     map_staging_buffer(stagingSlot, true);
+     process_events();
+   });
++  if (timing && g_producerTimingPending) {
++    g_pendingProducerTiming.endEntryNs = endEntryNs;
++    g_pendingProducerTiming.endEnqueueCompleteNs = timestamp_ns(PresentClock::now());
++    if (g_producerTimingCount < FrameTimingCapacity)
++      g_producerTimings[g_producerTimingCount++] = g_pendingProducerTiming;
++    else ++g_producerTimingDropped;
++    g_producerTimingPending = false;
++  }
+ }
+ 
+ uint32_t current_frame() noexcept { return g_frameIndex; }
+@@ -707,6 +831,13 @@
+ void after_present() noexcept {
+   const auto now = PresentClock::now();
+   const int64_t nowNs = timestamp_ns(now);
++  if (!g_frameTimingOutput.empty()) {
++    const PresentTiming row{g_timingPresentFrameId, nowNs,
++                           g_timingLastPresentNs == 0 ? -1 : nowNs - g_timingLastPresentNs};
++    if (g_presentTimingCount < FrameTimingCapacity) g_presentTimings[g_presentTimingCount++] = row;
++    else ++g_presentTimingDropped;
++    g_timingLastPresentNs = nowNs;
++  }
+   const int64_t previousPresentNs = g_lastPresentNs.exchange(nowNs, std::memory_order_acq_rel);
+   if (previousPresentNs != 0) {
+     update_ema(g_presentPeriodNs, nowNs - previousPresentNs);
