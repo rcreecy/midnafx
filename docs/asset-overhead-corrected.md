@@ -48,6 +48,8 @@ The analyzer's `--require-host-identity` option now checks the session inventory
 
 Local Windows CTest passes **19/19** in 53.95 seconds, including all 14 analyzer cases and the existing asset-intelligence tests. The strict CLI reproduces the analysis from all nine original run directories. Both experimental patch applicability checks and whitespace checks pass. No game or renderer source changes in this milestone.
 
+Hosted [CI run 39706492998](https://github.com/rcreecy/midnafx/actions/runs/39706492998) passes at measurement commit `192ecd1`: Windows **19/19** in 31.55 seconds and macOS Intel **19/19** in 41.73 seconds. Three consecutive Metal AA checks pass in 16.81, 17.29 and 18.02 seconds on the Apple Paravirtual adapter. Both ordinary native package artifacts are produced; the release job is skipped. The two Windows script guard cases run on Windows and are skipped on macOS. CI validates recorded counters and metadata; it does not repeat the live process experiment, diagnose the shutdown stall, compile the experimental host patch, or perform the user's macOS gameplay check.
+
 To reproduce, prepare complete baseline and traced runtimes in separate directories with the original executable name. Use [the launcher](../tools/asset-overhead-launch.ps1) for fresh user/mod directories and the settings above. Visually activate/check the game, then invoke the sampler with the run directory and `-VisualCheckConfirmed`. Check the final scene, close the owned host, preserve any termination failure, and run the analyzer with `--require-host-identity` on all nine directories. Inspect companion logs for the expected populated workload; module checks alone do not establish it.
 
 ## Remaining work and macOS acceptance
