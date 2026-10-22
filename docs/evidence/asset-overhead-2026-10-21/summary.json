@@ -279,6 +279,13 @@
     "stage": "F_SP103,0,27,0",
     "warmup_seconds": 20
   },
+  "qualification": {
+    "correction": "../asset-host-name-2026-10-21/summary.json",
+    "cpu_and_memory_values": "Historical observations only; not qualified observer overhead",
+    "native_layout_values": "Unaffected; standalone probes initialize no host or native mod",
+    "reason": "Launcher used renamed Windows executable aliases, which can load a second dusklight.exe image through native mod imports",
+    "valid": false
+  },
   "replacement_files": [
     {
       "bytes": 1398276,

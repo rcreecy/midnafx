@@ -1,4 +1,8 @@
-"""Analyze matched process-counter runs; no FPS, allocation-rate or GPU claims."""
+"""Analyze process counters; no FPS, allocation-rate or GPU claims.
+
+Counter arithmetic alone does not qualify a workload. New Windows studies must
+also use --require-host-identity and verify the exercised asset paths in logs.
+"""
 import argparse
 import json
 from pathlib import Path
@@ -6,6 +10,15 @@ import statistics
 
 VARIANTS=('baseline','patched-off','patched-on')
 FLAGS=('mod.com_midnafx_midnafx.asset_diagnostics','mod.com_midnafx_midnafx.asset_draw_diagnostics')
+
+def validate_host_identity(session):
+    """Require the Windows import name and one matching loaded host image."""
+    if session.get('host_executable_name', '').casefold() != 'dusklight.exe':
+        raise ValueError('profiling requires executable name dusklight.exe')
+    images=session.get('host_images', [])
+    if (len(images)!=1 or images[0].get('name', '').casefold()!='dusklight.exe' or
+            images[0].get('sha256', '').casefold()!=session['host_sha256'].casefold()):
+        raise ValueError('profiling requires one matching loaded host image')
 
 def summarize_run(session, capture):
     variant=session['variant']
@@ -66,9 +79,15 @@ def analyze(inputs):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run_directories',nargs='+',type=Path)
+    parser.add_argument('--require-host-identity',action='store_true',
+                        help='Reject missing module proof, renamed hosts and duplicate host images')
     args=parser.parse_args()
     try:
-        inputs=[(json.loads((p/'session.json').read_text()),json.loads((p/'process-samples.json').read_text())) for p in args.run_directories]
+        inputs=[(json.loads((p/'session.json').read_text(encoding='utf-8-sig')),
+                 json.loads((p/'process-samples.json').read_text(encoding='utf-8-sig'))) for p in args.run_directories]
+        if args.require_host_identity:
+            for session,_ in inputs:
+                validate_host_identity(session)
         print(json.dumps(analyze(inputs),sort_keys=True,indent=2))
     except (ValueError,KeyError,OSError,TypeError) as error:
         parser.exit(1,str(error)+'\n')

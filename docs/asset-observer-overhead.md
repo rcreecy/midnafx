@@ -1,6 +1,6 @@
 # Asset observer overhead: Windows process counters
 
-Nine matched Windows D3D12 trials provide a first process-level CPU and retained-memory comparison. They do **not** close the full observer overhead gate. The enabled trials execute the shape callbacks but produce no resource identity events, draw labels or encoded `AssetDraw` records. The initial discovery shortfall needs a separate investigation before measuring active discovery and sampling. These results cannot stand in for that workload.
+**Correction:** the [launch identity investigation](asset-host-name.md) invalidates this CPU and retained-memory comparison. The launcher renamed the Windows executable, while native mod imports require `dusklight.exe`. A paired reproduction loads two host images under the alias and restores discovery with the original filename. The nine trials below remain historical observations only; their differences must not be used as observer overhead estimates. The standalone native layout measurements are unaffected.
 
 The experimental host patch remains separate from the ordinary package. Both asset diagnostic settings remain disabled by default. No visual behavior, production default or release version changes in this milestone.
 
@@ -14,7 +14,7 @@ Each entry below is the median of three trials, followed by their minimum and ma
 | Patched host, diagnostics off | 384.584 [382.615, 392.885] | 1558.266 [1558.191, 1572.152] | 1342.137 [1341.820, 1364.297] |
 | Patched host, diagnostics on, no discovered assets | 422.068 [393.484, 438.121] | 1558.090 [1556.461, 1558.379] | 1341.426 [1340.527, 1341.684] |
 
-The patched-off CPU median is 1.804 ms/s higher than baseline, or 0.47%; the observed ranges overlap. Enabled callbacks add 37.483 ms/s over patched-off, or 9.75% of that process CPU median. This is an observed difference on one system, not a causal estimate with a confidence interval. Dynamic actors, host scheduling, compiler output and cache state remain possible contributors. No FPS cost or speedup follows from these counters.
+The historical patched-off CPU median is 1.804 ms/s higher than baseline, or 0.47%; the observed ranges overlap. The historical enabled median is 37.483 ms/s higher than patched-off, or 9.75%. The invalid executable setup prevents attributing either difference to the intended observer configuration. Dynamic actors, host scheduling, compiler output and cache state also remain uncontrolled. No FPS cost or speedup follows from these counters.
 
 Patched-off private memory is 1.578 MiB higher at the group median. Enabled private memory is 0.176 MiB lower than patched-off; the negative difference does not establish a saving. Private committed memory describes retained process memory, not total allocated bytes or allocation rate. The working set also includes shared resident pages. The higher first baseline/off memory observations remain in the evidence; no trial is discarded.
 
@@ -51,7 +51,7 @@ Trials run in order `b1, o1, e1, e2, b2, o2, o3, e3, b3`, with baseline, patched
 
 After activating and visually checking each scene, collection waits 20 seconds, then reads process counters at approximately one-second intervals: 31 observations spanning 30.353–30.457 seconds. There is no UI input during collection. The scene is visually checked again and the owned host closes normally. Idle animation and NPC positions vary; this is not a deterministic frame replay. Screenshots remain local, outside the metadata evidence.
 
-All enabled trials log a positive `draw-cost.callbacks` count, confirming the enabled shape path executes. **None logs identity loads or draw labels**, and no trial logs an encoded asset draw. The available logs do not establish why discovery is absent. Consequently, this comparison measures enabled callbacks without discovered identity records. It does not measure the populated registry, initial 32-label burst, manual resampling, archive discovery, or reload workload. Patched-off trials still include the host's bounded provider events, which are independent of the mod toggles.
+All enabled trials log a positive `draw-cost.callbacks` count. **None logs identity loads or draw labels**, and no trial logs an encoded asset draw. The later filename reproduction explains this discovery failure. These trials do not establish a valid callback-cost comparison, populated-registry cost, initial 32-label burst, manual resampling, archive discovery, or reload workload. Patched-off trials still include the host's bounded provider events, which are independent of the mod toggles.
 
 All nine sessions log normal mod unload and host shutdown. Each reports the same missing `gczelda2` memory-card file in its fresh user directory. Shutdown reports buffer mapping aborted during destruction and device destroyed; no earlier device-loss event or stdout error is present. These common messages are retained in the evidence.
 
@@ -69,4 +69,4 @@ Hosted [CI run 39604108904](https://github.com/rcreecy/midnafx/actions/runs/3960
 
 For another experiment, reproduce the explicit settings and balanced order, verify each intended workload from its logs, and collect the counters as described above. Compile the layout probe twice using the native host's include paths, defines and compiler flags, once with the draw-trace patch absent and once present. Preserve both binaries and hashes; restore the experimental checkout and executable afterward.
 
-Next: diagnose the missing initial discovery, then repeat with verified populated identity records and 32/32 encoded labels per enabled trial. Measure allocation counts/bytes and frame timing separately, including active resampling and reloads. Experimental Metal-host compilation and native macOS gameplay also remain open. The existing package CI does not compile this experimental host patch.
+Next: use the [repaired launcher and strict host identity checks](asset-host-name.md), then repeat with verified populated identity records and 32/32 encoded labels per enabled trial. Measure allocation counts/bytes and frame timing separately, including active resampling and reloads. Experimental Metal-host compilation and native macOS gameplay also remain open. The existing package CI does not compile this experimental host patch.

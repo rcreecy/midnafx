@@ -1,6 +1,6 @@
 # Asset-aware remaster roadmap
 
-October 21 overhead update: [nine Windows trials and native object sizes](asset-observer-overhead.md) quantify process CPU/retained memory and a 56-byte command-size increase. Enabled trials lack identity records and encoded labels; populated-observer timing/allocation and experimental Metal qualification remain open. Diagnose that discovery shortfall before extending rendering behavior.
+October 21 correction: [renamed Windows host loading](asset-host-name.md) explains missing discovery and invalidates the nine-run CPU/memory comparison. The repaired launcher preserves `dusklight.exe` and verifies one host image. The standalone 56-byte command-size increase remains valid. Repeat overhead measurements with populated records before extending rendering behavior; timing/allocation and experimental Metal qualification remain open.
 
 Directory compatibility update: [live duplicate-file evidence](asset-live-directory-conflicts.md) confirms first-sorted-file selection within one directory load and fallback after provider removal between launches. This is distinct from priority among separate registry entries.
 

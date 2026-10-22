@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-21",
+  "finding": "Renamed Windows host violates the native mod import name and loads two executable images",
+  "invalidated_study": "../asset-overhead-2026-10-21",
+  "limitations": [
+    "No new CPU, memory or frame-time comparison is claimed",
+    "Both paired bootstrap runs lack runtime fonts; these are import/discovery diagnostics, not graphical acceptance",
+    "Desktop capture did not show the intended game window; no further UI input was issued",
+    "Forced termination excludes normal-shutdown and final buffered log coverage",
+    "Encoded draws do not establish GPU completion or visibility"
+  ],
+  "native_import_name": "dusklight.exe",
+  "preserved_native_library_sha256": "9ae54f7aab9b11f6fa49a3077b6a770db200f096e26f5e9c21056bd2812f5e22",
+  "runs": [
+    {
+      "bootstrap_font_error_lines": 8,
+      "counts": {
+        "draw_labels": 32,
+        "encoded_draws": 32,
+        "graph_events": {
+          "cost": 55,
+          "creation": 302,
+          "draw-label": 32,
+          "material": 243,
+          "resource": 128,
+          "unsupported": 1
+        }
+      },
+      "original_sha256": {
+        "session.json": "ac73a8361a135a28e2c99eb0a1edf1c8e1b45b6cccda92f00b6f6a7763a95922",
+        "stderr.log": "331b75d1b03251b8b57e60ecf0ed557aed0667fcd47339748843d5f6b6b53ace",
+        "stdout.log": "5870c762d1f717b46ece256851b94f3b6ea8ae4fb33342392d22f3b86507fd53"
+      },
+      "role": "normal",
+      "session": {
+        "config": {
+          "backend.enableAdvancedSettings": true,
+          "backend.isoPath": "[same local RVZ path redacted]",
+          "backend.isoVerification": 0,
+          "backend.wasPresetChosen": true,
+          "game.autoSave": false,
+          "game.enableControllerToasts": false,
+          "game.enableTextureReplacements": true,
+          "mod.com_midnafx_midnafx.anti_aliasing": true,
+          "mod.com_midnafx_midnafx.asset_diagnostics": true,
+          "mod.com_midnafx_midnafx.asset_draw_diagnostics": true,
+          "video.enableFullscreen": false,
+          "video.enableVsync": true,
+          "video.lastWindowHeight": 720,
+          "video.lastWindowWidth": 960,
+          "video.pauseOnFocusLost": false,
+          "video.rememberWindowSize": true
+        },
+        "host_executable_name": "dusklight.exe",
+        "host_images": [
+          {
+            "base_address": "7ff7a2860000",
+            "name": "dusklight.exe",
+            "sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B"
+          }
+        ],
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "name": "diagnosis-normal",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "variant": "patched-on"
+      },
+      "startup_confirmed": true,
+      "termination": "Owned process stopped by agent after log collection; not a normal shutdown proof"
+    },
+    {
+      "bootstrap_font_error_lines": 8,
+      "counts": {
+        "draw_labels": 0,
+        "encoded_draws": 0,
+        "graph_events": {}
+      },
+      "original_sha256": {
+        "session.json": "a4cb7a23c11034984682b3092cb1f9a0e241629dc0186a678c704233d7761eda",
+        "stderr.log": "331b75d1b03251b8b57e60ecf0ed557aed0667fcd47339748843d5f6b6b53ace",
+        "stdout.log": "3695009568071ce5e4ae8d93f3f2a542b749c0b8d466d672a8a0c7a05cac1c19"
+      },
+      "role": "alias",
+      "session": {
+        "config": {
+          "backend.enableAdvancedSettings": true,
+          "backend.isoPath": "[same local RVZ path redacted]",
+          "backend.isoVerification": 0,
+          "backend.wasPresetChosen": true,
+          "game.autoSave": false,
+          "game.enableControllerToasts": false,
+          "game.enableTextureReplacements": true,
+          "mod.com_midnafx_midnafx.anti_aliasing": true,
+          "mod.com_midnafx_midnafx.asset_diagnostics": true,
+          "mod.com_midnafx_midnafx.asset_draw_diagnostics": true,
+          "video.enableFullscreen": false,
+          "video.enableVsync": true,
+          "video.lastWindowHeight": 720,
+          "video.lastWindowWidth": 960,
+          "video.pauseOnFocusLost": false,
+          "video.rememberWindowSize": true
+        },
+        "host_executable_name": "dusklight-asset-traced.exe",
+        "host_images": [
+          {
+            "base_address": "7ff61b980000",
+            "name": "dusklight-asset-traced.exe",
+            "sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B"
+          },
+          {
+            "base_address": "7ff7a2860000",
+            "name": "dusklight.exe",
+            "sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B"
+          }
+        ],
+        "host_sha256": "482AA1FCC8C4789297BA3B4D8476582A8E1868C33BE578A982628CA35E8F3E8B",
+        "name": "diagnosis-alias-preserved",
+        "package_sha256": "15EC60F960A1277F4441FD26358EF13196534018B8BE29AB77E25BB6AB9DBCB3",
+        "variant": "patched-on"
+      },
+      "startup_confirmed": true,
+      "termination": "Owned process stopped by agent after log collection; not a normal shutdown proof"
+    }
+  ]
+}
