@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"error\":{\"code\":\"capability_unavailable\",\"category\":\"unsupported_provider\",\"message\":\"The selected analysis provider does not support this target. Choose another provider or open a supported extracted binary.\",\"retryable\":false,\"remediation\":{\"action\":\"The selected analysis provider does not support this target. Choose another provider or open a supported extracted binary.\"},\"details\":{\"operation\":\"open_binary\",\"selection_reason\":\"target_unsupported\",\"requested_provider_id\":\"ghidra\",\"candidate_ids\":[\"ghidra\",\"hopper\",\"ida\",\"kuna\"],\"rejections\":[{\"provider_id\":\"ghidra\",\"code\":\"target_format_unsupported\",\"reason\":\"Windows Ghidra P0 accepts native PE and explicitly selected raw 6502 targets only.\",\"diagnostics\":{\"host_platform\":\"win32\",\"target_kind\":\"executable\",\"target_format\":\"mach-o\",\"architecture\":\"x86_64\",\"available_architectures\":[\"x86_64\"],\"executable_role\":null,\"managed\":null}},{\"provider_id\":\"hopper\",\"code\":\"unsupported_host\",\"reason\":\"Hopper integration is not supported on win32.\",\"diagnostics\":{\"launcher_path\":\"\\\\Applications\\\\Hopper Disassembler.app\\\\Contents\\\\MacOS\\\\hopper\",\"platform\":\"win32\"}},{\"provider_id\":\"ida\",\"code\":\"not_configured\",\"reason\":\"Set REA_IDA_MCP_CONFIG to an upstream IDA MCP JSON registration; see docs/ida-provider.md.\",\"diagnostics\":{\"configured\":false,\"live_connection_probed\":false}},{\"provider_id\":\"kuna\",\"code\":\"not_configured\",\"reason\":\"Set REA_KUNA_COMMAND to the absolute path of a caller-supplied kuna executable (verified with 1.833). REA does not download, install or update Kuna.\",\"diagnostics\":{\"configured\":false,\"version_probed\":false}}]}}}"
+    }
+  ],
+  "isError": true
+}

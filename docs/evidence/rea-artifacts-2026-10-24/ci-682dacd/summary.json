@@ -1,0 +1,55 @@
+{
+  "date_local": "2026-10-25",
+  "code_commit": "682dacde18b1066539c4920e9f842f9773fd42ac",
+  "workflow_run": 40205847046,
+  "version": "1.2.0",
+  "artifacts": {
+    "windows": {
+      "package_sha256": "e07a51fbee52e0f9ff8ce7c069f9d28d8023fd77a28d1664ab1475282a6c941a",
+      "module_sha256": "ee7368582321e7db11d35acca28bfeb10ed86f2d2ebb66c632bc513bce707b50",
+      "module_bytes": 363008,
+      "package_contract": "passed on this Windows host"
+    },
+    "macos": {
+      "package_sha256": "02bececdc51219fffca287b7dcbd7611f4884c2698ff454d20dff120adb1bc21",
+      "module_sha256": "51cec0710dd4fff91881fc98f7e2d1476e50fe97d96cda4377d27e1549829773",
+      "module_bytes": 418608,
+      "package_contract": "passed on this Windows host"
+    }
+  },
+  "windows_import_comparison": {
+    "method": "Named imports per DLL from dumpbin /imports; addresses and ordinal hints excluded",
+    "host_named_imports": 80,
+    "all_ci_named_imports_are_in_local_baseline": true,
+    "removed_vs_local": {
+      "api-ms-win-crt-math-l1-1-0.dll": [
+        "_fdclass"
+      ]
+    },
+    "added_vs_local": []
+  },
+  "tests": {
+    "windows": {
+      "passed": 21,
+      "total": 21,
+      "includes_aa_pixels": true
+    },
+    "macos": {
+      "passed": 20,
+      "total": 20,
+      "aa_pixels_excluded": true,
+      "native_gameplay_verified": false
+    }
+  },
+  "limitations": [
+    "CI packages differ from the locally executed package; their hashes remain separate.",
+    "No new release was published by this workflow.",
+    "REA Windows Ghidra rejects the Mach-O artifact before analysis; the raw response is retained.",
+    "No Mac loader, gameplay or Metal execution was performed."
+  ],
+  "retained_sha256": {
+    "rea-macos-open.json": "869e724737faa6481145ef82bec54123d11a579b8414d4ce86849bdd4eefe24d",
+    "run.json": "2517ef2559a3bce7d75a1453050fa46615132bfe5781e2480db5e691a5e90d64",
+    "windows-module-imports.txt": "2b14a23517df8d744111a8727c7910b61950bc91ee2f87f22254f718266fe5d0"
+  }
+}

@@ -51,6 +51,32 @@ target. Additional material classes, representative motion/lighting coverage and
 actual GPU/allocation cost remain open. macOS compilation and packaging remain
 supported; native macOS rendering is unverified and best effort.
 
+## Next material candidate
+
+The next read-only lead is `L_mbox_00.arc/l_metabox_00.bmd`, material 0
+`L_metabox00`: 35,040 bytes, original FNV `640f192e3c9a1623`, SHA256
+`52c7020e943d18e2e5b278ef005a44e7fb51295fc9ef68fde86b6fcd8ad91974`.
+It has one joint/material/shape, register-sourced RGB and alpha, white material
+color and `GX_COLOR0A0`. Its indexed shape list has six triangle strips and no
+XF/BP writes. The pinned metal-box actor sets environment lighting and draws;
+no material-color animation is identified in that path.
+
+Its RGB stage is `28/e8/a2`, not the pumpkin's `28/f8/af`. The stage approximately
+combines `4*((1-RASC)*K0 + RASC*TEXC + C0)` before clamping. Changing XF material
+gain therefore changes an interpolation weight, not uniform albedo gain.
+Keep dynamic K0/C0 and light inputs intact; do not describe this as metallic or
+specular shading. A future profile needs its own exact identity/stage qualifier,
+native visual comparison and lifecycle checks. Pumpkin-specific cached source
+normalization must not be reused without independent qualification. Native load
+binding is the narrower initial option.
+
+Existing [geometry research](geometry-investigation.md) records a target load at
+`D_MN04,7,0,-1` and actor draws at `F_SP116,3,13,2`; natural unobstructed framing
+remains unqualified. Earlier visible geometry proof used temporary render
+relocation. The wood-box alternative has similar stage inputs but its burn-box
+actor mutates C0, so it requires a separate draw contract. None of these leads
+extends the implemented warm profile's allowlist.
+
 ## RGB-scale proof
 
 Qualification: 2026-10-21 through 2026-10-22, Windows/D3D12, 960 × 720.

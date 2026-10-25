@@ -101,6 +101,14 @@ assumptions to actual packaged and loaded code; it does not measure GPU overhead
 or establish arbitrary live-state ownership. All 21 Windows CTest entries pass
 after the final build, including AA pixels and package validation.
 
+[CI run 40205847046](https://github.com/rcreecy/midnafx/actions/runs/40205847046)
+also passes at code commit `682dacd`: Windows 21/21 tests and Intel macOS 20/20
+tests, with native packages for both. Mac AA/Metal execution is excluded under
+the working-host policy. The [artifact receipt](evidence/rea-artifacts-2026-10-24/ci-682dacd/README.md)
+keeps CI and locally executed hashes separate; no new release is published by
+that run. Windows REA providers cannot open its Mach-O module, so Mac gameplay
+remains unverified and best effort.
+
 Continue R2 with a distinct supported material class and its required rendering
 interface. The inspected pot uses vertex material color and animated TEV inputs,
 so applying the pumpkin's register gain would be ineffective or interfere with

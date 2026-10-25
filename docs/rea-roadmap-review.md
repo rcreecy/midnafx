@@ -36,8 +36,10 @@ not a reason to defer feature development.
   observation on the owned fixture reports 78 calls and zero arithmetic mismatches.
   Subsequent checks find no open session for its exact ID and no remaining PID.
   The exported observation itself says `running`; cleanup is established by those
-  separate follow-up observations, not by that field. Arbitrary-process attachment
-  and game instrumentation remain unverified.
+  separate follow-up observations, not by that field. Controlled attachment to
+  the isolated game host also observes 114 warm/restore command pairs after mod
+  reload, with separate session-retirement and loaded-module identity receipts.
+  This does not qualify arbitrary-process attachment or measure GPU completion.
 - Ghidra-backed function analysis, call tracing, p-code value tracing, instruction
   inspection, recovered type inspection and function comparisons are advertised.
   They require opening a supported target; advertisement alone does not establish
@@ -45,6 +47,11 @@ not a reason to defer feature development.
 - Evidence bundles, explicit unknowns and artifact comparison are available.
   Windows Ghidra analysis and local Frida discovery do not establish Mac runtime
   support. Hopper is unavailable on Windows; IDA and Kuna are not configured.
+  Opening the actual CI Mac module on 2026-10-25 is rejected: the available Windows
+  Ghidra provider accepts native PE and selected raw 6502 targets, not Mach-O.
+  Consequently the advertised `inspect_macho` workflow is unavailable through
+  current host providers. The [CI artifact receipt](evidence/rea-artifacts-2026-10-24/ci-682dacd/README.md)
+  retains that result and the successful Windows/Mac build and package checks.
 - REA's pwntools layout/core inspection and persistent GDB/Rizin workflows have
   Linux/provider requirements. They are not proposed as current Windows tools.
 - `inspect_native_load_image` supports DOS MZ, COM and explicitly selected raw
