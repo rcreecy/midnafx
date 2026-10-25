@@ -1,9 +1,11 @@
 #include "game/smoothing.hpp"
 
 #include <array>
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #define check(condition)                                                                           \
     do {                                                                                           \
@@ -100,4 +102,68 @@ int main() {
     mesh.triangles[1].corners[1].normal = 0; // shared index at another position.
     result = smoothing::plan(mesh, normals, permissive);
     check(!result.safe() && result.index_conflicts > 0);
+    // Shared indices keep their exact authored value while independent indices
+    // may improve. Choosing one group's direction would corrupt another use.
+    auto preserve = permissive;
+    preserve.preserve_conflicting_indices = true;
+    result = smoothing::plan(mesh, normals, preserve);
+    check(result.safe() && result.preserved_indices == 1);
+    check(result.normals[0].x == normals[0].x && result.normals[0].y == normals[0].y &&
+          result.normals[0].z == normals[0].z);
+    check(result.changed_indices == 1 && result.normals[1].y < normals[1].y);
+    // Preserving aliases must not waive unrelated malformed-input guards.
+    auto malformed = mesh;
+    malformed.triangles[0].corners[0].normal = 65535;
+    check(!smoothing::plan(malformed, normals, preserve).safe());
+
+    // Orientation ambiguity must protect every referenced index, including an
+    // index used by an otherwise valid smoothing group at another position.
+    // Keep a non-unit normal and signed zero to detect normalization or rewriting.
+    const std::array<Vec3, 8> orientation_normals{{
+        {-0.0f, 0, 2}, {0, 0, 1}, {0, 0, 1},
+        {0, 0.5f, 0.8660254f}, {0, 0.5f, 0.8660254f}, {0, 0.5f, 0.8660254f},
+        {0, 0, -2}, {1, 0, 0}}};
+    topology::Result orientation_mesh;
+    orientation_mesh.triangles.push_back(tri({{{0, 0}, {1, 1}, {2, 2}}}, {0, 0, 1}, 0));
+    orientation_mesh.triangles.push_back(
+        tri({{{0, 3}, {3, 4}, {4, 5}}}, {0, 0.5f, 0.8660254f}, 0));
+    const auto without_ambiguity = smoothing::plan(orientation_mesh, orientation_normals, preserve);
+    check(without_ambiguity.safe() && without_ambiguity.changed_indices == 2);
+    orientation_mesh.triangles.push_back(tri({{{0, 0}, {5, 6}, {6, 7}}}, {0, 0, 1}, 0));
+    orientation_mesh.triangles.push_back(tri({{{7, 0}, {8, 6}, {9, 7}}}, {0, 0, 1}, 0));
+    const auto strict_orientation = smoothing::plan(orientation_mesh, orientation_normals, permissive);
+    check(!strict_orientation.safe() && strict_orientation.ambiguous_faces == 2);
+    const auto preserved_orientation = smoothing::plan(orientation_mesh, orientation_normals, preserve);
+    check(preserved_orientation.safe());
+    check(preserved_orientation.ambiguous_faces == 0 && preserved_orientation.index_conflicts == 0);
+    check(preserved_orientation.preserved_ambiguous_faces == 2);
+    check(preserved_orientation.preserved_indices == 3 && preserved_orientation.changed_indices == 1);
+    for (const unsigned index : {0u, 6u, 7u})
+        check(std::memcmp(&preserved_orientation.normals[index], &orientation_normals[index],
+                          sizeof(Vec3)) == 0);
+    check(std::memcmp(&preserved_orientation.normals[3], &without_ambiguity.normals[3],
+                      sizeof(Vec3)) == 0);
+
+    auto reordered = orientation_mesh;
+    std::rotate(reordered.triangles.begin(), reordered.triangles.begin() + 2,
+                reordered.triangles.end());
+    const auto reordered_result = smoothing::plan(reordered, orientation_normals, preserve);
+    check(reordered_result.safe());
+    check(reordered_result.preserved_ambiguous_faces == 2);
+    check(reordered_result.preserved_indices == 3 && reordered_result.changed_indices == 1);
+    check(std::memcmp(reordered_result.normals.data(), preserved_orientation.normals.data(),
+                      orientation_normals.size() * sizeof(Vec3)) == 0);
+
+    auto malformed_orientation = orientation_mesh;
+    malformed_orientation.triangles[2].material = 0xffff;
+    check(!smoothing::plan(malformed_orientation, orientation_normals, preserve).safe());
+    malformed_orientation = orientation_mesh;
+    malformed_orientation.triangles[2].corner_angles[0] = NAN;
+    check(!smoothing::plan(malformed_orientation, orientation_normals, preserve).safe());
+    malformed_orientation = orientation_mesh;
+    malformed_orientation.triangles[2].face_normal = {};
+    check(!smoothing::plan(malformed_orientation, orientation_normals, preserve).safe());
+    auto zero_normal = orientation_normals;
+    zero_normal[7] = {};
+    check(!smoothing::plan(orientation_mesh, zero_normal, preserve).safe());
 }

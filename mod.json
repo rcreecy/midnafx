@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": "MidnaFX contributors",
   "description": "Remaster profile with contact shading, depth atmosphere, grading, detail, camera controls and enhanced water"
 }

@@ -13,6 +13,13 @@ It uses scene depth and leaves the HUD untouched; it does not
 add dynamic lights, material normal maps or off-screen shadows. Existing installs
 retain their settings until a profile is selected.
 
+MidnaFX 1.4 adds **Enhanced Link shading** to Basic controls and the
+Remaster profile. It conservatively smooths supported regions of Link's original
+casual outfit, preserving uncertain normals and authored boundaries. It activates
+on the resident model; disabling it or selecting Vanilla restores the original
+normal bytes. Other outfits and replacement models are unchanged. This improves
+lighting continuity without adding polygons or changing the silhouette.
+
 MidnaFX is an experimental native visual processing mod for Dusklight. It provides a fused
 pre-HUD grading shader with exposure, black point, contrast, gamma, saturation, highlight
 rolloff, temperature and tint controls, plus optional five-tap detail enhancement.

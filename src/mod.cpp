@@ -42,6 +42,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
     const float elapsed = std::chrono::duration<float>(now - last_update).count();
     last_update = now;
     midnafx::settings::update_twilight(midnafx::game_state::sample(), elapsed);
+    midnafx::geometry_probe::update();
     midnafx::render::update();
     midnafx::render::dof_blur::update();
     midnafx::water_probe::update();

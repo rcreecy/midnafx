@@ -80,10 +80,23 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
             return result;
         }
     }
+    std::vector<bool> preserved(options.preserve_conflicting_indices ? originals.size() : 0);
+    const auto preserve_index = [&](std::size_t index) {
+        if (!preserved[index]) {
+            preserved[index] = true;
+            ++result.preserved_indices;
+        }
+    };
     std::uint16_t max_position = 0;
     std::vector<Vec3> oriented_faces(mesh.triangles.size());
     for (std::size_t ti = 0; ti < mesh.triangles.size(); ++ti) {
         const auto& triangle = mesh.triangles[ti];
+        if (options.preserve_conflicting_indices)
+            for (const float angle : triangle.corner_angles)
+                if (!std::isfinite(angle) || angle <= 0) {
+                    result.error = "invalid corner angle";
+                    return result;
+                }
         float alignment = 0;
         for (const auto& corner : triangle.corners) {
             if (corner.normal >= originals.size()) {
@@ -97,8 +110,15 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
             return result;
         }
         if (std::abs(alignment) < 0.01f) {
-            ++result.ambiguous_faces;
-            continue; // Leave these normals untouched; do not infer orientation.
+            const float face_size = magnitude(triangle.face_normal);
+            if (options.preserve_conflicting_indices && std::isfinite(face_size) && face_size >= 0.5f) {
+                for (const auto& corner : triangle.corners)
+                    preserve_index(corner.normal);
+                ++result.preserved_ambiguous_faces;
+            } else {
+                ++result.ambiguous_faces;
+            }
+            continue; // Do not infer an orientation or contribute to smoothing.
         }
         oriented_faces[ti] = alignment < 0 ? Vec3{-triangle.face_normal.x, -triangle.face_normal.y,
                                                   -triangle.face_normal.z}
@@ -128,9 +148,17 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     std::vector<Vec3> desired(originals.size());
     std::vector<bool> assigned(originals.size());
     std::vector<bool> candidate(originals.size());
+    const auto note_conflict = [&](std::size_t index) {
+        if (!options.preserve_conflicting_indices) {
+            ++result.index_conflicts;
+        } else {
+            preserve_index(index);
+        }
+    };
     const auto base_working_bytes = vector_bytes(original_unit) + vector_bytes(oriented_faces) +
                                     nested_vector_bytes(by_position) + vector_bytes(desired) +
-                                    vector_bytes(assigned) + vector_bytes(candidate);
+                                    vector_bytes(assigned) + vector_bytes(candidate) +
+                                    vector_bytes(preserved);
     result.working_vector_bytes = base_working_bytes;
 
     for (const auto& refs : by_position) {
@@ -152,6 +180,11 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
             if (magnitude(normal) < 0.5f) {
                 result.error = "zero referenced normal";
                 return result;
+            }
+            if (options.preserve_conflicting_indices &&
+                magnitude(oriented_faces[ref.triangle]) < 0.5f) {
+                candidate[tri.corners[ref.corner].normal] = true;
+                continue;
             }
             bool placed = false;
             for (auto& group : groups) {
@@ -184,7 +217,7 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
                 const auto index = mesh.triangles[ref.triangle].corners[ref.corner].normal;
                 candidate[index] = true;
                 if (assigned[index] && dot(desired[index], original_unit[index]) < conflict_limit)
-                    ++result.index_conflicts;
+                    note_conflict(index);
                 else if (!assigned[index]) {
                     desired[index] = original_unit[index];
                     assigned[index] = true;
@@ -213,7 +246,7 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
                         : original_unit[index];
                 candidate[index] = true;
                 if (assigned[index] && dot(desired[index], target) < conflict_limit)
-                    ++result.index_conflicts;
+                    note_conflict(index);
                 else if (!assigned[index]) {
                     desired[index] = target;
                     assigned[index] = true;
@@ -231,7 +264,8 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     result.working_vector_bytes =
         std::max(result.working_vector_bytes, base_working_bytes + vector_bytes(result.normals));
     for (std::size_t i = 0; i < originals.size(); ++i)
-        if (assigned[i] && dot(original_unit[i], desired[i]) < conflict_limit) {
+        if (assigned[i] && !(options.preserve_conflicting_indices && preserved[i]) &&
+            dot(original_unit[i], desired[i]) < conflict_limit) {
             result.normals[i] = desired[i];
             ++result.changed_indices;
         }

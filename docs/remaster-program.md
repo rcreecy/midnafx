@@ -98,6 +98,14 @@ confirmed Nintendo Switch 2 reference and best-effort macOS policy.
 
 ## Checkpoint: 2026-10-25
 
+The following character slice adds user-facing Enhanced Link shading to Basic
+and Remaster. It supports the original casual outfit with conservative
+preservation of conflicting indices and uncertain faces. Native D3D12 evidence
+shows 297 changed normals, exact disable/reload/shutdown restoration and a subtle
+localized pixel change. Other outfits and replacement models remain unchanged.
+See [character shading](character-shading.md). The older standard-outfit rebuild
+experiment remains outside this product path; no new mesh geometry is claimed.
+
 The first authored material profile adds a subtle warm RGB gain to the exact
 original pumpkin body while preserving native lighting and alpha. It defaults
 off and works with external replacements independently of diagnostics and the

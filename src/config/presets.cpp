@@ -192,6 +192,7 @@ Snapshot enhanced() {
 }
 Snapshot remaster() {
     auto result = enhanced();
+    result.product_flags |= SkinnedGeometry;
     result.scene_flags = AmbientOcclusion | AntiAliasing | Water | Atmosphere;
     return result;
 }

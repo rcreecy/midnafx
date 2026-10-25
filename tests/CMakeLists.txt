@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(character_identity character_identity.cpp)
+target_compile_features(character_identity PRIVATE cxx_std_20)
+target_include_directories(character_identity PRIVATE ../src)
+add_test(NAME character_identity COMMAND character_identity)
 add_executable(topology topology.cpp ../src/game/topology.cpp)
 target_compile_features(topology PRIVATE cxx_std_20)
 target_include_directories(topology PRIVATE ../src)

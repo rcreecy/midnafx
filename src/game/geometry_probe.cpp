@@ -2,6 +2,7 @@
 #include "asset_probe.hpp"
 
 #include "bmd_rebuild.hpp"
+#include "character_identity.hpp"
 #include "services.hpp"
 #include "smoothing.hpp"
 #include "topology.hpp"
@@ -15,6 +16,7 @@
 #include <JSystem/JKernel/JKRHeap.h>
 #include <JSystem/JKernel/JKRSolidHeap.h>
 #include <d/d_resorce.h>
+#include <d/d_com_inf_game.h>
 #include <m_Do/m_Do_ext.h>
 #include <mods/svc/hook.hpp>
 
@@ -51,6 +53,18 @@ struct Replacement {
 };
 std::vector<Replacement> replacements;
 thread_local std::vector<dRes_info_c*> loading_owners;
+bool character_enabled_last = false;
+struct CharacterTarget {
+    const char* archive;
+    const char* file;
+    u32 size, positions, shapes, envelopes, triangles, fraction;
+    std::uint64_t loaded_hash;
+};
+// Native hashes are measured before any normal mutation of the original source.
+constexpr CharacterTarget character_targets[]{
+    {"Bmdl", "bl.bmd", 165088, 2301, 8, 133, 3617, 15,
+     0xc945defef88edfc9ULL},
+};
 
 std::uint64_t fnv1a(const std::byte* data, std::size_t size) {
     std::uint64_t hash = 14695981039346656037ULL;
@@ -143,11 +157,7 @@ HookAction prepare_rebuilt_model(ModContext*, void* args, void*, void*) {
         const char* label;
     };
     std::optional<Target> target;
-    if (settings::geometry_skinned_smoothing_enabled() &&
-        std::strcmp(info->mArchiveName, "Kmdl") == 0)
-        target = Target{Replacement::Kind::LinkBody, "al.bmd", 140448, 0xc00c6d9abd5d79bcULL,
-                        "Kmdl.arc/al.bmd"};
-    else if (settings::geometry_smoothing_enabled() &&
+    if (settings::geometry_smoothing_enabled() &&
              std::strcmp(info->mArchiveName, "OBJ_GM") == 0)
         target = Target{Replacement::Kind::Pot, "k_kumo_tubo01.bmd", 12896, 0xa9efd2ace652b900ULL,
                         "OBJ_GM.arc/k_kumo_tubo01.bmd"};
@@ -400,8 +410,15 @@ bool shared_normal_storage(const dRes_info_c& info, J3DModelData& model) {
 }
 
 void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& model) {
+    const bool character_candidate = std::any_of(
+        std::begin(character_targets), std::end(character_targets),
+        [&](const CharacterTarget& item) {
+            return info.mArchiveName && std::strcmp(info.mArchiveName, item.archive) == 0 &&
+                   std::strcmp(name, item.file) == 0;
+        });
     const bool target = is_topology_target(info, name) &&
-                        (model.getWEvlpMtxNum() ? settings::geometry_skinned_smoothing_enabled()
+                        (model.getWEvlpMtxNum() ? (character_candidate &&
+                                                  settings::geometry_skinned_smoothing_enabled())
                                                 : settings::geometry_smoothing_enabled());
     const bool apply = target && !has_mutation_kind(MutationBackup::Kind::Diagnostic) &&
                        find_mutation(&model) == mutations.end();
@@ -508,6 +525,16 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const bool link_exact = rebuilt && rebuilt->kind == Replacement::Kind::LinkBody &&
                             result.corner_hash == 0x6ed5b0df43c35b63ULL && pos_count == 1560 &&
                             normal_count == 10064 && model.getWEvlpMtxNum() == 110;
+    const auto character = std::find_if(std::begin(character_targets), std::end(character_targets),
+        [&](const CharacterTarget& item) {
+            return !rebuilt && info.mArchiveName && std::strcmp(info.mArchiveName, item.archive) == 0 &&
+                std::strcmp(name, item.file) == 0 && resource_size == item.size &&
+                pos_count == item.positions && model.getShapeNum() == item.shapes &&
+                model.getWEvlpMtxNum() == item.envelopes && result.triangles.size() == item.triangles;
+        });
+    const bool original_character = character != std::end(character_targets) &&
+        character_identity::normalized_loaded_hash(
+            {static_cast<const std::byte*>(model.getRawData()), resource_size}) == character->loaded_hash;
     const bool nest_exact = rebuilt && rebuilt->kind == Replacement::Kind::Nest &&
                             result.corner_hash == 0xd107e10bca9ec9d0ULL && pos_count == 61 &&
                             normal_count == 400 && model.getWEvlpMtxNum() == 0;
@@ -522,6 +549,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const unsigned normal_fraction = vertex.getVtxNrmFrac();
     const bool exact = normal_type == GX_S16 && normal_stride == 6 &&
                        (((pot_exact || link_exact) && normal_fraction == 14) ||
+                        (original_character && normal_fraction == character->fraction) ||
                         ((nest_exact || pumpkin_exact) && normal_fraction == 15) ||
                         (rock_exact && normal_fraction == 15));
     smoothing::Qualification qualification;
@@ -560,12 +588,30 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 .count();
         smoothing::Options options;
         options.face_angle_degrees = settings::geometry_smoothing_angle();
+        options.preserve_conflicting_indices = original_character;
+        if (original_character) {
+            char message[224];
+            std::snprintf(message, sizeof(message),
+                          "Character shading source: native_hash=%016llx normals=%u topology=%016llx",
+                          static_cast<unsigned long long>(character_identity::normalized_loaded_hash(
+                              {static_cast<const std::byte*>(model.getRawData()), resource_size})),
+                          normal_count, static_cast<unsigned long long>(result.corner_hash));
+            svc_log->info(mod_ctx, message);
+        }
         const smoothing::Representation representation{
             true,
             model.getWEvlpMtxNum() == 0 && model.getJointNum() == 1 && model.getDrawMtxNum() == 1,
             exact, false};
         qualification = smoothing::qualify(result, positions, normals, representation, options);
         smooth = std::move(qualification.smoothing);
+        if (original_character) {
+            char message[160];
+            std::snprintf(message, sizeof(message),
+                          "Character shading plan: changed=%u preserved_indices=%u unresolved=%u ambiguous=%u preserved_faces=%u",
+                          smooth.changed_indices, smooth.preserved_indices, smooth.index_conflicts,
+                          smooth.ambiguous_faces, smooth.preserved_ambiguous_faces);
+            svc_log->info(mod_ctx, message);
+        }
         smooth_us = static_cast<long long>(qualification.smoothing_us);
         peak_vector_bytes = std::max(
             peak_vector_bytes, vector_bytes(result.triangles) + vector_bytes(positions) +
@@ -594,7 +640,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 std::memcpy(backup.get(), destination, bytes_count);
                 // Publish ownership before changing bytes; vector allocation failure
                 // must not leave a changed array with no restoration record.
-                mutations.push_back({link_exact ? MutationBackup::Kind::SkinnedSmoothing
+                mutations.push_back({(link_exact || original_character) ? MutationBackup::Kind::SkinnedSmoothing
                                                 : MutationBackup::Kind::RigidSmoothing,
                                      exact ? "known-good model" : "automatically qualified model",
                                      const_cast<dRes_info_c*>(&info), &model, destination,
@@ -790,6 +836,7 @@ void initialize() {
     create_registered = false;
     model_load_registered = false;
     replacements.clear();
+    character_enabled_last = false;
     loading_owners.clear();
     mutations.clear();
     processed.clear();
@@ -817,6 +864,48 @@ void initialize() {
     asset_probe::initialize_draw_probe(load_registered && delete_registered && model_load_registered);
 }
 
+void update() {
+    const bool enabled = settings::geometry_skinned_smoothing_enabled();
+    if (enabled == character_enabled_last || resource_load_active()) return;
+    character_enabled_last = enabled;
+    if (!enabled || !delete_registered) return;
+    // Look up resident models without fetching resources or taking references.
+    for (const auto& target : character_targets) {
+        auto* owner = dComIfG_getObjectResInfo(target.archive);
+        if (!owner || !owner->mCount || owner->mDMCommand || !owner->mArchive || !owner->mRes) continue;
+        auto* archive = owner->mArchive;
+        if (!archive->isMounted() || !archive->mArcInfoBlock || !archive->mStringTable || !archive->mNodes) continue;
+        const u32 count = archive->countFile();
+        const u32 strings = archive->mArcInfoBlock->string_table_length;
+        const int directories = archive->countDirectory();
+        if (count > 4096 || directories < 0 || directories > 4096) continue;
+        for (int n = 0; n < directories; ++n) {
+            const auto& node = archive->mNodes[n];
+            if (!is_model_node(node.type) || node.first_file_index > count ||
+                node.num_entries > count - node.first_file_index) continue;
+            for (u32 j = 0; j < node.num_entries; ++j) {
+                const u32 i = node.first_file_index + j;
+                auto* entry = archive->findIdxResource(i);
+                const auto name_bytes = std::strlen(target.file) + 1;
+                if (!entry || !archive->isFileEntry(i) || entry->isDirectory() ||
+                    entry->getNameOffset() > strings ||
+                    name_bytes > strings - entry->getNameOffset() ||
+                    std::memcmp(archive->mStringTable + entry->getNameOffset(), target.file, name_bytes))
+                    continue;
+                auto* model = static_cast<J3DModelData*>(owner->mRes[i]);
+                if (!model || find_mutation(model) != mutations.end()) continue;
+                if (archive->findPtrResource(model->getRawData()) != entry) continue;
+                std::erase_if(processed, [model](const ProcessedModel& item) { return item.model == model; });
+                try {
+                    analyze_topology(*owner, target.file, *model);
+                } catch (const std::bad_alloc&) {
+                    svc_log->info(mod_ctx, "Character shading: insufficient temporary memory");
+                }
+            }
+        }
+    }
+}
+
 void shutdown() {
     asset_probe::shutdown_draw_probe();
     asset_probe::reset();
@@ -838,8 +927,15 @@ void shutdown() {
 
 void restore_mutation() { restore_mutations(MutationBackup::Kind::Diagnostic); }
 void restore_smoothing(bool skinned) {
-    restore_mutations(skinned ? MutationBackup::Kind::SkinnedSmoothing
-                              : MutationBackup::Kind::RigidSmoothing);
+    if (skinned) character_enabled_last = false;
+    const auto kind = skinned ? MutationBackup::Kind::SkinnedSmoothing
+                             : MutationBackup::Kind::RigidSmoothing;
+    for (const auto& mutation : mutations)
+        if (mutation.kind == kind)
+            std::erase_if(processed, [&](const ProcessedModel& item) {
+                return item.model == mutation.model_data;
+            });
+    restore_mutations(kind);
 }
 Summary summary() { return current_summary; }
 bool resource_load_active() noexcept { return !loading_owners.empty(); }

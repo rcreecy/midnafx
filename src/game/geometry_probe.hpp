@@ -11,6 +11,7 @@ struct Summary {
 Summary summary();
 bool resource_load_active() noexcept;
 void initialize();
+void update();
 void shutdown();
 void restore_mutation();
 void restore_smoothing(bool skinned);

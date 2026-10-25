@@ -63,6 +63,7 @@ int main() {
     CHECK(presets::enhanced().product_flags == (presets::Grading | presets::Camera));
     CHECK((presets::enhanced().product_flags & presets::Dof) == 0);
     const auto remaster = presets::remaster();
+    CHECK((remaster.product_flags & presets::SkinnedGeometry) != 0);
     CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere));
     CHECK(presets::vanilla().scene_flags == 0 && presets::vanilla().product_flags == 0);
     for (int flags = -1; flags <= 15; ++flags) {

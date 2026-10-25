@@ -965,11 +965,14 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Remaster combines contact shading, depth atmosphere, natural grading, detail, modern camera, anti-aliasing and enhanced water. "
+        "Remaster combines contact shading, depth atmosphere, natural grading, detail, Link shading, modern camera, anti-aliasing and enhanced water. "
         "Vanilla restores original presentation. Advanced tuning stays unchanged.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
     add_toggle(panel, "Enhanced model shading", geometry_smoothing);
+    add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Smooths supported regions of Link's original casual outfit. Other outfits and replacement models stay unchanged.", nullptr));
     add_toggle(panel, "Modern exploration camera", camera_toggle);
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
@@ -1078,10 +1081,11 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: model shading"));
     add_number(panel, smoothing_angle_setting);
-    add_toggle(panel, "Validated skinned model shading", geometry_skinned_smoothing);
+    add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Hard normal splits and material boundaries are always preserved. Unsupported or ambiguous models are skipped. "
-        "Enable before loading a scene. Disable restores source normals; enabling again requires a scene reload.", nullptr));
+        "Link's supported casual outfit updates immediately and restores source normals when disabled. "
+        "Other model shading requires enabling before a scene load.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
     add_toggle(panel, "Bypass color look", look_bypass);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "Color look resources pending", &look_element));

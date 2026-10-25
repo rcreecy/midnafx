@@ -15,6 +15,8 @@ struct Options {
     float index_conflict_degrees = 1.0f;
     // Retain authored shaping; full geometric replacement exposed character facets.
     float geometric_weight = 0.25f;
+    // Preserve indices with conflicting proposals or uncertain face orientation.
+    bool preserve_conflicting_indices = false;
 };
 
 struct Result {
@@ -24,15 +26,20 @@ struct Result {
     std::uint32_t candidate_indices = 0;
     std::uint32_t changed_indices = 0;
     std::uint32_t index_conflicts = 0;
+    std::uint32_t preserved_indices = 0;
     std::uint32_t ambiguous_faces = 0;
+    std::uint32_t preserved_ambiguous_faces = 0;
     std::uint64_t adjacency_us = 0;
     std::uint64_t working_vector_bytes = 0;
     const char* error = nullptr;
     bool safe() const { return error == nullptr && index_conflicts == 0 && ambiguous_faces == 0; }
 };
 
-// Original index ownership is preserved. A conflicting desired direction for
-// one existing index rejects the entire model; no DL index rewriting occurs.
+// Original index ownership is preserved. A conflicting desired direction rejects
+// the model by default; the opt-in preservation mode retains that index's exact
+// original normal instead. It also preserves every index on a face whose
+// orientation is ambiguous and excludes that face from smoothing contributions.
+// No DL index rewriting occurs.
 Result plan(const topology::Result& mesh, std::span<const topology::Vec3> originals,
             Options options = {});
 
