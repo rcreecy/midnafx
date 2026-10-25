@@ -19,7 +19,8 @@ enum ProductFlag {
 enum SceneFlag {
     AmbientOcclusion = 1,
     AntiAliasing = 2,
-    Water = 4
+    Water = 4,
+    Atmosphere = 8
 };
 struct Snapshot {
     std::array<std::int64_t, grade::Count> values{0, 0, 100, 100, 100, 0, 0, 0};

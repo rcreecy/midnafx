@@ -30,7 +30,10 @@ capabilities. R0/R1 have enough foundations to support feature development;
 additional observer qualification is not the default next deliverable. The first
 slice is depth-based ambient contact shading across opaque scenery and characters,
 with a single Remaster profile combining it with grading, detail, camera, AA and
-water. Follow with broader environment lighting and character/geometry coverage.
+water. These capabilities are implemented for 1.3.0, with native Ordon comparisons
+and Windows checks; broad scene and motion quality remain open. Depth atmosphere
+now shares the contact-shading pass and uses native fog color/range. Follow with
+broader environment lighting and character/geometry coverage.
 Each iteration must deliver an observable improvement or remove a demonstrated
 blocker to that improvement. Do not claim normal mapping, PBR or dynamic shadows
 from asset metadata alone.

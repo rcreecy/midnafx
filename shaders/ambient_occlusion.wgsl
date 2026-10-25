@@ -4,6 +4,8 @@ struct AmbientParams {
     strength: f32,
     projection_y: f32,
     background_depth: f32,
+    fog_color: vec4f,
+    fog_range: vec4f,
 }
 @group(0) @binding(0) var scene_color: texture_2d<f32>;
 @group(0) @binding(1) var scene_depth: texture_2d<f32>;
@@ -26,12 +28,22 @@ fn view_point(pixel: vec2i) -> vec3f {
     }
     return h.xyz / h.w;
 }
+fn atmosphere(color: vec4f, point: vec3f) -> vec4f {
+    if (params.fog_color.a <= 0.0) { return color; }
+    let span = max(params.fog_range.y - params.fog_range.x, 1.0);
+    let distance = max(-point.z - params.fog_range.x, 0.0) / span;
+    // Bounded optical depth keeps nearby characters clear and follows the
+    // game's current fog range and palette through room/weather transitions.
+    let amount = params.fog_color.a * (1.0 - exp(-2.0 * min(distance, 4.0)));
+    return vec4f(mix(color.rgb, params.fog_color.rgb, amount), color.a);
+}
 @fragment
 fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let pixel = vec2i(position.xy);
     let color = textureLoad(scene_color, pixel, 0);
     let center = view_point(pixel);
-    if (center.z >= -0.0001 || params.strength <= 0) { return color; }
+    if (center.z >= -0.0001) { return color; }
+    if (params.strength <= 0) { return atmosphere(color, center); }
 
     // Prefer the derivative on the same surface at depth discontinuities.
     let left = view_point(pixel - vec2i(1,0));
@@ -45,7 +57,7 @@ fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let perpendicular = cross(dx, dy);
     let normal_length = length(perpendicular);
     if (normal_length < 0.000001 || max(length(dx), length(dy)) > params.radius) {
-        return color;
+        return atmosphere(color, center);
     }
     var normal = perpendicular / normal_length;
     if (dot(normal, -center) < 0) { normal = -normal; }
@@ -72,5 +84,5 @@ fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
         }
     }
     let visibility = 1.0 - clamp(obscurance * params.strength * (3.0 / 16.0), 0.0, 0.5);
-    return vec4f(color.rgb * visibility, color.a);
+    return atmosphere(vec4f(color.rgb * visibility, color.a), center);
 }

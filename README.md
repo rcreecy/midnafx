@@ -1,11 +1,14 @@
 # MidnaFX
 
-The development build adds **Profile / Remaster**, the first control in the mod's
+MidnaFX 1.3 adds **Profile / Remaster**, the first control in the mod's
 settings. It combines natural grading, detail, modern exploration camera,
-anti-aliasing, enhanced water and new ambient contact shading across opaque
+anti-aliasing, enhanced water, depth atmosphere and ambient contact shading across opaque
 scenery and characters. **Vanilla** disables these profile effects together.
 Ambient occlusion can also be enabled separately and adjusted with strength and
 radius controls. See the [feature and comparison notes](docs/ambient-occlusion.md).
+Depth atmosphere uses the native fog palette and range, with a separate strength
+control. It shares AO's draw and snapshots, bypassing underwater cameras and
+paused game menus. See [atmosphere](docs/depth-atmosphere.md).
 It uses scene depth and leaves the HUD untouched; it does not
 add dynamic lights, material normal maps or off-screen shadows. Existing installs
 retain their settings until a profile is selected.

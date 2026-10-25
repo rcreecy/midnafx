@@ -50,6 +50,8 @@ bool anti_aliasing_enabled();
 bool ambient_occlusion_enabled();
 float ambient_occlusion_strength();
 float ambient_occlusion_radius();
+bool atmosphere_enabled();
+float atmosphere_strength();
 unsigned color_look();
 float look_intensity();
 float look_twilight_weight();

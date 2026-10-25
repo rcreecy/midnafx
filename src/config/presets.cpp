@@ -19,7 +19,7 @@ bool parse_row(std::string_view row, unsigned version, Entry& entry) {
     if (version == 4) {
         const auto last = row.rfind(',');
         if (last == row.npos || !number(row.substr(last + 1), entry.snapshot.scene_flags) ||
-            entry.snapshot.scene_flags < -1 || entry.snapshot.scene_flags > 7)
+            entry.snapshot.scene_flags < -1 || entry.snapshot.scene_flags > 15)
             return false;
         row = row.substr(0, last);
     }
@@ -115,7 +115,7 @@ std::string encode(const std::vector<Entry>& entries) {
         result += std::to_string(entry.snapshot.detail_strength);
         if (entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 63)
             return {};
-        if (entry.snapshot.scene_flags < -1 || entry.snapshot.scene_flags > 7)
+        if (entry.snapshot.scene_flags < -1 || entry.snapshot.scene_flags > 15)
             return {};
         if (product || scene) {
             result += ',';
@@ -192,7 +192,7 @@ Snapshot enhanced() {
 }
 Snapshot remaster() {
     auto result = enhanced();
-    result.scene_flags = AmbientOcclusion | AntiAliasing | Water;
+    result.scene_flags = AmbientOcclusion | AntiAliasing | Water | Atmosphere;
     return result;
 }
 Snapshot vanilla() {

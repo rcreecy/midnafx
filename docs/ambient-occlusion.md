@@ -2,6 +2,7 @@
 
 Select **Profile / Remaster** at the top of MidnaFX settings. It enables natural
 grading, detail, modern exploration FOV, AA, enhanced water and ambient occlusion.
+Version 1.3.0 also includes [depth atmosphere](depth-atmosphere.md) in Remaster.
 Select **Vanilla** to disable these profile effects. Geometry smoothing and depth
 of field remain separate opt-ins. Existing installs keep their current settings.
 

@@ -5,6 +5,8 @@
 #include <f_op/f_op_view.h>
 #include <helpers/gx_helper.h>
 #include <m_Do/m_Do_graphic.h>
+#include <d/d_kankyo.h>
+#include <d/d_com_inf_game.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -18,8 +20,10 @@ namespace {
 struct Uniforms {
     float view_from_proj[16];
     float radius, strength, projection_y, background_depth;
+    float fog_color[4];
+    float fog_range[4];
 };
-static_assert(sizeof(Uniforms) == 80);
+static_assert(sizeof(Uniforms) == 112);
 struct Pipeline {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPURenderPipeline pipeline = nullptr;
@@ -37,6 +41,7 @@ GfxStageHookHandle begin_hook = 0;
 GfxDrawTypeHandle draw_type = 0;
 std::vector<std::unique_ptr<Pipeline>> pipelines;
 bool logged = false;
+bool atmosphere_logged = false;
 bool submitted = false;
 
 bool supported(const GfxRenderTargetLayout& layout) {
@@ -112,8 +117,17 @@ void draw(ModContext*, const GfxDrawContext* context, const void* bytes, size_t 
 }
 void stage(ModContext*, const GfxStageContext* context, void*) {
     if (submitted || !draw_type || !context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
-        !settings::ambient_occlusion_enabled() || settings::ambient_occlusion_strength() <= 0 ||
         settings::atmosphere_depth_view_enabled() || settings::dof_coc_view_enabled()) return;
+    const float occlusion = settings::ambient_occlusion_enabled()
+                                ? settings::ambient_occlusion_strength() : 0.0f;
+    const float fog_near = std::max(g_env_light.mFogNear, 0.0f);
+    const bool atmosphere_available = settings::atmosphere_enabled() &&
+        settings::atmosphere_strength() > 0 && dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() &&
+        !dKy_camera_water_in_status_check() && std::isfinite(g_env_light.mFogNear) &&
+        std::isfinite(g_env_light.mFogFar) && g_env_light.mFogFar > fog_near + 1;
+    const float haze = settings::atmosphere_enabled() && atmosphere_available
+                           ? settings::atmosphere_strength() : 0.0f;
+    if (occlusion <= 0 && haze <= 0) return;
     // Camera reconstruction currently supports one full native world viewport.
     const auto* viewport = static_cast<const view_port_class*>(context->game_viewport);
     if (!viewport || viewport->x_orig != 0 || viewport->y_orig != 0 ||
@@ -139,17 +153,34 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     Uniforms uniforms{};
     std::memcpy(uniforms.view_from_proj, camera.view_from_proj, sizeof(uniforms.view_from_proj));
     uniforms.radius = settings::ambient_occlusion_radius();
-    uniforms.strength = settings::ambient_occlusion_strength();
+    uniforms.strength = occlusion;
     uniforms.projection_y = camera.proj_from_view[5];
     uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
+    if (haze > 0) {
+        uniforms.fog_color[0] = std::clamp(float(g_env_light.fog_col.r) / 255.0f, 0.0f, 1.0f);
+        uniforms.fog_color[1] = std::clamp(float(g_env_light.fog_col.g) / 255.0f, 0.0f, 1.0f);
+        uniforms.fog_color[2] = std::clamp(float(g_env_light.fog_col.b) / 255.0f, 0.0f, 1.0f);
+        uniforms.fog_color[3] = haze;
+        uniforms.fog_range[0] = fog_near;
+        uniforms.fog_range[1] = g_env_light.mFogFar;
+    }
     GfxRange range{};
     if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &range) != MOD_OK) return;
     const Payload payload{pipeline, snapshot.color, snapshot.depth, range.offset, range.size};
     if (svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload)) != MOD_OK) return;
     submitted = true;
-    if (!logged && svc_log) {
+    if (!logged && occlusion > 0 && svc_log) {
         svc_log->info(mod_ctx, "Ambient occlusion active: opaque scene, 16 depth samples, HUD excluded");
         logged = true;
+    }
+    if (!atmosphere_logged && uniforms.fog_color[3] > 0 && svc_log) {
+        char message[192];
+        std::snprintf(message, sizeof(message),
+                      "Depth atmosphere active: native fog RGB=%d,%d,%d range=%.0f..%.0f strength=%.2f",
+                      g_env_light.fog_col.r, g_env_light.fog_col.g, g_env_light.fog_col.b,
+                      uniforms.fog_range[0], uniforms.fog_range[1], haze);
+        svc_log->info(mod_ctx, message);
+        atmosphere_logged = true;
     }
 }
 void begin_scene(ModContext*, const GfxStageContext*, void*) { submitted = false; }
@@ -157,6 +188,7 @@ void begin_scene(ModContext*, const GfxStageContext*, void*) { submitted = false
 void apply(const GfxStageContext* context) { stage(nullptr, context, nullptr); }
 void initialize() {
     logged = false;
+    atmosphere_logged = false;
     submitted = false;
     if (!svc_gfx || svc_gfx->get_device_info(mod_ctx, &device) != MOD_OK || !device.device) return;
     GfxDrawTypeDesc draw_desc = GFX_DRAW_TYPE_DESC_INIT;
