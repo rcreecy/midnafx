@@ -25,14 +25,25 @@ Preserve gameplay, authored material boundaries, animation/skinning, transparenc
 | R4: coherent environment rendering | Integrate existing grading/LUT, atmosphere, depth, water and camera capabilities with material-aware exclusions and quality presets; add lighting/reflection/shadow capabilities only with suitable inputs and measured control | Several effects exist; generic material-aware integration remains incomplete |
 | R5: remaster-quality product | Curated visible improvements across a representative scene/character corpus, stable motion, reliable reload/shutdown, clear quality presets, documented performance and packaged Windows/macOS builds | Not yet qualified |
 
-R0 and R1 are the immediate implementation priorities. Avoid extending diagnostics indefinitely without crossing into a visible, reversible rendering capability. Conversely, do not claim normal mapping, PBR, dynamic shadows or reflections merely because asset metadata is available. Audit the required normals, tangents, lights, depth, shader ownership and GPU budget, then implement a complete supported path or record the specific missing capability.
+The 2026-10-25 user review changes the immediate priority to visible, scene-wide
+capabilities. R0/R1 have enough foundations to support feature development;
+additional observer qualification is not the default next deliverable. The first
+slice is depth-based ambient contact shading across opaque scenery and characters,
+with a single Remaster profile combining it with grading, detail, camera, AA and
+water. Follow with broader environment lighting and character/geometry coverage.
+Each iteration must deliver an observable improvement or remove a demonstrated
+blocker to that improvement. Do not claim normal mapping, PBR or dynamic shadows
+from asset metadata alone.
 
 ## Immediate acceptance
 
-1. Reproduce the shutdown stall with a source-matched host, capture its actual blocking stack or phase, and distinguish native host behavior from mod behavior. Preserve the original failed observation. Do not diagnose Discord or cache saving solely from the last buffered log line.
-2. Add only the instrumentation needed to measure frame and allocation costs. Separate process counters, retained memory, actual allocation counts, CPU frame intervals, encoding time and GPU time. Label unsupported measurements; do not substitute one metric for another.
-3. Implement an opt-in body-material control through the narrowest native/J3D seam with an explicit game-thread lifetime and state-restoration contract. It must operate independently of diagnostic logging being enabled.
-4. Exercise baseline, changed and restored views with original and replacement textures. Confirm both positive effect and absence of modification to leaves/unrelated materials. Check archive round trip, mod reload and shutdown. A shared model/material control is not a claim of per-actor-instance isolation.
+1. Deliver a usable, visible feature across a whole scene, rather than another
+   diagnostic or single-object tint. Put Remaster and Vanilla controls first.
+2. Compare the new effect enabled and disabled at the same camera. Preserve HUD,
+   scene depth and existing water integration. Unsupported layouts bypass it.
+3. Run the relevant automated checks and a focused reload/close check. Broaden
+   validation only for a demonstrated regression or unresolved feature question.
+4. Record limitations briefly, package the working slice and continue product work.
 
 ## Product quality and iteration
 

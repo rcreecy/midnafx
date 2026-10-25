@@ -183,6 +183,7 @@ int main() {
         return 77;
     }
     constexpr const char* pass_entries[]{"fs_main"};
+    constexpr const char* ambient_entries[]{"fs_ambient"};
     constexpr const char* grade_entries[]{"fs_main", "fs_detail", "fs_fxaa", "fs_fxaa_detail",
                                           "fs_debug", "fs_debug_detail", "fs_main_lut",
                                           "fs_detail_lut", "fs_fxaa_lut", "fs_fxaa_detail_lut"};
@@ -213,8 +214,10 @@ int main() {
                                         dof_composite_entries, 1);
     const bool water = validate(instance, device.device, midnafx::render::water_thickness_shader,
                                 "MidnaFX water", water_entries, 9);
+    const bool ambient = validate(instance, device.device, midnafx::render::ambient_occlusion_shader,
+                                  "MidnaFX ambient occlusion", ambient_entries, 1);
     wgpuDeviceRelease(device.device);
     wgpuAdapterRelease(adapter.adapter);
     wgpuInstanceRelease(instance);
-    return pass && grade && depth && dof && dof_blur && dof_composite && water ? 0 : 1;
+    return pass && grade && depth && dof && dof_blur && dof_composite && water && ambient ? 0 : 1;
 }

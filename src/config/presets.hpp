@@ -16,6 +16,11 @@ enum ProductFlag {
     LowerCamera = 16,
     Dof = 32
 };
+enum SceneFlag {
+    AmbientOcclusion = 1,
+    AntiAliasing = 2,
+    Water = 4
+};
 struct Snapshot {
     std::array<std::int64_t, grade::Count> values{0, 0, 100, 100, 100, 0, 0, 0};
     std::array<bool, grade::Count> active{true, true, true, true, true, true, true, true};
@@ -23,6 +28,8 @@ struct Snapshot {
     std::int64_t detail_strength = 20;
     // -1 preserves the legacy grading-only application contract.
     std::int64_t product_flags = -1;
+    // -1 preserves scene effects when applying an older preset.
+    std::int64_t scene_flags = -1;
 };
 struct Entry {
     std::string name;
@@ -35,4 +42,6 @@ Snapshot smoke_test();
 Snapshot vivid_realism();
 Snapshot vanilla_plus();
 Snapshot enhanced();
+Snapshot remaster();
+Snapshot vanilla();
 } // namespace midnafx::presets

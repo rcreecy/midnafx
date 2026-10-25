@@ -3,6 +3,7 @@
 #include "water_identity.h"
 
 #include "services.hpp"
+#include "render/ambient_occlusion.hpp"
 #include "ui/settings.hpp"
 
 #include <JSystem/J3DGraphAnimator/J3DModel.h>
@@ -484,6 +485,9 @@ void resolve_pending_surface_packets() {
 }
 
 void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*) {
+    // Slot reuse can reverse hook order after reload. Compose explicitly so
+    // refracted scene color includes contact shading exactly once per scene.
+    render::ambient_occlusion::apply(context);
     pre_water_capture_ready = false;
     pre_water_depth_ready = false;
     water_surface_ready = false;

@@ -55,6 +55,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     water_thickness_diagnostic{"water_thickness_diagnostic"},
     enhanced_water{"enhanced_water", true},
     anti_aliasing{"anti_aliasing", true},
+    ambient_occlusion{"ambient_occlusion"},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
@@ -107,9 +108,14 @@ NumberSetting water_shoreline_strength_setting{
     "water_shoreline_strength", "Water shoreline treatment (%)", 0, 100, 20, 20, false};
 NumberSetting water_specular_strength_setting{
     "water_specular_strength", "Water specular strength (%)", 0, 100, 12, 12, false};
+NumberSetting ambient_occlusion_strength_setting{
+    "ambient_occlusion_strength", "Occlusion strength (%)", 0, 100, 55, 55, false};
+NumberSetting ambient_occlusion_radius_setting{
+    "ambient_occlusion_radius", "Occlusion radius (world units)", 10, 150, 60, 60, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* VanillaPlusName = "Profile / Vanilla+";
 constexpr const char* EnhancedName = "Profile / Enhanced";
+constexpr const char* RemasterName = "Profile / Remaster";
 constexpr const char* SmokeName = "Diagnostic / Shader Smoke Test";
 constexpr std::array<const char*, 7> DebugLabels{
     "Final",           "Passthrough", "A/B Split", "Luminance", "Highlight Clipping",
@@ -193,9 +199,10 @@ std::size_t preset_index() {
         return 3;
     if (selected_preset == VanillaPlusName) return 4;
     if (selected_preset == EnhancedName) return 5;
+    if (selected_preset == RemasterName) return 6;
     for (std::size_t i = 0; i < saved_presets.size(); ++i)
         if (saved_presets[i].name == selected_preset)
-            return i + 6;
+            return i + 7;
     return 1;
 }
 presets::Snapshot capture() {
@@ -210,6 +217,9 @@ presets::Snapshot capture() {
         (camera_toggle.value ? presets::Camera : 0) |
         (camera_lower_angle.value ? presets::LowerCamera : 0) |
         (dof_blur.value ? presets::Dof : 0);
+    value.scene_flags = (ambient_occlusion.value ? presets::AmbientOcclusion : 0) |
+        (anti_aliasing.value ? presets::AntiAliasing : 0) |
+        (enhanced_water.value ? presets::Water : 0);
     value.detail_enabled = detail_toggle.value;
     value.detail_strength = detail_strength_setting.value;
     return value;
@@ -231,6 +241,7 @@ void refresh_preset_options() {
     options.push_back({sizeof(UiControlOption), RealismName, true});
     options.push_back({sizeof(UiControlOption), VanillaPlusName, true});
     options.push_back({sizeof(UiControlOption), EnhancedName, true});
+    options.push_back({sizeof(UiControlOption), RemasterName, true});
     for (const auto& preset : saved_presets)
         options.push_back({sizeof(UiControlOption), preset.name.c_str(), true});
     check_ui(svc_ui->control_set_options(mod_ctx, preset_control, options.data(), options.size()));
@@ -281,6 +292,20 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(dof_blur, presets::Dof);
         if (!geometry_smoothing.value) geometry_probe::restore_smoothing(false);
         if (!geometry_skinned_smoothing.value) geometry_probe::restore_smoothing(true);
+    }
+    if (snapshot.scene_flags >= 0) {
+        const auto apply_toggle = [&](Toggle& toggle, int flag) {
+            const bool enabled = (snapshot.scene_flags & flag) != 0;
+            if (svc_config && toggle.handle &&
+                svc_config->set_bool(mod_ctx, toggle.handle, enabled) != MOD_OK) {
+                save_warning("Could not save a scene effect toggle.");
+                return;
+            }
+            toggle.value = enabled;
+        };
+        apply_toggle(ambient_occlusion, presets::AmbientOcclusion);
+        apply_toggle(anti_aliasing, presets::AntiAliasing);
+        apply_toggle(enhanced_water, presets::Water);
     }
     // A failed config write must not advertise a completely applied profile.
     // Keep the saved Custom snapshot available for explicit recovery.
@@ -349,7 +374,8 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
             geometry_probe::restore_smoothing(user == &geometry_skinned_smoothing);
         if ((user == &detail_toggle || user == &master || user == &geometry_smoothing ||
              user == &geometry_skinned_smoothing || user == &camera_toggle ||
-             user == &camera_lower_angle || user == &dof_blur) && !applying_preset) {
+             user == &camera_lower_angle || user == &dof_blur || user == &ambient_occlusion ||
+             user == &anti_aliasing || user == &enhanced_water) && !applying_preset) {
             mark_custom();
             update_grade();
         }
@@ -470,7 +496,8 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
         geometry_probe::restore_smoothing(true);
     if (&toggle == &detail_toggle || &toggle == &master || &toggle == &geometry_smoothing ||
         &toggle == &geometry_skinned_smoothing || &toggle == &camera_toggle ||
-        &toggle == &camera_lower_angle || &toggle == &dof_blur) {
+        &toggle == &camera_lower_angle || &toggle == &dof_blur || &toggle == &ambient_occlusion ||
+        &toggle == &anti_aliasing || &toggle == &enhanced_water) {
         mark_custom();
         update_grade();
     }
@@ -571,14 +598,14 @@ void add_effect(UiElementHandle panel, Setting& effect) {
     desc.step = 1;
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &desc, nullptr));
 }
-void reset_neutral(ModContext*, void*) { apply_preset(presets::Snapshot{}, "Vanilla"); }
+void reset_neutral(ModContext*, void*) { apply_preset(presets::vanilla(), "Vanilla"); }
 void get_preset(ModContext*, void*, UiControlValue* out) {
     out->int_value = static_cast<std::int64_t>(preset_index());
 }
 void set_preset(ModContext*, void*, const UiControlValue* in) {
     const auto index = in->int_value;
     if (index == 0)
-        apply_preset(presets::Snapshot{}, "Vanilla");
+        apply_preset(presets::vanilla(), "Vanilla");
     else if (index == 1) {
         apply_preset(custom_snapshot, "Custom");
     } else if (index == 2)
@@ -587,15 +614,17 @@ void set_preset(ModContext*, void*, const UiControlValue* in) {
         apply_preset(presets::vivid_realism(), RealismName);
     else if (index == 4) apply_preset(presets::vanilla_plus(), VanillaPlusName);
     else if (index == 5) apply_preset(presets::enhanced(), EnhancedName);
-    else if (index >= 6 && static_cast<std::size_t>(index - 6) < saved_presets.size()) {
-        const auto& preset = saved_presets[static_cast<std::size_t>(index - 6)];
+    else if (index == 6) apply_preset(presets::remaster(), RemasterName);
+    else if (index >= 7 && static_cast<std::size_t>(index - 7) < saved_presets.size()) {
+        const auto& preset = saved_presets[static_cast<std::size_t>(index - 7)];
         apply_preset(preset.snapshot, preset.name);
     }
 }
 void save_preset(ModContext*, void*) {
     if (selected_preset != "Vanilla" && selected_preset != "Custom" &&
         selected_preset != SmokeName && selected_preset != RealismName &&
-        selected_preset != VanillaPlusName && selected_preset != EnhancedName) {
+        selected_preset != VanillaPlusName && selected_preset != EnhancedName &&
+        selected_preset != RemasterName) {
         for (auto& preset : saved_presets)
             if (preset.name == selected_preset) {
                 preset.snapshot = capture();
@@ -631,19 +660,21 @@ void duplicate_preset(ModContext*, void*) {
 void load_preset(ModContext*, void*) {
     const auto index = preset_index();
     if (index == 0)
-        apply_preset(presets::Snapshot{}, "Vanilla");
+        apply_preset(presets::vanilla(), "Vanilla");
     else if (index == 2)
         apply_preset(presets::smoke_test(), SmokeName);
     else if (index == 3)
         apply_preset(presets::vivid_realism(), RealismName);
     else if (index == 4) apply_preset(presets::vanilla_plus(), VanillaPlusName);
     else if (index == 5) apply_preset(presets::enhanced(), EnhancedName);
-    else if (index >= 6 && index - 6 < saved_presets.size())
-        apply_preset(saved_presets[index - 6].snapshot, saved_presets[index - 6].name);
+    else if (index == 6) apply_preset(presets::remaster(), RemasterName);
+    else if (index >= 7 && index - 7 < saved_presets.size())
+        apply_preset(saved_presets[index - 7].snapshot, saved_presets[index - 7].name);
 }
 void capture_twilight_target(ModContext*, void*) {
     auto snapshot = capture();
     snapshot.product_flags = -1;
+    snapshot.scene_flags = -1;
     const auto encoded = presets::encode({{"Twilight", snapshot}});
     if (encoded.empty() ||
         (svc_config && twilight_target_handle &&
@@ -785,7 +816,7 @@ void register_presets() {
                                        nullptr) == MOD_OK) {
                 name.resize(length);
                 if (name == "Vanilla" || name == "Custom" || name == SmokeName || name == RealismName ||
-                    name == VanillaPlusName || name == EnhancedName)
+                    name == VanillaPlusName || name == EnhancedName || name == RemasterName)
                     selected_preset = name;
                 else
                     for (const auto& entry : saved_presets)
@@ -825,11 +856,14 @@ void refresh_status() {
     const bool detail_active = active_grade.uniforms.detail_strength > 0.0f;
     const auto mode = visual::debug_mode(debug_mode_setting.value);
     std::snprintf(status, sizeof(status), "%s | %s | %u x %u",
-                  master.value ? (active_grade.neutral && !detail_active && !anti_aliasing.value && look_intensity() <= 0 &&
+                  master.value ? (active_grade.neutral && !detail_active && !anti_aliasing.value &&
+                                          !ambient_occlusion.value && look_intensity() <= 0 &&
                                           mode == visual::DebugMode::Final && !passthrough.value
                                       ? "Neutral"
                                       : "Processing")
-                               : (anti_aliasing.value ? "Grading off / AA requested" : "Grading off"),
+                               : (ambient_occlusion.value
+                                      ? "Grading off / scene effects requested"
+                                      : (anti_aliasing.value ? "Grading off / AA requested" : "Grading off")),
                   data.status, data.width, data.height);
     if (status_element)
         check_ui(svc_ui->elem_set_text(mod_ctx, status_element, status));
@@ -912,31 +946,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     status_element = detail_element = camera_element = 0;
     geometry_element = 0;
     preset_control = 0;
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
-    add_toggle(panel, "Enable grading", master);
-    add_toggle(panel, "Enhanced model shading", geometry_smoothing);
-    add_toggle(panel, "Modern exploration camera", camera_toggle);
-    add_toggle(panel, "Depth of field (experimental)", dof_blur);
-    add_toggle(panel, "Enhanced water", enhanced_water);
-    add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
-    UiControlDesc look = UI_CONTROL_DESC_INIT;
-    look.kind = UI_CONTROL_DROPDOWN;
-    look.label = "Color Look";
-    look.get = get_number;
-    look.set = set_number;
-    look.user_data = &color_look_setting;
-    look.options = LookLabels.data();
-    look.option_count = LookLabels.size();
-    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &look, nullptr));
-    add_number(panel, look_intensity_setting);
-    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Neutral preserves the existing image. Natural and Twilight are experimental color looks. "
-        "Twilight follows the game's world transition. Enable grading controls both tone and color looks.", nullptr));
-    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Anti-aliasing defaults on and operates independently of grading and saved looks. "
-        "Disable it here for an unfiltered scene. Visual qualification remains incomplete.", nullptr));
-    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic: visual profile"));
-    std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName, VanillaPlusName, EnhancedName};
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Visual profile"));
+    std::vector<const char*> labels{"Vanilla", "Custom", SmokeName, RealismName, VanillaPlusName, EnhancedName, RemasterName};
     for (const auto& preset : saved_presets)
         labels.push_back(preset.name.c_str());
     UiControlDesc choice = UI_CONTROL_DESC_INIT;
@@ -948,9 +959,33 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Vanilla+ uses restrained grading and native camera. Enhanced uses Natural / Vivid Realism and modern FOV. "
-        "Both leave model shading and depth of field off pending broader visual validation. Custom restores your saved choices; "
-        "advanced tuning stays unchanged. Legacy looks affect grading and detail only.", nullptr));
+        "Remaster combines contact shading, natural grading, detail, modern camera, anti-aliasing and enhanced water. "
+        "Vanilla restores original presentation. Advanced tuning stays unchanged.", nullptr));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
+    add_toggle(panel, "Enable grading", master);
+    add_toggle(panel, "Enhanced model shading", geometry_smoothing);
+    add_toggle(panel, "Modern exploration camera", camera_toggle);
+    add_toggle(panel, "Depth of field (experimental)", dof_blur);
+    add_toggle(panel, "Enhanced water", enhanced_water);
+    add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
+    add_toggle(panel, "Ambient occlusion (contact shading)", ambient_occlusion);
+    add_number(panel, ambient_occlusion_strength_setting);
+    add_number(panel, ambient_occlusion_radius_setting);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Ambient occlusion adds contact shading; strength and radius control its effect.", nullptr));
+    UiControlDesc look = UI_CONTROL_DESC_INIT;
+    look.kind = UI_CONTROL_DROPDOWN;
+    look.label = "Color Look";
+    look.get = get_number;
+    look.set = set_number;
+    look.user_data = &color_look_setting;
+    look.options = LookLabels.data();
+    look.option_count = LookLabels.size();
+    check_ui(svc_ui->pane_add_control(mod_ctx, panel, &look, nullptr));
+    add_number(panel, look_intensity_setting);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Color looks require grading; Twilight follows the game's world transition.", nullptr));
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Saved profiles"));
     UiControlDesc button = UI_CONTROL_DESC_INIT;
     button.kind = UI_CONTROL_BUTTON;
     button.label = "Save current preset";
@@ -964,7 +999,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &button, nullptr));
     UiControlDesc reset = UI_CONTROL_DESC_INIT;
     reset.kind = UI_CONTROL_BUTTON;
-    reset.label = "Restore neutral grading";
+    reset.label = "Restore Vanilla profile";
     reset.on_pressed = reset_neutral;
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &reset, nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: tone"));
@@ -1154,6 +1189,7 @@ bool initialize() {
     register_toggle(water_thickness_diagnostic);
     register_toggle(enhanced_water);
     register_toggle(anti_aliasing);
+    register_toggle(ambient_occlusion);
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
@@ -1188,6 +1224,8 @@ bool initialize() {
     register_number(water_reflection_blue_setting);
     register_number(water_shoreline_strength_setting);
     register_number(water_specular_strength_setting);
+    register_number(ambient_occlusion_strength_setting);
+    register_number(ambient_occlusion_radius_setting);
     for (auto& effect : effects)
         register_effect(effect);
     register_presets();
@@ -1273,6 +1311,13 @@ float dof_focus_transition_seconds() {
     return static_cast<float>(dof_focus_transition_setting.value) / 100.0f;
 }
 bool anti_aliasing_enabled() { return anti_aliasing.value; }
+bool ambient_occlusion_enabled() { return ambient_occlusion.value; }
+float ambient_occlusion_strength() {
+    return static_cast<float>(ambient_occlusion_strength_setting.value) / 100.0f;
+}
+float ambient_occlusion_radius() {
+    return static_cast<float>(ambient_occlusion_radius_setting.value);
+}
 unsigned color_look() { return master.value ? unsigned(color_look_setting.value) : 0; }
 float look_intensity() { return color_look() && !look_bypass.value ? float(look_intensity_setting.value) / 100.0f : 0.0f; }
 float look_twilight_weight() { return color_look() == 2 ? look_twilight_blend : 0.0f; }

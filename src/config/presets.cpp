@@ -16,7 +16,14 @@ bool number(std::string_view text, std::int64_t& result) {
     return parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size();
 }
 bool parse_row(std::string_view row, unsigned version, Entry& entry) {
-    if (version == 3) {
+    if (version == 4) {
+        const auto last = row.rfind(',');
+        if (last == row.npos || !number(row.substr(last + 1), entry.snapshot.scene_flags) ||
+            entry.snapshot.scene_flags < -1 || entry.snapshot.scene_flags > 7)
+            return false;
+        row = row.substr(0, last);
+    }
+    if (version >= 3) {
         const auto last = row.rfind(',');
         if (last == row.npos || !number(row.substr(last + 1), entry.snapshot.product_flags) ||
             entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 63)
@@ -81,7 +88,10 @@ std::string encode(const std::vector<Entry>& entries) {
     const bool product = std::any_of(entries.begin(), entries.end(), [](const Entry& entry) {
         return entry.snapshot.product_flags != -1;
     });
-    std::string result = product ? "MFX3\n" : "MFX2\n";
+    const bool scene = std::any_of(entries.begin(), entries.end(), [](const Entry& entry) {
+        return entry.snapshot.scene_flags >= 0;
+    });
+    std::string result = scene ? "MFX4\n" : product ? "MFX3\n" : "MFX2\n";
     for (const auto& entry : entries) {
         if (!valid_name(entry.name))
             return {};
@@ -105,9 +115,15 @@ std::string encode(const std::vector<Entry>& entries) {
         result += std::to_string(entry.snapshot.detail_strength);
         if (entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 63)
             return {};
-        if (product) {
+        if (entry.snapshot.scene_flags < -1 || entry.snapshot.scene_flags > 7)
+            return {};
+        if (product || scene) {
             result += ',';
             result += std::to_string(entry.snapshot.product_flags);
+        }
+        if (scene) {
+            result += ',';
+            result += std::to_string(entry.snapshot.scene_flags);
         }
         result += '\n';
     }
@@ -120,7 +136,7 @@ bool decode(const std::string& text, std::vector<Entry>& output) {
         return true;
     }
     if (text.size() > 8192 || (text.substr(0, 5) != "MFX1\n" && text.substr(0, 5) != "MFX2\n" &&
-                               text.substr(0, 5) != "MFX3\n"))
+                               text.substr(0, 5) != "MFX3\n" && text.substr(0, 5) != "MFX4\n"))
         return false;
     const unsigned version = text[3] - '0';
     std::vector<Entry> parsed;
@@ -172,6 +188,17 @@ Snapshot enhanced() {
     auto result = vivid_realism();
     // Geometry and DOF remain explicit opt-ins until broad art validation.
     result.product_flags = Grading | Camera;
+    return result;
+}
+Snapshot remaster() {
+    auto result = enhanced();
+    result.scene_flags = AmbientOcclusion | AntiAliasing | Water;
+    return result;
+}
+Snapshot vanilla() {
+    Snapshot result;
+    result.product_flags = 0;
+    result.scene_flags = 0;
     return result;
 }
 } // namespace midnafx::presets

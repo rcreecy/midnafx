@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "ambient_occlusion.hpp"
 #include "lut.hpp"
 #include "config/visual.hpp"
 #include "game/camera_probe.hpp"
@@ -451,6 +452,7 @@ void reset_scene_capture(ModContext*, const GfxStageContext*, void*) {
 }
 
 void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*) {
+    ambient_occlusion::apply(context);
     if (!context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
         !settings::water_scene_capture_diagnostic_enabled() || svc_gfx == nullptr)
         return;

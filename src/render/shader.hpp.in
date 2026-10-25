@@ -1,5 +1,6 @@
 #pragma once
 namespace midnafx::render {
+inline constexpr char ambient_occlusion_shader[] = R"midnafx(@MIDNAFX_AMBIENT_OCCLUSION_SHADER@)midnafx";
 inline constexpr char passthrough_shader[] = R"midnafx(@MIDNAFX_SHADER@)midnafx";
 inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
 @MIDNAFX_GRADING_SHADER@)midnafx";

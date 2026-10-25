@@ -3,5 +3,5 @@
   "name": "MidnaFX",
   "version": "1.2.0",
   "author": "MidnaFX contributors",
-  "description": "Modern visual grading, detail, Twilight profiles, adaptive normals, camera controls, depth of field, and enhanced water"
+  "description": "Remaster visual profile, ambient contact shading, natural grading, detail, camera controls, enhanced water, and optional geometry and depth of field"
 }

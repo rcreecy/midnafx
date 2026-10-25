@@ -1,10 +1,20 @@
 # MidnaFX
 
+The development build adds **Profile / Remaster**, the first control in the mod's
+settings. It combines natural grading, detail, modern exploration camera,
+anti-aliasing, enhanced water and new ambient contact shading across opaque
+scenery and characters. **Vanilla** disables these profile effects together.
+Ambient occlusion can also be enabled separately and adjusted with strength and
+radius controls. See the [feature and comparison notes](docs/ambient-occlusion.md).
+It uses scene depth and leaves the HUD untouched; it does not
+add dynamic lights, material normal maps or off-screen shadows. Existing installs
+retain their settings until a profile is selected.
+
 MidnaFX is an experimental native visual processing mod for Dusklight. It provides a fused
 pre-HUD grading shader with exposure, black point, contrast, gamma, saturation, highlight
 rolloff, temperature and tint controls, plus optional five-tap detail enhancement.
 Neutral grading with detail and AA off and Color Look set to Neutral bypasses the grading pass. Save,
-load, and duplicate looks under Basic: visual profile; Vanilla restores neutral settings and
+load, and duplicate looks under Visual profile; Vanilla disables profile effects and
 Custom retains its own live look across preset switches. A forced RGBA passthrough remains
 available for validating the render path. Developer views provide A/B split, luminance,
 highlight/shadow clipping, and amplified difference using the same scene snapshot.
@@ -17,7 +27,8 @@ not replace the selected color look. Developer diagnostics include a bypass and
 resource counters. See [the LUT contract and qualification record](docs/m13-continuation.md).
 
 The development build enables experimental pre-HUD anti-aliasing by default.
-Its Basic toggle operates independently of grading and saved looks; existing
+Its Basic toggle operates independently of grading; Remaster and Vanilla include
+it in their scene switches, while older saved looks preserve its state. Existing
 saved AA-off values are preserved. The five-tap filter shares source samples
 with detail, and detail does not sharpen edges selected for AA. See the
 [AA correctness review](docs/notes/m13-aa-correctness-review.md) for repairs,
@@ -72,7 +83,7 @@ This parametric profile is separate from the new **MidnaFX Natural** Color Look.
 Turn on **Enable grading** to use it. The look adds restrained color,
 a small midtone lift, softer highlights, and subtle detail while preserving neutral
 white balance and the black floor. Save or duplicate it to create an editable copy;
-select Vanilla to restore neutral grading. See [the preset notes](docs/vivid-realism.md)
+select Vanilla to disable profile effects. See [the preset notes](docs/vivid-realism.md)
 for exact settings, costs, and visual validation limits.
 
 Research and exact source revision: [docs/research.md](docs/research.md).

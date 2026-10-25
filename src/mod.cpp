@@ -3,6 +3,7 @@
 #include "game/geometry_probe.hpp"
 #include "game/water_probe.hpp"
 #include "render/dof_blur.hpp"
+#include "render/ambient_occlusion.hpp"
 #include "render/renderer.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -25,8 +26,9 @@ std::chrono::steady_clock::time_point last_update{};
 extern "C" {
 MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
-    midnafx::render::initialize();
     midnafx::camera_probe::initialize();
+    midnafx::render::ambient_occlusion::initialize();
+    midnafx::render::initialize();
     midnafx::render::dof_blur::initialize();
     midnafx::geometry_probe::initialize();
     midnafx::water_probe::initialize();
@@ -48,6 +50,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
 }
 MOD_EXPORT ModResult mod_shutdown(ModError*) {
     // Dusklight deactivates/drains draw callbacks before invoking this export.
+    midnafx::render::ambient_occlusion::shutdown();
     midnafx::render::dof_blur::shutdown();
     midnafx::render::shutdown();
     midnafx::camera_probe::shutdown();

@@ -25,7 +25,7 @@ int main() {
     CHECK(!presets::decode("MFX1\nBroken\t0,0,100,100,100,0,0,999,255\n", decoded));
     CHECK(decoded[0].name == "Warm Night");
     CHECK(!presets::decode(encoded + encoded.substr(5), decoded));
-    CHECK(!presets::decode("MFX4\n", decoded));
+    CHECK(!presets::decode("MFX5\n", decoded));
     CHECK(!presets::decode("MFX2\nBad\t0,0,100,100,100,0,0,0,255,1,99\n", decoded));
     CHECK(presets::decode("MFX1\nLegacy\t0,0,100,100,100,0,0,0,255\n", decoded));
     CHECK(decoded.size() == 1 && !decoded[0].snapshot.detail_enabled);
@@ -48,6 +48,7 @@ int main() {
     CHECK(!presets::valid_name("Natural / Vivid Realism"));
     CHECK(presets::decode("MFX2\nLegacy\t0,0,100,100,100,0,0,0,255,1,12\n", decoded));
     CHECK(decoded[0].snapshot.product_flags == -1);
+    CHECK(decoded[0].snapshot.scene_flags == -1);
     for (int flags = -1; flags <= 63; ++flags) {
         auto snapshot = realism;
         snapshot.product_flags = flags;
@@ -61,4 +62,21 @@ int main() {
     CHECK(presets::vanilla_plus().product_flags == presets::Grading);
     CHECK(presets::enhanced().product_flags == (presets::Grading | presets::Camera));
     CHECK((presets::enhanced().product_flags & presets::Dof) == 0);
+    const auto remaster = presets::remaster();
+    CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water));
+    CHECK(presets::vanilla().scene_flags == 0 && presets::vanilla().product_flags == 0);
+    for (int flags = -1; flags <= 7; ++flags) {
+        auto snapshot = remaster;
+        snapshot.scene_flags = flags;
+        const auto text = presets::encode({{"Remaster copy", snapshot}, {"Legacy copy", realism}});
+        CHECK(presets::decode(text, decoded));
+        CHECK(decoded[0].snapshot.scene_flags == flags);
+        CHECK(decoded[0].snapshot.product_flags == remaster.product_flags);
+        CHECK(decoded[1].snapshot.scene_flags == -1);
+    }
+    CHECK(!presets::decode("MFX4\nBad\t0,0,100,100,100,0,0,0,255,1,12,9,8\n", decoded));
+    CHECK(decoded.size() == 2 && decoded[0].snapshot.scene_flags == 7);
+    auto invalid = remaster;
+    invalid.scene_flags = 8;
+    CHECK(presets::encode({{"Invalid", invalid}}).empty());
 }

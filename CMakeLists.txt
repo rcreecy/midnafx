@@ -28,6 +28,9 @@ if(MIDNAFX_BUILD_MOD)
         MOD_JSON mod.json
         RES_DIR res
     )
+    target_sources(midnafx PRIVATE src/render/ambient_occlusion.cpp)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ambient_occlusion.wgsl")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ambient_occlusion.wgsl" MIDNAFX_AMBIENT_OCCLUSION_SHADER)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.wgsl")
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.wgsl" MIDNAFX_SHADER)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/grading.wgsl")
