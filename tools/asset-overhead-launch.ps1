@@ -9,6 +9,7 @@ param(
     [Parameter(Mandatory=$true)][string]$ReplacementRoot,
     [Parameter(Mandatory=$true)][string]$OutputRoot,
     [switch]$PumpkinBodyControl,
+    [switch]$PumpkinWarmProfile,
     [switch]$DisableReplacements,
     [switch]$FrameTiming,
     [ValidatePattern('^[A-Z0-9_]{1,8},[0-9]{1,3},-?[0-9]{1,5},-?[0-9]{1,2}$')]
@@ -41,6 +42,7 @@ $runConfig=@{
     'mod.com_midnafx_midnafx.asset_diagnostics'=$enabled
     'mod.com_midnafx_midnafx.asset_draw_diagnostics'=$enabled
     'mod.com_midnafx_midnafx.pumpkin_body_control'=[bool]$PumpkinBodyControl
+    'mod.com_midnafx_midnafx.pumpkin_warm_profile'=[bool]$PumpkinWarmProfile
 }
 $runConfig | ConvertTo-Json | Set-Content -Encoding utf8 -LiteralPath "$runRoot/user/config.json"
 New-Item -ItemType Junction -Path "$runRoot/user/texture_replacements" -Target $ReplacementRoot | Out-Null

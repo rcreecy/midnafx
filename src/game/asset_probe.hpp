@@ -12,4 +12,6 @@ void shutdown_draw_probe();
 void request_draw_sample() noexcept;
 void set_body_control(bool enabled) noexcept;
 bool body_control_enabled() noexcept;
+void set_warm_profile(bool enabled) noexcept;
+bool warm_profile_enabled() noexcept;
 }

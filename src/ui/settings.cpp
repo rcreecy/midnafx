@@ -45,6 +45,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     asset_diagnostics{"asset_diagnostics"},
     asset_draw_diagnostics{"asset_draw_diagnostics"},
     pumpkin_body_control{"pumpkin_body_control"},
+    pumpkin_warm_profile{"pumpkin_warm_profile"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
     geometry_smoothing{"geometry_smoothing"},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
@@ -339,6 +340,8 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
         static_cast<Toggle*>(user)->value = value->bool_value;
         if (user == &pumpkin_body_control)
             asset_probe::set_body_control(value->bool_value);
+        if (user == &pumpkin_warm_profile)
+            asset_probe::set_warm_profile(value->bool_value);
         if (user == &geometry_mutation_test && !value->bool_value)
             geometry_probe::restore_mutation();
         if ((user == &geometry_smoothing || user == &geometry_skinned_smoothing) &&
@@ -1076,6 +1079,10 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Asset identity diagnostics (new loads only)", asset_diagnostics);
     add_toggle(panel, "Pumpkin draw labels (experimental host probe)", asset_draw_diagnostics);
     add_toggle(panel, "Material proof: dim pumpkin bodies", pumpkin_body_control);
+    add_toggle(panel, "Warm pumpkin material (experimental)", pumpkin_warm_profile);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Adds a subtle warm color to original pumpkin bodies while preserving lighting and alpha. "
+        "Supports texture replacements. Disabling restores the original material color.", nullptr));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Supports the original pumpkin model, including already loaded archives. "
         "Changes all matching pumpkin bodies; leaves and texture replacements are preserved. "
@@ -1135,6 +1142,8 @@ bool initialize() {
     register_toggle(asset_draw_diagnostics);
     register_toggle(pumpkin_body_control);
     asset_probe::set_body_control(pumpkin_body_control.value);
+    register_toggle(pumpkin_warm_profile);
+    asset_probe::set_warm_profile(pumpkin_warm_profile.value);
     register_toggle(topology_diagnostics);
     register_toggle(geometry_mutation_test);
     register_toggle(geometry_smoothing);
@@ -1201,6 +1210,7 @@ bool geometry_diagnostics_enabled() { return geometry_diagnostics.value; }
 bool asset_diagnostics_enabled() { return asset_diagnostics.value; }
 bool asset_draw_diagnostics_enabled() { return asset_draw_diagnostics.value; }
 bool pumpkin_body_control_enabled() { return asset_probe::body_control_enabled(); }
+bool pumpkin_warm_profile_enabled() { return asset_probe::warm_profile_enabled(); }
 bool topology_diagnostics_enabled() { return topology_diagnostics.value; }
 bool geometry_mutation_test_enabled() { return geometry_mutation_test.value; }
 bool geometry_smoothing_enabled() { return geometry_smoothing.value; }

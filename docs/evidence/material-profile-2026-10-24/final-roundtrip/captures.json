@@ -1,0 +1,29 @@
+{
+  "ordon_before": {
+    "file": "ordon-before.jpg",
+    "sha256": "0685e27687cafa57e0005cc46c3559605e6e6187d73add24fdc87d513503945b",
+    "dimensions": [
+      1800,
+      1022
+    ],
+    "copied_bytes_equal_to_ignored_original": true
+  },
+  "pond_away": {
+    "file": "pond-away.jpg",
+    "sha256": "fce322ea5d00427f528042a65cf15e983991c42c313294344d63946289f12177",
+    "dimensions": [
+      1800,
+      1022
+    ],
+    "copied_bytes_equal_to_ignored_original": true
+  },
+  "ordon_return_bound": {
+    "file": "ordon-return-bound.jpg",
+    "sha256": "b04b218be18d5f7faacf34cf4efff35c14c4a83f715d6a505e711c040a0852bc",
+    "dimensions": [
+      1800,
+      1022
+    ],
+    "copied_bytes_equal_to_ignored_original": true
+  }
+}

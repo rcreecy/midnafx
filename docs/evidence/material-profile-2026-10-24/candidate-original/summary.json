@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "candidate_package_sha256": "e0f62c1a95b3d3dfe35836c6ae821ba5fc871298b18c4e578a2c29064a51f80e",
+  "source_stdout_sha256": "421cdf236488fda44ec5d6c3085ffddfc16e1bd7cf5a24509a718d3fccc3f060",
+  "capture_sequence": [
+    "off_before",
+    "on",
+    "off_after"
+  ],
+  "profile_shutdown": {
+    "applies": 7056,
+    "restores": 7056,
+    "rejected": 0
+  },
+  "normal_close_evidence": {
+    "all_mods_unloaded": true,
+    "graphics_device_destroyed": true,
+    "process_exit_code": null
+  },
+  "limitations": [
+    "Candidate package only; do not relabel as the later logging-fix package.",
+    "Image dimensions and rectangle metrics describe retained captures, not the initial configured window size.",
+    "Normal close is evidenced by orderly mod unload and graphics destruction; the process exit code was not retained."
+  ],
+  "bounded_frida_observation": {
+    "warm_commands": 120,
+    "restore_commands": 120,
+    "other_material_color_commands": 0,
+    "read_faults": 0,
+    "session_id": "db1d6075-b64b-468a-9c88-513637268e6b",
+    "probe_sha256": "8c57060374e28539b90b4df4a228ad7e95c3e9183534a7aa0f08b59e2c6b5aef",
+    "retained_record_state": "running",
+    "limitations": [
+      "The retained external-service record lacks artifact and OS/architecture identity; session metadata supplies separate host context.",
+      "Counts cover only 32-byte GXCallDisplayList calls beginning with the selected one-word XF0x100C transfer header.",
+      "A 1200ms summary does not stop the Frida interceptor; the retained record alone does not prove detachment.",
+      "Observes copied command bytes at the exported CPU boundary, not decoded native draws, GPU completion or pixels."
+    ]
+  }
+}

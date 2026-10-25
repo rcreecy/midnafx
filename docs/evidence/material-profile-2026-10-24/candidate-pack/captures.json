@@ -1,0 +1,17 @@
+{
+  "on_before": {
+    "file": "on-before.jpg",
+    "sha256": "188f83e48fd2a703f949e49c7d45859f32b3c04e56fedde785428595dd421ed3",
+    "copied_bytes_equal_to_ignored_original": true
+  },
+  "off": {
+    "file": "off.jpg",
+    "sha256": "d361fff53d9b0702a9ee8147aca9618244a05cf45a2700a6c32aca62b5e80923",
+    "copied_bytes_equal_to_ignored_original": true
+  },
+  "on_after": {
+    "file": "on-after.jpg",
+    "sha256": "188f83e48fd2a703f949e49c7d45859f32b3c04e56fedde785428595dd421ed3",
+    "copied_bytes_equal_to_ignored_original": true
+  }
+}

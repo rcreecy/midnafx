@@ -1,0 +1,843 @@
+{
+  "schema": 1,
+  "date": "2026-10-24",
+  "operation": "read-only static Windows artifact/import baseline",
+  "package": {
+    "path": "build/windows-release/mods/midnafx.dusk",
+    "sha256": "01582539f1f2a8dd1fec367e0680974de3a975521a4c1e17a44393e804120d2a",
+    "bytes": 154356,
+    "manifest": {
+      "id": "com.midnafx.midnafx",
+      "name": "MidnaFX",
+      "version": "1.2.0",
+      "author": "MidnaFX contributors",
+      "description": "Modern visual grading, detail, Twilight profiles, adaptive normals, camera controls, depth of field, and enhanced water"
+    },
+    "extracted_member": "lib/windows-amd64/mod.dll",
+    "validator_exit_code": 0,
+    "validator_stdout": "Valid windows-amd64 native package: C:\\dev\\midnafx\\build\\windows-release\\mods\\midnafx.dusk"
+  },
+  "module": {
+    "sha256": "e48920f2aef5726d6f1bc3dbee7ebecffc3291e2ad59467e99daadfd565faeaf",
+    "bytes": 360448,
+    "machine": "0x8664 AMD64",
+    "optional_header": "0x20b PE32+",
+    "exports": [
+      "mod_ctx",
+      "mod_initialize",
+      "mod_meta",
+      "mod_shutdown",
+      "mod_update"
+    ],
+    "imports": [
+      {
+        "dll": "dusklight.exe",
+        "imported_names": 80,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "dusklight.exe",
+          "scope": "selected host runtime directory",
+          "sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 34
+      },
+      {
+        "dll": "MSVCP140.dll",
+        "imported_names": 5,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "MSVCP140.dll",
+          "scope": "current Windows System32",
+          "sha256": "8f141b4454fa78db34bc1f28c571b4da0e00cd2c43f7ad0e282f313036826aae"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "VCRUNTIME140.dll",
+        "imported_names": 12,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "VCRUNTIME140.dll",
+          "scope": "current Windows System32",
+          "sha256": "184146852727a9db4eea06178716bec3cdbb1015c911f6b0f915b184ad7775b2"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "VCRUNTIME140_1.dll",
+        "imported_names": 1,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "VCRUNTIME140_1.dll",
+          "scope": "current Windows System32",
+          "sha256": "e6bfb3662ab4b1969a73441dbe35c96d51441b6bff8cf1fe7430bd5b246ca605"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "api-ms-win-crt-heap-l1-1-0.dll",
+        "imported_names": 3,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-stdio-l1-1-0.dll",
+        "imported_names": 1,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-string-l1-1-0.dll",
+        "imported_names": 2,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-math-l1-1-0.dll",
+        "imported_names": 12,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-runtime-l1-1-0.dll",
+        "imported_names": 11,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "KERNEL32.dll",
+        "imported_names": 10,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "KERNEL32.dll",
+          "scope": "current Windows System32",
+          "sha256": "e132eba4166256e2f414b91fe7d5386590bc5ea8626aee5af9c9738383cf2ae1"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 5
+      }
+    ],
+    "host_import_names": [
+      "wgpuQueueWriteTexture",
+      "?mDoExt_J3DModel__create@@YAPEAVJ3DModel@@PEAVJ3DModelData@@II@Z",
+      "wgpuTextureRelease",
+      "?getCurrentHeap@JKRHeap@@SAPEAV1@XZ",
+      "wgpuTextureCreateView",
+      "wgpuShaderModuleRelease",
+      "wgpuRenderPipelineRelease",
+      "wgpuRenderPipelineGetBindGroupLayout",
+      "?loadResource@dRes_info_c@@QEAAHXZ",
+      "wgpuRenderPassEncoderSetViewport",
+      "wgpuRenderPassEncoderSetScissorRect",
+      "wgpuRenderPassEncoderSetPipeline",
+      "wgpuRenderPassEncoderSetBindGroup",
+      "wgpuRenderPassEncoderDraw",
+      "wgpuDeviceCreateTexture",
+      "wgpuDeviceCreateShaderModule",
+      "wgpuDeviceCreateRenderPipeline",
+      "wgpuDeviceCreateComputePipeline",
+      "wgpuDeviceCreateBindGroup",
+      "wgpuComputePipelineRelease",
+      "wgpuComputePipelineGetBindGroupLayout",
+      "wgpuComputePassEncoderRelease",
+      "wgpuComputePassEncoderSetPipeline",
+      "wgpuComputePassEncoderSetBindGroup",
+      "wgpuComputePassEncoderEnd",
+      "wgpuComputePassEncoderDispatchWorkgroups",
+      "wgpuCommandEncoderBeginComputePass",
+      "wgpuBindGroupLayoutRelease",
+      "wgpuBindGroupRelease",
+      "wgpuInstanceWaitAny",
+      "?sManager@JUTVideo@@0PEAV1@EA",
+      "wgpuDevicePushErrorScope",
+      "wgpuDevicePopErrorScope",
+      "wgpuDeviceGetQueue",
+      "wgpuDeviceCreateSampler",
+      "?j3dZModeTable@@3PAEA",
+      "?dComIfGp_roomControl_getStayNo@@YAHXZ",
+      "?dComIfGp_getStartStageName@@YAPEBDXZ",
+      "?fopAcIt_Executor@@YAHP6AHPEAX0@Z0@Z",
+      "?loadPreDrawSetting@J3DShape@@QEBAXXZ",
+      "?drawFast@J3DShapePacket@@QEAAXXZ",
+      "?callDL@J3DDisplayListObj@@QEBAXXZ",
+      "GXLoadTexObj",
+      "GXInitTexObjLOD",
+      "GXInitTexObj",
+      "GXSetNumTevStages",
+      "GXSetTevOrder",
+      "GXSetAlphaCompare",
+      "GXSetTevColor",
+      "GXSetTevAlphaOp",
+      "GXSetTevColorOp",
+      "GXSetTevAlphaIn",
+      "GXSetTevColorIn",
+      "GXSetZMode",
+      "GXSetAlphaUpdate",
+      "GXSetColorUpdate",
+      "GXSetBlendMode",
+      "GXCopyTex",
+      "GXSetTexCopyDst",
+      "GXSetTexCopySrc",
+      "GXDestroyCopyTex",
+      "GXSetNumIndStages",
+      "?getName@JUTNameTab@@QEBAPEBDG@Z",
+      "?g_env_light@@3VdScnKy_env_light_c@@A",
+      "wgpuTextureViewRelease",
+      "?deleteArchiveRes@dRes_info_c@@QEAAXXZ",
+      "wgpuSamplerRelease",
+      "?alloc@JKRHeap@@SAPEAXIHPEAV1@@Z",
+      "?load@J3DModelLoaderDataBase@@SAPEAVJ3DModelData@@PEBXI@Z",
+      "?dComIfGp_world_dark_get@@YAEXZ",
+      "?dComIfGp_getPlayer@@YAPEAVfopAc_ac_c@@H@Z",
+      "?dComIfG_getObjectResInfo@@YAPEAVdRes_info_c@@PEBD@Z",
+      "?findIdxResource@JKRArchive@@QEBAPEAUSDIFileEntry@1@I@Z",
+      "?getFileAttribute@JKRArchive@@QEBAEI@Z",
+      "?getIdxResource@JKRArchive@@QEAAPEAXI@Z",
+      "GXDestroyTexObj",
+      "GXCallDisplayList",
+      "GXPopDebugGroup",
+      "wgpuQueueRelease",
+      "GXPushDebugGroup"
+    ],
+    "host_import_count": 80,
+    "missing_selected_host_exports": [],
+    "forwarded_host_imports_checked_against_webgpu_dawn": [
+      "wgpuQueueWriteTexture",
+      "wgpuTextureRelease",
+      "wgpuTextureCreateView",
+      "wgpuShaderModuleRelease",
+      "wgpuRenderPipelineRelease",
+      "wgpuRenderPipelineGetBindGroupLayout",
+      "wgpuRenderPassEncoderSetViewport",
+      "wgpuRenderPassEncoderSetScissorRect",
+      "wgpuRenderPassEncoderSetPipeline",
+      "wgpuRenderPassEncoderSetBindGroup",
+      "wgpuRenderPassEncoderDraw",
+      "wgpuDeviceCreateTexture",
+      "wgpuDeviceCreateShaderModule",
+      "wgpuDeviceCreateRenderPipeline",
+      "wgpuDeviceCreateComputePipeline",
+      "wgpuDeviceCreateBindGroup",
+      "wgpuComputePipelineRelease",
+      "wgpuComputePipelineGetBindGroupLayout",
+      "wgpuComputePassEncoderRelease",
+      "wgpuComputePassEncoderSetPipeline",
+      "wgpuComputePassEncoderSetBindGroup",
+      "wgpuComputePassEncoderEnd",
+      "wgpuComputePassEncoderDispatchWorkgroups",
+      "wgpuCommandEncoderBeginComputePass",
+      "wgpuBindGroupLayoutRelease",
+      "wgpuBindGroupRelease",
+      "wgpuInstanceWaitAny",
+      "wgpuDevicePushErrorScope",
+      "wgpuDevicePopErrorScope",
+      "wgpuDeviceGetQueue",
+      "wgpuDeviceCreateSampler",
+      "wgpuTextureViewRelease",
+      "wgpuSamplerRelease",
+      "wgpuQueueRelease"
+    ],
+    "host_forwarders": [
+      {
+        "import_name": "wgpuQueueWriteTexture",
+        "host_forwarder": "webgpu_dawn.wgpuQueueWriteTexture"
+      },
+      {
+        "import_name": "wgpuTextureRelease",
+        "host_forwarder": "webgpu_dawn.wgpuTextureRelease"
+      },
+      {
+        "import_name": "wgpuTextureCreateView",
+        "host_forwarder": "webgpu_dawn.wgpuTextureCreateView"
+      },
+      {
+        "import_name": "wgpuShaderModuleRelease",
+        "host_forwarder": "webgpu_dawn.wgpuShaderModuleRelease"
+      },
+      {
+        "import_name": "wgpuRenderPipelineRelease",
+        "host_forwarder": "webgpu_dawn.wgpuRenderPipelineRelease"
+      },
+      {
+        "import_name": "wgpuRenderPipelineGetBindGroupLayout",
+        "host_forwarder": "webgpu_dawn.wgpuRenderPipelineGetBindGroupLayout"
+      },
+      {
+        "import_name": "wgpuRenderPassEncoderSetViewport",
+        "host_forwarder": "webgpu_dawn.wgpuRenderPassEncoderSetViewport"
+      },
+      {
+        "import_name": "wgpuRenderPassEncoderSetScissorRect",
+        "host_forwarder": "webgpu_dawn.wgpuRenderPassEncoderSetScissorRect"
+      },
+      {
+        "import_name": "wgpuRenderPassEncoderSetPipeline",
+        "host_forwarder": "webgpu_dawn.wgpuRenderPassEncoderSetPipeline"
+      },
+      {
+        "import_name": "wgpuRenderPassEncoderSetBindGroup",
+        "host_forwarder": "webgpu_dawn.wgpuRenderPassEncoderSetBindGroup"
+      },
+      {
+        "import_name": "wgpuRenderPassEncoderDraw",
+        "host_forwarder": "webgpu_dawn.wgpuRenderPassEncoderDraw"
+      },
+      {
+        "import_name": "wgpuDeviceCreateTexture",
+        "host_forwarder": "webgpu_dawn.wgpuDeviceCreateTexture"
+      },
+      {
+        "import_name": "wgpuDeviceCreateShaderModule",
+        "host_forwarder": "webgpu_dawn.wgpuDeviceCreateShaderModule"
+      },
+      {
+        "import_name": "wgpuDeviceCreateRenderPipeline",
+        "host_forwarder": "webgpu_dawn.wgpuDeviceCreateRenderPipeline"
+      },
+      {
+        "import_name": "wgpuDeviceCreateComputePipeline",
+        "host_forwarder": "webgpu_dawn.wgpuDeviceCreateComputePipeline"
+      },
+      {
+        "import_name": "wgpuDeviceCreateBindGroup",
+        "host_forwarder": "webgpu_dawn.wgpuDeviceCreateBindGroup"
+      },
+      {
+        "import_name": "wgpuComputePipelineRelease",
+        "host_forwarder": "webgpu_dawn.wgpuComputePipelineRelease"
+      },
+      {
+        "import_name": "wgpuComputePipelineGetBindGroupLayout",
+        "host_forwarder": "webgpu_dawn.wgpuComputePipelineGetBindGroupLayout"
+      },
+      {
+        "import_name": "wgpuComputePassEncoderRelease",
+        "host_forwarder": "webgpu_dawn.wgpuComputePassEncoderRelease"
+      },
+      {
+        "import_name": "wgpuComputePassEncoderSetPipeline",
+        "host_forwarder": "webgpu_dawn.wgpuComputePassEncoderSetPipeline"
+      },
+      {
+        "import_name": "wgpuComputePassEncoderSetBindGroup",
+        "host_forwarder": "webgpu_dawn.wgpuComputePassEncoderSetBindGroup"
+      },
+      {
+        "import_name": "wgpuComputePassEncoderEnd",
+        "host_forwarder": "webgpu_dawn.wgpuComputePassEncoderEnd"
+      },
+      {
+        "import_name": "wgpuComputePassEncoderDispatchWorkgroups",
+        "host_forwarder": "webgpu_dawn.wgpuComputePassEncoderDispatchWorkgroups"
+      },
+      {
+        "import_name": "wgpuCommandEncoderBeginComputePass",
+        "host_forwarder": "webgpu_dawn.wgpuCommandEncoderBeginComputePass"
+      },
+      {
+        "import_name": "wgpuBindGroupLayoutRelease",
+        "host_forwarder": "webgpu_dawn.wgpuBindGroupLayoutRelease"
+      },
+      {
+        "import_name": "wgpuBindGroupRelease",
+        "host_forwarder": "webgpu_dawn.wgpuBindGroupRelease"
+      },
+      {
+        "import_name": "wgpuInstanceWaitAny",
+        "host_forwarder": "webgpu_dawn.wgpuInstanceWaitAny"
+      },
+      {
+        "import_name": "wgpuDevicePushErrorScope",
+        "host_forwarder": "webgpu_dawn.wgpuDevicePushErrorScope"
+      },
+      {
+        "import_name": "wgpuDevicePopErrorScope",
+        "host_forwarder": "webgpu_dawn.wgpuDevicePopErrorScope"
+      },
+      {
+        "import_name": "wgpuDeviceGetQueue",
+        "host_forwarder": "webgpu_dawn.wgpuDeviceGetQueue"
+      },
+      {
+        "import_name": "wgpuDeviceCreateSampler",
+        "host_forwarder": "webgpu_dawn.wgpuDeviceCreateSampler"
+      },
+      {
+        "import_name": "wgpuTextureViewRelease",
+        "host_forwarder": "webgpu_dawn.wgpuTextureViewRelease"
+      },
+      {
+        "import_name": "wgpuSamplerRelease",
+        "host_forwarder": "webgpu_dawn.wgpuSamplerRelease"
+      },
+      {
+        "import_name": "wgpuQueueRelease",
+        "host_forwarder": "webgpu_dawn.wgpuQueueRelease"
+      }
+    ]
+  },
+  "host": {
+    "path": "build/frame-timing/hosts/baseline/dusklight.exe",
+    "sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+    "bytes": 51795456,
+    "machine": "0x8664 AMD64",
+    "optional_header": "0x20b PE32+",
+    "exported_names": 30033,
+    "imports": [
+      {
+        "dll": "WS2_32.dll",
+        "imported_names": 7,
+        "imported_ordinals": 22,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "WS2_32.dll",
+          "scope": "current Windows System32",
+          "sha256": "b123b00c46c415d7baeaada58c29c3e6920895db836ee4c0cfee49d738af60ad"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "PSAPI.DLL",
+        "imported_names": 1,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "PSAPI.DLL",
+          "scope": "current Windows System32",
+          "sha256": "6c8ebe6621224d11ded0c920873d67b5255fd515e8c4ea803cd587c8232bee5c"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "nod.dll",
+        "imported_names": 11,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "nod.dll",
+          "scope": "selected host runtime directory",
+          "sha256": "6b6a27265341820dee390139e1a6eb05573a8f07de3daba52fab2cad7795ff4f"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "ntdll.dll",
+        "imported_names": 3,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "ntdll.dll",
+          "scope": "current Windows System32",
+          "sha256": "651ac9041af8e6b5ebd331d53163244c0a27d36d1433f0f15cac1f28c5f2e82c"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "dxgi.dll",
+        "imported_names": 1,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "dxgi.dll",
+          "scope": "current Windows System32",
+          "sha256": "4225e13f27a4f3a4a4738e64a57fa0949d8589f317fc6f8ec194b3a4d394a528"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "SDL3.dll",
+        "imported_names": 210,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "SDL3.dll",
+          "scope": "selected host runtime directory",
+          "sha256": "38c9583844842c7a78cb4d0893c36eae332c43554077eff38482f9936e20f767"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "webgpu_dawn.dll",
+        "imported_names": 99,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "webgpu_dawn.dll",
+          "scope": "selected host runtime directory",
+          "sha256": "eb6e9833dc75696f54fa6281432356a2baf73f4c0ad752b23a4a974d6ff91ae5"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "WINHTTP.dll",
+        "imported_names": 19,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "WINHTTP.dll",
+          "scope": "current Windows System32",
+          "sha256": "2509edaea64d4ed9e9993b80fa370f431f37117401ef77cf367533a31b82c180"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "libpng16.dll",
+        "imported_names": 20,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "libpng16.dll",
+          "scope": "selected host runtime directory",
+          "sha256": "630bc626246cabc314c750ef27936cbd454dc815c738908993323858ebe689ad"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "zlib1.dll",
+        "imported_names": 4,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "zlib1.dll",
+          "scope": "selected host runtime directory",
+          "sha256": "740584ce57ae144756a165896f5f9dad0186bbdc2eeb817846e5e800dc45477e"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "KERNEL32.dll",
+        "imported_names": 142,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "KERNEL32.dll",
+          "scope": "current Windows System32",
+          "sha256": "e132eba4166256e2f414b91fe7d5386590bc5ea8626aee5af9c9738383cf2ae1"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 25
+      },
+      {
+        "dll": "USER32.dll",
+        "imported_names": 9,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "USER32.dll",
+          "scope": "current Windows System32",
+          "sha256": "f285937030bcb325cad39ee5be4818f6666241229adeadea4ff1ae469dfd7ef3"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "SHELL32.dll",
+        "imported_names": 3,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "SHELL32.dll",
+          "scope": "current Windows System32",
+          "sha256": "c55a5f3b6ef059871fe2a0c8d82f086e0998d1154023e3ecf49698b97f9341f6"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "ole32.dll",
+        "imported_names": 5,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "ole32.dll",
+          "scope": "current Windows System32",
+          "sha256": "1053ffb858cddbe29eaaa6a5b0836b88c7cd11fbd58605288600e507c06db443"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 5
+      },
+      {
+        "dll": "OLEAUT32.dll",
+        "imported_names": 0,
+        "imported_ordinals": 8,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "OLEAUT32.dll",
+          "scope": "current Windows System32",
+          "sha256": "e3fcdbbf040fd1e3c3504876cf060ac3908c134ac81b3d0c57f0f735769280ea"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "ADVAPI32.dll",
+        "imported_names": 3,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "ADVAPI32.dll",
+          "scope": "current Windows System32",
+          "sha256": "b864e1468a01a44f1901e03c05c1029e71655dd9abddd6d840bcfff5e7227d44"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "MSVCP140.dll",
+        "imported_names": 184,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "MSVCP140.dll",
+          "scope": "current Windows System32",
+          "sha256": "8f141b4454fa78db34bc1f28c571b4da0e00cd2c43f7ad0e282f313036826aae"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "MSVCP140_ATOMIC_WAIT.dll",
+        "imported_names": 12,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "MSVCP140_ATOMIC_WAIT.dll",
+          "scope": "current Windows System32",
+          "sha256": "e7963645e0d1db08e300614d4c5fa7194bd8173e9ab7a5558859e6b232ed3241"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "IMM32.dll",
+        "imported_names": 4,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "IMM32.dll",
+          "scope": "current Windows System32",
+          "sha256": "7e45f12c1c555e2407c5ca082bd925b34655278fde4dbfac53a0468cc1e77411"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "VCRUNTIME140_1.dll",
+        "imported_names": 1,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "VCRUNTIME140_1.dll",
+          "scope": "current Windows System32",
+          "sha256": "e6bfb3662ab4b1969a73441dbe35c96d51441b6bff8cf1fe7430bd5b246ca605"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "VCRUNTIME140.dll",
+        "imported_names": 23,
+        "imported_ordinals": 0,
+        "status": "checked exports present",
+        "candidate": {
+          "filename": "VCRUNTIME140.dll",
+          "scope": "current Windows System32",
+          "sha256": "184146852727a9db4eea06178716bec3cdbb1015c911f6b0f915b184ad7775b2"
+        },
+        "missing_names": [],
+        "missing_ordinals": [],
+        "forwarded_name_matches": 0
+      },
+      {
+        "dll": "api-ms-win-crt-heap-l1-1-0.dll",
+        "imported_names": 9,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-runtime-l1-1-0.dll",
+        "imported_names": 27,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-convert-l1-1-0.dll",
+        "imported_names": 8,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-stdio-l1-1-0.dll",
+        "imported_names": 34,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-math-l1-1-0.dll",
+        "imported_names": 49,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-string-l1-1-0.dll",
+        "imported_names": 18,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-time-l1-1-0.dll",
+        "imported_names": 7,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "imported_names": 4,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-environment-l1-1-0.dll",
+        "imported_names": 1,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-locale-l1-1-0.dll",
+        "imported_names": 5,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      },
+      {
+        "dll": "api-ms-win-crt-utility-l1-1-0.dll",
+        "imported_names": 2,
+        "imported_ordinals": 0,
+        "status": "not checked: API-set contract",
+        "candidate": null,
+        "missing_names": null,
+        "missing_ordinals": null
+      }
+    ]
+  },
+  "source_pins": {
+    "declared_dusklight_revision": "edf42c6a7202647b56dd2fcdef02d17671bc814b",
+    "declared_revision_source": "CMakeLists.txt:7",
+    "actual_dusklight_head": "edf42c6a7202647b56dd2fcdef02d17671bc814b",
+    "aurora_gitlink_at_dusklight_pin": "7f2801cd0133c9333eadb4e2e6b24100c328d328",
+    "actual_aurora_head": "7f2801cd0133c9333eadb4e2e6b24100c328d328",
+    "note": "Source checkout pins do not prove that every local host patch is absent or reconstruct the selected binary build."
+  },
+  "tool": {
+    "path": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/dumpbin.exe",
+    "version": "Microsoft (R) COFF/PE Dumper Version 14.50.35722.0",
+    "commands": [
+      "dumpbin /headers <binary>",
+      "dumpbin /imports <binary>",
+      "dumpbin /exports <binary>"
+    ]
+  },
+  "limitations": [
+    "Checked export presence does not establish OS loader search selection, complete recursive dependency closure, ABI compatibility, or runtime loading.",
+    "API-set contracts without direct local files remain unverified; these are not reported as missing exports.",
+    "The selected host is a qualification baseline artifact, not asserted to be a newly published release or an unmodified native host.",
+    "The Frida/Ghidra fixture qualification does not provide runtime identity for these artifacts.",
+    "No Windows game process, macOS artifact, macOS loader, or Metal execution was exercised."
+  ],
+  "retained_text_sha256": {
+    "host-headers.txt": "e39b03ad850746f2f5758315ff284c512a9b1f6dcb28d5deb137e928cfe25c2c",
+    "host-imports.txt": "578cecdbf40bad4d445b04eb775e510cd4ca9ea8c8b98f23530d4ebc5c73bbc4",
+    "module-exports.txt": "a084b77f6c6ebbc0d32195bc675089c3cba3ada150edeec0eff18bf3033354c3",
+    "module-headers.txt": "9ec0e1b236242efb5132e0cbaf40d2077b82fb5abc46db14730c69e853b39c06",
+    "module-imports.txt": "e8042658e2696e3714d8fbafdb5badc946d4b92e7a5295e60e89ce0bba85fe63"
+  },
+  "scratch_host_exports_sha256": "39961d73338d31ac500afd1cd21f9dfe0038decd3306e9503394da0e136eb26e"
+}

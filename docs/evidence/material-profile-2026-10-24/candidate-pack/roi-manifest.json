@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "frames": {
+    "on_before": "on-before.jpg",
+    "off": "off.jpg",
+    "on_after": "on-after.jpg"
+  },
+  "regions": {
+    "body": [
+      510,
+      405,
+      40,
+      34
+    ],
+    "leaf": [
+      620,
+      480,
+      30,
+      20
+    ],
+    "hud_hearts": [
+      112,
+      80,
+      120,
+      40
+    ],
+    "world_rock": [
+      1380,
+      590,
+      120,
+      85
+    ],
+    "world_building": [
+      870,
+      90,
+      130,
+      80
+    ],
+    "world_ground": [
+      1120,
+      440,
+      100,
+      50
+    ]
+  },
+  "comparisons": {
+    "on_to_off": {
+      "first": "on_before",
+      "second": "off"
+    },
+    "on_to_repeat": {
+      "first": "on_before",
+      "second": "on_after"
+    }
+  }
+}

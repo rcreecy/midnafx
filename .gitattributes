@@ -1,3 +1,11 @@
 *.patch whitespace=-blank-at-eol
 # Raw timing evidence is hash-qualified; preserve its bytes across checkouts.
 docs/evidence/**/frame-timing.json -text
+# These retained receipts and probe sources are qualified by their exact bytes.
+docs/evidence/material-lifecycle-2026-10-22/archive-roundtrip-r1/** -text whitespace=cr-at-eol
+docs/evidence/material-profile-2026-10-24/** -text whitespace=cr-at-eol
+docs/evidence/rea-artifacts-2026-10-24/** -text whitespace=cr-at-eol
+docs/evidence/rea-qualification-2026-10-24/** -text whitespace=cr-at-eol
+tools/qualification/rea_fixture.cpp -text
+tools/qualification/rea_fixture_probe.js -text
+tools/qualification/material_color_probe.js -text

@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "trial_date_local": "2026-10-25",
+  "trial_timezone": "America/Los_Angeles",
+  "package_sha256": "01582539f1f2a8dd1fec367e0680974de3a975521a4c1e17a44393e804120d2a",
+  "host_sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+  "source_stdout_sha256": "426e22fd1419b03356468fa2537c2e5135639849af6f8a224255351cda974db1",
+  "source_session_sha256": "3406bd886e11d13e8dd732aecc0c018614cfe8e16cfb828ea2f2109ba4476bab",
+  "selected_source_stdout_lines": [
+    616,
+    617,
+    618,
+    619,
+    1489,
+    1783,
+    1955,
+    1956,
+    2718,
+    3067,
+    3068,
+    3069,
+    3070,
+    4163,
+    4238,
+    4239,
+    4240,
+    4241,
+    4242,
+    4243,
+    4244
+  ],
+  "control_log_sanitization": "Selected WaterClass model pointers omitted.",
+  "capture_sequence": [
+    "ordon_before",
+    "pond_away",
+    "ordon_return_bound"
+  ],
+  "matched_pixel_comparison": false,
+  "route": [
+    "F_SP103,0,27,0",
+    "F_SP127,0,0,0",
+    "F_SP103,0,27,0"
+  ],
+  "observed_stage_sequence": [
+    "F_SP103",
+    "F_SP127",
+    "F_SP103"
+  ],
+  "archive_delete": {
+    "source_stdout_line": 1956,
+    "bound": false,
+    "applies": 15216,
+    "restores": 15216,
+    "rejected": 0
+  },
+  "fresh_native_load_rebind": {
+    "source_stdout_line": 3070,
+    "bound": true,
+    "applies": 15216,
+    "restores": 15216,
+    "rejected": 0
+  },
+  "final_shutdown": {
+    "source_stdout_line": 4239,
+    "bound": true,
+    "applies": 21480,
+    "restores": 21480,
+    "rejected": 0
+  },
+  "post_return_additional_balanced_pairs": 6264,
+  "close": {
+    "all_mods_unloaded_source_line": 4240,
+    "graphics_device_destroyed": true,
+    "process_exit_code": 0,
+    "process_handle_acquired_before_alt_f4": true,
+    "method_note": "The operator acquired the process handle before closing with Alt+F4, then wrote the exit receipt from that handle.",
+    "exit_receipt_sha256": "35a22a96f02ed63413277412e918315db40f7092a0ac242ee5113c3e82588fc1",
+    "exit_receipt_copied_bytes_equal_to_ignored_original": true,
+    "owned_process_pid_retained_in_raw_exit_receipt": true
+  },
+  "frida_instrumentation": false,
+  "limitations": [
+    "The trial was run on 2026-10-25; the containing ledger keeps its original 2026-10-24 directory date.",
+    "Return lighting differs naturally and scene elements move; these captures do not establish matched-pixel restoration.",
+    "The profile is qualified only for the fixed original pumpkin material with external texture replacements enabled.",
+    "No Frida instrumentation, GPU-completion, GPU-timing or macOS runtime result is claimed for this trial.",
+    "The handle-acquisition method is operator context; exit.json records the owned PID, observation timestamp and actual exit code."
+  ]
+}

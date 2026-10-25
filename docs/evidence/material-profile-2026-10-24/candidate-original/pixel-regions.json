@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "metric": "Decoded RGB channels on the 0-255 scale; no image resizing or registration",
+  "scope": "Named rectangles only; whole-frame equality and motion quality are not established",
+  "captures": {
+    "off_before": {
+      "file": "off-before.jpg",
+      "sha256": "c8101197b00d4eda0468d034e41c956282d3b65b0bbe388139e97d76e244e037",
+      "size": [
+        1800,
+        1022
+      ]
+    },
+    "on": {
+      "file": "on.jpg",
+      "sha256": "61866a116d42bc45be857fbacf799bf1d765d583f94ea5d7e2fc7f860f639580",
+      "size": [
+        1800,
+        1022
+      ]
+    },
+    "off_after": {
+      "file": "off-after.jpg",
+      "sha256": "d85e1244a793020f40c4e9eefd3f36863e2d207030419b595e70e51da67194f3",
+      "size": [
+        1800,
+        1022
+      ]
+    }
+  },
+  "regions": {
+    "body": [
+      505,
+      400,
+      45,
+      39
+    ],
+    "leaf": [
+      620,
+      480,
+      30,
+      20
+    ],
+    "hud_hearts": [
+      112,
+      80,
+      120,
+      40
+    ],
+    "world_rock": [
+      1380,
+      590,
+      120,
+      85
+    ],
+    "world_building": [
+      870,
+      90,
+      130,
+      80
+    ],
+    "world_ground": [
+      1120,
+      440,
+      100,
+      50
+    ]
+  },
+  "comparisons": {
+    "off_to_on": {
+      "first": "off_before",
+      "second": "on",
+      "regions": {
+        "body": {
+          "pixels": 1755,
+          "mean_abs_rgb": 2.4377967711301043,
+          "max_abs_channel": 16,
+          "changed_pixels": 1731,
+          "mean_rgb_delta_second_minus_first": [
+            -0.1925925925925926,
+            -3.197150997150997,
+            -0.7156695156695156
+          ]
+        },
+        "leaf": {
+          "pixels": 600,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "hud_hearts": {
+          "pixels": 4800,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "world_rock": {
+          "pixels": 10200,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "world_building": {
+          "pixels": 10400,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "world_ground": {
+          "pixels": 5000,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "off_to_restored": {
+      "first": "off_before",
+      "second": "off_after",
+      "regions": {
+        "body": {
+          "pixels": 1755,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "leaf": {
+          "pixels": 600,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "hud_hearts": {
+          "pixels": 4800,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "world_rock": {
+          "pixels": 10200,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "world_building": {
+          "pixels": 10400,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "world_ground": {
+          "pixels": 5000,
+          "mean_abs_rgb": 0.0,
+          "max_abs_channel": 0,
+          "changed_pixels": 0,
+          "mean_rgb_delta_second_minus_first": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  }
+}

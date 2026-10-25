@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "candidate_package_sha256": "e0f62c1a95b3d3dfe35836c6ae821ba5fc871298b18c4e578a2c29064a51f80e",
+  "source_stdout_sha256": "f18b620e62f5adf68dbbd4433dbe130c1f9a1d482b399a91190be3fb1b32d866",
+  "capture_sequence": [
+    "on_before",
+    "off",
+    "on_after"
+  ],
+  "profile_shutdown": {
+    "applies": 17334,
+    "restores": 17334,
+    "rejected": 0
+  },
+  "normal_close_evidence": {
+    "all_mods_unloaded": true,
+    "graphics_device_destroyed": true,
+    "process_exit_code": null
+  },
+  "limitations": [
+    "Candidate package only; do not relabel as the later logging-fix package.",
+    "Image dimensions and rectangle metrics describe retained captures, not the initial configured window size.",
+    "Normal close is evidenced by orderly mod unload and graphics destruction; the process exit code was not retained.",
+    "External texture payloads are not included. Provider selection was not independently traced in this warm-profile run."
+  ],
+  "external_replacement_files": [
+    {
+      "relative_path": "A-first/tex1_64x64_000e342106676e31_14.dds",
+      "sha256": "ef46efe02e8ebd33992e407d782f0292466074d06d77cc08ac0109cb3cf5c9de"
+    },
+    {
+      "relative_path": "A-first/tex1_64x64_630d5c7bc606585d_14.dds",
+      "sha256": "b6ffce0e16b137ad73fa5ba3aea78d982f89dc1355e367ac40bc745e4439e86f"
+    }
+  ]
+}

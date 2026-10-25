@@ -731,7 +731,7 @@ void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
     if ((!settings::geometry_diagnostics_enabled() && !settings::geometry_mutation_test_enabled() &&
          !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled() &&
          !settings::geometry_skinned_smoothing_enabled() && !settings::asset_diagnostics_enabled() &&
-         !settings::pumpkin_body_control_enabled()) ||
+         !settings::pumpkin_body_control_enabled() && !settings::pumpkin_warm_profile_enabled()) ||
         !args || !retval || *static_cast<int*>(retval) < 0)
         return;
     if (!info || !info->mArchive || !info->mRes)

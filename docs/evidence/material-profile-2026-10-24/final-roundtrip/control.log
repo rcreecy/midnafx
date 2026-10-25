@@ -1,0 +1,21 @@
+[DEBUG | dusk] Loading Resource: pumpkin.arc (Size: 18080)
+[DEBUG | dusk] Loading Resource: pumpkin.bmd (Size: 17824)
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-pumpkin-body requested=0 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=bound-pumpkin-body profile=pumpkin-warm requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=<runtime-address> material=0 name=aa_Kibako_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] MaterialProfile event=enabled profile=pumpkin-warm requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=archive-delete requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=archive-delete profile=pumpkin-warm requested=1 bound=0 applies=15216 restores=15216 rejected=0
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP127 role=part-0 model=<runtime-address> material=0 name=aa_MA00_Gake02_v shapes=32 materials=32 texgens=2 tev_stages=5 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[DEBUG | dusk] Loading Resource: pumpkin.arc (Size: 18080)
+[DEBUG | dusk] Loading Resource: pumpkin.bmd (Size: 17824)
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-pumpkin-body requested=0 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=bound-pumpkin-body profile=pumpkin-warm requested=1 bound=1 applies=15216 restores=15216 rejected=0
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=<runtime-address> material=0 name=aa_Kibako_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=shutdown profile=pumpkin-warm requested=1 bound=1 applies=21480 restores=21480 rejected=0
+[INFO | dusk::mods::loader] all mods unloaded
+[INFO | dusk::discord] Discord Rich Presence shut down
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.

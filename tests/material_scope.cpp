@@ -55,6 +55,40 @@ void execute(const CommandBuffer& command, Registers& registers) {
     }
     check(mask == 0x00ffffff);
 }
+
+using XfRegisters = std::array<std::uint32_t, 0x1012>;
+
+void check_material_color_encoding(const CommandBuffer& command, std::uint32_t rgba) {
+    check(command.bytes[0] == 0x10);
+    check(command.bytes[1] == 0 && command.bytes[2] == 0); // One word, encoded count minus one.
+    check(command.bytes[3] == 0x10 && command.bytes[4] == 0x0c);
+    check(word(command, 5) == rgba);
+    check(command.bytes[8] == 255);
+    for (std::size_t i = 9; i < command.bytes.size(); ++i)
+        check(command.bytes[i] == 0);
+    check(reinterpret_cast<std::uintptr_t>(&command) % 32 == 0);
+}
+
+// Decode the XF transfer header independently of the command construction.
+void execute_xf(const CommandBuffer& command, XfRegisters& registers) {
+    unsigned writes = 0;
+    for (std::size_t at = 0; at < command.bytes.size();) {
+        const auto opcode = command.bytes[at++];
+        if (opcode == 0)
+            continue;
+        check(opcode == 0x10 && at + 4 <= command.bytes.size());
+        const unsigned count = (unsigned(command.bytes[at]) << 8 | command.bytes[at + 1]) + 1;
+        unsigned address = unsigned(command.bytes[at + 2]) << 8 | command.bytes[at + 3];
+        at += 4;
+        for (unsigned i = 0; i < count; ++i, ++address) {
+            check(at + 4 <= command.bytes.size() && address < registers.size());
+            registers[address] = word(command, at);
+            at += 4;
+            ++writes;
+        }
+    }
+    check(writes == 1);
+}
 } // namespace
 
 int main() {
@@ -91,6 +125,38 @@ int main() {
 
     check_encoding(apply, 0xc0100000);
     check_encoding(restore, 0xc0200000);
+
+    const std::array<std::uint8_t, 4> white{255, 255, 255, 255};
+    check(qualifies_material_color(1, 0, 0, 4, white));
+    for (unsigned value = 0; value < 256; ++value) {
+        check(qualifies_material_color(value, 0, 0, 4, white) == (value == 1));
+        check(qualifies_material_color(1, value, 0, 4, white) == (value == 0));
+        check(qualifies_material_color(1, 0, value, 4, white) == (value == 0));
+        check(qualifies_material_color(1, 0, 0, value, white) == (value == 4));
+        for (unsigned channel = 0; channel < white.size(); ++channel) {
+            auto color = white;
+            color[channel] = static_cast<std::uint8_t>(value);
+            check(qualifies_material_color(1, 0, 0, 4, color) == (value == 255));
+        }
+    }
+    check(!qualifies_material_color(std::numeric_limits<unsigned>::max(), 0, 0, 4, white));
+    check_material_color_encoding(warm_material_color, 0xfff0e0ff);
+    check_material_color_encoding(restore_material_color, 0xffffffff);
+    const auto custom = material_color_command(17, 34, 51);
+    check_material_color_encoding(custom, 0x112233ff);
+
+    XfRegisters original_xf{};
+    for (unsigned address = 0; address < original_xf.size(); ++address)
+        original_xf[address] = address * 0x13579bdu;
+    original_xf[0x100c] = 0xffffffff;
+    auto xf = original_xf;
+    execute_xf(warm_material_color, xf);
+    check(xf[0x100c] == 0xfff0e0ff && (xf[0x100c] & 0xff) == 255);
+    for (unsigned address = 0; address < xf.size(); ++address)
+        if (address != 0x100c)
+            check(xf[address] == original_xf[address]);
+    execute_xf(restore_material_color, xf);
+    check(xf == original_xf);
 
     // Vary every non-scale RGB bit independently, then vary combinations. The
     // current qualified scale is always four; no arbitrary-scale restore claim.

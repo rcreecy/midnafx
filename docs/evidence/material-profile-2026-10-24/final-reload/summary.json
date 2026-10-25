@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "package_sha256": "01582539f1f2a8dd1fec367e0680974de3a975521a4c1e17a44393e804120d2a",
+  "loaded_mod_sha256": "e48920f2aef5726d6f1bc3dbee7ebecffc3291e2ad59467e99daadfd565faeaf",
+  "loaded_module_matches_static_manifest": "../../rea-artifacts-2026-10-24/manifest.json",
+  "source_stdout_sha256": "b8af17cb614c9cde138a1adbd3183db50a5566756bedcd353d84fd2a332ac7bc",
+  "selected_source_stdout_lines": [
+    616,
+    617,
+    618,
+    619,
+    1489,
+    1783,
+    1815,
+    1816,
+    1817,
+    1823,
+    1824,
+    1825,
+    2078,
+    2079,
+    2841,
+    2933,
+    2934,
+    2935,
+    2936,
+    2937,
+    2938,
+    2939
+  ],
+  "control_log_sanitization": "Reload package path made relative; selected WaterClass model pointers omitted.",
+  "capture_sequence": [
+    "before_reload",
+    "after_reload"
+  ],
+  "matched_pixel_comparison": false,
+  "reload_shutdown": {
+    "bound": true,
+    "applies": 8112,
+    "restores": 8112,
+    "rejected": 0
+  },
+  "cached_rebind_after_reload": true,
+  "archive_delete": {
+    "bound": false,
+    "applies": 19602,
+    "restores": 19602,
+    "rejected": 0
+  },
+  "final_shutdown": {
+    "bound": false,
+    "applies": 19602,
+    "restores": 19602,
+    "rejected": 0
+  },
+  "route": {
+    "departure": "F_SP103 (Ordon)",
+    "destination": "F_SP127 (Fishing Pond)",
+    "return_observed": false
+  },
+  "normal_close_evidence": {
+    "all_mods_unloaded": true,
+    "graphics_device_destroyed": true,
+    "process_exit_code": null
+  },
+  "bounded_frida_records": [
+    {
+      "record_index": 0,
+      "trial": "candidate-original",
+      "evidence_id": "ev_0b1a0e13cc3668bb8a3d43407e87e65c7e504f276a7601213255ceff5fe38597",
+      "session_id": "db1d6075-b64b-468a-9c88-513637268e6b",
+      "probe_sha256": "8c57060374e28539b90b4df4a228ad7e95c3e9183534a7aa0f08b59e2c6b5aef",
+      "retained_record_state": "running",
+      "summary": {
+        "event": "summary",
+        "faults": 0,
+        "other": 0,
+        "restore": 120,
+        "warm": 120
+      }
+    },
+    {
+      "record_index": 1,
+      "trial": "final-reload",
+      "evidence_id": "ev_9e8fe6cbbf18e7bcbad92ee5d0ef78510151d610a4bde82c6318fd44e7f5c93d",
+      "session_id": "f0737f0a-eefa-427a-88ff-b211b3791d4d",
+      "probe_sha256": "8c57060374e28539b90b4df4a228ad7e95c3e9183534a7aa0f08b59e2c6b5aef",
+      "retained_record_state": "running",
+      "summary": {
+        "event": "summary",
+        "faults": 0,
+        "other": 0,
+        "restore": 114,
+        "warm": 114
+      }
+    }
+  ],
+  "final_frida_session_absent_at_cleanup_check": true,
+  "retained_service_files": {
+    "rea-evidence.json": {
+      "sha256": "2b707adea29f1c9c49ebc89f3844e455c6eecaa958f5d51e7d8244319fc64e8e",
+      "copied_bytes_equal_to_ignored_original": true
+    },
+    "rea-cleanup.json": {
+      "sha256": "351ce8ffebe2d40a0088904d4b1ab0cf77f1e6fc8821ac1f6c299e863f055cd5",
+      "copied_bytes_equal_to_ignored_original": true
+    }
+  },
+  "limitations": [
+    "Before/after reload captures contain motion; no matched-pixel restoration result is derived.",
+    "Only departure from Ordon to Fishing Pond is observed; this trial does not prove return/rebind after archive reload.",
+    "The first external-service record belongs to the prior candidate original-texture trial; only the second belongs to this final-package trial.",
+    "Frida observes bounded CPU command bytes, not GPU completion or all draw calls. The retained record alone lacks artifact and OS/architecture identity.",
+    "The cleanup receipt reports no open final-trial session; it is not itself rendering or restoration evidence.",
+    "Orderly teardown is logged, but the process exit code was not retained after the user closed the trial."
+  ]
+}

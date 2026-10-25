@@ -1,4 +1,57 @@
-# Selective material control proof
+# Selective material control
+
+## Authored warm profile: 2026-10-24–25
+
+**Warm pumpkin material (experimental)** adds a subtle authored RGB gain to the
+recognized original pumpkin body. The saved setting `pumpkin_warm_profile`
+defaults to false and works independently of the dim proof and diagnostics.
+It supports original textures and external replacements, including an already
+loaded original archive. Every instance sharing the qualified body material is
+affected; leaves retain their separate material.
+
+The profile writes XF material color zero (`0x100c`) as RGBA `(255,240,224,255)`
+for the outer body draw and restores its qualified white `(255,255,255,255)`
+afterward. The original TEV stage, one color channel, register-sourced RGB/alpha,
+`GX_COLOR0A0` order and white material color must still qualify before each
+application. It reuses the exact resource/source and archive-lifetime checks
+described below. A captured per-draw flag controls restoration even if the UI
+request changes between callbacks. This is a known-white static contract, not a
+backup of arbitrary live GX state or ownership proof against another mod.
+
+The pinned Aurora path multiplies this material color by the existing ambient
+and light accumulation. The profile leaves lighting controls, alpha, texture
+bindings, TEV operations and shader configuration unchanged. `drawFast` and the
+original pumpkin shape lists do not overwrite that XF material register.
+Portable command tests independently decode the XF transfer, check the address,
+padding, alpha and register isolation, and prove white restoration. The pot
+material uses vertex-sourced color and animated TEV color inputs; it does not
+qualify for this interface and remains unchanged.
+
+The [profile ledger](evidence/material-profile-2026-10-24/README.md) separates the
+initial pixel candidate from the final package's logging-only correction. The
+candidate's original off/on/off and replacement on/off/on comparisons reproduce
+the sampled body exactly on the third image; five sampled exclusion rectangles
+remain identical throughout. These are rectangle comparisons, not whole-frame
+or broad motion approval. The final package passes native mod reload and cached
+binding; a bounded REA probe observes 114 warm/restore pairs with no other matching
+color or read faults after reload. Its actually loaded module hash matches the
+[artifact baseline](evidence/rea-artifacts-2026-10-24/README.md).
+
+On 2026-10-25 the final package also completes an Ordon–Fishing Pond–Ordon archive
+round trip with replacements enabled and diagnostics disabled. Deletion clears
+the binding at 15,216 balanced pairs, the return binds a fresh material at the
+same count, and normal shutdown reaches 21,480 balanced pairs with zero
+rejections. A process handle acquired before closing retains exit code zero.
+Lifecycle views include different native scene lighting and are not matched
+pixel comparisons. REA instrumentation is not a performance baseline or proof
+of GPU completion.
+
+This is the first authored material profile, not completion of R2's several-class
+target. Additional material classes, representative motion/lighting coverage and
+actual GPU/allocation cost remain open. macOS compilation and packaging remain
+supported; native macOS rendering is unverified and best effort.
+
+## RGB-scale proof
 
 Qualification: 2026-10-21 through 2026-10-22, Windows/D3D12, 960 × 720.
 This opt-in developer proof dims the body of the recognized original pumpkin
@@ -111,10 +164,22 @@ The earlier cached-binding candidate's paused off/on/off comparison restores
 every sampled rectangle exactly and leaves sampled unrelated regions unchanged.
 Its package identity is kept separate from the final normalized package.
 
-A complete successful archive departure/return, broader motion/scene coverage,
-active sampling/replacement-reload timing and actual allocation cost remain open.
+The final normalized package also completes a separate archive round trip through
+Fishing Pond: `F_SP103,0,27,0` to `F_SP127,0,0,0` and back to Ordon. Archive
+deletion clears the binding with 17,982 balanced applies/restores; returning binds
+the original target again at the same count. At shutdown the total is
+515,310/515,310, with zero rejections and `all mods unloaded` logged. Diagnostics
+remain off and the existing replacements remain enabled. The ledger retains
+three unchanged scene screenshots and their hashes. These are lifecycle views,
+not matched pixel comparisons or a performance capture. The process exit code
+was not retained. This successful route does not resolve the black `F_SP121`
+transition, which remains a failed trial with unknown cause.
+
+Broader motion/scene coverage, active sampling/replacement-reload timing and
+actual allocation cost remain open.
 Eight [settled timing trials](frame-timing.md#settled-comparison-2026-10-22) now
 cover baseline, diagnostics off/on, and body control separately. macOS compilation remains a CI
 check; native macOS gameplay/Metal verification is unavailable and best effort.
 This is a verified static material-control slice within the ongoing remaster
-program, not closure of the complete R1 lifecycle or the full product goal.
+program. The known archive round trip and native mod reload are observed;
+broader R1 compatibility/quality and the full product goal remain unqualified.

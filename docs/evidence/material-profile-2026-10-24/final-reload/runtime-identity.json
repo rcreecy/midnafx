@@ -1,0 +1,8 @@
+{
+  "observed_utc": "2026-10-25T00:15:21.2069856Z",
+  "package_sha256": "01582539f1f2a8dd1fec367e0680974de3a975521a4c1e17a44393e804120d2a",
+  "loaded_mod_sha256": "e48920f2aef5726d6f1bc3dbee7ebecffc3291e2ad59467e99daadfd565faeaf",
+  "loaded_mod_path": "mods/.cache/com.midnafx.midnafx/g2/mod.dll",
+  "loaded_host_sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+  "sanitization_note": "PID omitted; loaded module path is relative to this isolated trial."
+}

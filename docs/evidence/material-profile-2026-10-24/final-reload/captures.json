@@ -1,0 +1,20 @@
+{
+  "before_reload": {
+    "file": "before-reload.jpg",
+    "sha256": "3f7a44490b7ec38e11b0445f80e2f2188416c1964d11adc048d5bb7816a69759",
+    "dimensions": [
+      1800,
+      1022
+    ],
+    "copied_bytes_equal_to_ignored_original": true
+  },
+  "after_reload": {
+    "file": "after-reload.jpg",
+    "sha256": "1cab1fe1821b53340909eea3ff042fb529d2c68101db036b8449c9bcf93b4c0e",
+    "dimensions": [
+      1800,
+      1022
+    ],
+    "copied_bytes_equal_to_ignored_original": true
+  }
+}

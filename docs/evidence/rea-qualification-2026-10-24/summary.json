@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "qualification_date": "2026-10-24",
+  "platform": "Windows",
+  "target": "owned deterministic native fixture",
+  "files_sha256": {
+    "tools/qualification/rea_fixture.cpp": "dd3a9350ff86ea5f05c6bc9ef975f903ef5390de08275f852faab3473003055d",
+    "tools/qualification/rea_fixture_probe.js": "a921d842a098927c30a0601cf594d9b131dc9f9e4a2b906f954da70a612b9ff2",
+    "build/windows-release/tests/Release/rea_fixture.exe": "73ec568a0472b39c2921708ef9e2c93d66cc09badc89a65e39dc1f592c2ed994",
+    "evidence.json": "c4c1d9b9a7acc8948d690955f0d10ce26255277e938f996898eced66dc769de1"
+  },
+  "ghidra_evidence_id": "ev_12599dbee109483734004ecc58976cf63e9bc82bd8d2b9b8c6f33636b9677cec",
+  "frida_evidence_id": "ev_03a6a84f10c5b01fc69cb4b747b47c2336488023c84597eea4a6730dd7f8ecf3",
+  "ghidra_version": "12.1.2",
+  "frida_version": null,
+  "function": "midnafx_rea_probe",
+  "arithmetic": "uint32: ((input * 3) XOR 0x5a17) + 7",
+  "first_samples": [
+    {
+      "actual": 23070,
+      "event": "sample",
+      "expected": 23070,
+      "input": 0
+    },
+    {
+      "actual": 23067,
+      "event": "sample",
+      "expected": 23067,
+      "input": 1
+    },
+    {
+      "actual": 23064,
+      "event": "sample",
+      "expected": 23064,
+      "input": 2
+    },
+    {
+      "actual": 23077,
+      "event": "sample",
+      "expected": 23077,
+      "input": 3
+    },
+    {
+      "actual": 23074,
+      "event": "sample",
+      "expected": 23074,
+      "input": 4
+    },
+    {
+      "actual": 23071,
+      "event": "sample",
+      "expected": 23071,
+      "input": 5
+    },
+    {
+      "actual": 23052,
+      "event": "sample",
+      "expected": 23052,
+      "input": 6
+    },
+    {
+      "actual": 23049,
+      "event": "sample",
+      "expected": 23049,
+      "input": 7
+    }
+  ],
+  "summary": {
+    "calls": 78,
+    "event": "summary",
+    "mismatches": 0
+  },
+  "observation_summary_is_full_process_call_count": false,
+  "exported_session_state": "running",
+  "exported_cleanup_error": null,
+  "session_id": "6658ed94-0108-459d-907a-9c80f1861519",
+  "pid": 7892,
+  "follow_up": {
+    "provenance": "Follow-up tool observations reported by the parent task; raw follow-up responses are not part of the exported REA evidence bundle.",
+    "session_status": "No open session for the exact session ID",
+    "process_observation": "PID 7892 absent within an eight-second follow-up wait",
+    "session_retired": true,
+    "process_ended": true,
+    "process_exit_code": null
+  },
+  "snapshot": {
+    "retained": false,
+    "local_source": "build/rea/qualification-r1/fixture.snapshot.json",
+    "sha256": "16391dc299bf0881f312de7bd065a57dc079d4a293410e80a7ec714684165a7d",
+    "reason": "The retained evidence bundle already includes the complete selected function analysis and runtime observation."
+  }
+}

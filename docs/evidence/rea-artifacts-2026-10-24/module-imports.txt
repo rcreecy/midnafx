@@ -1,0 +1,226 @@
+Microsoft (R) COFF/PE Dumper Version 14.50.35722.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file C:\dev\midnafx\build\rea\artifact-baseline-r1\mod.dll
+
+File Type: DLL
+
+  Section contains the following imports:
+
+    dusklight.exe
+             180039210 Import Address Table
+             180053410 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                        74D5 wgpuQueueWriteTexture
+                        4F34 ?mDoExt_J3DModel__create@@YAPEAVJ3DModel@@PEAVJ3DModelData@@II@Z
+                        754B wgpuTextureRelease
+                        3FB0 ?getCurrentHeap@JKRHeap@@SAPEAV1@XZ
+                        7540 wgpuTextureCreateView
+                        7517 wgpuShaderModuleRelease
+                        7508 wgpuRenderPipelineRelease
+                        7507 wgpuRenderPipelineGetBindGroupLayout
+                        4CC1 ?loadResource@dRes_info_c@@QEAAHXZ
+                        7504 wgpuRenderPassEncoderSetViewport
+                        7501 wgpuRenderPassEncoderSetScissorRect
+                        74FF wgpuRenderPassEncoderSetPipeline
+                        74FA wgpuRenderPassEncoderSetBindGroup
+                        74EC wgpuRenderPassEncoderDraw
+                        749C wgpuDeviceCreateTexture
+                        749B wgpuDeviceCreateShaderModule
+                        7497 wgpuDeviceCreateRenderPipeline
+                        748B wgpuDeviceCreateComputePipeline
+                        7487 wgpuDeviceCreateBindGroup
+                        7482 wgpuComputePipelineRelease
+                        7481 wgpuComputePipelineGetBindGroupLayout
+                        7479 wgpuComputePassEncoderRelease
+                        747D wgpuComputePassEncoderSetPipeline
+                        747A wgpuComputePassEncoderSetBindGroup
+                        7475 wgpuComputePassEncoderEnd
+                        7473 wgpuComputePassEncoderDispatchWorkgroups
+                        7461 wgpuCommandEncoderBeginComputePass
+                        744B wgpuBindGroupLayoutRelease
+                        744D wgpuBindGroupRelease
+                        74C3 wgpuInstanceWaitAny
+                        5E34 ?sManager@JUTVideo@@0PEAV1@EA
+                        74AC wgpuDevicePushErrorScope
+                        74AB wgpuDevicePopErrorScope
+                        74A5 wgpuDeviceGetQueue
+                        749A wgpuDeviceCreateSampler
+                        4BD3 ?j3dZModeTable@@3PAEA
+                        2A51 ?dComIfGp_roomControl_getStayNo@@YAHXZ
+                        29E3 ?dComIfGp_getStartStageName@@YAPEBDXZ
+                        3971 ?fopAcIt_Executor@@YAHP6AHPEAX0@Z0@Z
+                        4CBD ?loadPreDrawSetting@J3DShape@@QEBAXXZ
+                        331F ?drawFast@J3DShapePacket@@QEAAXXZ
+                        1CB9 ?callDL@J3DDisplayListObj@@QEBAXXZ
+                        72FD GXLoadTexObj
+                        72EB GXInitTexObjLOD
+                        72E5 GXInitTexObj
+                        7347 GXSetNumTevStages
+                        7361 GXSetTevOrder
+                        7324 GXSetAlphaCompare
+                        7352 GXSetTevColor
+                        7351 GXSetTevAlphaOp
+                        7354 GXSetTevColorOp
+                        7350 GXSetTevAlphaIn
+                        7353 GXSetTevColorIn
+                        7372 GXSetZMode
+                        7325 GXSetAlphaUpdate
+                        732E GXSetColorUpdate
+                        7327 GXSetBlendMode
+                        72A8 GXCopyTex
+                        7368 GXSetTexCopyDst
+                        7369 GXSetTexCopySrc
+                        72AA GXDestroyCopyTex
+                        7346 GXSetNumIndStages
+                        418E ?getName@JUTNameTab@@QEBAPEBDG@Z
+                        3B46 ?g_env_light@@3VdScnKy_env_light_c@@A
+                        754F wgpuTextureViewRelease
+                        2F35 ?deleteArchiveRes@dRes_info_c@@QEAAXXZ
+                        7513 wgpuSamplerRelease
+                        192D ?alloc@JKRHeap@@SAPEAXIHPEAV1@@Z
+                        4C74 ?load@J3DModelLoaderDataBase@@SAPEAVJ3DModelData@@PEBXI@Z
+                        2AD5 ?dComIfGp_world_dark_get@@YAEXZ
+                        29BE ?dComIfGp_getPlayer@@YAPEAVfopAc_ac_c@@H@Z
+                        2889 ?dComIfG_getObjectResInfo@@YAPEAVdRes_info_c@@PEBD@Z
+                        391A ?findIdxResource@JKRArchive@@QEBAPEAUSDIFileEntry@1@I@Z
+                        4049 ?getFileAttribute@JKRArchive@@QEBAEI@Z
+                        40D6 ?getIdxResource@JKRArchive@@QEAAPEAXI@Z
+                        72AB GXDestroyTexObj
+                        729A GXCallDisplayList
+                        7313 GXPopDebugGroup
+                        74D1 wgpuQueueRelease
+                        7321 GXPushDebugGroup
+
+    MSVCP140.dll
+             180039058 Import Address Table
+             180053258 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                         591 _Query_perf_frequency
+                         28E ?_Xlength_error@std@@YAXPEBD@Z
+                         28F ?_Xout_of_range@std@@YAXPEBD@Z
+                         590 _Query_perf_counter
+                         5B8 _Thrd_yield
+
+    VCRUNTIME140.dll
+             180039088 Import Address Table
+             180053288 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                          3C memcpy
+                          3B memcmp
+                          23 __std_terminate
+                          21 __std_exception_copy
+                          3D memmove
+                           1 _CxxThrowException
+                          22 __std_exception_destroy
+                          3E memset
+                          1B __current_exception
+                          1C __current_exception_context
+                           8 __C_specific_handler
+                          25 __std_type_info_destroy_list
+
+    VCRUNTIME140_1.dll
+             1800390F0 Import Address Table
+             1800532F0 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           0 __CxxFrameHandler4
+
+    api-ms-win-crt-heap-l1-1-0.dll
+             180039100 Import Address Table
+             180053300 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           8 _callnewh
+                          19 malloc
+                          18 free
+
+    api-ms-win-crt-stdio-l1-1-0.dll
+             1800391E8 Import Address Table
+             1800533E8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                           D __stdio_common_vsprintf
+
+    api-ms-win-crt-string-l1-1-0.dll
+             1800391F8 Import Address Table
+             1800533F8 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                          86 strcmp
+                          8B strlen
+
+    api-ms-win-crt-math-l1-1-0.dll
+             180039120 Import Address Table
+             180053320 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                          B4 exp2f
+                          1D _fdclass
+                         119 tanf
+                          91 cosf
+                         10A roundf
+                          B6 expf
+                          CA fmodf
+                          D0 ldexp
+                          57 atanf
+                          4B acosf
+                         117 sqrtf
+                          7D ceilf
+
+    api-ms-win-crt-runtime-l1-1-0.dll
+             180039188 Import Address Table
+             180053388 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                          67 terminate
+                          3F _seh_filter_dll
+                          18 _configure_narrow_argv
+                          33 _initialize_narrow_environment
+                          16 _cexit
+                          34 _initialize_onexit_table
+                          36 _initterm
+                          37 _initterm_e
+                          3C _register_onexit_function
+                          1E _crt_atexit
+                          22 _execute_onexit_table
+
+    KERNEL32.dll
+             180039000 Import Address Table
+             180053200 Import Name Table
+                     0 time date stamp
+                     0 Index of first forwarder reference
+
+                         142 DisableThreadLibraryCalls
+                         31A GetSystemTimeAsFileTime
+                         246 GetCurrentThreadId
+                         242 GetCurrentProcessId
+                         481 QueryPerformanceCounter
+                         5CA SleepConditionVariableSRW
+                         62D WakeAllConditionVariable
+                           0 AcquireSRWLockExclusive
+                         4EA ReleaseSRWLockExclusive
+                         39A InitializeSListHead
+
+  Summary
+
+        3000 .data
+        3000 .pdata
+       1C000 .rdata
+        1000 .reloc
+        1000 .rsrc
+       38000 .text
+        1000 modmeta

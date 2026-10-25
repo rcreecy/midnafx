@@ -42,6 +42,7 @@ DEFINE_HOOK(&J3DShape::drawFast, AssetShapeDraw);
 bool draw_hook = false;
 bool draw_scopes[8]{};
 bool body_scopes[8]{};
+bool warm_scopes[8]{};
 void* draw_args[8]{};
 unsigned draw_depth = 0;
 unsigned long long draw_epoch = 0;
@@ -51,14 +52,26 @@ dRes_info_c* pumpkin_owner = nullptr;
 unsigned long long draw_probe_calls = 0, draw_probe_ns = 0;
 std::atomic<bool> draw_sample_requested{false};
 std::atomic<bool> body_control_requested{false};
+std::atomic<bool> warm_profile_requested{false};
 struct BodyBinding {
     dRes_info_c* owner = nullptr;
     unsigned index = 0;
     J3DMaterial* material = nullptr;
 } body_binding;
 bool body_control_last = false;
+bool warm_profile_last = false;
 unsigned long long body_applies = 0, body_restores = 0, body_rejections = 0;
-void body_event(const char* event) noexcept {
+unsigned long long warm_applies = 0, warm_restores = 0, warm_rejections = 0;
+void warm_event(const char* event) noexcept {
+    if (!svc_log) return;
+    char message[256];
+    std::snprintf(message, sizeof(message),
+        "MaterialProfile event=%s profile=pumpkin-warm requested=%u bound=%u applies=%llu restores=%llu rejected=%llu",
+        event, unsigned(warm_profile_requested.load(std::memory_order_relaxed)),
+        unsigned(body_binding.material != nullptr), warm_applies, warm_restores, warm_rejections);
+    svc_log->info(mod_ctx, message);
+}
+void body_event(const char* event, bool shared = true) noexcept {
     if (!svc_log) return;
     char message[256];
     std::snprintf(message, sizeof(message),
@@ -66,6 +79,7 @@ void body_event(const char* event) noexcept {
         event, unsigned(body_control_requested.load(std::memory_order_relaxed)),
         unsigned(body_binding.material != nullptr), body_applies, body_restores, body_rejections);
     svc_log->info(mod_ctx, message);
+    if (shared) warm_event(event);
 }
 bool qualifies_body(J3DMaterial* material) noexcept {
     if (!material || material->getIndex() != 1 || !material->getTevBlock() ||
@@ -82,6 +96,17 @@ bool qualifies_body_source(const unsigned char* bytes, unsigned size, bool nativ
     // The pinned little-endian native loader swaps vertex/joint/VCD fields in
     // place. Cached bytes therefore have a separate, qualified fingerprint.
     return hash == (native_loaded ? 0x7073c7ae329d074dULL : 0x9b2ddb5ecbd95421ULL);
+}
+bool qualifies_warm(J3DMaterial* material) noexcept {
+    if (!qualifies_body(material) || !material->getColorBlock()) return false;
+    const auto* color = material->getMatColor(0);
+    const auto* rgb = material->getColorChan(0);
+    // J3D stores RGB0, alpha0, RGB1, alpha1; load() emits 0,2,1,3 to XF.
+    const auto* alpha = material->getColorChan(1);
+    auto* order = material->getTevBlock()->getTevOrder(0);
+    return color && rgb && alpha && order && material_scope::qualifies_material_color(
+        material->getColorBlock()->getColorChanNum(), rgb->getMatSrc(), alpha->getMatSrc(),
+        order->getTevOrderInfo().mColorChan, {color->r, color->g, color->b, color->a});
 }
 void bind_body(dRes_info_c* owner, unsigned index, J3DModelData* model, const char* event) {
     auto* material = model && model->getMaterialNum() == 2 ? model->getMaterialNodePointer(1) : nullptr;
@@ -187,13 +212,19 @@ void failure() noexcept {
 }
 HookAction before_shape(ModContext*, void* args, void*, void*) {
     const bool control = body_control_requested.load(std::memory_order_relaxed);
+    const bool warm = warm_profile_requested.load(std::memory_order_relaxed);
     if (!draw_depth && control != body_control_last) {
         body_control_last = control;
-        body_event(control ? "enabled" : "disabled");
+        body_event(control ? "enabled" : "disabled", false);
         if (control) bind_cached_body();
     }
+    if (!draw_depth && warm != warm_profile_last) {
+        warm_profile_last = warm;
+        warm_event(warm ? "enabled" : "disabled");
+        if (warm) bind_cached_body();
+    }
     const bool observe = settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled();
-    if (!draw_depth && !observe && !control) return HOOK_CONTINUE;
+    if (!draw_depth && !observe && !control && !warm) return HOOK_CONTINUE;
     if (!args || draw_depth >= 8) return HOOK_CONTINUE;
     DrawProbeTimer timer(observe);
     if (observe) ++draw_probe_calls;
@@ -201,6 +232,7 @@ HookAction before_shape(ModContext*, void* args, void*, void*) {
     draw_args[depth] = args;
     draw_scopes[depth] = false;
     body_scopes[depth] = false;
+    warm_scopes[depth] = false;
     try {
         const auto* shape = mods::arg<const J3DShape*>(args, 0);
         auto* material = shape ? shape->getMaterial() : nullptr;
@@ -215,6 +247,17 @@ HookAction before_shape(ModContext*, void* args, void*, void*) {
                 ++body_rejections;
                 body_binding.material = nullptr;
                 body_event("stage-rejected");
+            }
+        }
+        if (warm && !depth && material && material == body_binding.material) {
+            if (qualifies_warm(material)) {
+                GXCallDisplayList(material_scope::warm_material_color.bytes.data(),
+                                  sizeof(material_scope::warm_material_color));
+                warm_scopes[depth] = true;
+                ++warm_applies;
+            } else if (!warm_rejections++) {
+                // Preserve a binding still valid for the separate SCALE proof.
+                warm_event("color-rejected");
             }
         }
         if (!observe) return HOOK_CONTINUE;
@@ -264,6 +307,12 @@ void after_shape(ModContext*, void* args, void*, void*) {
     draw_args[depth] = nullptr;
     // Restoration cannot depend on the current UI request: it may change between
     // callbacks. The copied FIFO bytes hold no pointer into the game material.
+    if (depth < 8 && warm_scopes[depth]) {
+        GXCallDisplayList(material_scope::restore_material_color.bytes.data(),
+                          sizeof(material_scope::restore_material_color));
+        warm_scopes[depth] = false;
+        ++warm_restores;
+    }
     if (depth < 8 && body_scopes[depth]) {
         GXCallDisplayList(material_scope::restore.bytes.data(), sizeof(material_scope::restore));
         body_scopes[depth] = false;
@@ -281,6 +330,12 @@ void set_body_control(bool enabled) noexcept {
 bool body_control_enabled() noexcept {
     return body_control_requested.load(std::memory_order_relaxed);
 }
+void set_warm_profile(bool enabled) noexcept {
+    warm_profile_requested.store(enabled, std::memory_order_relaxed);
+}
+bool warm_profile_enabled() noexcept {
+    return warm_profile_requested.load(std::memory_order_relaxed);
+}
 void request_draw_sample() noexcept {
     if (settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled())
         draw_sample_requested.store(true, std::memory_order_relaxed);
@@ -291,6 +346,8 @@ void initialize_draw_probe(bool resource_hooks_ready) {
     draw_probe_calls = draw_probe_ns = 0;
     body_applies = body_restores = body_rejections = 0;
     body_control_last = false;
+    warm_applies = warm_restores = warm_rejections = 0;
+    warm_profile_last = false;
     if (!svc_hook || !resource_hooks_ready) return;
     draw_hook = mods::hook::add_pre<AssetShapeDraw>(before_shape) == MOD_OK &&
                 mods::hook::add_post<AssetShapeDraw>(after_shape) == MOD_OK;
@@ -314,7 +371,8 @@ void begin(dRes_info_c* owner) noexcept {
     if (!owner || !owner->mArchive || !owner->mArchiveName) return;
     try {
         // Independent of discovery limits and diagnostic logging.
-        if (draw_hook && body_control_enabled() && !std::strcmp(owner->mArchiveName, "pumpkin")) {
+        if (draw_hook && (body_control_enabled() || warm_profile_enabled()) &&
+            !std::strcmp(owner->mArchiveName, "pumpkin")) {
             body_binding = {};
             auto* archive = owner->mArchive;
             for (unsigned i = 0; i < unsigned(archive->countFile()); ++i) {

@@ -1,0 +1,40 @@
+{
+  "frame_timing_file": null,
+  "config": {
+    "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+    "video.rememberWindowSize": true,
+    "game.pauseOnFocusLost": false,
+    "video.lastWindowHeight": 720,
+    "mod.com_midnafx_midnafx.pumpkin_warm_profile": true,
+    "game.autoSave": false,
+    "video.lastWindowWidth": 960,
+    "backend.enableAdvancedSettings": true,
+    "game.enableTextureReplacements": true,
+    "game.enableControllerToasts": false,
+    "mod.com_midnafx_midnafx.asset_diagnostics": false,
+    "video.enableFullscreen": false,
+    "mod.com_midnafx_midnafx.pumpkin_body_control": false,
+    "mod.com_midnafx_midnafx.anti_aliasing": true,
+    "video.enableVsync": true,
+    "backend.isoVerification": 0,
+    "backend.wasPresetChosen": true
+  },
+  "host_images": [
+    {
+      "sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+      "name": "dusklight.exe"
+    }
+  ],
+  "host_sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+  "frame_timing_requested": false,
+  "utc_start": "2026-10-25T15:00:05.4179557Z",
+  "variant": "patched-off",
+  "name": "warm-roundtrip-r1",
+  "host_executable_name": "dusklight.exe",
+  "package_sha256": "01582539f1f2a8dd1fec367e0680974de3a975521a4c1e17a44393e804120d2a",
+  "launch_context": {
+    "backend": "d3d12",
+    "stage": "F_SP103,0,27,0"
+  },
+  "evidence_note": "Initial launch settings only. Disc path, arguments, PID and ASLR addresses are omitted. The unchanged exit receipt separately retains this owned process PID."
+}

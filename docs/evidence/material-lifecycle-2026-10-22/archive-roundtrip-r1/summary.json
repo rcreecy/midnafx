@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "trial": "archive-roundtrip-r1",
+  "platform": "Windows",
+  "backend": "D3D12",
+  "source_log": "build/material-control/archive-roundtrip-r1/stdout.log",
+  "source_log_sha256": "7eb3f9621c11b49625008125ff0577cb8acef9deb96fe57844dea89caa028c0f",
+  "initial_stage": "F_SP103,0,27,0",
+  "route": [
+    "F_SP103,0,27,0",
+    "F_SP127,0,0,0",
+    "F_SP103,0,27,0"
+  ],
+  "route_evidence": "Stage names occur in this order in the selected WaterClass logs; destination parameters are the recorded trial route, not reconstructed from those stage-only log lines.",
+  "stage_events": [
+    {
+      "source_line": 1467,
+      "stage": "F_SP103"
+    },
+    {
+      "source_line": 2716,
+      "stage": "F_SP127"
+    },
+    {
+      "source_line": 4147,
+      "stage": "F_SP103"
+    }
+  ],
+  "control_events": [
+    {
+      "source_line": 617,
+      "event": "bound-pumpkin-body",
+      "requested": 1,
+      "bound": 1,
+      "applies": 0,
+      "restores": 0,
+      "rejected": 0
+    },
+    {
+      "source_line": 1781,
+      "event": "enabled",
+      "requested": 1,
+      "bound": 1,
+      "applies": 0,
+      "restores": 0,
+      "rejected": 0
+    },
+    {
+      "source_line": 1954,
+      "event": "archive-delete",
+      "requested": 1,
+      "bound": 0,
+      "applies": 17982,
+      "restores": 17982,
+      "rejected": 0
+    },
+    {
+      "source_line": 3054,
+      "event": "bound-pumpkin-body",
+      "requested": 1,
+      "bound": 1,
+      "applies": 17982,
+      "restores": 17982,
+      "rejected": 0
+    },
+    {
+      "source_line": 7191,
+      "event": "shutdown",
+      "requested": 1,
+      "bound": 1,
+      "applies": 515310,
+      "restores": 515310,
+      "rejected": 0
+    }
+  ],
+  "captures": [
+    {
+      "file": "ordon-before.jpg",
+      "sha256": "21e137281aeddd5633942545c7ea61eb7930203ab3b7c3b387e1affe618befc6",
+      "bytes": 123180,
+      "unchanged_copy": true,
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "file": "pond-away.jpg",
+      "sha256": "ca747cf94059e17d9340fd780bd3369202b6340f0a5045ea1e931d68e27b3c2c",
+      "bytes": 97439,
+      "unchanged_copy": true,
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "file": "ordon-return-bound.jpg",
+      "sha256": "8c2100d84c4ef1769505c94cd75a627172ac352d59a6d4ecc85deaca037011c2",
+      "bytes": 108543,
+      "unchanged_copy": true,
+      "width": 1024,
+      "height": 768
+    }
+  ],
+  "shutdown": {
+    "all_mods_unloaded": true,
+    "discord_shutdown_logged": true,
+    "graphics_device_destruction_logged": true,
+    "process_exit_code": null,
+    "process_exit_code_note": "No process exit code was retained; teardown log records are not an exit-code assertion."
+  },
+  "limitations": [
+    "Three unchanged screenshots show scene rendering; they are not matched pixel comparisons.",
+    "Time of day and other scene state differ after the round trip.",
+    "This is one original-asset archive round trip with the two existing external texture replacements enabled.",
+    "No frame timing, allocation, GPU duration, broad motion-quality, or macOS runtime qualification is established."
+  ]
+}

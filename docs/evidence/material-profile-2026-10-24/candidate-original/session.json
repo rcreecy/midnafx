@@ -1,0 +1,40 @@
+{
+  "variant": "patched-off",
+  "host_images": [
+    {
+      "name": "dusklight.exe",
+      "sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4"
+    }
+  ],
+  "name": "warm-original-r1",
+  "host_sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+  "frame_timing_file": null,
+  "config": {
+    "game.enableControllerToasts": false,
+    "mod.com_midnafx_midnafx.pumpkin_body_control": false,
+    "backend.enableAdvancedSettings": true,
+    "game.enableTextureReplacements": false,
+    "video.lastWindowHeight": 720,
+    "backend.isoVerification": 0,
+    "game.pauseOnFocusLost": false,
+    "mod.com_midnafx_midnafx.asset_diagnostics": false,
+    "video.enableFullscreen": false,
+    "backend.wasPresetChosen": true,
+    "mod.com_midnafx_midnafx.anti_aliasing": true,
+    "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+    "video.lastWindowWidth": 960,
+    "video.enableVsync": true,
+    "mod.com_midnafx_midnafx.pumpkin_warm_profile": false,
+    "video.rememberWindowSize": true,
+    "game.autoSave": false
+  },
+  "package_sha256": "e0f62c1a95b3d3dfe35836c6ae821ba5fc871298b18c4e578a2c29064a51f80e",
+  "utc_start": "2026-10-25T00:04:13.0926496Z",
+  "frame_timing_requested": false,
+  "host_executable_name": "dusklight.exe",
+  "launch_context": {
+    "backend": "d3d12",
+    "stage": "F_SP103,0,27,0"
+  },
+  "evidence_note": "Initial launch settings only. Later UI toggles are recorded by the capture sequence and selected control events. Disc paths, arguments, PID and ASLR addresses are omitted."
+}

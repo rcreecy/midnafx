@@ -12,9 +12,28 @@ constexpr bool qualifies_stage(unsigned stage_count, std::uint8_t color_op,
     return stage_count == 1 && color_op == 0x28 && color_ab == 0xf8 && color_cd == 0xaf;
 }
 
+// Native GX source zero is GX_SRC_REG; raster channel four is GX_COLOR0A0.
+// Resource identity and the original TEV stage require separate qualification.
+constexpr bool qualifies_material_color(unsigned channel_count, unsigned rgb_source,
+                                        unsigned alpha_source, unsigned raster_channel,
+                                        std::array<std::uint8_t, 4> color) noexcept {
+    return channel_count == 1 && rgb_source == 0 && alpha_source == 0 && raster_channel == 4 &&
+           color == std::array<std::uint8_t, 4>{255, 255, 255, 255};
+}
+
 struct alignas(32) CommandBuffer {
     std::array<std::uint8_t, 32> bytes;
 };
+
+constexpr CommandBuffer material_color_command(std::uint8_t red, std::uint8_t green,
+                                               std::uint8_t blue, std::uint8_t alpha = 255) noexcept {
+    // One XF register write to material color zero (0x100c). Remaining bytes are
+    // GX NOPs. The authored profile preserves its qualified original alpha.
+    return {{{0x10, 0x00, 0x00, 0x10, 0x0c, red, green, blue, alpha}}};
+}
+
+inline constexpr CommandBuffer warm_material_color = material_color_command(255, 240, 224);
+inline constexpr CommandBuffer restore_material_color = material_color_command(255, 255, 255);
 
 namespace detail {
 constexpr CommandBuffer scale_command(std::uint8_t scale) noexcept {

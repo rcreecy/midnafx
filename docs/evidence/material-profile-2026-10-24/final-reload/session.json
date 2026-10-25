@@ -1,0 +1,40 @@
+{
+  "host_images": [
+    {
+      "name": "dusklight.exe",
+      "sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4"
+    }
+  ],
+  "variant": "patched-off",
+  "package_sha256": "01582539f1f2a8dd1fec367e0680974de3a975521a4c1e17a44393e804120d2a",
+  "frame_timing_file": null,
+  "config": {
+    "video.lastWindowHeight": 720,
+    "video.enableFullscreen": false,
+    "game.autoSave": false,
+    "backend.wasPresetChosen": true,
+    "video.lastWindowWidth": 960,
+    "video.rememberWindowSize": true,
+    "game.enableControllerToasts": false,
+    "video.enableVsync": true,
+    "game.pauseOnFocusLost": false,
+    "mod.com_midnafx_midnafx.asset_draw_diagnostics": false,
+    "backend.isoVerification": 0,
+    "mod.com_midnafx_midnafx.asset_diagnostics": false,
+    "backend.enableAdvancedSettings": true,
+    "mod.com_midnafx_midnafx.pumpkin_body_control": false,
+    "mod.com_midnafx_midnafx.anti_aliasing": true,
+    "game.enableTextureReplacements": true,
+    "mod.com_midnafx_midnafx.pumpkin_warm_profile": true
+  },
+  "utc_start": "2026-10-25T00:13:02.6457080Z",
+  "frame_timing_requested": false,
+  "host_sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+  "name": "warm-final-r1",
+  "host_executable_name": "dusklight.exe",
+  "launch_context": {
+    "backend": "d3d12",
+    "stage": "F_SP103,0,27,0"
+  },
+  "evidence_note": "Initial launch settings only. Disc paths, arguments, PID and ASLR addresses are omitted. The initial window configuration differs from the retained 1800 x 1022 captures."
+}

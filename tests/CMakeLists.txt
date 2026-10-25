@@ -88,3 +88,8 @@ if(MIDNAFX_BUILD_MOD)
         "${CMAKE_BINARY_DIR}/mods/midnafx.dusk"
         "${PROJECT_VERSION}")
 endif()
+if(WIN32)
+    # Explicit opt-in target: never part of the product package or default tests.
+    add_executable(rea_fixture EXCLUDE_FROM_ALL ../tools/qualification/rea_fixture.cpp)
+    target_compile_features(rea_fixture PRIVATE cxx_std_20)
+endif()

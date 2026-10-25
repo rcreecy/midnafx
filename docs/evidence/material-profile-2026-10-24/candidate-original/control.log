@@ -1,0 +1,13 @@
+[DEBUG | dusk] Loading Resource: pumpkin.arc (Size: 18080)
+[DEBUG | dusk] Loading Resource: pumpkin.bmd (Size: 17824)
+[INFO | com.midnafx.midnafx] MaterialProfile event=enabled profile=pumpkin-warm requested=1 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=bound-cached-pumpkin-body requested=0 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=bound-cached-pumpkin-body profile=pumpkin-warm requested=1 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=disabled profile=pumpkin-warm requested=0 bound=1 applies=7056 restores=7056 rejected=0
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=1 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=shutdown profile=pumpkin-warm requested=0 bound=1 applies=7056 restores=7056 rejected=0
+[INFO | dusk::mods::loader] all mods unloaded
+[INFO | dusk::discord] Discord Rich Presence shut down
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.

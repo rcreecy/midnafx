@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"error\":{\"code\":\"invalid_request\",\"category\":\"invalid_input\",\"message\":\"Analysis input is invalid. Check the arguments and try again.\",\"retryable\":true,\"remediation\":{\"action\":\"Correct the listed arguments and retry.\"},\"details\":{\"operation\":\"frida_session_status\",\"issues\":[{\"path\":[\"session_id\"],\"reason\":\"invalid_value\",\"message\":\"No open Frida session f0737f0a-eefa-427a-88ff-b211b3791d4d; start one with start_frida_session.\"}]}}}"
+    }
+  ],
+  "isError": true
+}
