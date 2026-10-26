@@ -1,0 +1,9 @@
+[INFO | com.midnafx.midnafx] Character decoder inputs: pos=4e3f296bd57a0546 draws=64cd95371d37df8f descriptors=0000000000000000 type=4 stride=12 frac=0
+[INFO | com.midnafx.midnafx] Character shading source: native_hash=c945defef88edfc9 normals=2282 topology=fefc475b8f9a6309
+[INFO | com.midnafx.midnafx] Geometry restore proof: bytes=13692 hash=3f85e23fd6ac3e78 exact=yes
+[INFO | com.midnafx.midnafx] Character decoder inputs: pos=1a64a7d75b9baeae draws=e8443159db0e3e8a descriptors=786f6eaf069e363a type=4 stride=12 frac=0
+[INFO | com.midnafx.midnafx] Character shading source: native_hash=0387df6437835108 normals=1733 topology=7948281af98409cd
+[INFO | com.midnafx.midnafx] Geometry qualification: Kmdl/al.bmd class=SAFE knownGood=yes reason=qualified classifyUs=574 planUs=2039 applied=yes processed=1
+[INFO | com.midnafx.midnafx] Geometry restore proof: bytes=10398 hash=2e9eeeef4f38da8e exact=yes
+[INFO | com.midnafx.midnafx] Character decoder inputs: pos=1a64a7d75b9baeae draws=22763bd9329ca1b3 descriptors=786f6eaf069e363a type=4 stride=12 frac=0
+[INFO | com.midnafx.midnafx] Geometry qualification: Kmdl/al.bmd class=UNSUPPORTED knownGood=no reason=unproven skinning or matrix ownership classifyUs=0 planUs=0 applied=no processed=1

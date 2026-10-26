@@ -15,9 +15,10 @@ retain their settings until a profile is selected.
 
 MidnaFX 1.4 adds **Enhanced Link shading** to Basic controls and the
 Remaster profile. It conservatively smooths supported regions of Link's original
-casual outfit, preserving uncertain normals and authored boundaries. It activates
+Ordon Clothes and, since 1.4.1, Hero's Clothes, preserving uncertain normals and
+authored boundaries. It activates
 on the resident model; disabling it or selecting Vanilla restores the original
-normal bytes. Other outfits and replacement models are unchanged. This improves
+normal bytes. Armor outfits and replacement models are unchanged. This improves
 lighting continuity without adding polygons or changing the silhouette.
 
 MidnaFX is an experimental native visual processing mod for Dusklight. It provides a fused

@@ -972,7 +972,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enhanced model shading", geometry_smoothing);
     add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Smooths supported regions of Link's original casual outfit. Other outfits and replacement models stay unchanged.", nullptr));
+        "Smooths supported regions of Link's original Ordon and Hero's Clothes. Armor outfits and replacement models stay unchanged.", nullptr));
     add_toggle(panel, "Modern exploration camera", camera_toggle);
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
@@ -1084,7 +1084,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Hard normal splits and material boundaries are always preserved. Unsupported or ambiguous models are skipped. "
-        "Link's supported casual outfit updates immediately and restores source normals when disabled. "
+        "Link's supported Ordon and Hero's Clothes update on the next game update and restore source normals when disabled. "
         "Other model shading requires enabling before a scene load.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
     add_toggle(panel, "Bypass color look", look_bypass);

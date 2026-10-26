@@ -57,13 +57,15 @@ bool character_enabled_last = false;
 struct CharacterTarget {
     const char* archive;
     const char* file;
-    u32 size, positions, shapes, envelopes, triangles, fraction;
-    std::uint64_t loaded_hash;
+    u32 size, positions, normals, shapes, envelopes, triangles, fraction;
+    std::uint64_t loaded_hash, corner_hash;
 };
 // Native hashes are measured before any normal mutation of the original source.
 constexpr CharacterTarget character_targets[]{
-    {"Bmdl", "bl.bmd", 165088, 2301, 8, 133, 3617, 15,
-     0xc945defef88edfc9ULL},
+    {"Bmdl", "bl.bmd", 165088, 2301, 2282, 8, 133, 3617, 15,
+     0xc945defef88edfc9ULL, 0xfefc475b8f9a6309ULL},
+    {"Kmdl", "al.bmd", 140448, 1560, 1733, 18, 110, 2777, 14,
+     0x0387df6437835108ULL, 0x7948281af98409cdULL},
 };
 
 std::uint64_t fnv1a(const std::byte* data, std::size_t size) {
@@ -443,6 +445,25 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const u32 normal_count = vertex.getNrmNum();
     const u32 stride = vertex.getVtxArrStride(GX_VA_POS);
     const int pos_type = vertex.getVtxPosType();
+    const auto character = std::find_if(std::begin(character_targets), std::end(character_targets),
+        [&](const CharacterTarget& item) {
+            return !owned_replacement && info.mArchiveName && std::strcmp(info.mArchiveName, item.archive) == 0 &&
+                std::strcmp(name, item.file) == 0 && resource_size == item.size &&
+                pos_count == item.positions && normal_count == item.normals &&
+                model.getShapeNum() == item.shapes &&
+                model.getWEvlpMtxNum() == item.envelopes;
+        });
+    const auto native_character_hash = character != std::end(character_targets)
+        ? character_identity::normalized_loaded_hash(
+            {static_cast<const std::byte*>(model.getRawData()), resource_size}) : 0;
+    const bool original_character_source = character != std::end(character_targets) &&
+        native_character_hash != 0 && native_character_hash == character->loaded_hash;
+    if (character != std::end(character_targets) && !original_character_source) {
+        char message[120];
+        std::snprintf(message, sizeof(message), "Character shading identity mismatch: native_hash=%016llx",
+            static_cast<unsigned long long>(native_character_hash));
+        svc_log->info(mod_ctx, message);
+    }
     topology::Result result;
     std::vector<topology::Vec3> positions;
     std::uint64_t peak_vector_bytes = 0;
@@ -484,21 +505,50 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 result.error = "missing shape descriptor";
                 break;
             }
-            const auto* raw = shape->getVtxDesc();
-            for (unsigned i = 0; i < 32 && raw[i].attr != GX_VA_NULL; ++i)
-                attrs[si].push_back({static_cast<std::uint8_t>(raw[i].attr),
-                                     static_cast<std::uint8_t>(raw[i].type)});
+            if (original_character_source) {
+                const auto descriptor = character_identity::source_attributes(
+                    {static_cast<const std::byte*>(model.getRawData()), resource_size}, si);
+                if (descriptor.empty()) {
+                    result.error = "invalid original character descriptor";
+                    break;
+                }
+                for (std::size_t i = 0; i < descriptor.size(); i += 8) {
+                    std::uint32_t attribute, kind;
+                    std::memcpy(&attribute, descriptor.data() + i, 4);
+                    std::memcpy(&kind, descriptor.data() + i + 4, 4);
+                    attrs[si].push_back({static_cast<std::uint8_t>(attribute),
+                                         static_cast<std::uint8_t>(kind)});
+                }
+            } else {
+                const auto* raw = shape->getVtxDesc();
+                for (unsigned i = 0; i < 32 && raw[i].attr != GX_VA_NULL; ++i)
+                    attrs[si].push_back({static_cast<std::uint8_t>(raw[i].attr),
+                                         static_cast<std::uint8_t>(raw[i].type)});
+            }
             if (attrs[si].size() == 32) {
                 result.error = "unterminated shape descriptor";
                 break;
             }
             for (u16 gi = 0; gi < shape->getMtxGroupNum(); ++gi) {
-                auto* draw = shape->getShapeDraw(gi);
-                if (!draw) {
-                    result.error = "missing shape draw";
-                    break;
+                if (original_character_source) {
+                    // Native optimized draw copies can change during gameplay.
+                    // Plan from the fingerprinted original draw, without changing
+                    // the native draw copy or its visibility/animation state.
+                    const auto draw = character_identity::source_draw(
+                        {static_cast<const std::byte*>(model.getRawData()), resource_size}, si, gi);
+                    if (draw.empty()) {
+                        result.error = "invalid original character draw";
+                        break;
+                    }
+                    groups[si].push_back({draw.data(), draw.size()});
+                } else {
+                    auto* draw = shape->getShapeDraw(gi);
+                    if (!draw) {
+                        result.error = "missing shape draw";
+                        break;
+                    }
+                    groups[si].push_back({draw->getDisplayList(), draw->getDisplayListSize()});
                 }
-                groups[si].push_back({draw->getDisplayList(), draw->getDisplayListSize()});
             }
             if (result.error)
                 break;
@@ -525,16 +575,8 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     const bool link_exact = rebuilt && rebuilt->kind == Replacement::Kind::LinkBody &&
                             result.corner_hash == 0x6ed5b0df43c35b63ULL && pos_count == 1560 &&
                             normal_count == 10064 && model.getWEvlpMtxNum() == 110;
-    const auto character = std::find_if(std::begin(character_targets), std::end(character_targets),
-        [&](const CharacterTarget& item) {
-            return !rebuilt && info.mArchiveName && std::strcmp(info.mArchiveName, item.archive) == 0 &&
-                std::strcmp(name, item.file) == 0 && resource_size == item.size &&
-                pos_count == item.positions && model.getShapeNum() == item.shapes &&
-                model.getWEvlpMtxNum() == item.envelopes && result.triangles.size() == item.triangles;
-        });
-    const bool original_character = character != std::end(character_targets) &&
-        character_identity::normalized_loaded_hash(
-            {static_cast<const std::byte*>(model.getRawData()), resource_size}) == character->loaded_hash;
+    const bool original_character = original_character_source &&
+        result.triangles.size() == character->triangles && result.corner_hash == character->corner_hash;
     const bool nest_exact = rebuilt && rebuilt->kind == Replacement::Kind::Nest &&
                             result.corner_hash == 0xd107e10bca9ec9d0ULL && pos_count == 61 &&
                             normal_count == 400 && model.getWEvlpMtxNum() == 0;
@@ -592,9 +634,8 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         if (original_character) {
             char message[224];
             std::snprintf(message, sizeof(message),
-                          "Character shading source: native_hash=%016llx normals=%u topology=%016llx",
-                          static_cast<unsigned long long>(character_identity::normalized_loaded_hash(
-                              {static_cast<const std::byte*>(model.getRawData()), resource_size})),
+                          "Character shading source: native_hash=%016llx normals=%u topology=%016llx draw_source=original",
+                          static_cast<unsigned long long>(native_character_hash),
                           normal_count, static_cast<unsigned long long>(result.corner_hash));
             svc_log->info(mod_ctx, message);
         }

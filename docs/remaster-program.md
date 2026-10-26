@@ -106,6 +106,13 @@ localized pixel change. Other outfits and replacement models remain unchanged.
 See [character shading](character-shading.md). The older standard-outfit rebuild
 experiment remains outside this product path; no new mesh geometry is claimed.
 
+The 2026-10-26 follow-up extends the supported identities to original Hero's
+Clothes. It also repairs re-enable after native heap draw copies change, by
+planning from fingerprinted original draws paired with original descriptors.
+Native outfit switching, direct restoration, re-enable and module reload pass
+with 194 changed standard-outfit normals and exact restoration of 10,398 bytes.
+See the [artifact-specific record](evidence/standard-link-2026-10-26/README.md).
+
 The first authored material profile adds a subtle warm RGB gain to the exact
 original pumpkin body while preserving native lighting and alpha. It defaults
 off and works with external replacements independently of diagnostics and the
