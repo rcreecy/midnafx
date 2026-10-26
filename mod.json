@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": "MidnaFX contributors",
-  "description": "Remaster profile with adaptive exposure, contact shading, depth atmosphere, grading, camera controls and enhanced water"
+  "description": "Remaster profile with filtered contact shading, adaptive exposure, depth atmosphere, grading, camera controls and enhanced water"
 }

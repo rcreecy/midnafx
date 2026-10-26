@@ -83,7 +83,7 @@ jobs:
         # Remote macOS jobs still compile/package and run the portable tests.
         run: |
           if [[ "${{ matrix.platform }}" == "macos-x86_64" ]]; then
-            ctest --preset "${{ matrix.preset }}" -E '^aa_pixels$'
+            ctest --preset "${{ matrix.preset }}" -E '^(aa_pixels|ambient_pixels)$'
           else
             ctest --preset "${{ matrix.preset }}"
           fi

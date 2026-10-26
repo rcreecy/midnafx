@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.6 upgrades **ambient contact shading** across opaque scenery and
+characters. A denser half-resolution AO field receives depth/normal-aware
+filtering and edge-aware reconstruction, improving contacts without temporal
+history or per-asset lists. Existing AO controls and the Remaster profile use
+the upgrade automatically. See [contact shading](docs/ambient-occlusion.md).
+
 MidnaFX 1.5 adds **Adaptive exposure** across the entire scene, including scenery,
 characters and replacement textures. It gradually opens dark views and restrains
 bright views, with bounded correction that preserves the game's night and dungeon

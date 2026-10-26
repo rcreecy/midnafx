@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.6.0 - 2026-10-26
+
+- Replace the 16-tap full-resolution AO kernel with a 32-tap half-resolution
+  contact field, separable surface-aware filtering and edge-aware reconstruction.
+  The shared path covers opaque scenery and characters without asset allowlists.
+- Preserve native full-precision depth through filtering to avoid distant contact
+  errors. Scale the sample-radius cap with resolution and retain scene alpha,
+  translucent/water ordering and the native HUD.
+- Retire resized AO resources after their last queued callback; validate resource
+  creation and preserve independent atmosphere when AO is unavailable.
+- Keep existing AO controls and Remaster defaults. Add focused GPU contact,
+  surface isolation, fog fallback and degenerate-dimension checks. Native Mac
+  gameplay and whole-game motion/performance qualification remain unavailable/open.
+
 ## 1.5.0 - 2026-10-26
 
 - Add scene-wide adaptive exposure without asset identities or material allowlists.

@@ -1,4 +1,5 @@
 #include "adaptive_exposure.hpp"
+#include "gpu_validation.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include <d/d_com_inf_game.h>
@@ -9,7 +10,6 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
-#include <thread>
 #include <utility>
 
 namespace midnafx::render::adaptive_exposure {
@@ -36,35 +36,6 @@ std::uint64_t last_layout = 0;
 std::array<char, 8> last_stage{};
 int last_room = -1;
 std::chrono::steady_clock::time_point last_time{};
-
-void begin_scopes() {
-    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_OutOfMemory);
-    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Internal);
-    wgpuDevicePushErrorScope(device.device, WGPUErrorFilter_Validation);
-}
-bool end_scopes() {
-    bool valid = true;
-    for (unsigned i = 0; i < 3; ++i) {
-        bool ok = false;
-        WGPUPopErrorScopeCallbackInfo callback = WGPU_POP_ERROR_SCOPE_CALLBACK_INFO_INIT;
-        callback.mode = WGPUCallbackMode_WaitAnyOnly;
-        callback.userdata1 = &ok;
-        callback.callback = [](WGPUPopErrorScopeStatus status, WGPUErrorType type,
-                               WGPUStringView, void* user, void*) {
-            *static_cast<bool*>(user) = status == WGPUPopErrorScopeStatus_Success &&
-                                       type == WGPUErrorType_NoError;
-        };
-        WGPUFutureWaitInfo wait = WGPU_FUTURE_WAIT_INFO_INIT;
-        wait.future = wgpuDevicePopErrorScope(device.device, callback);
-        while (!wait.completed) {
-            const auto status = wgpuInstanceWaitAny(device.instance, 1, &wait, 0);
-            if (status != WGPUWaitStatus_Success && status != WGPUWaitStatus_TimedOut) break;
-            if (!wait.completed) std::this_thread::yield();
-        }
-        valid &= wait.completed && ok;
-    }
-    return valid;
-}
 
 void compute(ModContext*, const GfxComputeContext* ctx, const void* bytes, size_t size, void*) {
     if (!ctx || size != sizeof(Payload) || !pipeline || failed.load()) return;
@@ -102,7 +73,7 @@ bool initialize(const GfxDeviceInfo& info) {
     device = info;
     failed.store(false); encoded.store(0); warned = false; current = 0;
     reset(); last_layout = 0; last_stage = {}; last_room = -1;
-    begin_scopes();
+    gpu::ValidationScopes texture_scopes(device.device, device.instance);
     bool textures_ok = true;
     for (unsigned i = 0; i < 3; ++i) {
         WGPUTextureDescriptor desc = WGPU_TEXTURE_DESCRIPTOR_INIT;
@@ -114,9 +85,9 @@ bool initialize(const GfxDeviceInfo& info) {
         if (textures[i]) views[i] = wgpuTextureCreateView(textures[i], nullptr);
         if (!views[i]) { textures_ok = false; break; }
     }
-    const bool textures_valid = end_scopes();
+    const bool textures_valid = texture_scopes.finish();
     if (!textures_ok || !textures_valid) { shutdown(); return false; }
-    begin_scopes();
+    gpu::ValidationScopes compute_scopes(device.device, device.instance);
     WGPUShaderSourceWGSL source = WGPU_SHADER_SOURCE_WGSL_INIT;
     source.code = {adaptive_exposure_shader, WGPU_STRLEN};
     WGPUShaderModuleDescriptor shader_desc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
@@ -129,7 +100,7 @@ bool initialize(const GfxDeviceInfo& info) {
         wgpuShaderModuleRelease(shader);
     }
     if (pipeline) layout = wgpuComputePipelineGetBindGroupLayout(pipeline, 0);
-    const bool compute_valid = end_scopes();
+    const bool compute_valid = compute_scopes.finish();
     GfxComputeTypeDesc desc = GFX_COMPUTE_TYPE_DESC_INIT;
     desc.label = "MidnaFX adaptive exposure"; desc.callback = compute;
     if (!compute_valid || !layout ||

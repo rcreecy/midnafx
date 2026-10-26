@@ -22,6 +22,11 @@ single-asset lists. Expand a specific identity only when required to remove a
 demonstrated blocker. Adaptive exposure is the next delivered global slice;
 broader environment lighting and image stability remain the next product areas.
 
+Version 1.6 follows with filtered contact shading across opaque scene geometry.
+It replaces the sparse full-resolution kernel with a denser half-resolution field
+and surface-aware filtering, retaining native depth and existing controls. This
+is another global rendering improvement, not an expansion of a single asset list.
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

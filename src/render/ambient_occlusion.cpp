@@ -1,4 +1,5 @@
 #include "ambient_occlusion.hpp"
+#include "gpu_validation.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -8,6 +9,7 @@
 #include <d/d_kankyo.h>
 #include <d/d_com_inf_game.h>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -29,20 +31,128 @@ struct Pipeline {
     WGPURenderPipeline pipeline = nullptr;
     WGPUBindGroupLayout bindings = nullptr;
 };
+struct Targets {
+    std::uint32_t width = 0, height = 0;
+    WGPUTexture textures[2]{};
+    WGPUTextureView views[2]{};
+    std::atomic<unsigned> pending{0};
+    ~Targets() {
+        for (auto view : views) if (view) wgpuTextureViewRelease(view);
+        for (auto texture : textures) if (texture) wgpuTextureRelease(texture);
+    }
+};
+struct Pending {
+    Targets* targets;
+    ~Pending() { if (targets) targets->pending.fetch_sub(1); }
+};
 struct Payload {
     const Pipeline* pipeline;
     WGPUTextureView color, depth;
     std::uint32_t uniform_offset, uniform_size;
+    Targets* targets;
+};
+struct ComputePayload {
+    WGPUTextureView depth;
+    Targets* targets;
+    std::uint32_t uniform_offset, uniform_size;
 };
 static_assert(sizeof(Payload) <= GFX_INLINE_DRAW_PAYLOAD_SIZE);
+static_assert(sizeof(ComputePayload) <= GFX_INLINE_DRAW_PAYLOAD_SIZE);
 GfxDeviceInfo device = GFX_DEVICE_INFO_INIT;
 GfxStageHookHandle stage_hook = 0;
 GfxStageHookHandle begin_hook = 0;
 GfxDrawTypeHandle draw_type = 0;
+GfxComputeTypeHandle compute_type = 0;
+WGPUComputePipeline compute_pipelines[3]{};
+WGPUBindGroupLayout compute_layouts[3]{};
+WGPUTexture neutral_texture = nullptr;
+WGPUTextureView neutral_view = nullptr;
+std::vector<std::unique_ptr<Targets>> target_sets;
+Targets* current_targets = nullptr;
+std::atomic<bool> compute_failed{false};
+std::atomic<std::uint64_t> encoded_compute{0}, encoded_draw{0};
 std::vector<std::unique_ptr<Pipeline>> pipelines;
 bool logged = false;
 bool atmosphere_logged = false;
 bool submitted = false;
+
+void collect_targets() {
+    std::erase_if(target_sets, [](const auto& target) {
+        return target.get() != current_targets && target->pending.load() == 0;
+    });
+}
+
+Targets* ensure_targets(std::uint32_t width, std::uint32_t height) {
+    collect_targets();
+    width = (width + 1) / 2; height = (height + 1) / 2;
+    if (current_targets && current_targets->width == width && current_targets->height == height)
+        return current_targets;
+    current_targets = nullptr;
+    // Inline host payloads borrow these views. Retire after their last callback
+    // encodes, not after an assumed number of frames. GPU commands retain resources.
+    std::erase_if(target_sets, [](const auto& target) { return target->pending.load() == 0; });
+    auto next = std::make_unique<Targets>();
+    next->width = width; next->height = height;
+    gpu::ValidationScopes scopes(device.device, device.instance);
+    for (unsigned i = 0; i < 2; ++i) {
+        WGPUTextureDescriptor desc = WGPU_TEXTURE_DESCRIPTOR_INIT;
+        desc.label = {"MidnaFX half-resolution contact shading", WGPU_STRLEN};
+        desc.size = {width, height, 1}; desc.format = WGPUTextureFormat_RGBA16Float;
+        desc.usage = WGPUTextureUsage_StorageBinding | WGPUTextureUsage_TextureBinding;
+        next->textures[i] = wgpuDeviceCreateTexture(device.device, &desc);
+        if (next->textures[i]) next->views[i] = wgpuTextureCreateView(next->textures[i], nullptr);
+    }
+    const bool valid = scopes.finish();
+    if (!valid || !next->views[0] || !next->views[1]) {
+        compute_failed.store(true);
+        if (svc_log) svc_log->warn(mod_ctx, "Contact shading targets unavailable; AO bypassed");
+        return nullptr;
+    }
+    current_targets = next.get();
+    target_sets.push_back(std::move(next));
+    return current_targets;
+}
+
+void compute(ModContext*, const GfxComputeContext* context, const void* bytes, size_t size, void*) {
+    if (!context || size != sizeof(ComputePayload)) return;
+    ComputePayload payload{};
+    std::memcpy(&payload, bytes, sizeof(payload));
+    Pending pending{payload.targets};
+    if (!payload.targets || !payload.depth || compute_failed.load()) return;
+    auto& target = *payload.targets;
+    WGPUBindGroup groups[3]{};
+    for (unsigned i = 0; i < 3; ++i) {
+        WGPUBindGroupEntry entries[4];
+        for (auto& entry : entries) entry = WGPU_BIND_GROUP_ENTRY_INIT;
+        unsigned count = 0;
+        entries[count].binding = 0; entries[count++].textureView = payload.depth;
+        if (i > 0) {
+            entries[count].binding = 1; entries[count++].textureView = target.views[i == 1 ? 0 : 1];
+        }
+        entries[count].binding = 2; entries[count++].textureView = target.views[i == 1 ? 1 : 0];
+        entries[count].binding = 3; entries[count].buffer = context->uniform_buffer;
+        entries[count].offset = payload.uniform_offset; entries[count++].size = payload.uniform_size;
+        WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
+        desc.layout = compute_layouts[i]; desc.entryCount = count; desc.entries = entries;
+        groups[i] = wgpuDeviceCreateBindGroup(context->device, &desc);
+    }
+    if (!groups[0] || !groups[1] || !groups[2]) {
+        for (auto group : groups) if (group) wgpuBindGroupRelease(group);
+        compute_failed.store(true); return;
+    }
+    WGPUComputePassDescriptor desc = WGPU_COMPUTE_PASS_DESCRIPTOR_INIT;
+    desc.label = {"MidnaFX filtered contact shading", WGPU_STRLEN};
+    auto pass = wgpuCommandEncoderBeginComputePass(context->encoder, &desc);
+    for (unsigned i = 0; i < 3; ++i) {
+        wgpuComputePassEncoderSetPipeline(pass, compute_pipelines[i]);
+        wgpuComputePassEncoderSetBindGroup(pass, 0, groups[i], 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, (target.width + 7) / 8, (target.height + 7) / 8, 1);
+    }
+    wgpuComputePassEncoderEnd(pass);
+    wgpuComputePassEncoderRelease(pass);
+    for (auto group : groups) wgpuBindGroupRelease(group);
+    encoded_compute.fetch_add(1);
+}
 
 bool supported(const GfxRenderTargetLayout& layout) {
     return layout.sample_count == 1 && layout.color_attachment_count >= 1 &&
@@ -54,6 +164,7 @@ Pipeline* get_pipeline(const GfxRenderTargetLayout& layout) {
     for (auto& existing : pipelines) if (existing->layout.key == layout.key) return existing.get();
     auto next = std::make_unique<Pipeline>();
     next->layout = layout;
+    gpu::ValidationScopes scopes(device.device, device.instance);
     WGPUShaderSourceWGSL source = WGPU_SHADER_SOURCE_WGSL_INIT;
     source.code = {ambient_occlusion_shader, WGPU_STRLEN};
     WGPUShaderModuleDescriptor shader_desc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
@@ -84,7 +195,11 @@ Pipeline* get_pipeline(const GfxRenderTargetLayout& layout) {
     wgpuShaderModuleRelease(shader);
     if (!next->pipeline) return nullptr;
     next->bindings = wgpuRenderPipelineGetBindGroupLayout(next->pipeline, 0);
-    if (!next->bindings) { wgpuRenderPipelineRelease(next->pipeline); return nullptr; }
+    const bool valid = scopes.finish();
+    if (!valid || !next->bindings) {
+        if (next->bindings) wgpuBindGroupLayoutRelease(next->bindings);
+        wgpuRenderPipelineRelease(next->pipeline); return nullptr;
+    }
     auto* result = next.get();
     pipelines.push_back(std::move(next));
     return result;
@@ -93,17 +208,21 @@ void draw(ModContext*, const GfxDrawContext* context, const void* bytes, size_t 
     if (!context || !bytes || size != sizeof(Payload)) return;
     Payload payload{};
     std::memcpy(&payload, bytes, sizeof(payload));
+    Pending pending{payload.targets};
     if (!payload.pipeline || payload.pipeline->layout.key != context->layout.key ||
         !payload.color || !payload.depth || payload.uniform_size != sizeof(Uniforms)) return;
-    WGPUBindGroupEntry entries[3]{WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT,
-                                  WGPU_BIND_GROUP_ENTRY_INIT};
+    WGPUBindGroupEntry entries[4]{WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT,
+                                  WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     entries[0].binding = 0; entries[0].textureView = payload.color;
     entries[1].binding = 1; entries[1].textureView = payload.depth;
     entries[2].binding = 2; entries[2].buffer = context->uniform_buffer;
     entries[2].offset = payload.uniform_offset; entries[2].size = payload.uniform_size;
+    entries[3].binding = 3;
+    entries[3].textureView = payload.targets && !compute_failed.load()
+                                ? payload.targets->views[0] : neutral_view;
     WGPUBindGroupDescriptor group_desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     group_desc.layout = payload.pipeline->bindings;
-    group_desc.entryCount = 3; group_desc.entries = entries;
+    group_desc.entryCount = 4; group_desc.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(context->device, &group_desc);
     if (!group) return;
     const auto width = context->layout.color_attachments[0].width;
@@ -113,12 +232,14 @@ void draw(ModContext*, const GfxDrawContext* context, const void* bytes, size_t 
     wgpuRenderPassEncoderSetPipeline(context->pass, payload.pipeline->pipeline);
     wgpuRenderPassEncoderSetBindGroup(context->pass, 0, group, 0, nullptr);
     wgpuRenderPassEncoderDraw(context->pass, 3, 1, 0, 0);
+    encoded_draw.fetch_add(1);
     wgpuBindGroupRelease(group);
 }
 void stage(ModContext*, const GfxStageContext* context, void*) {
     if (submitted || !draw_type || !context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
         settings::atmosphere_depth_view_enabled() || settings::dof_coc_view_enabled()) return;
-    const float occlusion = settings::ambient_occlusion_enabled()
+    float occlusion = settings::ambient_occlusion_enabled() && !compute_failed.load() && compute_type &&
+                          dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag()
                                 ? settings::ambient_occlusion_strength() : 0.0f;
     const float fog_near = std::max(g_env_light.mFogNear, 0.0f);
     const bool atmosphere_available = settings::atmosphere_enabled() &&
@@ -143,6 +264,10 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK || !supported(layout)) return;
     auto* pipeline = get_pipeline(layout);
     if (!pipeline) return;
+    Targets* targets = occlusion > 0 ? ensure_targets(layout.color_attachments[0].width,
+                                                     layout.color_attachments[0].height) : nullptr;
+    if (occlusion > 0 && !targets) occlusion = 0;
+    if (occlusion <= 0 && haze <= 0) return;
     GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
     request.color = request.depth = true;
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
@@ -166,11 +291,23 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     }
     GfxRange range{};
     if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &range) != MOD_OK) return;
-    const Payload payload{pipeline, snapshot.color, snapshot.depth, range.offset, range.size};
-    if (svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload)) != MOD_OK) return;
+    if (targets) {
+        const ComputePayload work{snapshot.depth, targets, range.offset, range.size};
+        targets->pending.fetch_add(1);
+        if (svc_gfx->push_compute(mod_ctx, compute_type, &work, sizeof(work)) != MOD_OK) {
+            targets->pending.fetch_sub(1);
+            targets = nullptr;
+            if (haze <= 0) return;
+        }
+    }
+    const Payload payload{pipeline, snapshot.color, snapshot.depth, range.offset, range.size, targets};
+    if (targets) targets->pending.fetch_add(1);
+    if (svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload)) != MOD_OK) {
+        if (targets) targets->pending.fetch_sub(1); return;
+    }
     submitted = true;
     if (!logged && occlusion > 0 && svc_log) {
-        svc_log->info(mod_ctx, "Ambient occlusion active: opaque scene, 16 depth samples, HUD excluded");
+        svc_log->info(mod_ctx, "Ambient occlusion active: half-resolution 32-tap contacts, edge-aware filter, HUD excluded");
         logged = true;
     }
     if (!atmosphere_logged && uniforms.fog_color[3] > 0 && svc_log) {
@@ -183,14 +320,48 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         atmosphere_logged = true;
     }
 }
-void begin_scene(ModContext*, const GfxStageContext*, void*) { submitted = false; }
+void begin_scene(ModContext*, const GfxStageContext*, void*) {
+    submitted = false;
+    collect_targets();
+}
 }
 void apply(const GfxStageContext* context) { stage(nullptr, context, nullptr); }
 void initialize() {
     logged = false;
     atmosphere_logged = false;
     submitted = false;
-    if (!svc_gfx || svc_gfx->get_device_info(mod_ctx, &device) != MOD_OK || !device.device) return;
+    compute_failed.store(false); encoded_compute.store(0); encoded_draw.store(0);
+    if (!svc_gfx || svc_gfx->get_device_info(mod_ctx, &device) != MOD_OK || !device.device || !device.instance) return;
+    gpu::ValidationScopes neutral_scopes(device.device, device.instance);
+    WGPUTextureDescriptor texture_desc = WGPU_TEXTURE_DESCRIPTOR_INIT;
+    texture_desc.size = {1,1,1}; texture_desc.format = WGPUTextureFormat_RGBA16Float;
+    texture_desc.usage = WGPUTextureUsage_TextureBinding;
+    neutral_texture = wgpuDeviceCreateTexture(device.device, &texture_desc);
+    if (neutral_texture) neutral_view = wgpuTextureCreateView(neutral_texture, nullptr);
+    const bool neutral_valid = neutral_scopes.finish();
+    if (!neutral_valid || !neutral_view) return;
+    gpu::ValidationScopes compute_scopes(device.device, device.instance);
+    WGPUShaderSourceWGSL source = WGPU_SHADER_SOURCE_WGSL_INIT;
+    source.code = {ambient_occlusion_compute_shader, WGPU_STRLEN};
+    WGPUShaderModuleDescriptor shader_desc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
+    shader_desc.nextInChain = &source.chain;
+    auto shader = wgpuDeviceCreateShaderModule(device.device, &shader_desc);
+    constexpr const char* entries[]{"cs_occlusion", "cs_filter_horizontal", "cs_filter_vertical"};
+    if (shader) for (unsigned i = 0; i < 3; ++i) {
+        WGPUComputePipelineDescriptor desc = WGPU_COMPUTE_PIPELINE_DESCRIPTOR_INIT;
+        desc.compute.module = shader; desc.compute.entryPoint = {entries[i], WGPU_STRLEN};
+        compute_pipelines[i] = wgpuDeviceCreateComputePipeline(device.device, &desc);
+        if (compute_pipelines[i]) compute_layouts[i] = wgpuComputePipelineGetBindGroupLayout(compute_pipelines[i], 0);
+    }
+    if (shader) wgpuShaderModuleRelease(shader);
+    const bool compute_valid = compute_scopes.finish();
+    GfxComputeTypeDesc compute_desc = GFX_COMPUTE_TYPE_DESC_INIT;
+    compute_desc.label = "MidnaFX filtered contact shading"; compute_desc.callback = compute;
+    if (!compute_valid || !compute_layouts[0] || !compute_layouts[1] || !compute_layouts[2] ||
+        svc_gfx->register_compute_type(mod_ctx, &compute_desc, &compute_type) != MOD_OK) {
+        compute_failed.store(true);
+        if (svc_log) svc_log->warn(mod_ctx, "Contact shading compute unavailable; AO bypassed");
+    }
     GfxDrawTypeDesc draw_desc = GFX_DRAW_TYPE_DESC_INIT;
     draw_desc.label = "MidnaFX ambient contact shading";
     draw_desc.draw = draw;
@@ -214,11 +385,25 @@ void shutdown() {
     if (svc_gfx && begin_hook) svc_gfx->unregister_stage_hook(mod_ctx, begin_hook);
     if (svc_gfx && stage_hook) svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
     if (svc_gfx && draw_type) svc_gfx->unregister_draw_type(mod_ctx, draw_type);
+    if (svc_gfx && compute_type) svc_gfx->unregister_compute_type(mod_ctx, compute_type);
+    compute_type = 0;
     stage_hook = begin_hook = draw_type = 0;
     for (auto& pipeline : pipelines) {
         wgpuBindGroupLayoutRelease(pipeline->bindings);
         wgpuRenderPipelineRelease(pipeline->pipeline);
     }
     pipelines.clear();
+    if (svc_log && encoded_draw.load()) {
+        char message[192];
+        std::snprintf(message, sizeof(message), "Contact shading shutdown: compute=%llu draw=%llu target_sets=%zu",
+                      static_cast<unsigned long long>(encoded_compute.load()),
+                      static_cast<unsigned long long>(encoded_draw.load()), target_sets.size());
+        svc_log->info(mod_ctx, message);
+    }
+    target_sets.clear(); current_targets = nullptr;
+    for (auto& layout : compute_layouts) if (layout) { wgpuBindGroupLayoutRelease(layout); layout = nullptr; }
+    for (auto& pipeline : compute_pipelines) if (pipeline) { wgpuComputePipelineRelease(pipeline); pipeline = nullptr; }
+    if (neutral_view) { wgpuTextureViewRelease(neutral_view); neutral_view = nullptr; }
+    if (neutral_texture) { wgpuTextureRelease(neutral_texture); neutral_texture = nullptr; }
 }
 }
