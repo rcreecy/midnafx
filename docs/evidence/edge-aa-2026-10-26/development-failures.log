@@ -1,0 +1,14 @@
+edge-aa-tie-gpu.log:fine-detail identity: first difference at (0,0), expected RGBA=0,0,0,0; actual=48,48,48,0
+edge-aa-tie-gpu.log:fine-detail identity: first difference at (32,23), expected RGBA=0,0,0,85; actual=12,12,12,85
+edge-aa-tie-gpu.log:Preserve checkerboard exactly: FAIL
+edge-aa-tie-gpu.log:Preserve isolated pixel exactly: FAIL
+edge-aa-ridge-gpu.log:fine-detail identity: first difference at (0,0), expected RGBA=0,0,0,0; actual=48,48,48,0
+edge-aa-ridge-gpu.log:fine-detail identity: first difference at (0,0), expected RGBA=255,255,255,0; actual=207,207,207,0
+edge-aa-ridge-gpu.log:fine-detail identity: first difference at (64,0), expected RGBA=255,255,255,64; actual=207,207,207,64
+edge-aa-ridge-gpu.log:fine-detail identity: first difference at (0,0), expected RGBA=0,0,0,0; actual=48,48,48,0
+edge-aa-ridge-gpu.log:fine-detail identity: first difference at (64,0), expected RGBA=0,0,0,64; actual=48,48,48,64
+edge-aa-ridge-gpu.log:Preserve checkerboard exactly: FAIL
+edge-aa-ridge-gpu.log:Preserve descending diagonal one-pixel ridge exactly: FAIL
+edge-aa-ridge-gpu.log:Preserve ascending diagonal one-pixel ridge exactly: FAIL
+edge-aa-ridge-gpu.log:Preserve descending diagonal one-pixel valley exactly: FAIL
+edge-aa-ridge-gpu.log:Preserve ascending diagonal one-pixel valley exactly: FAIL

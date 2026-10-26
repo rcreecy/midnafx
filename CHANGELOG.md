@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.0 - 2026-10-26
+
+- Replace the five-tap contrast-edge blur with edge-directed spatial AA, using
+  bounded endpoint searches and symmetric coverage for tied orientations.
+  Preserve aligned edges and tested one-pixel ridges instead of softening them.
+- Share the filter across ordinary and enhanced-water shaders. Keep alpha,
+  detail gating, LUT/exposure/bloom order, existing AA controls/defaults and HUD
+  ordering. No new target, pass or host patch is required.
+- Add supersampled edge-coverage comparisons against the retired filter, exact
+  transpose/brightness-complement checks, fine-detail preservation and inactive
+  water parity. Record the higher bounded sampling cost; GPU timing, whole-game
+  motion quality and native macOS gameplay remain unverified.
+
 ## 1.7.0 - 2026-10-26
 
 - Add scene-wide LDR bloom without asset allowlists, using quarter-resolution

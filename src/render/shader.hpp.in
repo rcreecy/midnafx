@@ -10,6 +10,7 @@ inline constexpr char passthrough_shader[] = R"midnafx(@MIDNAFX_SHADER@)midnafx"
 inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
 @MIDNAFX_EXPOSURE_COMPOSITE_SHADER@
 @MIDNAFX_BLOOM_COMPOSITE_SHADER@
+@MIDNAFX_EDGE_AA_SHADER@
 @MIDNAFX_GRADING_SHADER@)midnafx";
 inline constexpr char atmosphere_depth_shader[] = R"midnafx(@MIDNAFX_ATMOSPHERE_DEPTH_SHADER@)midnafx";
 inline constexpr char dof_shader[] = R"midnafx(@MIDNAFX_DOF_SHADER@)midnafx";
@@ -18,5 +19,6 @@ inline constexpr char dof_blur_composite_shader[] = R"midnafx(@MIDNAFX_DOF_BLUR_
 inline constexpr char water_thickness_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
 @MIDNAFX_EXPOSURE_COMPOSITE_SHADER@
 @MIDNAFX_BLOOM_COMPOSITE_SHADER@
+@MIDNAFX_EDGE_AA_SHADER@
 )midnafx" R"midnafx(@MIDNAFX_WATER_THICKNESS_SHADER@)midnafx";
 }

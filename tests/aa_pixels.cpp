@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <iterator>
 #include <thread>
 #include <string>
 #include <utility>
@@ -67,7 +68,8 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
                           float detail_strength = 0.0f, float look_strength = -1.0f,
                           float gain = 1.0f, unsigned table = 0, float twilight = 0.0f,
                           WGPUTextureFormat format = WGPUTextureFormat_RGBA8Unorm,
-                          float exposure_stops = 0.0f, float bloom_value = 0.0f) {
+                          float exposure_stops = 0.0f, float bloom_value = 0.0f,
+                          bool water_active = true) {
     wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
     auto queue = wgpuDeviceGetQueue(device);
     WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
@@ -139,6 +141,7 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
             water_textures[i] = wgpuDeviceCreateTexture(device, &texture_desc);
             water_views[i] = wgpuTextureCreateView(water_textures[i], nullptr);
             std::vector<Pixel> contents(pixels.size(), Pixel{static_cast<unsigned char>(i == 0 ? 192 : 64), 0, 0, 255});
+            if (!water_active && i == 2) for (auto& pixel : contents) pixel[3] = 0;
             upload.texture = water_textures[i];
             wgpuQueueWriteTexture(queue, &upload, contents.data(), contents.size() * sizeof(Pixel), &upload_layout, &td.size);
         }
@@ -442,6 +445,77 @@ std::vector<MeterValue> meter(WGPUInstance instance, WGPUDevice device,
     wgpuQueueRelease(queue);
     return output;
 }
+
+struct HalfPlane {
+    std::vector<Pixel> source;
+    std::vector<double> coverage;
+};
+
+// A binary center sample is the input. Independent 64x64 coverage of the
+// declared continuous half-plane is the reference, without consulting AA output.
+HalfPlane half_plane(unsigned width, unsigned height, double slope, bool transpose) {
+    HalfPlane result{std::vector<Pixel>(width * height), std::vector<double>(width * height)};
+    const auto side = [&](double x, double y) {
+        return transpose ? x - width * 0.5 - slope * (y - height * 0.5) :
+                           y - height * 0.5 - slope * (x - width * 0.5);
+    };
+    for (unsigned y = 0; y < height; ++y)
+        for (unsigned x = 0; x < width; ++x) {
+            const size_t i = y * width + x;
+            const unsigned char level = side(x + 0.5, y + 0.5) >= 0 ? 255 : 0;
+            result.source[i] = {level, level, level, static_cast<unsigned char>((x * 37 + y * 19) % 256)};
+            const double corners[]{side(x, y), side(x + 1, y), side(x, y + 1), side(x + 1, y + 1)};
+            if (*std::min_element(std::begin(corners), std::end(corners)) >= 0) result.coverage[i] = 255;
+            else if (*std::max_element(std::begin(corners), std::end(corners)) <= 0) result.coverage[i] = 0;
+            else {
+                double inside = 0;
+                for (unsigned sy = 0; sy < 64; ++sy)
+                    for (unsigned sx = 0; sx < 64; ++sx) {
+                        const double value = side(x + (sx + 0.5) / 64, y + (sy + 0.5) / 64);
+                        inside += value > 0 ? 1 : value == 0 ? 0.5 : 0;
+                    }
+                result.coverage[i] = 255.0 * inside / (64 * 64);
+            }
+        }
+    return result;
+}
+
+// Retain only the retired grayscale five-tap kernel as a quality baseline.
+// This intentionally does not duplicate the replacement endpoint search.
+std::vector<Pixel> five_tap_reference(unsigned width, unsigned height, const std::vector<Pixel>& source) {
+    auto result = source;
+    for (unsigned y = 0; y < height; ++y)
+        for (unsigned x = 0; x < width; ++x) {
+            const size_t i = y * width + x;
+            const double center = source[i][0];
+            const double north = source[y ? i - width : i][0], south = source[y + 1 < height ? i + width : i][0];
+            const double west = source[x ? i - 1 : i][0], east = source[x + 1 < width ? i + 1 : i][0];
+            const double low = std::min({center, north, south, east, west});
+            const double high = std::max({center, north, south, east, west});
+            const double contrast = high - low, threshold = std::max(255 * 0.0312, high * 0.125);
+            if (contrast < threshold) continue;
+            const bool horizontal = std::abs(north + south - 2 * center) >= std::abs(east + west - 2 * center);
+            const double pair = horizontal ? (north + south) * 0.5 : (east + west) * 0.5;
+            const double blend = std::clamp((contrast - threshold) / std::max(contrast, 0.00001), 0.0, 1.0) * 0.4;
+            const auto level = static_cast<unsigned char>(std::lround(center + (pair - center) * blend));
+            result[i][0] = result[i][1] = result[i][2] = level;
+        }
+    return result;
+}
+
+double coverage_error(unsigned width, unsigned height, const std::vector<Pixel>& image,
+                      const std::vector<double>& coverage) {
+    double squared = 0;
+    unsigned count = 0;
+    // Endpoints outside the image are not observable; score the interior edge.
+    for (unsigned y = 12; y + 12 < height; ++y)
+        for (unsigned x = 12; x + 12 < width; ++x) {
+            const size_t i = y * width + x;
+            const double error = image[i][0] - coverage[i];
+            squared += error * error; ++count;
+        }
+    return squared / count;
+}
 } // namespace
 
 int main() {
@@ -531,7 +605,7 @@ int main() {
             }
             if (pattern == 3) valid &= detail_active == aa;
             if (pattern == 4 && source.size() > 1) valid &= detail_active != aa;
-            if (pattern < 2 || pattern == 4 || source.size() == 1) valid &= aa == source;
+            if (pattern < 2 || pattern == 4 || width == 1 || height == 1) valid &= aa == source;
             else valid &= changed > 0;
             std::printf("%ux%u pattern=%d changed=%u: %s\n", width, height, pattern, changed,
                         valid ? "PASS" : "FAIL");
@@ -539,7 +613,7 @@ int main() {
                 std::fprintf(stderr, "Failure diagnostics: %ux%u pattern=%d\n", width, height, pattern);
                 report_difference("neutral identity", width, source, baseline);
                 report_difference("zero-detail parity", width, aa, detail_zero);
-                if (pattern < 2 || pattern == 4 || source.size() == 1)
+                if (pattern < 2 || pattern == 4 || width == 1 || height == 1)
                     report_difference("AA identity", width, source, aa);
                 if (pattern == 3)
                     report_difference("edge/detail parity", width, aa, detail_active);
@@ -549,6 +623,149 @@ int main() {
         }
     }
     std::printf("%u pixel cases: %s\n", cases, ok ? "PASS" : "FAIL");
+    {
+        constexpr unsigned width = 65, height = 49;
+        for (bool horizontal : {false, true}) {
+            std::vector<Pixel> source(width * height);
+            for (unsigned y = 0; y < height; ++y)
+                for (unsigned x = 0; x < width; ++x) {
+                    const unsigned char level = (horizontal ? y >= height / 2 : x >= width / 2) ? 255 : 0;
+                    source[y * width + x] = {level,level,level,static_cast<unsigned char>((x * 37 + y * 19) % 256)};
+                }
+            const auto actual = render(instance, device, "fs_fxaa", width, height, source);
+            const bool valid = actual == source;
+            std::printf("Axis-aligned %s step exact identity: %s\n", horizontal ? "horizontal" : "vertical", valid ? "PASS" : "FAIL");
+            if (!valid) report_difference("axis identity", width, source, actual);
+            ok &= valid;
+        }
+    }
+    {
+        constexpr unsigned size = 33;
+        std::vector<Pixel> source(size * size), transposed(size * size);
+        for (unsigned y = 0; y < size; ++y)
+            for (unsigned x = 0; x < size; ++x) {
+                const unsigned char level = 2 * y >= x ? 255 : 0;
+                source[y * size + x] = {level,level,level,static_cast<unsigned char>((x * 37 + y * 19) % 256)};
+            }
+        for (unsigned y = 0; y < size; ++y)
+            for (unsigned x = 0; x < size; ++x) transposed[y * size + x] = source[x * size + y];
+        const auto actual = render(instance, device, "fs_fxaa", size, size, source);
+        const auto actual_transposed = render(instance, device, "fs_fxaa", size, size, transposed);
+        std::vector<Pixel> expected_transposed;
+        bool valid = actual.size() == source.size() && actual_transposed.size() == source.size();
+        if (valid) {
+            expected_transposed.resize(source.size());
+            for (unsigned y = 0; y < size; ++y)
+                for (unsigned x = 0; x < size; ++x) {
+                    expected_transposed[y * size + x] = actual[x * size + y];
+                    valid &= actual[y * size + x][3] == source[y * size + x][3];
+                }
+            valid &= actual_transposed == expected_transposed;
+        }
+        std::printf("Shallow monotonic edge exact transpose, including borders and alpha: %s\n", valid ? "PASS" : "FAIL");
+        if (!valid) report_difference("AA transpose", size, expected_transposed, actual_transposed);
+        ok &= valid;
+        auto complemented = source;
+        for (auto& pixel : complemented)
+            for (unsigned c = 0; c < 3; ++c) pixel[c] = 255 - pixel[c];
+        const auto actual_complement = render(instance, device, "fs_fxaa", size, size, complemented);
+        valid = actual.size() == source.size() && actual_complement.size() == source.size();
+        if (valid) for (size_t i = 0; i < actual.size(); ++i) {
+            valid &= actual_complement[i][3] == source[i][3];
+            for (unsigned c = 0; c < 3; ++c)
+                valid &= std::abs(int(actual[i][c]) + int(actual_complement[i][c]) - 255) <= 1;
+        }
+        std::printf("Binary edge brightness complement symmetry within one code: %s\n", valid ? "PASS" : "FAIL");
+        ok &= valid;
+    }
+    {
+        constexpr unsigned width = 65, height = 65;
+        std::array<double, 2> source_error{}, old_error{}, actual_error{};
+        for (double slope : {1.0, -1.0, 0.25, -0.25}) {
+            for (bool transpose : {false, true}) {
+                if (std::abs(slope) == 1 && transpose) continue;
+                const auto plane = half_plane(width, height, slope, transpose);
+                const auto actual = render(instance, device, "fs_fxaa", width, height, plane.source);
+                bool valid = actual.size() == plane.source.size();
+                const auto old = five_tap_reference(width, height, plane.source);
+                const double source_mse = coverage_error(width, height, plane.source, plane.coverage);
+                const double old_mse = coverage_error(width, height, old, plane.coverage);
+                double actual_mse = std::numeric_limits<double>::infinity();
+                if (valid) {
+                    actual_mse = coverage_error(width, height, actual, plane.coverage);
+                    for (size_t i = 0; i < actual.size(); ++i) {
+                        valid &= actual[i][3] == plane.source[i][3];
+                        for (unsigned c = 0; c < 3; ++c)
+                            valid &= std::abs(int(actual[i][c]) - int(plane.source[i][c])) <= 102;
+                    }
+                    valid &= actual_mse < source_mse;
+                }
+                const unsigned group = std::abs(slope) == 1 ? 0 : 1;
+                source_error[group] += source_mse; old_error[group] += old_mse; actual_error[group] += actual_mse;
+                std::printf("Half-plane slope=%g transpose=%u MSE source=%.6f old=%.6f new=%.6f: %s\n",
+                            slope, unsigned(transpose), source_mse, old_mse, actual_mse, valid ? "PASS" : "FAIL");
+                ok &= valid;
+                if (slope == 0.25 && !transpose) {
+                    const auto water = render(instance, device, "fs_absorption_fxaa", width, height, plane.source,
+                        0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, 0, 0, false);
+                    const bool parity = water == actual;
+                    std::printf("Inactive water and ordinary AA exact parity: %s\n", parity ? "PASS" : "FAIL");
+                    if (!parity) report_difference("water AA parity", width, actual, water);
+                    ok &= parity;
+                }
+            }
+        }
+        for (unsigned group = 0; group < 2; ++group) {
+            const bool valid = actual_error[group] < source_error[group] * 0.98 &&
+                               actual_error[group] < old_error[group] * 0.98;
+            std::printf("%s coverage improvement >=2%% over source and retired kernel: %s\n",
+                        group ? "Shallow slopes" : "Diagonals", valid ? "PASS" : "FAIL");
+            ok &= valid;
+        }
+        auto colors = half_plane(width, height, 0.25, false).source;
+        for (auto& pixel : colors) {
+            const auto alpha = pixel[3];
+            pixel = pixel[0] ? Pixel{240,16,32,alpha} : Pixel{8,208,176,alpha};
+        }
+        const auto actual = render(instance, device, "fs_fxaa", width, height, colors);
+        bool valid = actual.size() == colors.size();
+        unsigned changed = 0;
+        if (valid) for (size_t i = 0; i < actual.size(); ++i) {
+            valid &= actual[i][3] == colors[i][3] && actual[i][0] >= 8 && actual[i][0] <= 240 &&
+                     actual[i][1] >= 16 && actual[i][1] <= 208 && actual[i][2] >= 32 && actual[i][2] <= 176;
+            const double red = (240.0 - actual[i][0]) / 232;
+            const double green = (actual[i][1] - 16.0) / 192;
+            const double blue = (actual[i][2] - 32.0) / 144;
+            valid &= std::abs(red - green) <= 0.012 && std::abs(red - blue) <= 0.012;
+            changed += actual[i] != colors[i];
+        }
+        valid &= changed > 0;
+        std::printf("Saturated edge retains channel bounds, hue and alpha: %s\n", valid ? "PASS" : "FAIL");
+        ok &= valid;
+    }
+    {
+        constexpr unsigned width = 65, height = 49;
+        for (unsigned pattern = 0; pattern < 8; ++pattern) {
+            std::vector<Pixel> source(width * height);
+            for (unsigned y = 0; y < height; ++y)
+                for (unsigned x = 0; x < width; ++x) {
+                    const bool light = pattern == 0 ? x == width / 2 : pattern == 1 ? y == height / 2 :
+                                       pattern == 2 ? (x + y) % 2 != 0 : pattern == 3 ? x == width / 2 && y == height / 2 :
+                                       pattern == 4 ? y == x : pattern == 5 ? y + x == width - 1 :
+                                       pattern == 6 ? y != x : y + x != width - 1;
+                    const unsigned char level = light ? 255 : 0;
+                    source[y * width + x] = {level,level,level,static_cast<unsigned char>((x * 37 + y * 19) % 256)};
+                }
+            const auto actual = render(instance, device, "fs_fxaa", width, height, source);
+            const bool valid = actual == source;
+            const char* names[]{"vertical one-pixel ridge", "horizontal one-pixel ridge", "checkerboard", "isolated pixel",
+                                "descending diagonal one-pixel ridge", "ascending diagonal one-pixel ridge",
+                                "descending diagonal one-pixel valley", "ascending diagonal one-pixel valley"};
+            std::printf("Preserve %s exactly: %s\n", names[pattern], valid ? "PASS" : "FAIL");
+            if (!valid) report_difference("fine-detail identity", width, source, actual);
+            ok &= valid;
+        }
+    }
     // Exercise all 256 code values, independent RGB channels, boundaries,
     // padded rows, degenerate dimensions, and resource recreation per draw.
     for (auto size : {std::array<unsigned, 2>{1, 1}, {1, 257}, {257, 1}, {257, 3}}) {

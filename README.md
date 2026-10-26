@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.8 upgrades scene **anti-aliasing** with edge-directed coverage and
+bounded endpoint searches. Stair-step edges receive smoothing while aligned
+edges and tested fine lines retain their source detail. Existing AA controls
+and defaults remain; no asset lists or extra render targets are needed. See
+[edge-directed AA](docs/edge-antialiasing.md) for evidence and cost limits.
+
 MidnaFX 1.7 adds **Scene bloom** across bright scenery, characters and replacement
 textures. Select **Profile / Remaster** or its independent Basic control for
 restrained glow at 20% default strength. Vanilla disables it. This LDR treatment

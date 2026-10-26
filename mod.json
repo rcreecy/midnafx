@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": "MidnaFX contributors",
-  "description": "Remaster profile with scene bloom, filtered contact shading, adaptive exposure, grading, camera controls and enhanced water"
+  "description": "Remaster profile with edge-directed AA, scene bloom, filtered contact shading, adaptive exposure, camera controls and enhanced water"
 }

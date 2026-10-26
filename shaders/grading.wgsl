@@ -62,35 +62,9 @@ fn apply_detail(center: vec3f, position: vec2i) -> vec3f {
     return detail_from_neighbors(center, north, east, south, west);
 }
 
-// Conservative FXAA-style edge filter. Flat regions retain their source texel;
-// edge blending is capped to preserve high-frequency authored texture detail.
+// Keep entry-point names compatible with the existing pipeline selection.
 fn fxaa_source(center: vec3f, position: vec2i, detail: bool) -> vec3f {
-    let last = vec2i(textureDimensions(scene)) - vec2i(1);
-    let north = textureLoad(scene, clamp(position + vec2i(0, -1), vec2i(0), last), 0).rgb;
-    let east = textureLoad(scene, clamp(position + vec2i(1, 0), vec2i(0), last), 0).rgb;
-    let south = textureLoad(scene, clamp(position + vec2i(0, 1), vec2i(0), last), 0).rgb;
-    let west = textureLoad(scene, clamp(position + vec2i(-1, 0), vec2i(0), last), 0).rgb;
-    let center_luma = dot(center, vec3f(0.299, 0.587, 0.114));
-    let north_luma = dot(north, vec3f(0.299, 0.587, 0.114));
-    let east_luma = dot(east, vec3f(0.299, 0.587, 0.114));
-    let south_luma = dot(south, vec3f(0.299, 0.587, 0.114));
-    let west_luma = dot(west, vec3f(0.299, 0.587, 0.114));
-    let low = min(center_luma, min(min(north_luma, east_luma), min(south_luma, west_luma)));
-    let high = max(center_luma, max(max(north_luma, east_luma), max(south_luma, west_luma)));
-    let contrast = high - low;
-    let threshold = max(0.0312, high * 0.125);
-    if (contrast < threshold) {
-        if (detail) {
-            return detail_from_neighbors(center, north, east, south, west);
-        }
-        return center;
-    }
-    // Do not sharpen an AA-filtered edge against unfiltered neighbors.
-    let horizontal = abs(north_luma + south_luma - 2.0 * center_luma);
-    let vertical = abs(east_luma + west_luma - 2.0 * center_luma);
-    let pair = select((east + west) * 0.5, (north + south) * 0.5, horizontal >= vertical);
-    let edge_blend = clamp((contrast - threshold) / max(contrast, 0.00001), 0.0, 1.0) * 0.40;
-    return mix(center, pair, edge_blend);
+    return edge_aa(scene, center, position, detail);
 }
 
 fn visualize_clipping(processed: vec3f, highlight: bool) -> vec3f {

@@ -1,0 +1,439 @@
+Start testing: Oct 26 14:57 Pacific Daylight Time
+----------------------------------------------------------
+20/24 Testing: shader_compile
+20/24 Test: shader_compile
+Command: "C:/dev/midnafx/build/windows-release/tests/Release/shader_compile.exe"
+Directory: C:/dev/midnafx/build/windows-release/tests
+"shader_compile" start time: Oct 26 14:57 Pacific Daylight Time
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"shader_compile" end time: Oct 26 14:57 Pacific Daylight Time
+"shader_compile" time elapsed: 00:00:00
+----------------------------------------------------------
+
+21/24 Testing: aa_pixels
+21/24 Test: aa_pixels
+Command: "C:/dev/midnafx/build/windows-release/tests/Release/aa_pixels.exe"
+Directory: C:/dev/midnafx/build/windows-release/tests
+"aa_pixels" start time: Oct 26 14:57 Pacific Daylight Time
+Output:
+----------------------------------------------------------
+Adapter: Intel(R) UHD Graphics 630; backend=4; type=2
+1x1 pattern=0 changed=0: PASS
+1x1 pattern=1 changed=0: PASS
+1x1 pattern=2 changed=0: PASS
+1x1 pattern=3 changed=0: PASS
+1x1 pattern=4 changed=0: PASS
+1x17 pattern=0 changed=0: PASS
+1x17 pattern=1 changed=0: PASS
+1x17 pattern=2 changed=0: PASS
+1x17 pattern=3 changed=0: PASS
+1x17 pattern=4 changed=0: PASS
+19x1 pattern=0 changed=0: PASS
+19x1 pattern=1 changed=0: PASS
+19x1 pattern=2 changed=0: PASS
+19x1 pattern=3 changed=0: PASS
+19x1 pattern=4 changed=0: PASS
+17x13 pattern=0 changed=0: PASS
+17x13 pattern=1 changed=0: PASS
+17x13 pattern=2 changed=22: PASS
+17x13 pattern=3 changed=22: PASS
+17x13 pattern=4 changed=0: PASS
+65x31 pattern=0 changed=0: PASS
+65x31 pattern=1 changed=0: PASS
+65x31 pattern=2 changed=58: PASS
+65x31 pattern=3 changed=58: PASS
+65x31 pattern=4 changed=0: PASS
+25 pixel cases: PASS
+Axis-aligned vertical step exact identity: PASS
+Axis-aligned horizontal step exact identity: PASS
+Shallow monotonic edge exact transpose, including borders and alpha: PASS
+Binary edge brightness complement symmetry within one code: PASS
+Half-plane slope=1 transpose=0 MSE source=396.493902 old=214.191701 new=208.976948: PASS
+Half-plane slope=-1 transpose=0 MSE source=396.493902 old=214.191701 new=208.976948: PASS
+Half-plane slope=0.25 transpose=0 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Inactive water and ordinary AA exact parity: PASS
+Half-plane slope=0.25 transpose=1 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Half-plane slope=-0.25 transpose=0 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Half-plane slope=-0.25 transpose=1 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Diagonals coverage improvement >=2% over source and retired kernel: PASS
+Shallow slopes coverage improvement >=2% over source and retired kernel: PASS
+Saturated edge retains channel bounds, hue and alpha: PASS
+Preserve vertical one-pixel ridge exactly: PASS
+Preserve horizontal one-pixel ridge exactly: PASS
+Preserve checkerboard exactly: PASS
+Preserve isolated pixel exactly: PASS
+Preserve descending diagonal one-pixel ridge exactly: PASS
+Preserve ascending diagonal one-pixel ridge exactly: PASS
+Preserve descending diagonal one-pixel valley exactly: PASS
+Preserve ascending diagonal one-pixel valley exactly: PASS
+Identity LUT 1x1 fs_main intensity=0.0: PASS
+Identity LUT 1x1 fs_main intensity=0.5: PASS
+Identity LUT 1x1 fs_main intensity=1.0: PASS
+Identity LUT 1x1 fs_main intensity=0.0: PASS
+Identity LUT 1x1 fs_main intensity=0.5: PASS
+Identity LUT 1x1 fs_main intensity=1.0: PASS
+Identity LUT 1x1 fs_main intensity=0.0: PASS
+Identity LUT 1x1 fs_main intensity=0.5: PASS
+Identity LUT 1x1 fs_main intensity=1.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_main intensity=0.0: PASS
+Identity LUT 1x257 fs_main intensity=0.5: PASS
+Identity LUT 1x257 fs_main intensity=1.0: PASS
+Identity LUT 1x257 fs_main intensity=0.0: PASS
+Identity LUT 1x257 fs_main intensity=0.5: PASS
+Identity LUT 1x257 fs_main intensity=1.0: PASS
+Identity LUT 1x257 fs_main intensity=0.0: PASS
+Identity LUT 1x257 fs_main intensity=0.5: PASS
+Identity LUT 1x257 fs_main intensity=1.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_main intensity=0.0: PASS
+Identity LUT 257x1 fs_main intensity=0.5: PASS
+Identity LUT 257x1 fs_main intensity=1.0: PASS
+Identity LUT 257x1 fs_main intensity=0.0: PASS
+Identity LUT 257x1 fs_main intensity=0.5: PASS
+Identity LUT 257x1 fs_main intensity=1.0: PASS
+Identity LUT 257x1 fs_main intensity=0.0: PASS
+Identity LUT 257x1 fs_main intensity=0.5: PASS
+Identity LUT 257x1 fs_main intensity=1.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_main intensity=0.0: PASS
+Identity LUT 257x3 fs_main intensity=0.5: PASS
+Identity LUT 257x3 fs_main intensity=1.0: PASS
+Identity LUT 257x3 fs_main intensity=0.0: PASS
+Identity LUT 257x3 fs_main intensity=0.5: PASS
+Identity LUT 257x3 fs_main intensity=1.0: PASS
+Identity LUT 257x3 fs_main intensity=0.0: PASS
+Identity LUT 257x3 fs_main intensity=0.5: PASS
+Identity LUT 257x3 fs_main intensity=1.0: PASS
+Identity LUT 257x3 fs_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x3 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x3 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x3 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x3 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x3 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x3 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x3 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x3 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x3 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity primaries, secondaries, low codes, format=22: PASS
+Identity primaries, secondaries, low codes, format=27: PASS
+Half conversion endpoints and subnormal rounding: PASS
+Creative endpoints, monotonic ramp, Twilight midpoint, zero-strength bypass: PASS
+Creative controls fs_main format=22: PASS
+Creative controls fs_detail format=22: PASS
+Creative controls fs_fxaa format=22: PASS
+Creative controls fs_fxaa_detail format=22: PASS
+Creative controls fs_absorption format=22: PASS
+Creative controls fs_absorption_detail format=22: PASS
+Creative controls fs_absorption_fxaa format=22: PASS
+Creative controls fs_absorption_fxaa_detail format=22: PASS
+Creative controls fs_main format=27: PASS
+Creative controls fs_detail format=27: PASS
+Creative controls fs_fxaa format=27: PASS
+Creative controls fs_fxaa_detail format=27: PASS
+Creative controls fs_absorption format=27: PASS
+Creative controls fs_absorption_detail format=27: PASS
+Creative controls fs_absorption_fxaa format=27: PASS
+Creative controls fs_absorption_fxaa_detail format=27: PASS
+Exposure meter: convergence, Rec709, temporal history, reset, fades, bars, alpha: PASS
+Exposure composite fs_main LUT=off stops=-0.50: PASS
+Exposure composite fs_main LUT=off stops=0.75: PASS
+Exposure composite fs_detail LUT=on stops=-0.50: PASS
+Exposure composite fs_detail LUT=on stops=0.75: PASS
+Exposure composite fs_fxaa LUT=off stops=-0.50: PASS
+Exposure composite fs_fxaa LUT=off stops=0.75: PASS
+Exposure composite fs_fxaa_detail LUT=on stops=-0.50: PASS
+Exposure composite fs_fxaa_detail LUT=on stops=0.75: PASS
+Exposure composite fs_absorption LUT=off stops=-0.50: PASS
+Exposure composite fs_absorption LUT=off stops=0.75: PASS
+Exposure composite fs_absorption_detail LUT=on stops=-0.50: PASS
+Exposure composite fs_absorption_detail LUT=on stops=0.75: PASS
+Exposure composite fs_absorption_fxaa LUT=off stops=-0.50: PASS
+Exposure composite fs_absorption_fxaa LUT=off stops=0.75: PASS
+Exposure composite fs_absorption_fxaa_detail LUT=on stops=-0.50: PASS
+Exposure composite fs_absorption_fxaa_detail LUT=on stops=0.75: PASS
+Bloom composite fs_main LUT=off: PASS
+Bloom composite fs_main LUT=identity: PASS
+Bloom composite fs_detail LUT=off: PASS
+Bloom composite fs_detail LUT=identity: PASS
+Bloom composite fs_fxaa LUT=off: PASS
+Bloom composite fs_fxaa LUT=identity: PASS
+Bloom composite fs_fxaa_detail LUT=off: PASS
+Bloom composite fs_fxaa_detail LUT=identity: PASS
+Bloom composite fs_absorption LUT=off: PASS
+Bloom composite fs_absorption LUT=identity: PASS
+Bloom composite fs_absorption_detail LUT=off: PASS
+Bloom composite fs_absorption_detail LUT=identity: PASS
+Bloom composite fs_absorption_fxaa LUT=off: PASS
+Bloom composite fs_absorption_fxaa LUT=identity: PASS
+Bloom composite fs_absorption_fxaa_detail LUT=off: PASS
+Bloom composite fs_absorption_fxaa_detail LUT=identity: PASS
+<end of output>
+Test time =  87.01 sec
+----------------------------------------------------------
+Test Passed.
+"aa_pixels" end time: Oct 26 14:59 Pacific Daylight Time
+"aa_pixels" time elapsed: 00:01:27
+----------------------------------------------------------
+
+24/24 Testing: package_contract
+24/24 Test: package_contract
+Command: "C:/Users/ryanc/AppData/Local/Python/pythoncore-3.14-64/python.exe" "C:/dev/midnafx/tests/package_contract.py" "C:/dev/midnafx/build/windows-release/mods/midnafx.dusk" "1.8.0"
+Directory: C:/dev/midnafx/build/windows-release/tests
+"package_contract" start time: Oct 26 14:59 Pacific Daylight Time
+Output:
+----------------------------------------------------------
+Valid windows-amd64 native package: C:\dev\midnafx\build\windows-release\mods\midnafx.dusk
+<end of output>
+Test time =   0.31 sec
+----------------------------------------------------------
+Test Passed.
+"package_contract" end time: Oct 26 14:59 Pacific Daylight Time
+"package_contract" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 26 14:59 Pacific Daylight Time

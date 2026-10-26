@@ -34,6 +34,13 @@ and native Ordon lifecycle checks pass. Emissive classification, new dynamic
 lighting and whole-game art/motion quality are not established. An unsuccessful
 direct Goron Mines startup remains recorded in the [bloom evidence](evidence/bloom-2026-10-26/README.md).
 
+Version 1.8 improves scene-wide spatial AA through bounded endpoint searches,
+orientation symmetry and fine-detail rejection. It reuses existing ordinary/water
+draws and controls. Supersampled coverage and preservation comparisons distinguish
+the quality change from another layer of global softening. It does not provide
+temporal reconstruction or establish whole-game motion quality. See
+[edge-directed AA](edge-antialiasing.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

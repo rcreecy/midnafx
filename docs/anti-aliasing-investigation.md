@@ -1,5 +1,11 @@
 # M13 anti-aliasing investigation
 
+Version 1.8 replaces the five-tap filter described below with shared
+[edge-directed spatial AA](edge-antialiasing.md). Existing controls/defaults and
+the fused water/grading integration remain. The earlier implementation and dated
+qualification checkpoints below are historical; full-game motion quality is
+still open.
+
 The [2026-10-09 menu repair](notes/menu-root-focus-repair.md) resolves the native
 settings-access blocker on the local host. Published v1.2.0 default-on, live
 off/on, and native reload now have UI and log evidence. Full visual qualification

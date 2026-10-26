@@ -990,6 +990,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
     add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Smooths stepped scene edges while retaining crisp straight edges. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Adaptive exposure", adaptive_exposure);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Adapts scene brightness gradually while preserving dark scenes and bright highlights. HUD stays unchanged.", nullptr));
