@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.26)
-project(MidnaFX VERSION 1.4.1 LANGUAGES CXX)
+project(MidnaFX VERSION 1.5.0 LANGUAGES CXX)
 
 option(MIDNAFX_BUILD_MOD "Build the native Dusklight mod and .dusk package" ON)
 option(MIDNAFX_ALLOW_UNVERIFIED_SDK "Allow a Dusklight checkout other than the researched revision" OFF)
@@ -28,7 +28,10 @@ if(MIDNAFX_BUILD_MOD)
         MOD_JSON mod.json
         RES_DIR res
     )
-    target_sources(midnafx PRIVATE src/render/ambient_occlusion.cpp)
+    target_sources(midnafx PRIVATE src/render/ambient_occlusion.cpp src/render/adaptive_exposure.cpp)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/adaptive_exposure.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/exposure_composite.wgsl")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/adaptive_exposure.wgsl" MIDNAFX_ADAPTIVE_EXPOSURE_SHADER)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/exposure_composite.wgsl" MIDNAFX_EXPOSURE_COMPOSITE_SHADER)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ambient_occlusion.wgsl")
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ambient_occlusion.wgsl" MIDNAFX_AMBIENT_OCCLUSION_SHADER)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.wgsl")

@@ -27,7 +27,7 @@ fn max_component(value: vec3f) -> f32 {
 }
 
 fn apply_grading(input: vec3f) -> vec3f {
-    var color = input * vec3f(grading.gain_r, grading.gain_g, grading.gain_b);
+    var color = apply_exposure(input) * vec3f(grading.gain_r, grading.gain_g, grading.gain_b);
     color = max(color - vec3f(grading.black_point), vec3f(0.0)) /
             (1.0 - grading.black_point);
     color = (color - vec3f(0.5)) * grading.contrast + vec3f(0.5);

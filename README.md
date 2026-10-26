@@ -1,5 +1,13 @@
 # MidnaFX
 
+MidnaFX 1.5 adds **Adaptive exposure** across the entire scene, including scenery,
+characters and replacement textures. It gradually opens dark views and restrains
+bright views, with bounded correction that preserves the game's night and dungeon
+mood. Select **Profile / Remaster** or enable the independent Basic control.
+**Vanilla** disables it. Existing settings are preserved until a profile is selected.
+The effect shares the grading/water draw and leaves the HUD untouched. See
+[adaptive exposure](docs/adaptive-exposure.md) for comparisons and limits.
+
 MidnaFX 1.3 adds **Profile / Remaster**, the first control in the mod's
 settings. It combines natural grading, detail, modern exploration camera,
 anti-aliasing, enhanced water, depth atmosphere and ambient contact shading across opaque
@@ -24,7 +32,7 @@ lighting continuity without adding polygons or changing the silhouette.
 MidnaFX is an experimental native visual processing mod for Dusklight. It provides a fused
 pre-HUD grading shader with exposure, black point, contrast, gamma, saturation, highlight
 rolloff, temperature and tint controls, plus optional five-tap detail enhancement.
-Neutral grading with detail and AA off and Color Look set to Neutral bypasses the grading pass. Save,
+Neutral grading with detail, AA and adaptive exposure off and Color Look set to Neutral bypasses the grading pass. Save,
 load, and duplicate looks under Visual profile; Vanilla disables profile effects and
 Custom retains its own live look across preset switches. A forced RGBA passthrough remains
 available for validating the render path. Developer views provide A/B split, luminance,

@@ -16,6 +16,12 @@ Preserve gameplay, authored material boundaries, animation/skinning, transparenc
 
 ## Delivery sequence
 
+The 2026-10-26 direction prioritizes broad improvements to the play experience.
+Prefer scene-wide or cross-category rendering and camera features over extending
+single-asset lists. Expand a specific identity only when required to remove a
+demonstrated blocker. Adaptive exposure is the next delivered global slice;
+broader environment lighting and image stability remain the next product areas.
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

@@ -64,9 +64,9 @@ int main() {
     CHECK((presets::enhanced().product_flags & presets::Dof) == 0);
     const auto remaster = presets::remaster();
     CHECK((remaster.product_flags & presets::SkinnedGeometry) != 0);
-    CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere));
+    CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere | presets::AdaptiveExposure));
     CHECK(presets::vanilla().scene_flags == 0 && presets::vanilla().product_flags == 0);
-    for (int flags = -1; flags <= 15; ++flags) {
+    for (int flags = -1; flags <= 31; ++flags) {
         auto snapshot = remaster;
         snapshot.scene_flags = flags;
         const auto text = presets::encode({{"Remaster copy", snapshot}, {"Legacy copy", realism}});
@@ -75,9 +75,11 @@ int main() {
         CHECK(decoded[0].snapshot.product_flags == remaster.product_flags);
         CHECK(decoded[1].snapshot.scene_flags == -1);
     }
-    CHECK(!presets::decode("MFX4\nBad\t0,0,100,100,100,0,0,0,255,1,12,9,16\n", decoded));
-    CHECK(decoded.size() == 2 && decoded[0].snapshot.scene_flags == 15);
+    CHECK(!presets::decode("MFX4\nBad\t0,0,100,100,100,0,0,0,255,1,12,9,32\n", decoded));
+    CHECK(decoded.size() == 2 && decoded[0].snapshot.scene_flags == 31);
+    CHECK(presets::decode("MFX4\nOld scene\t0,0,100,100,100,0,0,0,255,1,12,9,15\n", decoded));
+    CHECK((decoded[0].snapshot.scene_flags & presets::AdaptiveExposure) == 0);
     auto invalid = remaster;
-    invalid.scene_flags = 16;
+    invalid.scene_flags = 32;
     CHECK(presets::encode({{"Invalid", invalid}}).empty());
 }

@@ -2,13 +2,18 @@
 #include "render/lut.hpp"
 #include <webgpu/webgpu.h>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <thread>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -61,7 +66,8 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
                           unsigned width, unsigned height, const std::vector<Pixel>& pixels,
                           float detail_strength = 0.0f, float look_strength = -1.0f,
                           float gain = 1.0f, unsigned table = 0, float twilight = 0.0f,
-                          WGPUTextureFormat format = WGPUTextureFormat_RGBA8Unorm) {
+                          WGPUTextureFormat format = WGPUTextureFormat_RGBA8Unorm,
+                          float exposure_stops = 0.0f) {
     wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
     auto queue = wgpuDeviceGetQueue(device);
     WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
@@ -80,6 +86,23 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     upload_layout.rowsPerImage = height;
     wgpuQueueWriteTexture(queue, &upload, pixels.data(), pixels.size() * sizeof(Pixel),
                           &upload_layout, &td.size);
+    auto exposure_desc = td;
+    exposure_desc.size = {1, 1, 1};
+    exposure_desc.format = WGPUTextureFormat_RGBA16Float;
+    exposure_desc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    auto exposure = wgpuDeviceCreateTexture(device, &exposure_desc);
+    auto exposure_view = wgpuTextureCreateView(exposure, nullptr);
+    const std::array<std::uint16_t, 4> exposure_value{
+        static_cast<std::uint16_t>(midnafx::lut::half(std::abs(exposure_stops)) |
+                                   (exposure_stops < 0 ? 0x8000 : 0)),
+        0, 0, midnafx::lut::half(1.0f)};
+    auto exposure_upload = upload;
+    exposure_upload.texture = exposure;
+    auto exposure_layout = upload_layout;
+    exposure_layout.bytesPerRow = 8;
+    exposure_layout.rowsPerImage = 1;
+    wgpuQueueWriteTexture(queue, &exposure_upload, exposure_value.data(), sizeof(exposure_value),
+                          &exposure_layout, &exposure_desc.size);
 
     // Production Grading layout, with neutral tone controls and selectable detail.
     const bool water = std::strncmp(entry, "fs_absorption", 13) == 0;
@@ -149,7 +172,7 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     pd.fragment = &fragment;
     auto pipeline = wgpuDeviceCreateRenderPipeline(device, &pd);
     auto layout = wgpuRenderPipelineGetBindGroupLayout(pipeline, 0);
-    WGPUBindGroupEntry entries[10];
+    WGPUBindGroupEntry entries[11];
     for (auto& item : entries) item = WGPU_BIND_GROUP_ENTRY_INIT;
     entries[0].binding = 0;
     entries[0].textureView = source_view;
@@ -171,6 +194,8 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
         entries[count].binding = 9; entries[count].buffer = look_uniform;
         entries[count++].size = sizeof(midnafx::lut::Controls);
     }
+    entries[count].binding = 10;
+    entries[count++].textureView = exposure_view;
     WGPUBindGroupDescriptor bgd = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     bgd.layout = layout;
     bgd.entryCount = count;
@@ -245,8 +270,156 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     wgpuTextureViewRelease(source_view);
     wgpuTextureRelease(target);
     wgpuTextureRelease(source);
+    wgpuTextureViewRelease(exposure_view);
+    wgpuTextureRelease(exposure);
     for (auto view : water_views) if (view) wgpuTextureViewRelease(view);
     for (auto texture : water_textures) if (texture) wgpuTextureRelease(texture);
+    wgpuQueueRelease(queue);
+    return output;
+}
+
+struct MeterStep {
+    std::vector<Pixel> pixels;
+    float seconds;
+    std::uint32_t reset;
+};
+using MeterValue = std::array<float, 4>;
+
+float decode_half(std::uint16_t value) {
+    const unsigned exponent = (value >> 10) & 31;
+    const unsigned fraction = value & 1023;
+    const float magnitude = exponent == 31 ?
+        (fraction ? std::numeric_limits<float>::quiet_NaN() : std::numeric_limits<float>::infinity()) :
+        exponent == 0 ? std::ldexp(float(fraction), -24) :
+                       std::ldexp(float(1024 + fraction), int(exponent) - 25);
+    return value & 0x8000 ? -magnitude : magnitude;
+}
+
+// Each write precedes its own submission. History alternates GPU textures;
+// snapshots occupy separate aligned rows and are read only after the last step.
+std::vector<MeterValue> meter(WGPUInstance instance, WGPUDevice device,
+                              const std::vector<MeterStep>& steps) {
+    wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
+    auto queue = wgpuDeviceGetQueue(device);
+    WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
+    td.size = {16, 16, 1};
+    td.format = WGPUTextureFormat_RGBA8Unorm;
+    td.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    auto source = wgpuDeviceCreateTexture(device, &td);
+    auto source_view = wgpuTextureCreateView(source, nullptr);
+    td.size = {1, 1, 1};
+    td.format = WGPUTextureFormat_RGBA16Float;
+    td.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding |
+               WGPUTextureUsage_CopySrc;
+    std::array<WGPUTexture, 2> history{};
+    std::array<WGPUTextureView, 2> views{};
+    for (unsigned i = 0; i < 2; ++i) {
+        history[i] = wgpuDeviceCreateTexture(device, &td);
+        views[i] = wgpuTextureCreateView(history[i], nullptr);
+    }
+    struct Controls { float seconds; std::uint32_t reset; float padding[2]{}; };
+    static_assert(sizeof(Controls) == 16);
+    WGPUBufferDescriptor bd = WGPU_BUFFER_DESCRIPTOR_INIT;
+    bd.size = sizeof(Controls);
+    bd.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
+    auto uniform = wgpuDeviceCreateBuffer(device, &bd);
+    bd.size = steps.size() * 256;
+    bd.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst;
+    auto readback = wgpuDeviceCreateBuffer(device, &bd);
+    WGPUShaderSourceWGSL wgsl = WGPU_SHADER_SOURCE_WGSL_INIT;
+    wgsl.code = {midnafx::render::adaptive_exposure_shader, WGPU_STRLEN};
+    WGPUShaderModuleDescriptor sd = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
+    sd.nextInChain = &wgsl.chain;
+    auto shader = wgpuDeviceCreateShaderModule(device, &sd);
+    WGPUComputePipelineDescriptor pd = WGPU_COMPUTE_PIPELINE_DESCRIPTOR_INIT;
+    pd.compute.module = shader;
+    pd.compute.entryPoint = {"meter", WGPU_STRLEN};
+    auto pipeline = wgpuDeviceCreateComputePipeline(device, &pd);
+    auto layout = wgpuComputePipelineGetBindGroupLayout(pipeline, 0);
+    std::array<WGPUBindGroup, 2> groups{};
+    for (unsigned i = 0; i < 2; ++i) {
+        WGPUBindGroupEntry entries[4];
+        for (auto& entry : entries) entry = WGPU_BIND_GROUP_ENTRY_INIT;
+        entries[0].binding = 0; entries[0].textureView = source_view;
+        entries[1].binding = 1; entries[1].textureView = views[i];
+        entries[2].binding = 2; entries[2].textureView = views[1 - i];
+        entries[3].binding = 3; entries[3].buffer = uniform; entries[3].size = sizeof(Controls);
+        WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
+        desc.layout = layout; desc.entryCount = 4; desc.entries = entries;
+        groups[i] = wgpuDeviceCreateBindGroup(device, &desc);
+    }
+    for (size_t i = 0; i < steps.size(); ++i) {
+        const Controls controls{steps[i].seconds, steps[i].reset};
+        wgpuQueueWriteBuffer(queue, uniform, 0, &controls, sizeof(controls));
+        WGPUTexelCopyTextureInfo upload = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
+        upload.texture = source;
+        WGPUTexelCopyBufferLayout upload_layout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
+        upload_layout.bytesPerRow = 16 * 4; upload_layout.rowsPerImage = 16;
+        const WGPUExtent3D source_size{16, 16, 1};
+        wgpuQueueWriteTexture(queue, &upload, steps[i].pixels.data(),
+                              steps[i].pixels.size() * sizeof(Pixel), &upload_layout, &source_size);
+        auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
+        auto pass = wgpuCommandEncoderBeginComputePass(encoder, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, pipeline);
+        wgpuComputePassEncoderSetBindGroup(pass, 0, groups[i % 2], 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
+        wgpuComputePassEncoderEnd(pass);
+        WGPUTexelCopyTextureInfo copy = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
+        copy.texture = history[1 - i % 2];
+        WGPUTexelCopyBufferInfo destination = WGPU_TEXEL_COPY_BUFFER_INFO_INIT;
+        destination.buffer = readback;
+        destination.layout.offset = i * 256;
+        destination.layout.bytesPerRow = 256; destination.layout.rowsPerImage = 1;
+        wgpuCommandEncoderCopyTextureToBuffer(encoder, &copy, &destination, &td.size);
+        auto command = wgpuCommandEncoderFinish(encoder, nullptr);
+        wgpuQueueSubmit(queue, 1, &command);
+        wgpuCommandBufferRelease(command);
+        wgpuComputePassEncoderRelease(pass);
+        wgpuCommandEncoderRelease(encoder);
+    }
+    bool mapped = false;
+    WGPUBufferMapCallbackInfo map_info = WGPU_BUFFER_MAP_CALLBACK_INFO_INIT;
+    map_info.mode = WGPUCallbackMode_WaitAnyOnly; map_info.userdata1 = &mapped;
+    map_info.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void* user, void*) {
+        *static_cast<bool*>(user) = status == WGPUMapAsyncStatus_Success;
+    };
+    wait(instance, wgpuBufferMapAsync(readback, WGPUMapMode_Read, 0, bd.size, map_info));
+    std::vector<MeterValue> output;
+    if (mapped) {
+        const auto* bytes = static_cast<const unsigned char*>(
+            wgpuBufferGetConstMappedRange(readback, 0, bd.size));
+        if (bytes) {
+            output.resize(steps.size());
+            for (size_t i = 0; i < steps.size(); ++i) {
+                std::array<std::uint16_t, 4> half{};
+                std::memcpy(half.data(), bytes + i * 256, sizeof(half));
+                for (unsigned c = 0; c < 4; ++c) output[i][c] = decode_half(half[c]);
+            }
+        }
+        wgpuBufferUnmap(readback);
+    }
+    bool valid = false;
+    WGPUPopErrorScopeCallbackInfo scope = WGPU_POP_ERROR_SCOPE_CALLBACK_INFO_INIT;
+    scope.mode = WGPUCallbackMode_WaitAnyOnly; scope.userdata1 = &valid;
+    scope.callback = [](WGPUPopErrorScopeStatus status, WGPUErrorType type,
+                         WGPUStringView message, void* user, void*) {
+        *static_cast<bool*>(user) = status == WGPUPopErrorScopeStatus_Success &&
+                                   type == WGPUErrorType_NoError;
+        if (!*static_cast<bool*>(user))
+            std::fprintf(stderr, "Exposure GPU validation: %.*s\n", int(message.length), message.data);
+    };
+    wait(instance, wgpuDevicePopErrorScope(device, scope));
+    if (!valid) output.clear();
+    for (auto group : groups) wgpuBindGroupRelease(group);
+    wgpuBindGroupLayoutRelease(layout);
+    wgpuComputePipelineRelease(pipeline);
+    wgpuShaderModuleRelease(shader);
+    wgpuBufferRelease(readback);
+    wgpuBufferRelease(uniform);
+    for (auto view : views) wgpuTextureViewRelease(view);
+    for (auto texture : history) wgpuTextureRelease(texture);
+    wgpuTextureViewRelease(source_view);
+    wgpuTextureRelease(source);
     wgpuQueueRelease(queue);
     return output;
 }
@@ -459,6 +632,131 @@ int main() {
                 }
             }
             std::printf("Creative controls %s format=%u: %s\n", entry, unsigned(format), valid ? "PASS" : "FAIL");
+            ok &= valid;
+        }
+    }
+    std::vector<MeterStep> meter_steps;
+    const auto append_scene = [&](Pixel color, unsigned frames, bool reset = true) {
+        const size_t first = meter_steps.size();
+        for (unsigned i = 0; i < frames; ++i)
+            meter_steps.push_back({std::vector<Pixel>(256, color),
+                                   reset && i == 0 ? 0.0f : 0.1f,
+                                   reset && i == 0 ? 1u : 0u});
+        return first;
+    };
+    const auto dark = append_scene({32, 32, 32, 17}, 61);
+    const auto bright_transition = append_scene({255, 255, 255, 29}, 31, false);
+    const auto bright = append_scene({255, 255, 255, 0}, 61);
+    const auto middle = append_scene({82, 82, 82, 255}, 61);
+    const auto night = append_scene({12, 12, 12, 85}, 61);
+    const auto red = append_scene({128, 0, 0, 7}, 1);
+    const auto blue = append_scene({0, 0, 128, 99}, 1);
+    const auto alpha_variant = append_scene({32, 32, 32, 255}, 2);
+    const auto before_fade = append_scene({32, 32, 32, 0}, 31);
+    const auto fade = append_scene({4, 4, 4, 123}, 1, false);
+    const auto black = append_scene({0, 0, 0, 255}, 1, false);
+    // Invalid dark history must restart from neutral, even without a reset bit.
+    const size_t recovery = meter_steps.size();
+    meter_steps.push_back({std::vector<Pixel>(256, Pixel{32, 32, 32, 123}), 0, 0});
+    append_scene({32, 32, 32, 123}, 1, false);
+    const auto unframed = append_scene({128, 128, 128, 51}, 1);
+    const size_t framed = meter_steps.size();
+    auto bars = std::vector<Pixel>(256, Pixel{128, 128, 128, 51});
+    for (unsigned y = 0; y < 16; ++y)
+        if (y < 4 || y >= 12)
+            for (unsigned x = 0; x < 16; ++x) bars[y * 16 + x] = {0, 0, 0, 255};
+    meter_steps.push_back({std::move(bars), 0, 1});
+    const auto metered = meter(instance, device, meter_steps);
+    bool meter_ok = metered.size() == meter_steps.size();
+    if (meter_ok) {
+        for (const auto& value : metered)
+            meter_ok &= std::isfinite(value[0]) && std::isfinite(value[1]) &&
+                        value[0] >= -0.5f && value[0] <= 0.75f && value[3] == 1;
+        for (auto first : {dark, bright, middle, night, red, blue, alpha_variant, before_fade, unframed})
+            meter_ok &= metered[first][0] == 0 && metered[first][2] == 1;
+        meter_ok &= metered[dark + 60][0] > 0.70f &&
+                    metered[bright + 60][0] < -0.48f &&
+                    std::abs(metered[middle + 60][0]) < 0.02f;
+        for (unsigned i = 1; i < 61; ++i) {
+            meter_ok &= metered[dark + i][0] >= metered[dark + i - 1][0];
+            meter_ok &= metered[bright + i][0] <= metered[bright + i - 1][0];
+        }
+        for (unsigned i = 1; i < 31; ++i)
+            meter_ok &= metered[bright_transition + i][0] <= metered[bright_transition + i - 1][0];
+        meter_ok &= metered[bright_transition][0] < metered[dark + 60][0] &&
+                    metered[bright_transition + 30][0] < -0.48f;
+        // Compare fractions of the two clamped targets to separate speed from range.
+        meter_ok &= -metered[bright + 1][0] / 0.5f > metered[dark + 1][0] / 0.75f;
+        meter_ok &= std::abs(metered[red][1] - (128.0f / 255 * 0.2126f)) < 0.0003f &&
+                    std::abs(metered[blue][1] - (128.0f / 255 * 0.0722f)) < 0.0001f;
+        meter_ok &= metered[alpha_variant + 1] == metered[dark + 1];
+        meter_ok &= metered[before_fade + 30][0] > 0.5f &&
+                    metered[fade][0] == 0 && metered[fade][2] == 0 &&
+                    metered[black][0] == 0 && metered[black][2] == 0 &&
+                    metered[recovery][0] == 0 && metered[recovery][2] == 1 &&
+                    metered[recovery + 1][0] > 0;
+        meter_ok &= std::abs(metered[framed][1] - metered[unframed][1]) < 0.0005f;
+        const auto night_output = render(instance, device, "fs_main", 1, 1, {{12, 12, 12, 85}},
+            0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, metered[night + 60][0]);
+        const auto day_output = render(instance, device, "fs_main", 1, 1, {{82, 82, 82, 255}},
+            0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, metered[middle + 60][0]);
+        meter_ok &= night_output.size() == 1 && day_output.size() == 1;
+        if (night_output.size() == 1 && day_output.size() == 1)
+            meter_ok &= night_output[0][0] < day_output[0][0] &&
+                        night_output[0][3] == 85 && day_output[0][3] == 255;
+    }
+    std::printf("Exposure meter: convergence, Rec709, temporal history, reset, fades, bars, alpha: %s\n",
+                meter_ok ? "PASS" : "FAIL");
+    if (!meter_ok && metered.size() == meter_steps.size())
+        for (auto i : {dark, dark + 1, dark + 60, bright_transition, bright_transition + 30,
+                       bright + 1, bright + 60, middle + 60, red, blue, fade, black, recovery, framed})
+            std::fprintf(stderr, "Meter step %zu: stops=%g mean=%g valid=%g alpha=%g\n",
+                         i, metered[i][0], metered[i][1], metered[i][2], metered[i][3]);
+    ok &= meter_ok;
+
+    std::vector<Pixel> exposure_source(17 * 3);
+    for (unsigned y = 0; y < 3; ++y)
+        for (unsigned x = 0; x < 17; ++x)
+            exposure_source[y * 17 + x] = x < 5 ? Pixel{0, 0, 0, static_cast<unsigned char>(x + y)} :
+                x < 12 ? Pixel{64, 96, 128, static_cast<unsigned char>(x * 13 + y)} :
+                         Pixel{255, 255, 255, static_cast<unsigned char>(x * 13 + y)};
+    for (const auto* entry : {"fs_main", "fs_detail", "fs_fxaa", "fs_fxaa_detail",
+                             "fs_absorption", "fs_absorption_detail", "fs_absorption_fxaa", "fs_absorption_fxaa_detail"}) {
+        const float look = std::strstr(entry, "detail") ? 1.0f : -1.0f;
+        // Exposure follows water absorption and filtering, then precedes the LUT.
+        // Capture the ungraded result rather than exposing the original water input.
+        const auto reference = render(instance, device, entry, 17, 3, exposure_source, 0.5f);
+        const auto neutral = look < 0 ? reference :
+            render(instance, device, entry, 17, 3, exposure_source, 0.5f, look, 1, 1);
+        for (float stops : {-0.5f, 0.75f}) {
+            auto pre_exposed = reference;
+            const float gain = std::exp2(stops);
+            for (auto& pixel : pre_exposed) {
+                const float peak = float(std::max(std::max(pixel[0], pixel[1]), pixel[2])) / 255;
+                for (unsigned c = 0; c < 3; ++c)
+                    pixel[c] = static_cast<unsigned char>(std::lround(
+                        float(pixel[c]) * gain / (1 + std::max(gain - 1, 0.0f) * peak)));
+            }
+            const auto expected = render(instance, device, "fs_main", 17, 3, pre_exposed, 0, look, 1, 1);
+            const auto actual = render(instance, device, entry, 17, 3, exposure_source,
+                                       0.5f, look, 1, 1, 0, WGPUTextureFormat_RGBA8Unorm, stops);
+            bool valid = actual.size() == exposure_source.size() && expected.size() == actual.size() &&
+                         neutral.size() == actual.size() && actual != neutral;
+            if (valid) {
+                for (unsigned i = 0; i < actual.size(); ++i) valid &= actual[i][3] == exposure_source[i][3];
+                // Sample flat interiors; filtering and nonlinear exposure need not commute at edges.
+                for (unsigned y = 0; y < 3; ++y)
+                    for (unsigned x : {0u, 8u, 16u})
+                        for (unsigned c = 0; c < 3; ++c) {
+                            valid &= std::abs(int(actual[y * 17 + x][c]) - int(expected[y * 17 + x][c])) <= 2;
+                            if (!std::strncmp(entry, "fs_absorption", 13)) continue;
+                            if (x == 0 || (x == 16 && stops > 0))
+                                valid &= actual[y * 17 + x][c] == (x == 0 ? 0 : 255);
+                        }
+            }
+            std::printf("Exposure composite %s LUT=%s stops=%.2f: %s\n", entry,
+                        look >= 0 ? "on" : "off", stops, valid ? "PASS" : "FAIL");
+            if (!valid) report_difference("exposure composite", 17, expected, actual);
             ok &= valid;
         }
     }

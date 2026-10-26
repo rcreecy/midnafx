@@ -230,7 +230,7 @@ fn fxaa_source(center: vec3f, position: vec2i, detail: bool) -> vec3f {
 }
 
 fn apply_grading(input: vec3f) -> vec3f {
-    var color = input * vec3f(params.gain_r, params.gain_g, params.gain_b);
+    var color = apply_exposure(input) * vec3f(params.gain_r, params.gain_g, params.gain_b);
     color = max(color - vec3f(params.black_point), vec3f(0.0)) /
             (1.0 - params.black_point);
     color = (color - vec3f(0.5)) * params.contrast + vec3f(0.5);

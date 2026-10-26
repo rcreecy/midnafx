@@ -61,6 +61,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
     dof_autofocus{"dof_autofocus", true};
+Toggle adaptive_exposure{"adaptive_exposure", false};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -223,7 +224,8 @@ presets::Snapshot capture() {
     value.scene_flags = (ambient_occlusion.value ? presets::AmbientOcclusion : 0) |
         (anti_aliasing.value ? presets::AntiAliasing : 0) |
         (enhanced_water.value ? presets::Water : 0) |
-        (atmosphere.value ? presets::Atmosphere : 0);
+        (atmosphere.value ? presets::Atmosphere : 0) |
+        (adaptive_exposure.value ? presets::AdaptiveExposure : 0);
     value.detail_enabled = detail_toggle.value;
     value.detail_strength = detail_strength_setting.value;
     return value;
@@ -311,6 +313,7 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(anti_aliasing, presets::AntiAliasing);
         apply_toggle(enhanced_water, presets::Water);
         apply_toggle(atmosphere, presets::Atmosphere);
+        apply_toggle(adaptive_exposure, presets::AdaptiveExposure);
     }
     // A failed config write must not advertise a completely applied profile.
     // Keep the saved Custom snapshot available for explicit recovery.
@@ -380,7 +383,8 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
         if ((user == &detail_toggle || user == &master || user == &geometry_smoothing ||
              user == &geometry_skinned_smoothing || user == &camera_toggle ||
              user == &camera_lower_angle || user == &dof_blur || user == &ambient_occlusion ||
-             user == &anti_aliasing || user == &enhanced_water || user == &atmosphere) &&
+             user == &anti_aliasing || user == &enhanced_water || user == &atmosphere ||
+             user == &adaptive_exposure) &&
             !applying_preset) {
             mark_custom();
             update_grade();
@@ -503,7 +507,8 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
     if (&toggle == &detail_toggle || &toggle == &master || &toggle == &geometry_smoothing ||
         &toggle == &geometry_skinned_smoothing || &toggle == &camera_toggle ||
         &toggle == &camera_lower_angle || &toggle == &dof_blur || &toggle == &ambient_occlusion ||
-        &toggle == &anti_aliasing || &toggle == &enhanced_water || &toggle == &atmosphere) {
+        &toggle == &anti_aliasing || &toggle == &enhanced_water || &toggle == &atmosphere ||
+        &toggle == &adaptive_exposure) {
         mark_custom();
         update_grade();
     }
@@ -863,11 +868,12 @@ void refresh_status() {
     const auto mode = visual::debug_mode(debug_mode_setting.value);
     std::snprintf(status, sizeof(status), "%s | %s | %u x %u",
                   master.value ? (active_grade.neutral && !detail_active && !anti_aliasing.value &&
-                                          !ambient_occlusion.value && !atmosphere.value && look_intensity() <= 0 &&
+                                          !ambient_occlusion.value && !atmosphere.value &&
+                                          !adaptive_exposure.value && look_intensity() <= 0 &&
                                           mode == visual::DebugMode::Final && !passthrough.value
                                       ? "Neutral"
                                       : "Processing")
-                               : (ambient_occlusion.value || atmosphere.value
+                               : (ambient_occlusion.value || atmosphere.value || adaptive_exposure.value
                                       ? "Grading off / scene effects requested"
                                       : (anti_aliasing.value ? "Grading off / AA requested" : "Grading off")),
                   data.status, data.width, data.height);
@@ -965,7 +971,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Remaster combines contact shading, depth atmosphere, natural grading, detail, Link shading, modern camera, anti-aliasing and enhanced water. "
+        "Remaster combines contact shading, depth atmosphere, adaptive exposure, natural grading, detail, Link shading, modern camera, anti-aliasing and enhanced water. "
         "Vanilla restores original presentation. Advanced tuning stays unchanged.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
@@ -977,6 +983,9 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
     add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
+    add_toggle(panel, "Adaptive exposure", adaptive_exposure);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Adapts scene brightness gradually while preserving dark scenes and bright highlights. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Ambient occlusion (contact shading)", ambient_occlusion);
     add_number(panel, ambient_occlusion_strength_setting);
     add_number(panel, ambient_occlusion_radius_setting);
@@ -1201,6 +1210,7 @@ bool initialize() {
     register_toggle(water_thickness_diagnostic);
     register_toggle(enhanced_water);
     register_toggle(anti_aliasing);
+    register_toggle(adaptive_exposure);
     register_toggle(ambient_occlusion);
     register_toggle(atmosphere);
     register_toggle(camera_toggle);
@@ -1325,6 +1335,7 @@ float dof_focus_transition_seconds() {
     return static_cast<float>(dof_focus_transition_setting.value) / 100.0f;
 }
 bool anti_aliasing_enabled() { return anti_aliasing.value; }
+bool adaptive_exposure_enabled() { return adaptive_exposure.value; }
 bool ambient_occlusion_enabled() { return ambient_occlusion.value; }
 float ambient_occlusion_strength() {
     return static_cast<float>(ambient_occlusion_strength_setting.value) / 100.0f;

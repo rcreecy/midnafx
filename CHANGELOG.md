@@ -1,6 +1,31 @@
 # Changelog
 
-## Unreleased
+## 1.5.0 - 2026-10-26
+
+- Add scene-wide adaptive exposure without asset identities or material allowlists.
+  A fixed 256-sample GPU meter gradually adjusts existing grading and water draws,
+  improving dark-view readability while retaining authored lighting differences.
+- Bound exposure to -0.5 through +0.75 stops; preserve black fades, avoid highlight clipping,
+  RGB ratios and alpha. Reset history on room/stage/layout changes, pause and disable.
+- Enable adaptive exposure in Remaster and disable it in Vanilla; preserve existing
+  settings and support the independent Basic control with grading off.
+- Validate GPU adaptation, fades, colored light and ordinary/water/LUT/AA/detail
+  composition, plus native Windows day/night toggles. macOS gameplay remains unverified.
+
+## 1.4.1 - 2026-10-26
+
+- Extend Enhanced Link shading to Hero's Clothes and repair re-enable using original
+  source draws with their matching descriptors. Preserve exact normal restoration.
+
+## 1.4.0 - 2026-10-25
+
+- Add reversible Enhanced Link shading for the original Ordon outfit to Basic and
+  Remaster, preserving uncertain regions, animation, geometry and authored boundaries.
+
+## 1.3.0 - 2026-10-25
+
+- Add the combined Remaster profile, scene-wide ambient contact shading and depth
+  atmosphere based on native fog parameters. Vanilla restores profile effects.
 
 - Add opt-in Neutral, MidnaFX Natural, and contextual Twilight color looks with
   persistent intensity controls. Neutral remains the default and bypasses LUT sampling.
@@ -13,7 +38,7 @@
 - Add identity readback coverage across ordinary/water/AA/detail paths, exposure
   extremes, odd dimensions, RGB/BGRA boundaries, and creative blend invariants.
 - Creative art qualification, physical Mac gameplay, and GPU duration measurements
-  remain incomplete. No creative default or release version change is included.
+  remain incomplete. Creative looks remain opt-in.
 
 ## 1.2.0 - 2026-10-08
 

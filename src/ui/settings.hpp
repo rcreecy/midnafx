@@ -47,6 +47,7 @@ float dof_focus_range();
 float dof_blur_radius();
 float dof_focus_transition_seconds();
 bool anti_aliasing_enabled();
+bool adaptive_exposure_enabled();
 bool ambient_occlusion_enabled();
 float ambient_occlusion_strength();
 float ambient_occlusion_radius();
