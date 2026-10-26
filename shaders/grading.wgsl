@@ -26,8 +26,9 @@ fn max_component(value: vec3f) -> f32 {
     return max(max(value.r, value.g), value.b);
 }
 
-fn apply_grading(input: vec3f) -> vec3f {
-    var color = apply_exposure(input) * vec3f(grading.gain_r, grading.gain_g, grading.gain_b);
+fn apply_grading(input: vec3f, coord: vec2i) -> vec3f {
+    var color = apply_exposure(apply_bloom(input, coord, textureDimensions(scene))) *
+                vec3f(grading.gain_r, grading.gain_g, grading.gain_b);
     color = max(color - vec3f(grading.black_point), vec3f(0.0)) /
             (1.0 - grading.black_point);
     color = (color - vec3f(0.5)) * grading.contrast + vec3f(0.5);
@@ -126,29 +127,30 @@ fn debug_output(source: vec4f, processed: vec3f) -> vec4f {
 
 @fragment
 fn fs_main(@builtin(position) position: vec4f) -> @location(0) vec4f {
-    let source = textureLoad(scene, vec2i(position.xy), 0);
-    return vec4f(apply_grading(source.rgb), source.a);
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene, coord, 0);
+    return vec4f(apply_grading(source.rgb, coord), source.a);
 }
 
 @fragment
 fn fs_detail(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene, coord, 0);
-    return vec4f(apply_grading(apply_detail(source.rgb, coord)), source.a);
+    return vec4f(apply_grading(apply_detail(source.rgb, coord), coord), source.a);
 }
 
 @fragment
 fn fs_fxaa(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene, coord, 0);
-    return vec4f(apply_grading(fxaa_source(source.rgb, coord, false)), source.a);
+    return vec4f(apply_grading(fxaa_source(source.rgb, coord, false), coord), source.a);
 }
 
 @fragment
 fn fs_fxaa_detail(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene, coord, 0);
-    return vec4f(apply_grading(fxaa_source(source.rgb, coord, true)), source.a);
+    return vec4f(apply_grading(fxaa_source(source.rgb, coord, true), coord), source.a);
 }
 
 @fragment
@@ -158,7 +160,7 @@ fn fs_debug(@builtin(position) position: vec4f) -> @location(0) vec4f {
     if (grading.debug_mode == 2u && u32(coord.x) < grading.split_x) {
         return source;
     }
-    return debug_output(source, apply_grading(source.rgb));
+    return debug_output(source, apply_grading(source.rgb, coord));
 }
 
 @fragment
@@ -168,30 +170,31 @@ fn fs_debug_detail(@builtin(position) position: vec4f) -> @location(0) vec4f {
     if (grading.debug_mode == 2u && u32(coord.x) < grading.split_x) {
         return source;
     }
-    return debug_output(source, apply_grading(apply_detail(source.rgb, coord)));
+    return debug_output(source, apply_grading(apply_detail(source.rgb, coord), coord));
 }
 
 // Separate entry points keep disabled/diagnostic paths free of LUT bindings.
 @fragment
 fn fs_main_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
-    let source = textureLoad(scene, vec2i(position.xy), 0);
-    return vec4f(apply_look(apply_grading(source.rgb)), source.a);
+    let coord = vec2i(position.xy);
+    let source = textureLoad(scene, coord, 0);
+    return vec4f(apply_look(apply_grading(source.rgb, coord)), source.a);
 }
 @fragment
 fn fs_detail_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene, coord, 0);
-    return vec4f(apply_look(apply_grading(apply_detail(source.rgb, coord))), source.a);
+    return vec4f(apply_look(apply_grading(apply_detail(source.rgb, coord), coord)), source.a);
 }
 @fragment
 fn fs_fxaa_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene, coord, 0);
-    return vec4f(apply_look(apply_grading(fxaa_source(source.rgb, coord, false))), source.a);
+    return vec4f(apply_look(apply_grading(fxaa_source(source.rgb, coord, false), coord)), source.a);
 }
 @fragment
 fn fs_fxaa_detail_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene, coord, 0);
-    return vec4f(apply_look(apply_grading(fxaa_source(source.rgb, coord, true))), source.a);
+    return vec4f(apply_look(apply_grading(fxaa_source(source.rgb, coord, true), coord)), source.a);
 }

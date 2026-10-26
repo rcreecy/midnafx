@@ -27,6 +27,13 @@ It replaces the sparse full-resolution kernel with a denser half-resolution fiel
 and surface-aware filtering, retaining native depth and existing controls. This
 is another global rendering improvement, not an expansion of a single asset list.
 
+Version 1.7 adds scene-wide LDR bloom using quarter-resolution highlight
+extraction and separable filtering, fused with existing grading/water draws.
+Remaster enables restrained 20% glow; Vanilla disables it. Focused GPU checks
+and native Ordon lifecycle checks pass. Emissive classification, new dynamic
+lighting and whole-game art/motion quality are not established. An unsuccessful
+direct Goron Mines startup remains recorded in the [bloom evidence](evidence/bloom-2026-10-26/README.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

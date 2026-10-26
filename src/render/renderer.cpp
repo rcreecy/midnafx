@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "ambient_occlusion.hpp"
 #include "adaptive_exposure.hpp"
+#include "bloom.hpp"
 #include "lut.hpp"
 #include "config/visual.hpp"
 #include "game/camera_probe.hpp"
@@ -98,6 +99,7 @@ struct Payload {
     std::uint32_t look_offset;
     bool use_look;
     WGPUTextureView exposure;
+    bloom::Frame bloom_frame;
 };
 static_assert(sizeof(Payload) <= GFX_INLINE_DRAW_PAYLOAD_SIZE);
 
@@ -351,6 +353,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
         return;
     Payload payload{};
     std::memcpy(&payload, bytes, sizeof(payload));
+    struct BloomRelease { bloom::Frame frame; ~BloomRelease() { bloom::release(frame); } } bloom_release{payload.bloom_frame};
     if (payload.kind >= PipelineCount)
         return;
     if (payload.pair == nullptr)
@@ -372,7 +375,7 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
         payload.layout_key != ctx->layout.key || payload.layout_key != payload.pair->layout.key ||
         ctx->layout.sample_count != 1)
         return;
-    WGPUBindGroupEntry entries[11];
+    WGPUBindGroupEntry entries[13];
     for (auto& entry : entries) entry = WGPU_BIND_GROUP_ENTRY_INIT;
     entries[0].binding = 0;
     entries[0].textureView = uses_depth ? payload.depth : payload.scene;
@@ -430,6 +433,10 @@ void draw(ModContext*, const GfxDrawContext* ctx, const void* bytes, size_t size
     if (payload.kind != Passthrough && !uses_depth && !water_depth) {
         entries[desc.entryCount].binding = 10;
         entries[desc.entryCount++].textureView = payload.exposure;
+        entries[desc.entryCount].binding = 11;
+        entries[desc.entryCount++].textureView = bloom::view(payload.bloom_frame);
+        entries[desc.entryCount].binding = 12;
+        entries[desc.entryCount++].sampler = bloom::sampler();
     }
     desc.entries = entries;
     auto group = wgpuDeviceCreateBindGroup(ctx->device, &desc);
@@ -498,6 +505,9 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         !depth_based_debug && !water_thickness_debug && !water_capture_debug &&
         !settings::passthrough_test() && mode == visual::DebugMode::Final;
     if (!exposure_requested) adaptive_exposure::reset();
+    const bool bloom_requested = settings::bloom_enabled() && settings::bloom_strength() > 0 &&
+        world_rendered && !depth_based_debug && !water_thickness_debug && !water_capture_debug &&
+        !settings::passthrough_test() && mode == visual::DebugMode::Final;
     const bool water_absorption = !depth_based_debug && !water_thickness_debug &&
                                   !water_capture_debug && settings::enhanced_water_enabled() &&
                                   water_inputs_ready && water_inputs.scene_color &&
@@ -511,7 +521,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         timing ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     if (!settings::enabled() && !depth_based_debug && !water_capture_debug &&
         !water_thickness_debug && !water_absorption && !settings::anti_aliasing_enabled() &&
-        !exposure_requested) {
+        !exposure_requested && !bloom_requested) {
         if (timing) {
             disabled_samples.fetch_add(1, std::memory_order_relaxed);
             const auto elapsed =
@@ -533,7 +543,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                           !water_capture_debug && !water_thickness_debug &&
                           mode == visual::DebugMode::Final && !passthrough_test;
     if (!depth_based_debug && !water_absorption && prepared.neutral && !detail_enabled &&
-        !anti_aliasing && !use_look && !exposure_requested && !passthrough_test && mode == visual::DebugMode::Final) {
+        !anti_aliasing && !use_look && !exposure_requested && !bloom_requested && !passthrough_test && mode == visual::DebugMode::Final) {
         if (timing)
             neutral_samples.fetch_add(1, std::memory_order_relaxed);
         return;
@@ -765,8 +775,10 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                           uniform_range.size,
                           look_range.offset,
                           use_look,
-                          adaptive_exposure::prepare(snapshot, current.key, exposure_requested)};
+                          adaptive_exposure::prepare(snapshot, current.key, exposure_requested),
+                          bloom::prepare(snapshot, bloom_requested ? settings::bloom_strength() : 0.0f)};
     const auto push_result = svc_gfx->push_draw(mod_ctx, draw_type, &payload, sizeof(payload));
+    if (push_result != MOD_OK) bloom::release(payload.bloom_frame);
     if (push_result == MOD_UNAVAILABLE)
         return;
     if (push_result != MOD_OK) {
@@ -955,7 +967,7 @@ void initialize() {
         state.store(5);
         return;
     }
-    if (!adaptive_exposure::initialize(device) || !create_pair(layout)) {
+    if (!adaptive_exposure::initialize(device) || !bloom::initialize(device) || !create_pair(layout)) {
         state.store(2);
         return;
     }
@@ -1006,7 +1018,7 @@ void update() {
         settings::water_thickness_diagnostic_enabled() || settings::enhanced_water_enabled() ||
         settings::atmosphere_depth_view_enabled() || settings::atmosphere_depth_probe_enabled() ||
         settings::dof_coc_view_enabled() || settings::anti_aliasing_enabled() ||
-        settings::adaptive_exposure_enabled();
+        settings::adaptive_exposure_enabled() || settings::bloom_enabled();
     if ((current_state == 4 || current_state == 5) && graphics_requested) {
         const auto now = std::chrono::steady_clock::now();
         if (now >= next_init_retry)
@@ -1055,6 +1067,7 @@ void shutdown() {
     draw_type = 0;
     release_gpu();
     adaptive_exposure::shutdown();
+    bloom::shutdown();
 }
 
 void reset_timing_samples() {

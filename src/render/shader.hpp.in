@@ -1,5 +1,6 @@
 #pragma once
 namespace midnafx::render {
+inline constexpr char bloom_compute_shader[] = R"midnafx(@MIDNAFX_BLOOM_COMPUTE_SHADER@)midnafx";
 inline constexpr char adaptive_exposure_shader[] = R"midnafx(@MIDNAFX_ADAPTIVE_EXPOSURE_SHADER@)midnafx";
 inline constexpr char ambient_occlusion_shader[] = R"midnafx(@MIDNAFX_AMBIENT_COMMON_SHADER@
 @MIDNAFX_AMBIENT_OCCLUSION_SHADER@)midnafx";
@@ -8,6 +9,7 @@ inline constexpr char ambient_occlusion_compute_shader[] = R"midnafx(@MIDNAFX_AM
 inline constexpr char passthrough_shader[] = R"midnafx(@MIDNAFX_SHADER@)midnafx";
 inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
 @MIDNAFX_EXPOSURE_COMPOSITE_SHADER@
+@MIDNAFX_BLOOM_COMPOSITE_SHADER@
 @MIDNAFX_GRADING_SHADER@)midnafx";
 inline constexpr char atmosphere_depth_shader[] = R"midnafx(@MIDNAFX_ATMOSPHERE_DEPTH_SHADER@)midnafx";
 inline constexpr char dof_shader[] = R"midnafx(@MIDNAFX_DOF_SHADER@)midnafx";
@@ -15,5 +17,6 @@ inline constexpr char dof_blur_compute_shader[] = R"midnafx(@MIDNAFX_DOF_BLUR_CO
 inline constexpr char dof_blur_composite_shader[] = R"midnafx(@MIDNAFX_DOF_BLUR_COMPOSITE_SHADER@)midnafx";
 inline constexpr char water_thickness_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
 @MIDNAFX_EXPOSURE_COMPOSITE_SHADER@
+@MIDNAFX_BLOOM_COMPOSITE_SHADER@
 )midnafx" R"midnafx(@MIDNAFX_WATER_THICKNESS_SHADER@)midnafx";
 }

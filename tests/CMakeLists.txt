@@ -94,6 +94,13 @@ if(MIDNAFX_BUILD_MOD)
     aurora_copy_runtime_dlls(ambient_pixels)
     add_test(NAME ambient_pixels COMMAND ambient_pixels)
     set_tests_properties(ambient_pixels PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60)
+    add_executable(bloom_pixels bloom_pixels.cpp)
+    target_compile_features(bloom_pixels PRIVATE cxx_std_20)
+    target_include_directories(bloom_pixels PRIVATE "${CMAKE_BINARY_DIR}/generated" ../src)
+    target_link_libraries(bloom_pixels PRIVATE dawn::webgpu_dawn)
+    aurora_copy_runtime_dlls(bloom_pixels)
+    add_test(NAME bloom_pixels COMMAND bloom_pixels)
+    set_tests_properties(bloom_pixels PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60)
     add_test(NAME package_contract COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/package_contract.py"
         "${CMAKE_BINARY_DIR}/mods/midnafx.dusk"

@@ -67,7 +67,7 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
                           float detail_strength = 0.0f, float look_strength = -1.0f,
                           float gain = 1.0f, unsigned table = 0, float twilight = 0.0f,
                           WGPUTextureFormat format = WGPUTextureFormat_RGBA8Unorm,
-                          float exposure_stops = 0.0f) {
+                          float exposure_stops = 0.0f, float bloom_value = 0.0f) {
     wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
     auto queue = wgpuDeviceGetQueue(device);
     WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
@@ -92,6 +92,14 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     exposure_desc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
     auto exposure = wgpuDeviceCreateTexture(device, &exposure_desc);
     auto exposure_view = wgpuTextureCreateView(exposure, nullptr);
+    auto bloom_desc = exposure_desc;
+    bloom_desc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    auto bloom = wgpuDeviceCreateTexture(device, &bloom_desc);
+    auto bloom_view = wgpuTextureCreateView(bloom, nullptr);
+    WGPUSamplerDescriptor bloom_sampler_desc = WGPU_SAMPLER_DESCRIPTOR_INIT;
+    bloom_sampler_desc.minFilter = WGPUFilterMode_Linear;
+    bloom_sampler_desc.magFilter = WGPUFilterMode_Linear;
+    auto bloom_sampler = wgpuDeviceCreateSampler(device, &bloom_sampler_desc);
     const std::array<std::uint16_t, 4> exposure_value{
         static_cast<std::uint16_t>(midnafx::lut::half(std::abs(exposure_stops)) |
                                    (exposure_stops < 0 ? 0x8000 : 0)),
@@ -103,6 +111,12 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     exposure_layout.rowsPerImage = 1;
     wgpuQueueWriteTexture(queue, &exposure_upload, exposure_value.data(), sizeof(exposure_value),
                           &exposure_layout, &exposure_desc.size);
+    const std::array<std::uint16_t, 4> bloom_pixel{
+        midnafx::lut::half(bloom_value), midnafx::lut::half(bloom_value), midnafx::lut::half(bloom_value), 0};
+    auto bloom_upload = exposure_upload;
+    bloom_upload.texture = bloom;
+    wgpuQueueWriteTexture(queue, &bloom_upload, bloom_pixel.data(), sizeof(bloom_pixel),
+                          &exposure_layout, &bloom_desc.size);
 
     // Production Grading layout, with neutral tone controls and selectable detail.
     const bool water = std::strncmp(entry, "fs_absorption", 13) == 0;
@@ -172,7 +186,7 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     pd.fragment = &fragment;
     auto pipeline = wgpuDeviceCreateRenderPipeline(device, &pd);
     auto layout = wgpuRenderPipelineGetBindGroupLayout(pipeline, 0);
-    WGPUBindGroupEntry entries[11];
+    WGPUBindGroupEntry entries[13];
     for (auto& item : entries) item = WGPU_BIND_GROUP_ENTRY_INIT;
     entries[0].binding = 0;
     entries[0].textureView = source_view;
@@ -196,6 +210,8 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     }
     entries[count].binding = 10;
     entries[count++].textureView = exposure_view;
+    entries[count].binding = 11; entries[count++].textureView = bloom_view;
+    entries[count].binding = 12; entries[count++].sampler = bloom_sampler;
     WGPUBindGroupDescriptor bgd = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     bgd.layout = layout;
     bgd.entryCount = count;
@@ -272,6 +288,9 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     wgpuTextureRelease(source);
     wgpuTextureViewRelease(exposure_view);
     wgpuTextureRelease(exposure);
+    wgpuTextureViewRelease(bloom_view);
+    wgpuTextureRelease(bloom);
+    wgpuSamplerRelease(bloom_sampler);
     for (auto view : water_views) if (view) wgpuTextureViewRelease(view);
     for (auto texture : water_textures) if (texture) wgpuTextureRelease(texture);
     wgpuQueueRelease(queue);
@@ -757,6 +776,27 @@ int main() {
             std::printf("Exposure composite %s LUT=%s stops=%.2f: %s\n", entry,
                         look >= 0 ? "on" : "off", stops, valid ? "PASS" : "FAIL");
             if (!valid) report_difference("exposure composite", 17, expected, actual);
+            ok &= valid;
+        }
+    }
+    // A constant light field isolates composition order from the separate
+    // extraction/blur checks. Water must receive glow after its absorption.
+    const std::vector<Pixel> bloom_source(17 * 3, Pixel{82, 128, 200, 37});
+    for (auto entry : {"fs_main", "fs_detail", "fs_fxaa", "fs_fxaa_detail",
+                       "fs_absorption", "fs_absorption_detail", "fs_absorption_fxaa", "fs_absorption_fxaa_detail"}) {
+        for (float look : {-1.0f, 1.0f}) {
+            const auto base = render(instance, device, entry, 17, 3, bloom_source, 0.5f, look);
+            const auto glow = render(instance, device, entry, 17, 3, bloom_source, 0.5f, look,
+                1, 0, 0, WGPUTextureFormat_RGBA8Unorm, 0, 0.125f);
+            bool valid = base.size() == bloom_source.size() && glow.size() == base.size() && glow != base;
+            if (valid) for (size_t i = 0; i < base.size(); ++i) {
+                valid &= glow[i][3] == bloom_source[i][3];
+                for (unsigned c = 0; c < 3; ++c) {
+                    const int expected = int(std::lround(base[i][c] + 0.125f * (255 - base[i][c])));
+                    valid &= std::abs(int(glow[i][c]) - expected) <= 1;
+                }
+            }
+            std::printf("Bloom composite %s LUT=%s: %s\n", entry, look >= 0 ? "identity" : "off", valid ? "PASS" : "FAIL");
             ok &= valid;
         }
     }

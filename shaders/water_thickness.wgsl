@@ -229,8 +229,9 @@ fn fxaa_source(center: vec3f, position: vec2i, detail: bool) -> vec3f {
     return mix(center, pair, edge_blend);
 }
 
-fn apply_grading(input: vec3f) -> vec3f {
-    var color = apply_exposure(input) * vec3f(params.gain_r, params.gain_g, params.gain_b);
+fn apply_grading(input: vec3f, coord: vec2i) -> vec3f {
+    var color = apply_exposure(apply_bloom(input, coord, textureDimensions(scene_color))) *
+                vec3f(params.gain_r, params.gain_g, params.gain_b);
     color = max(color - vec3f(params.black_point), vec3f(0.0)) /
             (1.0 - params.black_point);
     color = (color - vec3f(0.5)) * params.contrast + vec3f(0.5);
@@ -317,7 +318,7 @@ fn fs_thickness(@builtin(position) position: vec4f) -> @location(0) vec4f {
 fn fs_absorption(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
-    return vec4f(apply_grading(apply_absorption(coord, source.rgb)), source.a);
+    return vec4f(apply_grading(apply_absorption(coord, source.rgb), coord), source.a);
 }
 
 @fragment
@@ -325,14 +326,14 @@ fn fs_absorption_detail(@builtin(position) position: vec4f) -> @location(0) vec4
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
     let detailed = apply_detail(source.rgb, coord);
-    return vec4f(apply_grading(apply_absorption(coord, detailed)), source.a);
+    return vec4f(apply_grading(apply_absorption(coord, detailed), coord), source.a);
 }
 
 @fragment
 fn fs_absorption_fxaa(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
-    return vec4f(apply_grading(apply_absorption(coord, fxaa_source(source.rgb, coord, false))), source.a);
+    return vec4f(apply_grading(apply_absorption(coord, fxaa_source(source.rgb, coord, false)), coord), source.a);
 }
 
 @fragment
@@ -340,14 +341,14 @@ fn fs_absorption_fxaa_detail(@builtin(position) position: vec4f) -> @location(0)
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
     let filtered = fxaa_source(source.rgb, coord, true);
-    return vec4f(apply_grading(apply_absorption(coord, filtered)), source.a);
+    return vec4f(apply_grading(apply_absorption(coord, filtered), coord), source.a);
 }
 
 @fragment
 fn fs_absorption_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
-    return vec4f(apply_look(apply_grading(apply_absorption(coord, source.rgb))), source.a);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, source.rgb), coord)), source.a);
 }
 
 @fragment
@@ -355,14 +356,14 @@ fn fs_absorption_detail_lut(@builtin(position) position: vec4f) -> @location(0) 
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
     let detailed = apply_detail(source.rgb, coord);
-    return vec4f(apply_look(apply_grading(apply_absorption(coord, detailed))), source.a);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, detailed), coord)), source.a);
 }
 
 @fragment
 fn fs_absorption_fxaa_lut(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
-    return vec4f(apply_look(apply_grading(apply_absorption(coord, fxaa_source(source.rgb, coord, false)))), source.a);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, fxaa_source(source.rgb, coord, false)), coord)), source.a);
 }
 
 @fragment
@@ -370,5 +371,5 @@ fn fs_absorption_fxaa_detail_lut(@builtin(position) position: vec4f) -> @locatio
     let coord = vec2i(position.xy);
     let source = textureLoad(scene_color, coord, 0);
     let filtered = fxaa_source(source.rgb, coord, true);
-    return vec4f(apply_look(apply_grading(apply_absorption(coord, filtered))), source.a);
+    return vec4f(apply_look(apply_grading(apply_absorption(coord, filtered), coord)), source.a);
 }

@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.7.0 - 2026-10-26
+
+- Add scene-wide LDR bloom without asset allowlists, using quarter-resolution
+  highlight extraction and two Gaussian filters. Enable it in Remaster and expose
+  independent Basic controls with 20% default strength; Vanilla disables it.
+- Fuse glow into existing grading/water draws before exposure and LUTs, preserving
+  alpha, the white endpoint and native HUD ordering. Retire resized targets after
+  pending callbacks and retain other effects when bloom is unavailable.
+- Add focused GPU extraction/filter and ordinary/water/AA/detail/LUT composition
+  checks. Native Ordon toggle, resize, reload and close pass. Retain an unresolved
+  black Goron Mines startup; full-game quality and GPU duration remain open.
+- Continue best-effort macOS builds and portable checks without hosted Metal
+  execution. Bloom is highlight treatment, not emissive classification or HDR.
+
 ## 1.6.0 - 2026-10-26
 
 - Replace the 16-tap full-resolution AO kernel with a 32-tap half-resolution

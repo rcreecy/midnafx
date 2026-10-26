@@ -1,0 +1,577 @@
+[INFO | dusk] Build: UNKNOWN-VERSION (rev edf42c6a7202647b56dd2fcdef02d17671bc814b, built Wed Sep 16 02:02:00 2026 -0600, type RelWithDebInfo)
+[INFO | dusk] Platform: win32
+[INFO | dusk::config] Loading config from 'C:\dev\midnafx\build\bloom\native-r1\user\config.json'
+[INFO | aurora] Aurora initializing
+[INFO | aurora::system_info] CPU model: Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz
+[INFO | aurora::system_info] Memory: 130805 MiB
+[INFO | aurora::system_info] Architecture: x86_64
+[INFO | aurora::system_info] OS: Microsoft Windows 10.0 build 26200
+[INFO | aurora::system_info] Detected GPU: Intel(R) UHD Graphics 630
+[INFO | aurora::system_info] Detected GPU: Microsoft Basic Render Driver
+[INFO | aurora::gpu] Creating WebGPU instance
+[INFO | aurora::gpu] Attempting to initialize D3D12
+[INFO | aurora::gpu] Requesting adapter
+  Feature level: Compatibility
+  Power preference: HighPerformance
+  Backend: D3D12
+  Compatible surface: true
+[INFO | aurora::gpu] Graphics adapter information
+  API: D3D12
+  Device: Intel(R) UHD Graphics 630 (IntegratedGPU)
+  Driver: D3D12 driver version 31.0.101.2140
+[INFO | aurora::gpu] Using limits:
+  maxTextureDimension1D: 16384
+  maxTextureDimension2D: 16384
+  maxTextureDimension3D: 2048
+  maxTextureArrayLayers: 2048
+  maxStorageBuffersPerShaderStage: 2
+  minUniformBufferOffsetAlignment: 256
+  minStorageBufferOffsetAlignment: 256
+  maxImmediateSize: 64
+[INFO | aurora::gpu] Enabling features: 
+  CoreFeaturesAndLimits
+  TextureCompressionBC
+  TextureComponentSwizzle
+[INFO | aurora::gpu] Using surface format BGRA8Unorm, present mode Fifo
+[DEBUG | aurora::gpu::cache] SQLite version 3.51.3
+[DEBUG | aurora::gpu::cache] Using dawn cache at C:\Users\ryanc\AppData\Roaming\TwilitRealm\Dusklight\dawn_cache.db
+[DEBUG | aurora::gpu::cache] SQLite cache init succeeded
+[INFO | aurora::gfx::pipeline_cache] No bundled initial pipeline cache found at 'C:\dev\midnafx\build\frame-timing\hosts\baseline\initial_pipeline_cache.db'
+[INFO | aurora] Using framebuffer size 960x720 scale 1
+[INFO | dusk::discord] Discord Rich Presence initialized
+[INFO | borealis::discord] Waiting for local Discord IPC
+[INFO | aurora::texture] Loaded 2 texture replacement registrations from C:\dev\midnafx\build\bloom\native-r1\user\texture_replacements
+[INFO | dusk] Texture replacement directory loaded: 2 registration(s)
+[INFO | aurora::rmlui] Loaded font face 'Fira Sans' [regular] from 'res\FiraSans-Regular.ttf'.
+[INFO | aurora::rmlui] Loaded font face 'Fira Sans' [bold] from 'res\FiraSans-Bold.ttf'.
+[INFO | aurora::rmlui] Loaded font face 'Fira Sans Condensed' [regular] from 'res\FiraSansCondensed-Regular.ttf'.
+[INFO | aurora::rmlui] Loaded font face 'Fira Sans Condensed' [bold] from 'res\FiraSansCondensed-Bold.ttf'.
+[INFO | aurora::rmlui] Loaded font face 'Alegreya SC' [regular] from 'res\AlegreyaSC-Regular.ttf'.
+[INFO | aurora::rmlui] Loaded font face 'Alegreya SC' [bold] from 'res\AlegreyaSC-Bold.ttf'.
+[INFO | aurora::rmlui] Loaded font face 'Material Symbols Rounded' [regular] from 'res\MaterialSymbolsRounded-Regular.ttf'.
+[INFO | aurora::rmlui] Loaded font face 'Noto Mono' [regular] from 'res\NotoMono-Regular.ttf'.
+[INFO | dusk] Loading DVD image from command line: C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz
+[INFO | dusk::config] Saving config to 'C:\dev\midnafx\build\bloom\native-r1\user\config.json'
+[INFO | dusk] Disc verification status: unknown (path: C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz)
+[INFO | dusk] Loaded game disc is GZ2E01
+[INFO | dusk] Initializing mods...
+[INFO | dusk::mods::manifest] symbol manifest loaded: 456735 symbols, build id 388e0438ece6421987a00b22a54e52457a000000
+[INFO | com.midnafx.midnafx] found 'MidnaFX' v1.7.0 by MidnaFX contributors (C:\dev\midnafx\build\bloom\native-r1\mods\midnafx.dusk)
+[INFO | dusk::mods::loader] initializing 1 mod(s)...
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | com.midnafx.midnafx] Water classification diagnostic ready (default off, classifiers=6)
+[INFO | com.midnafx.midnafx] MidnaFX grading, detail, diagnostics, and Twilight prototype initialized
+[DEBUG | dusk::mods::overlay] Registering 0 overlay file(s).
+[INFO | dusk::mods::loader] 1/1 mod(s) active
+[INFO | dusk::osReport] Starting main01 (Game Loop)...
+[DEBUG | aurora::ar] Initialized 0x1800000 bytes of ARAM!
+[INFO | aurora::card] CARD API Initialized BUILT <Sep 16 2026 11:23:36>
+[INFO | dusk] COPYDATE=[2006/11/06 18:16
+]
+[DEBUG | dusk] [DIAG] cDyl_InitCallback: START
+[DEBUG | dusk] fopScnM_CreateReq: procName=9 fade=32767
+[DEBUG | dusk] fopScnM_CreateReq: result=0 (error=4294967295)
+[DEBUG | dusk] cDyl_InitCallback: fpcNm_LOGO_SCENE_e created, DONE
+[INFO | dusk::config] Saving config to 'C:\dev\midnafx\build\bloom\native-r1\user\config.json'
+[INFO | dusk::config] Saving config to 'C:\dev\midnafx\build\bloom\native-r1\user\config.json'
+[DEBUG | dusk] fapGm_Execute frame=0
+[DEBUG | dusk] fpcDw_Handler: before BeforeOfDraw
+[DEBUG | dusk] fpcDw_Handler: before draw iteration
+[DEBUG | dusk] fpcDw_Handler: before AfterOfDraw
+[DEBUG | dusk] fpcDw_Handler: done
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_phase_Create: name=9 layer=0x7ff7104cb2e0
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=1 (error=4294967295)
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=9
+[DEBUG | dusk::discord] Discord Rich Presence changed
+[DEBUG | dusk] fapGm_Execute frame=1
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=9 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=9
+[DEBUG | dusk] fpcBs_Create: pid=1 profname=fpcNm_LOGO_SCENE_e (9) profile=0x7ff70fc55280 procSize=1304 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4045a98
+[DEBUG | dusk] [DIAG] dScnLogo_Create: entry i_this=0x215a4045a98
+[DEBUG | dusk] dScnLogo_c::create START
+[DEBUG | dusk] dScnLogo_c::create resLoad=0 (need 4 for complete)
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=1 procName=0009 ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045a98
+[DEBUG | dusk] fpcDw_Handler: before BeforeOfDraw
+[DEBUG | dusk] fpcDw_Handler: before draw iteration
+[DEBUG | dusk] fpcDw_Handler: before AfterOfDraw
+[DEBUG | dusk] fpcDw_Handler: done
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=9
+[DEBUG | dusk] fapGm_Execute frame=2
+[DEBUG | dusk] [DIAG] dScnLogo_Create: entry i_this=0x215a4045a98
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=1 procName=0009 ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045a98
+[DEBUG | dusk] fpcDw_Handler: before BeforeOfDraw
+[DEBUG | dusk] fpcDw_Handler: before draw iteration
+[DEBUG | dusk] fpcDw_Handler: before AfterOfDraw
+[DEBUG | dusk] fpcDw_Handler: done
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=9
+[DEBUG | dusk] fapGm_Execute frame=3
+[DEBUG | dusk] [DIAG] dScnLogo_Create: entry i_this=0x215a4045a98
+[DEBUG | dusk] Loading Resource: dolby_p2_232_112.bti (Size: 26016)
+[DEBUG | dusk] Loading Resource: nintendo_376x104.bti (Size: 78240)
+[DEBUG | dusk] Loading Resource: progressive_choice.bti (Size: 15008)
+[DEBUG | dusk] Loading Resource: progressive_inter.bti (Size: 15008)
+[DEBUG | dusk] Loading Resource: progressive_no.bti (Size: 2592)
+[DEBUG | dusk] Loading Resource: progressive_pro.bti (Size: 15008)
+[DEBUG | dusk] Loading Resource: progressive_yes.bti (Size: 2848)
+[DEBUG | dusk] Loading Resource: warning.bti (Size: 136224)
+[DEBUG | dusk] Loading Resource: warning_pstart.bti (Size: 14624)
+[DEBUG | dusk] dScnLogo_c::create resLoad COMPLETE, continuing init...
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=1 procName=0009 ret=2
+[DEBUG | dusk] fpcCtRq_Do: phase=4 process=0x215a4045a98
+[DEBUG | dusk] fpcDw_Handler: before BeforeOfDraw
+[DEBUG | dusk] fpcDw_Handler: before draw iteration
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=14 mTimer=0
+[DEBUG | dusk] fpcDw_Handler: before AfterOfDraw
+[DEBUG | dusk] fpcDw_Handler: done
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=2 name=9
+[DEBUG | dusk] fapGm_Execute frame=4
+[DEBUG | dusk] fpcDw_Handler: before BeforeOfDraw
+[DEBUG | dusk] fpcDw_Handler: before draw iteration
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=14 mTimer=0
+[DEBUG | dusk] Loading Resource: ef_mizubashira.bck (Size: 672)
+[DEBUG | dusk] Loading Resource: f_znc_r_impact.bck (Size: 704)
+[DEBUG | dusk] Loading Resource: o_g_hutk.bck (Size: 416)
+[DEBUG | dusk] Loading Resource: o_g_hutu.bck (Size: 416)
+[DEBUG | dusk] Loading Resource: waita.bck (Size: 768)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_red.bck (Size: 512)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_yellow.bck (Size: 416)
+[DEBUG | dusk] Loading Resource: o_g_hart.bmd (Size: 5472)
+[DEBUG | dusk] Loading Resource: o_g_hutk.bmd (Size: 29376)
+[DEBUG | dusk] Loading Resource: o_g_hutu.bmd (Size: 29376)
+[DEBUG | dusk] Loading Resource: o_g_rupy.bmd (Size: 8224)
+[DEBUG | dusk] Loading Resource: breakwoodbox.bmd (Size: 3744)
+[DEBUG | dusk] Loading Resource: d_brockbrk.bmd (Size: 2848)
+[DEBUG | dusk] Loading Resource: ef_mizubashira.bmd (Size: 12224)
+[DEBUG | dusk] Loading Resource: ef_screen_suityu.bmd (Size: 4128)
+[DEBUG | dusk] Loading Resource: ef_thunder01.bmd (Size: 10016)
+[DEBUG | dusk] Loading Resource: ef_thunder02.bmd (Size: 10304)
+[DEBUG | dusk] Loading Resource: mpm_tubo.bmd (Size: 4704)
+[DEBUG | dusk] Loading Resource: nv.bmd (Size: 4256)
+[DEBUG | dusk] Loading Resource: o_g_arow.bmd (Size: 4960)
+[DEBUG | dusk] Loading Resource: o_g_arow_taba.bmd (Size: 22304)
+[DEBUG | dusk] Loading Resource: o_g_tane.bmd (Size: 13152)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_red.bmd (Size: 7808)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_yellow.bmd (Size: 10688)
+[DEBUG | dusk] Loading Resource: f_znc_r_impact.bpk (Size: 416)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_red.bpk (Size: 320)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_yellow.bpk (Size: 320)
+[DEBUG | dusk] Loading Resource: ef_mizubashira.brk (Size: 480)
+[DEBUG | dusk] Loading Resource: ef_thunder.brk (Size: 640)
+[DEBUG | dusk] Loading Resource: f_g_hart.brk (Size: 384)
+[DEBUG | dusk] Loading Resource: f_g_rupy.brk (Size: 800)
+[DEBUG | dusk] Loading Resource: f_znc_r_impact.brk (Size: 384)
+[DEBUG | dusk] Loading Resource: o_g_hutk.brk (Size: 416)
+[DEBUG | dusk] Loading Resource: o_g_hutu.brk (Size: 544)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_red.brk (Size: 288)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_red_02.brk (Size: 224)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_yellow.brk (Size: 544)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_yellow_02.brk (Size: 224)
+[DEBUG | dusk] Loading Resource: ef_mizubashira.btk (Size: 704)
+[DEBUG | dusk] Loading Resource: ef_screen_suityu.btk (Size: 320)
+[DEBUG | dusk] Loading Resource: f_znc_r_impact.btk (Size: 256)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_red.btk (Size: 256)
+[DEBUG | dusk] Loading Resource: zelda_notice_cursor_yellow.btk (Size: 576)
+[DEBUG | dusk] Loading Resource: mpm_tubo.btp (Size: 128)
+[DEBUG | dusk] Loading Resource: areamapres.bin (Size: 444)
+[DEBUG | dusk] Loading Resource: item_table.bin (Size: 128)
+[DEBUG | dusk] Loading Resource: a_kusa_rgba.bti (Size: 2080)
+[DEBUG | dusk] Loading Resource: ball32_i4.bti (Size: 544)
+[DEBUG | dusk] Loading Resource: im_enter_4i_32.bti (Size: 544)
+[DEBUG | dusk] Loading Resource: im_map_icon_circle_4i.bti (Size: 64)
+[DEBUG | dusk] Loading Resource: im_map_icon_enter_4i.bti (Size: 160)
+[DEBUG | dusk] Loading Resource: im_map_icon_nijumaru_4i.bti (Size: 160)
+[DEBUG | dusk] Loading Resource: im_map_icon_square_4i.bti (Size: 64)
+[DEBUG | dusk] Loading Resource: im_map_icon_tresurebox_4i.bti (Size: 64)
+[DEBUG | dusk] Loading Resource: im_map_icon_try_force_4i.bti (Size: 160)
+[DEBUG | dusk] Loading Resource: map_icon_circle16x16_4i.bti (Size: 160)
+[DEBUG | dusk] Loading Resource: moya.bti (Size: 1056)
+[DEBUG | dusk] Loading Resource: rope.bti (Size: 160)
+[DEBUG | dusk] Loading Resource: snow.bti (Size: 160)
+[DEBUG | dusk] Loading Resource: snow_tex.bti (Size: 1056)
+[DEBUG | dusk] Loading Resource: txa_ring_a_32hafe.bti (Size: 544)
+[DEBUG | dusk] Loading Resource: txa_tuki_as.bti (Size: 2080)
+[DEBUG | dusk] Loading Resource: txa_tuki_bs.bti (Size: 2080)
+[DEBUG | dusk] Loading Resource: txa_tuki_cs.bti (Size: 2080)
+[DEBUG | dusk] Loading Resource: txa_tuki_ds.bti (Size: 2080)
+[DEBUG | dusk] Loading Resource: vr_lenzf_tex.bti (Size: 1056)
+[DEBUG | dusk] Loading Resource: warp_tex.bti (Size: 1056)
+[DEBUG | dusk] Loading Resource: zl2_polygon_ia8 (Size: 64)
+[DEBUG | dusk] Loading Resource: crod_ball_revive_demo.bck (Size: 288)
+[DEBUG | dusk] Loading Resource: crod_ball_wait_a.bck (Size: 288)
+[DEBUG | dusk] Loading Resource: crod_ball_wait_a_t.bck (Size: 288)
+[DEBUG | dusk] Loading Resource: crod_ball_wait_a_t_start.bck (Size: 288)
+[DEBUG | dusk] Loading Resource: crod_ball_wait_b.bck (Size: 352)
+[DEBUG | dusk] Loading Resource: crod_ball_wait_c.bck (Size: 384)
+[DEBUG | dusk] Loading Resource: ef_shippu.bck (Size: 544)
+[DEBUG | dusk] Loading Resource: pb_move.bck (Size: 2816)
+[DEBUG | dusk] Loading Resource: pb_wait.bck (Size: 928)
+[DEBUG | dusk] Loading Resource: spout.bck (Size: 1088)
+[DEBUG | dusk] Loading Resource: ef_setboom.bmd (Size: 15392)
+[DEBUG | dusk] Loading Resource: al_arrow.bmd (Size: 5024)
+[DEBUG | dusk] Loading Resource: al_arrowb.bmd (Size: 9696)
+[DEBUG | dusk] Loading Resource: al_bomb.bmd (Size: 11104)
+[DEBUG | dusk] Loading Resource: al_boom.bmd (Size: 20000)
+[DEBUG | dusk] Loading Resource: al_pachi_nut.bmd (Size: 2176)
+[DEBUG | dusk] Loading Resource: al_sp.bmd (Size: 21824)
+[DEBUG | dusk] Loading Resource: crod_ball.bmd (Size: 3840)
+[DEBUG | dusk] Loading Resource: footmark.bmd (Size: 2272)
+[DEBUG | dusk] Loading Resource: hk.bmd (Size: 3648)
+[DEBUG | dusk] Loading Resource: inochidama.bmd (Size: 13120)
+[DEBUG | dusk] Loading Resource: pb.bmd (Size: 34976)
+[DEBUG | dusk] Loading Resource: pg.bmd (Size: 20736)
+[DEBUG | dusk] Loading Resource: rod_ukia.bmd (Size: 4384)
+[DEBUG | dusk] Loading Resource: rod_ukib.bmd (Size: 2656)
+[DEBUG | dusk] Loading Resource: rod_ukic.bmd (Size: 2656)
+[DEBUG | dusk] Loading Resource: sango_fook.bmd (Size: 9984)
+[DEBUG | dusk] Loading Resource: sfook.bmd (Size: 3456)
+[DEBUG | dusk] Loading Resource: uki.bmd (Size: 4928)
+[DEBUG | dusk] Loading Resource: uki_saki.bmd (Size: 4160)
+[DEBUG | dusk] Loading Resource: wl_change.bmd (Size: 44256)
+[DEBUG | dusk] Loading Resource: worm.bmd (Size: 8256)
+[DEBUG | dusk] Loading Resource: worm_hole.bmd (Size: 2816)
+[DEBUG | dusk] Loading Resource: ef_shippu.bmd (Size: 33216)
+[DEBUG | dusk] Loading Resource: al_podm.bmd (Size: 21504)
+[DEBUG | dusk] Loading Resource: al_swm.bmd (Size: 22720)
+[DEBUG | dusk] Loading Resource: al_poda.bmd (Size: 12032)
+[DEBUG | dusk] Loading Resource: al_swa.bmd (Size: 11808)
+[DEBUG | dusk] Loading Resource: al_swm.brk (Size: 256)
+[DEBUG | dusk] Loading Resource: crod_ball.brk (Size: 736)
+[DEBUG | dusk] Loading Resource: inochidama.brk (Size: 288)
+[DEBUG | dusk] Loading Resource: al_swa.btk (Size: 320)
+[DEBUG | dusk] Loading Resource: al_swm.btk (Size: 320)
+[DEBUG | dusk] Loading Resource: crod_ball.btk (Size: 416)
+[DEBUG | dusk] Loading Resource: ef_setboom.btk (Size: 704)
+[DEBUG | dusk] Loading Resource: ef_shippu.btk (Size: 1120)
+[DEBUG | dusk] Loading Resource: inochidama.btk (Size: 672)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_orange.blo (Size: 2368)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_orange.brk (Size: 320)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_orange_02.brk (Size: 384)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_red.blo (Size: 2368)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_red.brk (Size: 320)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_red_02.brk (Size: 384)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_yellow.bck (Size: 2016)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_yellow.blo (Size: 2336)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_yellow.bpk (Size: 448)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_yellow.brk (Size: 320)
+[DEBUG | dusk] Loading Resource: zelda_v_cursor_new_yellow_02.brk (Size: 352)
+[DEBUG | dusk] Loading Resource: blur.bti (Size: 96)
+[DEBUG | dusk] Loading Resource: rock_mark.bti (Size: 544)
+[DEBUG | dusk] Loading Resource: tt_v_point_128_00_4ia_02.bti (Size: 16416)
+[DEBUG | dusk] Loading Resource: tt_map_icon_link_40_4ia_00.bti (Size: 1632)
+[DEBUG | dusk] Loading Resource: tt_navi_l.bti (Size: 544)
+[DEBUG | dusk] fpcDw_Handler: before AfterOfDraw
+[DEBUG | dusk] fpcDw_Handler: done
+[DEBUG | dusk] fapGm_Execute frame=5
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=14 mTimer=0
+[DEBUG | dusk] fapGm_Execute frame=6
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=14 mTimer=0
+[DEBUG | dusk] fapGm_Execute frame=7
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=14 mTimer=0
+[DEBUG | dusk] fapGm_Execute frame=8
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=14 mTimer=0
+[DEBUG | dusk] fapGm_Execute frame=9
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=14 mTimer=0
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=15 mTimer=0
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=0 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=0
+[DEBUG | dusk] fpcBs_Create: pid=2 profname=fpcNm_OVERLAP0_e (0) profile=0x7ff70fc54db0 procSize=384 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a40458f8
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=2 procName=0000 ret=2
+[DEBUG | dusk] fpcCtRq_Do: phase=4 process=0x215a40458f8
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=15 mTimer=0
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] dScnLogo_c::draw: mExecCommand=15 mTimer=0
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[DEBUG | dusk] fpcNdRq_Handler: queue size=1
+[INFO | dusk::mods::updates] Checked 1 installed mods for updates
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcNdRq_phase_Create: name=11 layer=0x7ff7104cb2e0
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=3 (error=4294967295)
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=11 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=11
+[DEBUG | dusk] fpcBs_Create: pid=3 profname=fpcNm_PLAY_SCENE_e (11) profile=0x7ff70fc55ef0 procSize=912 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4045b40
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] Loading Resource: vrbox_kasumim.bmd (Size: 2272)
+[DEBUG | dusk] Loading Resource: vrbox_kumo.bmd (Size: 69664)
+[DEBUG | dusk] Loading Resource: vrbox_sora.bmd (Size: 6624)
+[DEBUG | dusk] Loading Resource: vrbox_sun.bmd (Size: 12032)
+[DEBUG | dusk] Loading Resource: door-shutter_00.bmd (Size: 48064)
+[DEBUG | dusk] Loading Resource: door-stop.bmd (Size: 17728)
+[DEBUG | dusk] Loading Resource: bank.bin (Size: 192)
+[DEBUG | dusk] Loading Resource: name.bin (Size: 32)
+[DEBUG | dusk] Loading Resource: vrbox_sun.btk (Size: 320)
+[DEBUG | dusk] Loading Resource: colordata_tbl.dat (Size: 800)
+[DEBUG | dusk] Loading Resource: pol_arg.dat (Size: 128)
+[DEBUG | dusk] Loading Resource: pol_effcol.dat (Size: 128)
+[DEBUG | dusk] Loading Resource: pol_effcol2.dat (Size: 128)
+[DEBUG | dusk] Loading Resource: pol_efftbl.dat (Size: 128)
+[DEBUG | dusk] Loading Resource: pol_efftbl2.dat (Size: 128)
+[DEBUG | dusk] Loading Resource: pol_sound.dat (Size: 128)
+[DEBUG | dusk] Loading Resource: room1.dzs (Size: 4608)
+[DEBUG | dusk] Loading Resource: room11.dzs (Size: 2528)
+[DEBUG | dusk] Loading Resource: room12.dzs (Size: 1856)
+[DEBUG | dusk] Loading Resource: room13.dzs (Size: 1568)
+[DEBUG | dusk] Loading Resource: room14.dzs (Size: 896)
+[DEBUG | dusk] Loading Resource: room16.dzs (Size: 704)
+[DEBUG | dusk] Loading Resource: room17.dzs (Size: 992)
+[DEBUG | dusk] Loading Resource: room3.dzs (Size: 3712)
+[DEBUG | dusk] Loading Resource: room4.dzs (Size: 2752)
+[DEBUG | dusk] Loading Resource: room5.dzs (Size: 1088)
+[DEBUG | dusk] Loading Resource: room50.dzs (Size: 992)
+[DEBUG | dusk] Loading Resource: room51.dzs (Size: 832)
+[DEBUG | dusk] Loading Resource: room6.dzs (Size: 2944)
+[DEBUG | dusk] Loading Resource: room7.dzs (Size: 3072)
+[DEBUG | dusk] Loading Resource: room9.dzs (Size: 1824)
+[DEBUG | dusk] Loading Resource: stage.dzs (Size: 5600)
+[DEBUG | dusk] Loading Resource: cloudtx_01.bti (Size: 4128)
+[DEBUG | dusk] Loading Resource: cloudtx_02.bti (Size: 4128)
+[DEBUG | dusk] Loading Resource: cloudtx_03.bti (Size: 4128)
+[DEBUG | dusk] Loading Resource: f_moon.bti (Size: 8224)
+[DEBUG | dusk] Loading Resource: f_moon_a.bti (Size: 2080)
+[DEBUG | dusk] Loading Resource: f_moon_a_a00.bti (Size: 64)
+[DEBUG | dusk] Loading Resource: f_moon_a_a01.bti (Size: 544)
+[DEBUG | dusk] Loading Resource: f_moon_a_a02.bti (Size: 544)
+[DEBUG | dusk] Loading Resource: f_moon_a_a03.bti (Size: 544)
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] Loading Resource: event_list.dat (Size: 106476)
+[DEBUG | dusk] Loading Resource: camstyle.dat (Size: 43328)
+[DEBUG | dusk] Loading Resource: camtype.dat (Size: 14560)
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcBs_Create: pid=7 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=9 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=11 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=13 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=15 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=17 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=19 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=21 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=23 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=25 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=27 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=29 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=31 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=33 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=35 profname=fpcNm_SUSPEND_e (783) profile=0x7ff70fc62cc0 procSize=1640 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=53 profname=fpcNm_KANKYO_e (19) profile=0x7ff70fc4c120 procSize=440 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=55 profname=fpcNm_KYEFF_e (785) profile=0x7ff70fc4c380 procSize=440 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=57 profname=fpcNm_KYEFF2_e (786) profile=0x7ff70fc4c3d0 procSize=440 unkSize=0
+[DEBUG | dusk] fpcBs_Create: pid=59 profname=fpcNm_ENVSE_e (21) profile=0x7ff70fc4acf0 procSize=464 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=3 procName=000b ret=2
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4045b40
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=781 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=781
+[DEBUG | dusk] fpcBs_Create: pid=4 profname=fpcNm_CAMERA_e (781) profile=0x7ff70fc4a040 procSize=4248 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a403c4a8
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=4 procName=030d ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a403c4a8
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=696 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=696
+[DEBUG | dusk] fpcBs_Create: pid=5 profname=fpcNm_KYTAG14_e (696) profile=0x7ff70fc659f0 procSize=1648 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a403be18
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=5 procName=02b8 ret=2
+[DEBUG | dusk] fpcCtRq_Do: phase=4 process=0x215a403be18
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=36 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a403b270
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=36 procName=00e8 ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a403b270
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=37 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a403a6c8
+[DEBUG | dusk] fpcSCtRq_phase_SubCreateProcess: pid=37 procName=00e8 ret=0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a403a6c8
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=38 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4039b20
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4039b20
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=39 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4038f78
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4038f78
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=40 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a40383d0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a40383d0
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=41 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4037828
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4037828
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=42 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4036c80
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4036c80
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=43 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a40360d8
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a40360d8
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=44 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4035530
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4035530
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=45 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4034988
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4034988
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=46 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4033de0
+[DEBUG | dusk] fpcCtRq_Do: phase=0 process=0x215a4033de0
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=47 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4033238
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=48 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4032690
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=49 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4031ae8
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=50 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4030f40
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=232 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=232
+[DEBUG | dusk] fpcBs_Create: pid=51 profname=fpcNm_DOOR20_e (232) profile=0x7ff70fc5b390 procSize=2952 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a4030398
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=730 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=730
+[DEBUG | dusk] fpcBs_Create: pid=60 profname=fpcNm_VRBOX_e (730) profile=0x7ff70fc60a50 procSize=1664 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a402fcf8
+[DEBUG | dusk] [DIAG] fpcSCtRq_phase_Load: procName=731 ret=4
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: procName=731
+[DEBUG | dusk] fpcBs_Create: pid=61 profname=fpcNm_VRBOX2_e (731) profile=0x7ff70fc60b10 procSize=1736 unkSize=0
+[DEBUG | dusk] fpcSCtRq_phase_CreateProcess: fpcBs_Create OK proc=0x215a402f610
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] Loading Resource: fdoora.bck (Size: 352)
+[DEBUG | dusk] Loading Resource: fdoorb.bck (Size: 320)
+[DEBUG | dusk] Loading Resource: door-knobdummy.bmd (Size: 1792)
+[DEBUG | dusk] Loading Resource: door-pushdoubledummy.bmd (Size: 2752)
+[DEBUG | dusk] Loading Resource: door-knob.dzb (Size: 480)
+[DEBUG | dusk] Loading Resource: door-pushdouble.dzb (Size: 480)
+[DEBUG | dusk] Loading Resource: door-shutter.dzb (Size: 448)
+[DEBUG | dusk] Loading Resource: door-shutterbig.dzb (Size: 768)
+[DEBUG | dusk] Loading Resource: door-shutterboss.dzb (Size: 704)
+[DEBUG | dusk] Loading Resource: door-shutterlv9.dzb (Size: 768)
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] Loading Resource: md_oj_dooropc.bck (Size: 480)
+[DEBUG | dusk] Loading Resource: oj_doorclosec.bck (Size: 416)
+[DEBUG | dusk] Loading Resource: oj_dooropc.bck (Size: 448)
+[DEBUG | dusk] Loading Resource: event_list.dat (Size: 21084)
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[DEBUG | dusk] fopScnRq_phase_Execute: ret=0 name=11
+[INFO | aurora::gpu::cache] Pruned 45 stale Dawn cache entries
+[DEBUG | dusk] fapGm_Execute frame=300
+[DEBUG | dusk] fapGm_Execute frame=600
+[DEBUG | dusk] fapGm_Execute frame=900
+[DEBUG | dusk] fapGm_Execute frame=1200
+[DEBUG | dusk] fapGm_Execute frame=1500
+[DEBUG | dusk] fapGm_Execute frame=1800
+[DEBUG | dusk] fapGm_Execute frame=2100
+[DEBUG | dusk] fapGm_Execute frame=2400
+[DEBUG | dusk] fapGm_Execute frame=2700
+[DEBUG | dusk] fapGm_Execute frame=3000
+[DEBUG | dusk] fapGm_Execute frame=3300
+[DEBUG | dusk] fapGm_Execute frame=3600
+[DEBUG | dusk] fapGm_Execute frame=3900
+[DEBUG | dusk] fapGm_Execute frame=4200
+[DEBUG | dusk] fapGm_Execute frame=4500
+[DEBUG | dusk] fapGm_Execute frame=4800
+[DEBUG | dusk] fapGm_Execute frame=5100
+[DEBUG | dusk] fapGm_Execute frame=5400
+[DEBUG | dusk] fapGm_Execute frame=5700
+[DEBUG | dusk] fapGm_Execute frame=6000
+[DEBUG | dusk] fapGm_Execute frame=6300
+[DEBUG | dusk] fapGm_Execute frame=6600
+[DEBUG | dusk] fapGm_Execute frame=6900
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=shutdown profile=pumpkin-warm requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | dusk::mods::loader] all mods unloaded
+[INFO | dusk::discord] Discord Rich Presence shut down
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.

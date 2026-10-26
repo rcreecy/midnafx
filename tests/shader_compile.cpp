@@ -194,6 +194,7 @@ int main() {
     constexpr const char* dof_composite_entries[]{"fs_composite"};
     constexpr const char* exposure_entries[]{"meter"};
     constexpr const char* ambient_compute_entries[]{"cs_occlusion", "cs_filter_horizontal", "cs_filter_vertical"};
+    constexpr const char* bloom_entries[]{"cs_extract", "cs_blur_horizontal", "cs_blur_vertical"};
     constexpr const char* water_entries[]{"fs_thickness", "fs_absorption", "fs_absorption_detail",
                                           "fs_absorption_fxaa", "fs_absorption_fxaa_detail",
                                           "fs_absorption_lut", "fs_absorption_detail_lut",
@@ -224,8 +225,10 @@ int main() {
     const bool ambient_compute = validate_compute(instance, device.device,
         midnafx::render::ambient_occlusion_compute_shader, "MidnaFX filtered contact shading",
         ambient_compute_entries, 3);
+    const bool bloom = validate_compute(instance, device.device,
+        midnafx::render::bloom_compute_shader, "MidnaFX scene bloom", bloom_entries, 3);
     wgpuDeviceRelease(device.device);
     wgpuAdapterRelease(adapter.adapter);
     wgpuInstanceRelease(instance);
-    return pass && grade && depth && dof && dof_blur && dof_composite && water && ambient && exposure && ambient_compute ? 0 : 1;
+    return pass && grade && depth && dof && dof_blur && dof_composite && water && ambient && exposure && ambient_compute && bloom ? 0 : 1;
 }

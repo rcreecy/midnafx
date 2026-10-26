@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.7 adds **Scene bloom** across bright scenery, characters and replacement
+textures. Select **Profile / Remaster** or its independent Basic control for
+restrained glow at 20% default strength. Vanilla disables it. This LDR treatment
+uses no asset lists and preserves the native HUD; it does not identify emissive
+materials or add new light sources. See [scene bloom](docs/scene-bloom.md).
+
 MidnaFX 1.6 upgrades **ambient contact shading** across opaque scenery and
 characters. A denser half-resolution AO field receives depth/normal-aware
 filtering and edge-aware reconstruction, improving contacts without temporal
