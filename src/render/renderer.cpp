@@ -1018,7 +1018,7 @@ void update() {
         settings::water_thickness_diagnostic_enabled() || settings::enhanced_water_enabled() ||
         settings::atmosphere_depth_view_enabled() || settings::atmosphere_depth_probe_enabled() ||
         settings::dof_coc_view_enabled() || settings::anti_aliasing_enabled() ||
-        settings::adaptive_exposure_enabled() || settings::bloom_enabled();
+        settings::adaptive_exposure_enabled() || settings::bloom_enabled() || settings::contact_shadows_enabled();
     if ((current_state == 4 || current_state == 5) && graphics_requested) {
         const auto now = std::chrono::steady_clock::now();
         if (now >= next_init_retry)

@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.9 adds **Contact shadows** across visible opaque scenery and characters.
+Short rays toward the native environment light add directional grounding alongside
+ambient occlusion. Select **Profile / Remaster** or the independent Basic control;
+default strength is 30%. No asset lists or extra texture targets are required.
+See [contact shadows](docs/contact-shadows.md) for scope, evidence and limits.
+
 MidnaFX 1.8 upgrades scene **anti-aliasing** with edge-directed coverage and
 bounded endpoint searches. Stair-step edges receive smoothing while aligned
 edges and tested fine lines retain their source detail. Existing AA controls

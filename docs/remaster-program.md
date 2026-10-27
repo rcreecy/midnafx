@@ -41,6 +41,13 @@ the quality change from another layer of global softening. It does not provide
 temporal reconstruction or establish whole-game motion quality. See
 [edge-directed AA](edge-antialiasing.md).
 
+Version 1.9 adds short directional contact shadows from the native environment
+base light across visible opaque scenery and characters. It shares the existing
+AO targets, filtering and reconstruction, without asset identities. Remaster
+enables the effect at 30%; Vanilla disables it. The effect supplements native
+shadows rather than replacing the game's full lighting system. See
+[contact shadows](contact-shadows.md) for geometric evidence and scope limits.
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

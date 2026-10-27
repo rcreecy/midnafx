@@ -6,6 +6,9 @@ struct AmbientParams {
     background_depth: f32,
     fog_color: vec4f,
     fog_range: vec4f,
+    proj_from_view: mat4x4f,
+    light_position: vec4f,
+    shadow_range: vec4f,
 }
 fn view_point(pixel: vec2i) -> vec3f {
     let dimensions = vec2i(textureDimensions(scene_depth));
@@ -47,7 +50,8 @@ fn decode_normal(encoded: vec2f) -> vec3f {
     return normalize(n);
 }
 // Keep full-precision native depth; half-float distance would lose contact detail
-// far from the camera. The compact field carries visibility, validity and normal.
+// far from the camera. Field channels carry AO visibility, validity plus contact
+// shadow amount (zero invalid, one plus shadow valid), and octahedral normal.
 fn field_point(pixel: vec2i) -> vec3f {
     let last = vec2i(textureDimensions(scene_depth)) - 1;
     return view_point(min(pixel * 2 + vec2i(1), last));

@@ -1,5 +1,10 @@
 # Ambient contact shading and Remaster profile
 
+Since 1.9, [directional contact shadows](contact-shadows.md) can share this field
+and its filters. AO retains its independent strength and ambient shading role.
+The field's green channel now combines validity with shadow attenuation; its
+depth/normal reconstruction and native translucent/HUD ordering remain intact.
+
 Select **Profile / Remaster** at the top of MidnaFX settings. It enables natural
 grading, detail, modern exploration FOV, AA, enhanced water and ambient occlusion,
 plus [depth atmosphere](depth-atmosphere.md), [adaptive exposure](adaptive-exposure.md)

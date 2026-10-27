@@ -64,9 +64,9 @@ int main() {
     CHECK((presets::enhanced().product_flags & presets::Dof) == 0);
     const auto remaster = presets::remaster();
     CHECK((remaster.product_flags & presets::SkinnedGeometry) != 0);
-    CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere | presets::AdaptiveExposure | presets::Bloom));
+    CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere | presets::AdaptiveExposure | presets::Bloom | presets::ContactShadows));
     CHECK(presets::vanilla().scene_flags == 0 && presets::vanilla().product_flags == 0);
-    for (int flags = -1; flags <= 63; ++flags) {
+    for (int flags = -1; flags <= 127; ++flags) {
         auto snapshot = remaster;
         snapshot.scene_flags = flags;
         const auto text = presets::encode({{"Remaster copy", snapshot}, {"Legacy copy", realism}});
@@ -75,13 +75,15 @@ int main() {
         CHECK(decoded[0].snapshot.product_flags == remaster.product_flags);
         CHECK(decoded[1].snapshot.scene_flags == -1);
     }
-    CHECK(!presets::decode("MFX4\nBad\t0,0,100,100,100,0,0,0,255,1,12,9,64\n", decoded));
-    CHECK(decoded.size() == 2 && decoded[0].snapshot.scene_flags == 63);
+    CHECK(!presets::decode("MFX4\nBad\t0,0,100,100,100,0,0,0,255,1,12,9,128\n", decoded));
+    CHECK(decoded.size() == 2 && decoded[0].snapshot.scene_flags == 127);
     CHECK(presets::decode("MFX4\nOld scene\t0,0,100,100,100,0,0,0,255,1,12,9,15\n", decoded));
     CHECK((decoded[0].snapshot.scene_flags & presets::AdaptiveExposure) == 0);
     CHECK(presets::decode("MFX4\nOld lighting\t0,0,100,100,100,0,0,0,255,1,12,9,31\n", decoded));
     CHECK((decoded[0].snapshot.scene_flags & presets::Bloom) == 0);
+    CHECK(presets::decode("MFX4\nOld bloom\t0,0,100,100,100,0,0,0,255,1,12,9,63\n", decoded));
+    CHECK((decoded[0].snapshot.scene_flags & presets::ContactShadows) == 0);
     auto invalid = remaster;
-    invalid.scene_flags = 64;
+    invalid.scene_flags = 128;
     CHECK(presets::encode({{"Invalid", invalid}}).empty());
 }

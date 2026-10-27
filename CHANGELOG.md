@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.9.0 - 2026-10-27
+
+- Add scene-wide directional contact shadows using native environment light and
+  visible opaque depth. Twelve projected samples trace up to 120 world units,
+  without asset identities or stage lists. Remaster enables the effect; independent
+  Basic controls default to 30% strength, while Vanilla disables it.
+- Share AO's half-resolution targets, surface-aware filters and reconstruction.
+  Keep AO/shadow strengths independent, cap combined darkening at 50%, retain
+  alpha and independent fog, and preserve downstream water/translucent/HUD order.
+- Bound nearby-light traces after normal bias and reject samples beyond the ray.
+  Add focused directional geometry, zero-strength parity, filter, alpha/fog and
+  range/depth checks. Existing profiles remain readable and keep the new toggle off
+  until a new profile is selected.
+- Keep macOS support best effort through native builds and portable checks. Hidden
+  and off-screen casters, whole-game motion quality and GPU duration remain open.
+
 ## 1.8.0 - 2026-10-26
 
 - Replace the five-tap contrast-edge blur with edge-directed spatial AA, using

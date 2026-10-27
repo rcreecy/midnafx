@@ -3,6 +3,7 @@
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
+#include "game/water_probe.hpp"
 #include <f_op/f_op_view.h>
 #include <helpers/gx_helper.h>
 #include <m_Do/m_Do_graphic.h>
@@ -24,8 +25,11 @@ struct Uniforms {
     float radius, strength, projection_y, background_depth;
     float fog_color[4];
     float fog_range[4];
+    float proj_from_view[16];
+    float light_position[4];
+    float shadow_range[4];
 };
-static_assert(sizeof(Uniforms) == 112);
+static_assert(sizeof(Uniforms) == 208);
 struct Pipeline {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPURenderPipeline pipeline = nullptr;
@@ -73,6 +77,7 @@ std::atomic<bool> compute_failed{false};
 std::atomic<std::uint64_t> encoded_compute{0}, encoded_draw{0};
 std::vector<std::unique_ptr<Pipeline>> pipelines;
 bool logged = false;
+bool shadows_logged = false;
 bool atmosphere_logged = false;
 bool submitted = false;
 
@@ -241,6 +246,9 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     float occlusion = settings::ambient_occlusion_enabled() && !compute_failed.load() && compute_type &&
                           dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag()
                                 ? settings::ambient_occlusion_strength() : 0.0f;
+    float shadows = settings::contact_shadows_enabled() && !compute_failed.load() && compute_type &&
+        dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() && !dKy_camera_water_in_status_check()
+                         ? settings::contact_shadow_strength() : 0.0f;
     const float fog_near = std::max(g_env_light.mFogNear, 0.0f);
     const bool atmosphere_available = settings::atmosphere_enabled() &&
         settings::atmosphere_strength() > 0 && dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() &&
@@ -248,7 +256,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         std::isfinite(g_env_light.mFogFar) && g_env_light.mFogFar > fog_near + 1;
     const float haze = settings::atmosphere_enabled() && atmosphere_available
                            ? settings::atmosphere_strength() : 0.0f;
-    if (occlusion <= 0 && haze <= 0) return;
+    if (occlusion <= 0 && shadows <= 0 && haze <= 0) return;
     // Camera reconstruction currently supports one full native world viewport.
     const auto* viewport = static_cast<const view_port_class*>(context->game_viewport);
     if (!viewport || viewport->x_orig != 0 || viewport->y_orig != 0 ||
@@ -260,14 +268,35 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         !std::all_of(std::begin(camera.view_from_proj), std::end(camera.view_from_proj),
                      [](float v) { return std::isfinite(v); }) ||
         !std::isfinite(camera.proj_from_view[5]) || camera.proj_from_view[5] <= 0) return;
+    float light_world[3]{};
+    float light_view[3]{};
+    if (shadows > 0) {
+        // Use the same native base-light position sampled by enhanced water.
+        if (!water_probe::latest_environment_light(light_world) ||
+            !std::all_of(std::begin(camera.view_from_world), std::end(camera.view_from_world),
+                         [](float v) { return std::isfinite(v); }) ||
+            !std::all_of(std::begin(camera.proj_from_view), std::end(camera.proj_from_view),
+                         [](float v) { return std::isfinite(v); })) {
+            shadows = 0;
+        } else {
+            for (unsigned row = 0; row < 3; ++row)
+                light_view[row] = camera.view_from_world[row] * light_world[0] +
+                                  camera.view_from_world[4 + row] * light_world[1] +
+                                  camera.view_from_world[8 + row] * light_world[2] +
+                                  camera.view_from_world[12 + row];
+            if (!std::all_of(std::begin(light_view), std::end(light_view),
+                             [](float v) { return std::isfinite(v); })) shadows = 0;
+        }
+    }
+    if (occlusion <= 0 && shadows <= 0 && haze <= 0) return;
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK || !supported(layout)) return;
     auto* pipeline = get_pipeline(layout);
     if (!pipeline) return;
-    Targets* targets = occlusion > 0 ? ensure_targets(layout.color_attachments[0].width,
+    Targets* targets = occlusion > 0 || shadows > 0 ? ensure_targets(layout.color_attachments[0].width,
                                                      layout.color_attachments[0].height) : nullptr;
-    if (occlusion > 0 && !targets) occlusion = 0;
-    if (occlusion <= 0 && haze <= 0) return;
+    if (!targets) { occlusion = 0; shadows = 0; }
+    if (occlusion <= 0 && shadows <= 0 && haze <= 0) return;
     GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
     request.color = request.depth = true;
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
@@ -281,6 +310,12 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     uniforms.strength = occlusion;
     uniforms.projection_y = camera.proj_from_view[5];
     uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
+    if (shadows > 0) {
+        std::memcpy(uniforms.proj_from_view, camera.proj_from_view, sizeof(uniforms.proj_from_view));
+        std::copy(std::begin(light_view), std::end(light_view), uniforms.light_position);
+        uniforms.light_position[3] = shadows;
+        uniforms.shadow_range[0] = 120.0f;
+    }
     if (haze > 0) {
         uniforms.fog_color[0] = std::clamp(float(g_env_light.fog_col.r) / 255.0f, 0.0f, 1.0f);
         uniforms.fog_color[1] = std::clamp(float(g_env_light.fog_col.g) / 255.0f, 0.0f, 1.0f);
@@ -319,6 +354,14 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         svc_log->info(mod_ctx, message);
         atmosphere_logged = true;
     }
+    if (!shadows_logged && shadows > 0 && svc_log) {
+        char message[224];
+        std::snprintf(message, sizeof(message),
+                      "Contact shadows active: native base light view=(%.1f,%.1f,%.1f) length=120 strength=%.2f steps=12 HUD excluded",
+                      light_view[0], light_view[1], light_view[2], shadows);
+        svc_log->info(mod_ctx, message);
+        shadows_logged = true;
+    }
 }
 void begin_scene(ModContext*, const GfxStageContext*, void*) {
     submitted = false;
@@ -328,6 +371,7 @@ void begin_scene(ModContext*, const GfxStageContext*, void*) {
 void apply(const GfxStageContext* context) { stage(nullptr, context, nullptr); }
 void initialize() {
     logged = false;
+    shadows_logged = false;
     atmosphere_logged = false;
     submitted = false;
     compute_failed.store(false); encoded_compute.store(0); encoded_draw.store(0);

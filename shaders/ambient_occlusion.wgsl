@@ -21,7 +21,7 @@ fn visibility(pixel: vec2i, center: vec3f) -> f32 {
     let base = vec2i(floor(point));
     let fraction = fract(point);
     let size = vec2i(textureDimensions(ambient_field));
-    var sum = 0.0;
+    var sum = vec2f(0);
     var weights = 0.0;
     for (var y = 0; y < 2; y++) {
         for (var x = 0; x < 2; x++) {
@@ -35,12 +35,15 @@ fn visibility(pixel: vec2i, center: vec3f) -> f32 {
             let bilinear = select(1-fraction.x, fraction.x, x == 1) *
                            select(1-fraction.y, fraction.y, y == 1);
             let weight = bilinear * edge;
-            sum += field.x * weight;
+            sum += vec2f(field.x, max(field.y - 1, 0)) * weight;
             weights += weight;
         }
     }
     if (weights < 0.0001) { return 1; }
-    return 1 - clamp((1 - sum / weights) * params.strength, 0, 0.5);
+    let value = sum / weights;
+    let ambient = 1 - clamp((1 - value.x) * params.strength, 0, 0.5);
+    let contact = 1 - clamp(value.y, 0, 0.5);
+    return max(ambient * contact, 0.5);
 }
 @fragment
 fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
@@ -48,6 +51,6 @@ fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let color = textureLoad(scene_color, pixel, 0);
     let center = view_point(pixel);
     if (center.z >= -0.0001) { return color; }
-    if (params.strength <= 0) { return atmosphere(color, center); }
+    if (params.strength <= 0 && params.light_position.w <= 0) { return atmosphere(color, center); }
     return atmosphere(vec4f(color.rgb * visibility(pixel, center), color.a), center);
 }

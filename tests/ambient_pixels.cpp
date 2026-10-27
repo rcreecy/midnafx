@@ -22,8 +22,11 @@ struct Params {
     float radius = 2, strength = 0.8f, projection_y = 1, background_depth = 1;
     float fog_color[4]{};
     float fog_range[4]{};
+    float proj_from_view[16]{};
+    float light_position[4]{};
+    float shadow_range[4]{};
 };
-static_assert(sizeof(Params) == 112);
+static_assert(sizeof(Params) == 208);
 
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
@@ -58,6 +61,11 @@ Params perspective(unsigned width, unsigned height) {
     params.view_from_proj[11] = -99.0f / 100;
     params.view_from_proj[14] = -1;
     params.view_from_proj[15] = 1;
+    params.proj_from_view[0] = float(height) / width;
+    params.proj_from_view[5] = 1;
+    params.proj_from_view[10] = -100.0f / 99;
+    params.proj_from_view[11] = -1;
+    params.proj_from_view[14] = -100.0f / 99;
     return params;
 }
 std::vector<Pixel> scene(unsigned width, unsigned height) {
@@ -163,7 +171,13 @@ struct Fixture {
         if (!seed.empty()) {
             std::vector<std::uint16_t> encoded(seed.size() * 4);
             for (size_t i = 0; i < seed.size(); ++i)
-                for (unsigned c = 0; c < 4; ++c) encoded[i * 4 + c] = midnafx::lut::half(seed[i][c]);
+                for (unsigned c = 0; c < 4; ++c) {
+                    // Validity plus attenuation occupies [1,1.5], beyond the
+                    // LUT encoder's [0,1] contract; this half exponent is fixed.
+                    encoded[i * 4 + c] = c == 1 && seed[i][c] >= 1 ?
+                        static_cast<std::uint16_t>(0x3c00 + std::lround((seed[i][c] - 1) * 1024)) :
+                        midnafx::lut::half(seed[i][c]);
+                }
             upload(fields[0], encoded.data(), encoded.size() * 2, half_width, half_height, 8);
         }
         WGPUBufferDescriptor bd = WGPU_BUFFER_DESCRIPTOR_INIT;
@@ -284,16 +298,17 @@ bool bounded(const Output& output, unsigned width, unsigned height) {
     for (const auto* field : {&output.raw, &output.filtered})
         for (const auto& value : *field) {
             for (float channel : value) if (!std::isfinite(channel)) return false;
-            if (value[0] < 0 || value[0] > 1 || (value[1] != 0 && value[1] != 1)) return false;
+            if (value[0] < 0 || value[0] > 1 ||
+                (value[1] != 0 && (value[1] < 1 || value[1] > 1.5f))) return false;
         }
     return true;
 }
-float variation(const std::vector<Field>& field, unsigned width, unsigned height) {
+float variation(const std::vector<Field>& field, unsigned width, unsigned height, unsigned channel = 0) {
     float total = 0;
     for (unsigned y = 0; y < height; ++y)
         for (unsigned x = 0; x < width; ++x) {
-            if (x) total += std::abs(field[y * width + x][0] - field[y * width + x - 1][0]);
-            if (y) total += std::abs(field[y * width + x][0] - field[(y - 1) * width + x][0]);
+            if (x) total += std::abs(field[y * width + x][channel] - field[y * width + x - 1][channel]);
+            if (y) total += std::abs(field[y * width + x][channel] - field[(y - 1) * width + x][channel]);
         }
     return total;
 }
@@ -417,6 +432,194 @@ int main() {
                 std::vector<Field>(((width + 1) / 2) * ((height + 1) / 2), Field{0, 0, 0, 0}));
             valid &= bounded(fallback, width, height) && fallback.color == output.color;
             report("Zero AO strength retains independent fog formula and alpha", valid);
+        }
+        {
+            const unsigned width = 64, height = 48, half_width = width / 2, half_height = height / 2;
+            auto params = perspective(width, height); params.strength = 0;
+            params.light_position[3] = 0.4f;
+            std::vector<Field> seed(half_width * half_height);
+            for (unsigned y = 0; y < half_height; ++y)
+                for (unsigned x = 0; x < half_width; ++x)
+                    seed[y * half_width + x] = {1, (x + y) % 2 ? 1.4f : 1.0f, 0.5f, 0.5f};
+            std::vector<float> depth(width * height, depth_at(10));
+            const auto smooth = fixture.run(width, height, depth, params, seed);
+            bool valid = bounded(smooth, width, height);
+            if (valid) {
+                valid &= variation(smooth.filtered, half_width, half_height, 1) <
+                         variation(smooth.raw, half_width, half_height, 1) * 0.25f;
+                float mean = 0; for (const auto& value : smooth.filtered) mean += value[1];
+                valid &= std::abs(mean / smooth.filtered.size() - 1.2f) < 0.005f;
+            }
+            for (unsigned y = 0; y < height; ++y)
+                for (unsigned x = width / 2; x < width; ++x) depth[y * width + x] = depth_at(40);
+            for (unsigned y = 0; y < half_height; ++y)
+                for (unsigned x = 0; x < half_width; ++x)
+                    seed[y * half_width + x] = {1, x < half_width / 2 ? 1.4f : 1.0f, 0.5f, 0.5f};
+            const auto isolated = fixture.run(width, height, depth, params, seed);
+            valid &= bounded(isolated, width, height);
+            if (isolated.filtered.size() == seed.size())
+                for (size_t i = 0; i < seed.size(); ++i)
+                    valid &= std::abs(isolated.filtered[i][1] - seed[i][1]) < 0.001f;
+            const auto source = scene(width, height);
+            if (isolated.color.size() == source.size())
+                for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = width / 2; x < width; ++x)
+                        valid &= isolated.color[y * width + x] == source[y * width + x];
+            report("Shadow attenuation filters smoothly within a plane and rejects depth-step bleed", valid);
+            params.strength = 1; params.light_position[3] = 0.5f;
+            std::fill(depth.begin(), depth.end(), depth_at(10));
+            std::fill(seed.begin(), seed.end(), Field{0, 1.5f, 0.5f, 0.5f});
+            const auto capped = fixture.run(width, height, depth, params, seed);
+            valid = bounded(capped, width, height);
+            for (const auto& pixel : capped.color)
+                valid &= pixel[0] == 60 && pixel[1] == 80 && pixel[2] == 100;
+            report("Combined AO and shadow darkness stays capped at fifty percent", valid);
+        }
+        for (auto size : {std::array<unsigned, 2>{96, 80}, {65, 49}}) {
+            const auto [width, height] = size;
+            auto params = perspective(width, height); params.strength = 0;
+            params.light_position[0] = 8; params.light_position[2] = -4; params.light_position[3] = 0.4f;
+            params.shadow_range[0] = 4;
+            const std::vector<float> plane(width * height, depth_at(10));
+            auto depth = plane;
+            for (unsigned y = height / 3; y < 2 * height / 3; ++y)
+                for (unsigned x = width / 2 - width / 12; x < width / 2 + width / 12; ++x)
+                    depth[y * width + x] = depth_at(8.5f);
+            const auto from_right = fixture.run(width, height, depth, params);
+            params.light_position[0] = -8;
+            const auto from_left = fixture.run(width, height, depth, params);
+            struct Stats { unsigned darkened = 0, max_drop = 0; double weight = 0, weighted_x = 0; };
+            const auto measure = [&](const Output& output) {
+                Stats stats;
+                if (output.color.size() != depth.size()) return stats;
+                for (unsigned y = 2; y + 2 < height; ++y)
+                    for (unsigned x = 2; x + 2 < width; ++x) {
+                        const size_t i = y * width + x;
+                        if (depth[i] != depth_at(10)) continue;
+                        const unsigned drop = unsigned(std::max(120 - int(output.color[i][0]), 0));
+                        stats.darkened += drop > 0; stats.max_drop = std::max(stats.max_drop, drop);
+                        stats.weight += drop; stats.weighted_x += drop * x;
+                    }
+                return stats;
+            };
+            const auto right = measure(from_right), left = measure(from_left);
+            const double right_centroid = right.weight ? right.weighted_x / right.weight : -1;
+            const double left_centroid = left.weight ? left.weighted_x / left.weight : -1;
+            bool valid = bounded(from_right, width, height) && bounded(from_left, width, height) &&
+                         right.darkened > 5 && left.darkened > 5 && right.max_drop >= 2 && left.max_drop >= 2 &&
+                         right_centroid < width * 0.5 && left_centroid > width * 0.5 &&
+                         left_centroid - right_centroid > 2;
+            for (const auto* output : {&from_right, &from_left})
+                for (const auto& pixel : output->color)
+                    valid &= pixel[0] >= 60 && pixel[0] <= 120 && pixel[1] >= 80 && pixel[1] <= 160 &&
+                             pixel[2] >= 100 && pixel[2] <= 200;
+            char label[180];
+            std::snprintf(label, sizeof(label),
+                "Directional cast %ux%u receiver counts=%u/%u maxdrop=%u/%u centroids=%.2f/%.2f",
+                width, height, right.darkened, left.darkened, right.max_drop, left.max_drop, right_centroid, left_centroid);
+            report(label, valid);
+
+            const auto no_caster = fixture.run(width, height, plane, params);
+            params.light_position[2] = -14;
+            const auto behind = fixture.run(width, height, depth, params);
+            const auto source = scene(width, height);
+            valid = bounded(no_caster, width, height) && bounded(behind, width, height) &&
+                    no_caster.color == source && behind.color == source;
+            std::snprintf(label, sizeof(label), "No-caster plane and light-behind-surface identity %ux%u", width, height);
+            report(label, valid);
+
+            if (width == 96) {
+                auto legacy = perspective(width, height);
+                const auto baseline = fixture.run(width, height, depth, legacy);
+                legacy.light_position[0] = 8; legacy.light_position[2] = -4;
+                legacy.shadow_range[0] = 4;
+                const auto disabled = fixture.run(width, height, depth, legacy);
+                report("Zero shadow strength preserves old AO color and field exactly",
+                    bounded(baseline, width, height) && bounded(disabled, width, height) &&
+                    disabled.color == baseline.color && disabled.raw == baseline.raw && disabled.filtered == baseline.filtered);
+
+                auto reversed_params = perspective(width, height); reversed_params.strength = 0;
+                reversed_params.light_position[0] = 8; reversed_params.light_position[2] = -4;
+                reversed_params.light_position[3] = 0.4f; reversed_params.shadow_range[0] = 4;
+                reversed_params.background_depth = 0;
+                reversed_params.proj_from_view[10] = 1.0f / 99;
+                reversed_params.proj_from_view[14] = 100.0f / 99;
+                reversed_params.view_from_proj[11] = 99.0f / 100;
+                reversed_params.view_from_proj[15] = 1.0f / 100;
+                auto reversed_depth = depth;
+                for (auto& value : reversed_depth) value = 1 - value;
+                const auto reversed = fixture.run(width, height, reversed_depth, reversed_params);
+                valid = bounded(reversed, width, height) && bounded(from_right, width, height);
+                if (valid) {
+                    // Equivalent projection inversions may round at adjacent
+                    // half-float/UNorm codes; geometry and attenuation must agree.
+                    for (size_t i = 0; i < reversed.color.size(); ++i) {
+                        valid &= reversed.color[i][3] == from_right.color[i][3];
+                        for (unsigned c = 0; c < 3; ++c)
+                            valid &= std::abs(int(reversed.color[i][c]) - int(from_right.color[i][c])) <= 1;
+                    }
+                    for (size_t i = 0; i < reversed.raw.size(); ++i)
+                        for (unsigned c = 0; c < 2; ++c)
+                            valid &= std::abs(reversed.raw[i][c] - from_right.raw[i][c]) <= 0.002f;
+                }
+                report("Reversed-Z matched projection preserves directional shadow and alpha", valid);
+
+                auto fog = perspective(width, height); fog.strength = 0;
+                fog.light_position[0] = 8; fog.light_position[2] = -4; fog.light_position[3] = 0.4f;
+                fog.shadow_range[0] = 4;
+                fog.fog_color[0] = 0.2f; fog.fog_color[1] = 0.3f; fog.fog_color[2] = 0.4f; fog.fog_color[3] = 0.3f;
+                fog.fog_range[0] = 2; fog.fog_range[1] = 18;
+                const auto hazy = fixture.run(width, height, depth, fog);
+                valid = bounded(hazy, width, height) && from_right.color.size() == depth.size();
+                if (valid) for (size_t i = 0; i < depth.size(); ++i) {
+                    const float distance = depth[i] == depth_at(10) ? 10.0f : 8.5f;
+                    const float amount = 0.3f * (1 - std::exp(-2 * (distance - 2) / 16));
+                    for (unsigned c = 0; c < 3; ++c) {
+                        const int expected = int(std::lround(from_right.color[i][c] * (1 - amount) + fog.fog_color[c] * 255 * amount));
+                        valid &= std::abs(int(hazy.color[i][c]) - expected) <= 1;
+                    }
+                }
+                report("Directional shadow composes before independent fog and retains alpha", valid);
+            }
+        }
+        {
+            constexpr unsigned width = 192, height = 192, caster_x = 101, caster_y = 95;
+            auto params = perspective(width, height); params.strength = 0;
+            // The visible caster is 0.1 world units beyond the close point
+            // light, with exactly the same view-space X/Y at its pixel center.
+            // Score only receiver pixels; the caster's own shading is unrelated.
+            params.light_position[0] = (2 * (caster_x + 0.5f) / width - 1) * 8.9f;
+            params.light_position[1] = (1 - 2 * (caster_y + 0.5f) / height) * 8.9f;
+            params.light_position[2] = -9; params.light_position[3] = 0.4f;
+            params.shadow_range[0] = 4;
+            std::vector<float> depth(width * height, depth_at(10));
+            depth[caster_y * width + caster_x] = depth_at(8.9f);
+            const auto output = fixture.run(width, height, depth, params);
+            const auto source = scene(width, height);
+            bool valid = bounded(output, width, height);
+            if (valid) {
+                for (unsigned y = 93; y <= 97; y += 2)
+                    for (unsigned x = 91; x <= 97; x += 2) {
+                        const auto& field = output.raw[((y - 1) / 2) * (width / 2) + (x - 1) / 2];
+                        valid &= field[0] == 1 && field[1] == 1;
+                    }
+                for (unsigned y = 91; y <= 99; ++y)
+                    for (unsigned x = 91; x <= 95; ++x)
+                        valid &= output.color[y * width + x] == source[y * width + x];
+            }
+            report("Close point light rejects a visible caster beyond its endpoint on the receiver", valid);
+        }
+        {
+            bool valid = true;
+            for (auto size : {std::array<unsigned, 2>{1, 1}, {3, 5}, {33, 25}}) {
+                const auto [width, height] = size;
+                auto params = perspective(width, height); params.strength = 0;
+                params.light_position[0] = 8; params.light_position[2] = -4; params.light_position[3] = 0.4f;
+                params.shadow_range[0] = 4;
+                const auto output = fixture.run(width, height, std::vector<float>(width * height, depth_at(10)), params);
+                valid &= bounded(output, width, height) && output.color == scene(width, height);
+            }
+            report("Small and odd shadow targets remain finite and preserve a flat plane", valid);
         }
     }
     std::printf("%u ambient pixel cases: %s\n", cases, ok ? "PASS" : "FAIL");

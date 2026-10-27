@@ -53,6 +53,8 @@ float bloom_strength();
 bool ambient_occlusion_enabled();
 float ambient_occlusion_strength();
 float ambient_occlusion_radius();
+bool contact_shadows_enabled();
+float contact_shadow_strength();
 bool atmosphere_enabled();
 float atmosphere_strength();
 unsigned color_look();

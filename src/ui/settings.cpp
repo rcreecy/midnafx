@@ -63,6 +63,7 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     dof_autofocus{"dof_autofocus", true};
 Toggle adaptive_exposure{"adaptive_exposure", false};
 Toggle bloom{"bloom", false};
+Toggle contact_shadows{"contact_shadows", false};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -119,6 +120,8 @@ NumberSetting atmosphere_strength_setting{
     "atmosphere_strength", "Atmosphere strength (%)", 0, 100, 35, 35, false};
 NumberSetting bloom_strength_setting{
     "bloom_strength", "Bloom strength (%)", 0, 50, 20, 20, false};
+NumberSetting contact_shadow_strength_setting{
+    "contact_shadow_strength", "Contact shadow strength (%)", 0, 50, 30, 30, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* VanillaPlusName = "Profile / Vanilla+";
 constexpr const char* EnhancedName = "Profile / Enhanced";
@@ -229,7 +232,8 @@ presets::Snapshot capture() {
         (enhanced_water.value ? presets::Water : 0) |
         (atmosphere.value ? presets::Atmosphere : 0) |
         (adaptive_exposure.value ? presets::AdaptiveExposure : 0) |
-        (bloom.value ? presets::Bloom : 0);
+        (bloom.value ? presets::Bloom : 0) |
+        (contact_shadows.value ? presets::ContactShadows : 0);
     value.detail_enabled = detail_toggle.value;
     value.detail_strength = detail_strength_setting.value;
     return value;
@@ -319,6 +323,7 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(atmosphere, presets::Atmosphere);
         apply_toggle(adaptive_exposure, presets::AdaptiveExposure);
         apply_toggle(bloom, presets::Bloom);
+        apply_toggle(contact_shadows, presets::ContactShadows);
     }
     // A failed config write must not advertise a completely applied profile.
     // Keep the saved Custom snapshot available for explicit recovery.
@@ -389,7 +394,7 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
              user == &geometry_skinned_smoothing || user == &camera_toggle ||
              user == &camera_lower_angle || user == &dof_blur || user == &ambient_occlusion ||
              user == &anti_aliasing || user == &enhanced_water || user == &atmosphere ||
-             user == &adaptive_exposure || user == &bloom) &&
+             user == &adaptive_exposure || user == &bloom || user == &contact_shadows) &&
             !applying_preset) {
             mark_custom();
             update_grade();
@@ -404,7 +409,8 @@ void on_number_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
     setting.value = (&setting == &color_look_setting && (value->int_value < 0 || value->int_value > 2))
         ? 0 : std::clamp(value->int_value, setting.min, setting.max);
     if (!applying_preset) {
-        if (setting.preset_value || &setting == &bloom_strength_setting)
+        if (setting.preset_value || &setting == &bloom_strength_setting ||
+            &setting == &contact_shadow_strength_setting)
             mark_custom();
         update_grade();
     }
@@ -513,7 +519,7 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
         &toggle == &geometry_skinned_smoothing || &toggle == &camera_toggle ||
         &toggle == &camera_lower_angle || &toggle == &dof_blur || &toggle == &ambient_occlusion ||
         &toggle == &anti_aliasing || &toggle == &enhanced_water || &toggle == &atmosphere ||
-        &toggle == &adaptive_exposure || &toggle == &bloom) {
+        &toggle == &adaptive_exposure || &toggle == &bloom || &toggle == &contact_shadows) {
         mark_custom();
         update_grade();
     }
@@ -531,7 +537,8 @@ void set_number(ModContext*, void* user, const UiControlValue* in) {
         return;
     }
     setting.value = value;
-    if (setting.preset_value || &setting == &bloom_strength_setting)
+    if (setting.preset_value || &setting == &bloom_strength_setting ||
+        &setting == &contact_shadow_strength_setting)
         mark_custom();
     update_grade();
 }
@@ -875,11 +882,13 @@ void refresh_status() {
                   master.value ? (active_grade.neutral && !detail_active && !anti_aliasing.value &&
                                           !ambient_occlusion.value && !atmosphere.value &&
                                           !adaptive_exposure.value &&
+                                          !(contact_shadows.value && contact_shadow_strength_setting.value > 0) &&
                                           !(bloom.value && bloom_strength_setting.value > 0) && look_intensity() <= 0 &&
                                           mode == visual::DebugMode::Final && !passthrough.value
                                       ? "Neutral"
                                       : "Processing")
                                : (ambient_occlusion.value || atmosphere.value || adaptive_exposure.value ||
+                                  (contact_shadows.value && contact_shadow_strength_setting.value > 0) ||
                                   (bloom.value && bloom_strength_setting.value > 0)
                                       ? "Grading off / scene effects requested"
                                       : (anti_aliasing.value ? "Grading off / AA requested" : "Grading off")),
@@ -978,7 +987,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Remaster combines contact shading, depth atmosphere, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera, anti-aliasing and enhanced water. "
+        "Remaster combines contact shading, contact shadows, depth atmosphere, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera, anti-aliasing and enhanced water. "
         "Vanilla restores original presentation. Advanced tuning stays unchanged.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
@@ -1004,6 +1013,10 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_number(panel, ambient_occlusion_radius_setting);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Ambient occlusion adds contact shading; strength and radius control its effect.", nullptr));
+    add_toggle(panel, "Contact shadows", contact_shadows);
+    add_number(panel, contact_shadow_strength_setting);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Adds short directional shadows using native environment light. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Depth atmosphere", atmosphere);
     add_number(panel, atmosphere_strength_setting);
     UiControlDesc look = UI_CONTROL_DESC_INIT;
@@ -1226,6 +1239,7 @@ bool initialize() {
     register_toggle(adaptive_exposure);
     register_toggle(bloom);
     register_toggle(ambient_occlusion);
+    register_toggle(contact_shadows);
     register_toggle(atmosphere);
     register_toggle(camera_toggle);
     register_toggle(camera_lower_angle);
@@ -1263,6 +1277,7 @@ bool initialize() {
     register_number(water_specular_strength_setting);
     register_number(ambient_occlusion_strength_setting);
     register_number(ambient_occlusion_radius_setting);
+    register_number(contact_shadow_strength_setting);
     register_number(atmosphere_strength_setting);
     register_number(bloom_strength_setting);
     for (auto& effect : effects)
@@ -1359,6 +1374,10 @@ float ambient_occlusion_strength() {
 }
 float ambient_occlusion_radius() {
     return static_cast<float>(ambient_occlusion_radius_setting.value);
+}
+bool contact_shadows_enabled() { return contact_shadows.value; }
+float contact_shadow_strength() {
+    return static_cast<float>(contact_shadow_strength_setting.value) / 100.0f;
 }
 bool atmosphere_enabled() { return atmosphere.value; }
 float atmosphere_strength() {
