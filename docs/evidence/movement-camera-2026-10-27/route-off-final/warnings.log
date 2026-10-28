@@ -1,0 +1,9 @@
+[DEBUG | dusk] fopScnM_CreateReq: result=0 (error=4294967295)
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=1 (error=4294967295)
+[DEBUG | dusk] Loading Resource: warning.bti (Size: 136224)
+[DEBUG | dusk] Loading Resource: warning_pstart.bti (Size: 14624)
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=3 (error=4294967295)
+[DEBUG | dusk] fopScnM_CreateReq: result=2 (error=4294967295)
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=17 (error=4294967295)
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.

@@ -26,7 +26,7 @@ bool parse_row(std::string_view row, unsigned version, Entry& entry) {
     if (version >= 3) {
         const auto last = row.rfind(',');
         if (last == row.npos || !number(row.substr(last + 1), entry.snapshot.product_flags) ||
-            entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 63)
+            entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 127)
             return false;
         row = row.substr(0, last);
     }
@@ -113,7 +113,7 @@ std::string encode(const std::vector<Entry>& entries) {
         result += entry.snapshot.detail_enabled ? '1' : '0';
         result += ',';
         result += std::to_string(entry.snapshot.detail_strength);
-        if (entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 63)
+        if (entry.snapshot.product_flags < -1 || entry.snapshot.product_flags > 127)
             return {};
         if (entry.snapshot.scene_flags < -1 || entry.snapshot.scene_flags > 127)
             return {};
@@ -192,7 +192,7 @@ Snapshot enhanced() {
 }
 Snapshot remaster() {
     auto result = enhanced();
-    result.product_flags |= SkinnedGeometry;
+    result.product_flags |= SkinnedGeometry | MovementCamera;
     result.scene_flags = AmbientOcclusion | AntiAliasing | Water | Atmosphere | AdaptiveExposure | Bloom | ContactShadows;
     return result;
 }

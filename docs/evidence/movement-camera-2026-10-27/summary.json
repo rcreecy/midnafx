@@ -1,0 +1,124 @@
+{
+  "route-on-final": {
+    "comments": [
+      "# replay pad=000001A1189D4B90 previous=0000000000000000",
+      "# complete"
+    ],
+    "phases": {
+      "idle": {
+        "rows": 75,
+        "speed_max": 0.0,
+        "fovy_min": 61.380711,
+        "fovy_max": 61.603977,
+        "fovy_last": 61.603977
+      },
+      "run": {
+        "rows": 35,
+        "speed_max": 23.0,
+        "fovy_min": 61.60503,
+        "fovy_max": 65.62072,
+        "fovy_last": 65.62072
+      },
+      "rest": {
+        "rows": 90,
+        "speed_max": 21.602406,
+        "fovy_min": 61.278107,
+        "fovy_max": 65.715431,
+        "fovy_last": 61.278107
+      },
+      "target": {
+        "rows": 30,
+        "speed_max": 0.0,
+        "fovy_min": 61.246361,
+        "fovy_max": 61.275532,
+        "fovy_last": 61.246361
+      },
+      "final": {
+        "rows": 30,
+        "speed_max": 0.0,
+        "fovy_min": 61.228596,
+        "fovy_max": 61.245422,
+        "fovy_last": 61.228596
+      }
+    }
+  },
+  "route-off-final": {
+    "comments": [
+      "# replay pad=000002AB1037DB90 previous=0000000000000000",
+      "# complete"
+    ],
+    "phases": {
+      "idle": {
+        "rows": 75,
+        "speed_max": 0.0,
+        "fovy_min": 61.380711,
+        "fovy_max": 61.603977,
+        "fovy_last": 61.603977
+      },
+      "run": {
+        "rows": 35,
+        "speed_max": 23.0,
+        "fovy_min": 61.60503,
+        "fovy_max": 61.833294,
+        "fovy_last": 61.833294
+      },
+      "rest": {
+        "rows": 90,
+        "speed_max": 21.602406,
+        "fovy_min": 61.278107,
+        "fovy_max": 61.855637,
+        "fovy_last": 61.278107
+      },
+      "target": {
+        "rows": 30,
+        "speed_max": 0.0,
+        "fovy_min": 61.246361,
+        "fovy_max": 61.275532,
+        "fovy_last": 61.246361
+      },
+      "final": {
+        "rows": 30,
+        "speed_max": 0.0,
+        "fovy_min": 61.228596,
+        "fovy_max": 61.245422,
+        "fovy_last": 61.228596
+      }
+    }
+  },
+  "route-replay": {
+    "comments": [
+      "# replay pad=00000217B9513B90 previous=0000000000000000",
+      "# timeout"
+    ],
+    "phases": {
+      "idle": {
+        "rows": 75,
+        "speed_max": 0.0,
+        "fovy_min": 61.380711,
+        "fovy_max": 61.603977,
+        "fovy_last": 61.603977
+      },
+      "run": {
+        "rows": 41,
+        "speed_max": 22.999668,
+        "fovy_min": 61.60503,
+        "fovy_max": 65.078239,
+        "fovy_last": 64.33757
+      }
+    }
+  },
+  "paired_route": {
+    "rows": 260,
+    "ratio_min": 1.0,
+    "ratio_max": 1.0799999980756774,
+    "max_speed_difference": 0.0,
+    "last_rest": {
+      "tick": 214,
+      "phase": "rest",
+      "tangent_ratio": 1.0,
+      "speed_on": 0.0,
+      "speed_off": 0.0
+    },
+    "target_ratio_max": 1.0
+  }
+}

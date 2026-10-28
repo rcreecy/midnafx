@@ -1,0 +1,13 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start 12: presets_roundtrip
+1/4 Test #12: presets_roundtrip ................   Passed    0.03 sec
+    Start 16: camera_fov
+2/4 Test #16: camera_fov .......................   Passed    0.04 sec
+    Start 19: camera_patch_contract
+3/4 Test #19: camera_patch_contract ............   Passed    0.22 sec
+    Start 24: package_contract
+4/4 Test #24: package_contract .................   Passed    0.33 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   0.64 sec

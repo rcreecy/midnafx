@@ -1,0 +1,12 @@
+[INFO | com.midnafx.midnafx] Camera FOV: type=40 mode=0 flags=0x07 active=no aspect=1.333 native=61.25 effective=61.25 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=no aspect=1.333 native=61.38 effective=61.38 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=61.60 effective=61.79 movement=0.048 speed=9.72
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=61.56 effective=62.89 movement=0.333 speed=17.73
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=61.49 effective=63.57 movement=0.524 speed=19.33
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=61.33 effective=64.54 movement=0.810 speed=19.33
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=61.14 effective=65.07 movement=1.000 speed=22.66
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=61.01 effective=64.85 movement=0.977 speed=19.55
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=60.80 effective=64.72 movement=1.000 speed=22.89
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=yes aspect=1.333 native=60.60 effective=64.33 movement=0.952 speed=18.76
+[INFO | com.midnafx.midnafx] Camera FOV: type=40 mode=0 flags=0x07 active=no aspect=1.333 native=60.55 effective=60.55 movement=0.000 speed=0.00
+[INFO | dusk::mods::loader] all mods unloaded

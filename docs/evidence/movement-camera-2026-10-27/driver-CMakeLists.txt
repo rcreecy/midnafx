@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.26)
+project(MovementRoute VERSION 0.0.1 LANGUAGES CXX)
+add_subdirectory("C:/dev/midnafx/upstream/dusklight/sdk" sdk EXCLUDE_FROM_ALL)
+file(WRITE "${CMAKE_BINARY_DIR}/mod.json" "{\"id\":\"com.midnafx.movement_route\",\"name\":\"Temporary movement route\",\"version\":\"0.0.1\",\"author\":\"MidnaFX validation\"}")
+add_mod(movement_route FEATURES game webgpu SOURCES driver.cpp MOD_JSON "${CMAKE_BINARY_DIR}/mod.json")

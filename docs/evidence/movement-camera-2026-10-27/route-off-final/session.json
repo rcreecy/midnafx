@@ -1,0 +1,21 @@
+{
+  "driver_sha256": "9CCAB222893C675254A64F07753E3C152E47618ACED847F5593F11D54A81FE7D",
+  "package_sha256": "A0BBB4EEB4FE954D8CB647714E73028136E6DB042C998A491AD23FEF094DF1CB",
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/movement-camera/route-off-final/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/movement-camera/route-off-final/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/movement-camera/route-off-final/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "pid": 7984,
+  "start": "2026-10-28T01:02:33.4028574Z"
+}

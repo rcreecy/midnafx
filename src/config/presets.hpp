@@ -14,7 +14,8 @@ enum ProductFlag {
     SkinnedGeometry = 4,
     Camera = 8,
     LowerCamera = 16,
-    Dof = 32
+    Dof = 32,
+    MovementCamera = 64
 };
 enum SceneFlag {
     AmbientOcclusion = 1,

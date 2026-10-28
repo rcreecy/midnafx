@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.10 adds **Movement camera framing** for exploration. The view widens
+smoothly during brisk movement and settles at rest, with native aiming and
+authored camera contexts preserved. Select **Profile / Remaster** or its
+independent Basic control; Advanced offers a 0–12% boost, defaulting to 8%.
+See [movement framing](docs/movement-camera.md) for compatibility and evidence.
+
 MidnaFX 1.9 adds **Contact shadows** across visible opaque scenery and characters.
 Short rays toward the native environment light add directional grounding alongside
 ambient occlusion. Select **Profile / Remaster** or the independent Basic control;
@@ -72,7 +78,7 @@ resource counters. See [the LUT contract and qualification record](docs/m13-cont
 The development build enables experimental pre-HUD anti-aliasing by default.
 Its Basic toggle operates independently of grading; Remaster and Vanilla include
 it in their scene switches, while older saved looks preserve its state. Existing
-saved AA-off values are preserved. The five-tap filter shares source samples
+saved AA-off values are preserved. The edge-directed filter shares source samples
 with detail, and detail does not sharpen edges selected for AA. See the
 [AA correctness review](docs/notes/m13-aa-correctness-review.md) for repairs,
 headless GPU proof, and the remaining visual-quality limitations.

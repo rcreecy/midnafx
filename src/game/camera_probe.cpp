@@ -6,10 +6,15 @@
 
 #include <mods/svc/camera.h>
 #include <mods/svc/gfx.h>
+#include <d/d_com_inf_game.h>
+#include <d/actor/d_a_player.h>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 
 namespace midnafx::camera_probe {
 namespace {
@@ -22,6 +27,11 @@ std::chrono::steady_clock::time_point last_sample{};
 std::chrono::steady_clock::time_point last_chase_sample{};
 std::uint64_t last_ticks = 0;
 float blend = 0.0f;
+camera_fov::MovementFraming movement;
+std::array<char, 8> movement_stage{};
+int movement_room = -1;
+const void* movement_player = nullptr;
+int logged_movement_band = -1;
 bool log_initialized = false;
 bool logged_active = false;
 bool logged_endpoint = false;
@@ -97,18 +107,22 @@ bool modify_fov(ModContext*, CameraFovModifierState* state, void*) {
             log_initialized = false;
             return;
         }
+        const int movement_band = current.movement_amount <= 0.001f ? 0 :
+                                  current.movement_amount >= 0.999f ? 5 :
+                                  1 + int(current.movement_amount * 4);
         if (!svc_log || (log_initialized && active == logged_active && endpoint == logged_endpoint &&
+             movement_band == logged_movement_band &&
              state->camera_type == logged_type && state->camera_mode == logged_mode &&
              state->context_flags == logged_flags &&
              std::abs(state->aspect - logged_aspect) < 0.001f))
             return;
-        char message[224];
+        char message[288];
         std::snprintf(message, sizeof(message),
                       "Camera FOV: type=%d mode=%d flags=0x%02x active=%s aspect=%.3f "
-                      "native=%.2f effective=%.2f",
+                      "native=%.2f effective=%.2f movement=%.3f speed=%.2f",
                       state->camera_type, state->camera_mode, state->context_flags,
                       active ? "yes" : "no", state->aspect, state->native_fovy,
-                      current.effective_fovy);
+                      current.effective_fovy, current.movement_amount, current.movement_speed);
         svc_log->info(mod_ctx, message);
         log_initialized = true;
         logged_active = active;
@@ -117,26 +131,56 @@ bool modify_fov(ModContext*, CameraFovModifierState* state, void*) {
         logged_mode = state->camera_mode;
         logged_flags = state->context_flags;
         logged_aspect = state->aspect;
+        logged_movement_band = movement_band;
     };
 
     const bool safe = (state->context_flags & CAMERA_FOV_CONTEXT_CAN_MODIFY) != 0 &&
                       (state->context_flags & CAMERA_FOV_CONTEXT_NORMAL_MODE) != 0;
-    const bool enabled = settings::camera_enabled();
+    const bool enabled = settings::camera_enabled() || settings::movement_camera_enabled();
     const std::uint64_t tick_delta = last_ticks != 0 && state->ticks > last_ticks
                                          ? state->ticks - last_ticks
                                          : 1u;
     last_ticks = state->ticks;
-    if (!safe || !enabled) {
+    current.movement_amount = 0;
+    current.movement_speed = 0;
+    if (!safe || !enabled || !std::isfinite(state->native_fovy) ||
+        state->native_fovy <= 0 || state->native_fovy >= 180) {
         blend = 0.0f;
+        movement.reset();
         current.modifier_active = false;
         report(false);
         return false;
     }
 
-    blend = camera_fov::advance(blend, 1.0f, tick_delta, settings::camera_transition_seconds());
-    const float requested_scale = settings::camera_fov_scale();
-    const float scale = 1.0f + (requested_scale - 1.0f) * blend;
-    const float fovy = camera_fov::scale_vertical(state->native_fovy, scale);
+    blend = settings::camera_enabled()
+                ? camera_fov::advance(blend, 1.0f, tick_delta, settings::camera_transition_seconds())
+                : 0.0f;
+    const auto* player = dComIfGp_getLinkPlayer();
+    std::array<char, 8> stage{};
+    if (const auto* name = dComIfGp_getStartStageName())
+        std::memcpy(stage.data(), name, stage.size());
+    const int room = dComIfGp_roomControl_getStayNo();
+    if (stage != movement_stage || room != movement_room || player != movement_player) {
+        movement.reset();
+        movement_stage = stage; movement_room = room; movement_player = player;
+    }
+    const float boost = std::clamp(settings::movement_fov_boost(), 0.0f, 0.12f);
+    const bool moving_enabled = settings::movement_camera_enabled() && boost > 0 &&
+                                player && !dComIfGp_isPauseFlag();
+    const float speed = player ? player->getSpeedF() : 0.0f;
+    const float maximum = player ? player->mMaxSpeed : 0.0f;
+    current.movement_speed = std::isfinite(speed) ? speed : 0.0f;
+    current.movement_amount = movement.update(speed, maximum, moving_enabled, state->ticks,
+                                              state->frame_counter, settings::camera_transition_seconds());
+    const float requested_scale = settings::camera_enabled() ? settings::camera_fov_scale() : 1.0f;
+    const float base_scale = 1.0f + (requested_scale - 1.0f) * blend;
+    const float scale = base_scale * (1.0f + boost * current.movement_amount);
+    if (std::abs(scale - 1.0f) < 0.000001f) {
+        current.modifier_active = false;
+        report(false);
+        return false;
+    }
+    const float fovy = std::clamp(camera_fov::scale_vertical(state->native_fovy, scale), 10.0f, 120.0f);
     if (!std::isfinite(fovy) || std::abs(fovy - state->native_fovy) < 0.001f) {
         current.modifier_active = false;
         report(false);
@@ -200,6 +244,8 @@ void initialize() {
     chase_modifier = 0;
     last_ticks = 0;
     blend = 0.0f;
+    movement.reset(); movement_stage = {}; movement_room = -1; movement_player = nullptr;
+    logged_movement_band = -1;
     log_initialized = false;
     chase_log_initialized = false;
     if (!svc_gfx || !svc_camera)
@@ -252,6 +298,8 @@ void shutdown() {
     last_chase_sample = {};
     last_ticks = 0;
     blend = 0.0f;
+    movement.reset(); movement_stage = {}; movement_room = -1; movement_player = nullptr;
+    logged_movement_band = -1;
     log_initialized = false;
     chase_log_initialized = false;
 }

@@ -35,6 +35,8 @@ struct Snapshot {
     float native_latitude_far = 0.0f;
     float native_latitude_near = 0.0f;
     float latitude_offset = 0.0f;
+    float movement_amount = 0.0f;
+    float movement_speed = 0.0f;
 };
 
 void initialize();

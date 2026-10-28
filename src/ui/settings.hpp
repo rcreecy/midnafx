@@ -32,6 +32,8 @@ float water_reflection_tint_blue();
 float water_shoreline_strength();
 float water_specular_strength();
 bool camera_enabled();
+bool movement_camera_enabled();
+float movement_fov_boost();
 float camera_fov_scale();
 float camera_transition_seconds();
 bool camera_lower_angle_enabled();

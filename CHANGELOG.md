@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.10.0 - 2026-10-27
+
+- Add movement-aware exploration framing across native chase-camera contexts,
+  without asset or stage lists. Remaster enables it; Vanilla disables it.
+  An independent Basic toggle and Advanced 0–12% boost default to 8%.
+- Use native movement speed relative to the player's current maximum, smoothing
+  expansion and a slower return at rest. Preserve native aiming and authored
+  cameras, reset across context changes and ignore duplicate clock samples.
+- Retain independent static camera tuning, existing saved profiles and the
+  CameraService 1.3 compatibility boundary. No new render pass or host patch is
+  required. macOS gameplay and whole-game camera comfort remain unverified.
+
 ## 1.9.0 - 2026-10-27
 
 - Add scene-wide directional contact shadows using native environment light and

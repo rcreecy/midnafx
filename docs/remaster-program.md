@@ -48,6 +48,12 @@ enables the effect at 30%; Vanilla disables it. The effect supplements native
 shadows rather than replacing the game's full lighting system. See
 [contact shadows](contact-shadows.md) for geometric evidence and scope limits.
 
+Version 1.10 adds movement-aware exploration framing across native chase-camera
+contexts. An independent toggle widens the view during brisk movement and
+settles at rest, using native speed rather than asset identities or positional
+deltas. Remaster enables the feature; Vanilla disables it. Existing aiming and
+authored-camera safety gates remain in force. See [movement framing](movement-camera.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

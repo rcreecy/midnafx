@@ -1,0 +1,17 @@
+[INFO | com.midnafx.midnafx] activating mod
+[DEBUG | dusk] fopScnM_CreateReq: result=0 (error=4294967295)
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=1 (error=4294967295)
+[DEBUG | dusk] Loading Resource: warning.bti (Size: 136224)
+[DEBUG | dusk] Loading Resource: warning_pstart.bti (Size: 14624)
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=3 (error=4294967295)
+[DEBUG | dusk] fopScnM_CreateReq: result=2 (error=4294967295)
+[DEBUG | dusk] fpcNdRq_phase_Create: creating_id=17 (error=4294967295)
+[INFO | com.midnafx.midnafx] Camera FOV: type=40 mode=0 flags=0x07 active=no aspect=1.333 native=61.25 effective=61.25 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=no aspect=1.333 native=61.38 effective=61.38 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] deactivating mod
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=no aspect=1.333 native=61.63 effective=61.63 movement=0.000 speed=0.00
+[INFO | dusk::mods::loader] all mods unloaded
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.
