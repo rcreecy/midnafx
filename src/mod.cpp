@@ -5,6 +5,7 @@
 #include "render/dof_blur.hpp"
 #include "render/ambient_occlusion.hpp"
 #include "render/renderer.hpp"
+#include "render/motion_clarity.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
 #include <mods/svc/gfx.h>
@@ -27,6 +28,7 @@ extern "C" {
 MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
     midnafx::camera_probe::initialize();
+    midnafx::motion_clarity::initialize();
     midnafx::render::ambient_occlusion::initialize();
     midnafx::render::initialize();
     midnafx::render::dof_blur::initialize();
@@ -51,6 +53,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
 }
 MOD_EXPORT ModResult mod_shutdown(ModError*) {
     // Dusklight deactivates/drains draw callbacks before invoking this export.
+    midnafx::motion_clarity::shutdown();
     midnafx::render::ambient_occlusion::shutdown();
     midnafx::render::dof_blur::shutdown();
     midnafx::render::shutdown();

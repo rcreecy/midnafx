@@ -1,0 +1,35 @@
+{
+  "native-on-final": {
+    "gameplay_frames": 100,
+    "gameplay_alpha": 0,
+    "event_frames": 287,
+    "event_alpha": 160,
+    "restored_hud_frames": 388,
+    "hud_alpha": 160,
+    "native_enable_preserved": true,
+    "complete": true,
+    "hud_without_fixture_request": 78
+  },
+  "native-off-final": {
+    "gameplay_frames": 100,
+    "gameplay_alpha": 160,
+    "event_frames": 287,
+    "event_alpha": 160,
+    "restored_hud_frames": 388,
+    "hud_alpha": 160,
+    "native_enable_preserved": true,
+    "complete": true,
+    "hud_without_fixture_request": 78
+  },
+  "native-half-final": {
+    "gameplay_frames": 100,
+    "gameplay_alpha": 80,
+    "event_frames": 287,
+    "event_alpha": 160,
+    "restored_hud_frames": 388,
+    "hud_alpha": 160,
+    "native_enable_preserved": true,
+    "complete": true,
+    "hud_without_fixture_request": 78
+  }
+}

@@ -1,0 +1,5 @@
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | com.midnafx.motion_audit] activating mod
+[INFO | dusk::mods::loader] all mods unloaded
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.

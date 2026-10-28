@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.12 adds **Motion clarity** across gameplay contexts. It reduces native
+previous-frame blending while preserving event/demo-camera blur, without asset
+lists. Select **Profile / Remaster** or the independent Basic toggle. Advanced:
+motion offers 0–100% retained native blend alpha, defaulting to 0%. See
+[motion clarity](docs/motion-clarity.md) for ownership and evidence.
+
 MidnaFX 1.11 adds **Screen-space color bounce (experimental)** across visible
 opaque scenery and characters. Nearby facing surfaces contribute restrained color
 using the native scene image and depth, without asset lists. Select **Profile /

@@ -33,6 +33,8 @@ float water_shoreline_strength();
 float water_specular_strength();
 bool camera_enabled();
 bool movement_camera_enabled();
+bool motion_clarity_enabled();
+unsigned motion_blur_retained_percent();
 float movement_fov_boost();
 float camera_fov_scale();
 float camera_transition_seconds();

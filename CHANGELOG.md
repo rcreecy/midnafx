@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.12.0 - 2026-10-28
+
+- Add gameplay motion clarity without asset or stage lists. Remaster enables the
+  independent Basic toggle; Vanilla disables it. Advanced retained blur scales
+  native blend alpha from 0–100%, defaulting to 0%.
+- Preserve native blur in missing-player, pause, event, demo-camera and fade
+  contexts. Borrow only the rate byte after opaque rendering, restore it before
+  HUD rendering, and recover pending ownership at scene begin or unload.
+- Preserve detectable intervening writes and native blur enable/history/matrix
+  state. Add exhaustive rate/rounding and safety-gate checks plus ownership tests.
+  Earlier product masks retain the new toggle off until profile selection.
+- Add no rendering pass, target or host patch. Native blend draws can still
+  execute with zero alpha; no GPU speedup or reconstructed motion blur is claimed.
+  Mac gameplay remains unverified and support remains best effort.
+
 ## 1.11.0 - 2026-10-28
 
 - Add bounded screen-space color bounce across visible opaque scenery and

@@ -49,7 +49,7 @@ int main() {
     CHECK(presets::decode("MFX2\nLegacy\t0,0,100,100,100,0,0,0,255,1,12\n", decoded));
     CHECK(decoded[0].snapshot.product_flags == -1);
     CHECK(decoded[0].snapshot.scene_flags == -1);
-    for (int flags = -1; flags <= 127; ++flags) {
+    for (int flags = -1; flags <= 255; ++flags) {
         auto snapshot = realism;
         snapshot.product_flags = flags;
         CHECK(presets::decode(presets::encode({{"Product", snapshot}}), decoded));
@@ -57,7 +57,7 @@ int main() {
         CHECK(decoded[0].snapshot.values == realism.values);
     }
     const auto retained = decoded[0].snapshot.product_flags;
-    CHECK(!presets::decode("MFX3\nBad\t0,0,100,100,100,0,0,0,255,1,12,128\n", decoded));
+    CHECK(!presets::decode("MFX3\nBad\t0,0,100,100,100,0,0,0,255,1,12,256\n", decoded));
     CHECK(decoded[0].snapshot.product_flags == retained);
     CHECK(presets::vanilla_plus().product_flags == presets::Grading);
     CHECK(presets::enhanced().product_flags == (presets::Grading | presets::Camera));
@@ -65,6 +65,9 @@ int main() {
     const auto remaster = presets::remaster();
     CHECK((remaster.product_flags & presets::SkinnedGeometry) != 0);
     CHECK((remaster.product_flags & presets::MovementCamera) != 0);
+    CHECK((remaster.product_flags & presets::MotionClarity) != 0);
+    CHECK(presets::decode("MFX3\nOld camera\t0,0,100,100,100,0,0,0,255,1,12,127\n", decoded));
+    CHECK((decoded[0].snapshot.product_flags & presets::MotionClarity) == 0);
     CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere | presets::AdaptiveExposure | presets::Bloom | presets::ContactShadows | presets::ColorBounce));
     CHECK(presets::vanilla().scene_flags == 0 && presets::vanilla().product_flags == 0);
     for (int flags = -1; flags <= 255; ++flags) {

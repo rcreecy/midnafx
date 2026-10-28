@@ -1,0 +1,22 @@
+{
+  "pid": 17536,
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/motion-clarity/native-off/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/motion-clarity/native-off/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/motion-clarity/native-off/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "driver_sha256": "194B32850148209E1F6CF7EB12AB22E580754F6D1AE22DEEACF6EAEB778D818C",
+  "package_sha256": "1FB18CA554ADC519831E88C4BADE406207B0FD0D9964045DD2F61342E63385FF",
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+  "start": "2026-10-28T19:28:30.3352353Z"
+}

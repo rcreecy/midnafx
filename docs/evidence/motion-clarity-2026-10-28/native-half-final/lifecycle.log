@@ -1,0 +1,10 @@
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | com.midnafx.motion_audit] activating mod
+[INFO | com.midnafx.midnafx] Motion clarity active: native blend alpha 160 -> 80; scoped until pre-HUD, event/demo/fade bypass
+[INFO | com.midnafx.midnafx] deactivating mod
+[INFO | com.midnafx.midnafx] Motion clarity shutdown: reductions=100 restorations=100 conflicts=0 pending=no
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | dusk::mods::loader] all mods unloaded
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.

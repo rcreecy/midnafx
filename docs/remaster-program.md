@@ -61,6 +61,12 @@ Remaster enables restrained 12% strength; Vanilla disables it. This is a visible
 LDR approximation, not a material-aware global illumination system. See
 [color bounce](color-bounce.md).
 
+Version 1.12 adds gameplay motion clarity through a frame-local reduction of the
+native previous-frame blend alpha. Remaster enables it with zero retained blend;
+event/demo/pause/fade contexts preserve native blur. It adds no rendering pass or
+host patch and does not replace motion-vector reconstruction. See
+[motion clarity](motion-clarity.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

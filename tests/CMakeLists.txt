@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(motion_clarity motion_clarity.cpp)
+target_compile_features(motion_clarity PRIVATE cxx_std_20)
+target_include_directories(motion_clarity PRIVATE ../src)
+add_test(NAME motion_clarity COMMAND motion_clarity)
 add_executable(character_identity character_identity.cpp)
 target_compile_features(character_identity PRIVATE cxx_std_20)
 target_include_directories(character_identity PRIVATE ../src)

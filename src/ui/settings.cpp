@@ -66,6 +66,7 @@ Toggle bloom{"bloom", false};
 Toggle contact_shadows{"contact_shadows", false};
 Toggle color_bounce{"color_bounce", false};
 Toggle movement_camera{"movement_camera", false};
+Toggle motion_clarity{"motion_clarity", false};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
@@ -128,6 +129,8 @@ NumberSetting contact_shadow_strength_setting{
     "contact_shadow_strength", "Contact shadow strength (%)", 0, 50, 30, 30, false};
 NumberSetting color_bounce_strength_setting{
     "color_bounce_strength", "Color bounce strength (%)", 0, 30, 12, 12, false};
+NumberSetting motion_blur_retained_setting{
+    "motion_blur_retained", "Motion blur retained (%)", 0, 100, 0, 0, false};
 constexpr const char* RealismName = "Natural / Vivid Realism";
 constexpr const char* VanillaPlusName = "Profile / Vanilla+";
 constexpr const char* EnhancedName = "Profile / Enhanced";
@@ -233,7 +236,8 @@ presets::Snapshot capture() {
         (camera_toggle.value ? presets::Camera : 0) |
         (movement_camera.value ? presets::MovementCamera : 0) |
         (camera_lower_angle.value ? presets::LowerCamera : 0) |
-        (dof_blur.value ? presets::Dof : 0);
+        (dof_blur.value ? presets::Dof : 0) |
+        (motion_clarity.value ? presets::MotionClarity : 0);
     value.scene_flags = (ambient_occlusion.value ? presets::AmbientOcclusion : 0) |
         (anti_aliasing.value ? presets::AntiAliasing : 0) |
         (enhanced_water.value ? presets::Water : 0) |
@@ -311,6 +315,7 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(geometry_skinned_smoothing, presets::SkinnedGeometry);
         apply_toggle(camera_toggle, presets::Camera);
         apply_toggle(movement_camera, presets::MovementCamera);
+        apply_toggle(motion_clarity, presets::MotionClarity);
         apply_toggle(camera_lower_angle, presets::LowerCamera);
         apply_toggle(dof_blur, presets::Dof);
         if (!geometry_smoothing.value) geometry_probe::restore_smoothing(false);
@@ -405,7 +410,7 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
              user == &camera_lower_angle || user == &dof_blur || user == &ambient_occlusion ||
              user == &anti_aliasing || user == &enhanced_water || user == &atmosphere ||
              user == &adaptive_exposure || user == &bloom || user == &contact_shadows ||
-             user == &color_bounce) &&
+             user == &color_bounce || user == &motion_clarity) &&
             !applying_preset) {
             mark_custom();
             update_grade();
@@ -422,7 +427,7 @@ void on_number_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
     if (!applying_preset) {
         if (setting.preset_value || &setting == &bloom_strength_setting ||
             &setting == &contact_shadow_strength_setting || &setting == &movement_fov_boost_setting ||
-            &setting == &color_bounce_strength_setting)
+            &setting == &color_bounce_strength_setting || &setting == &motion_blur_retained_setting)
             mark_custom();
         update_grade();
     }
@@ -532,7 +537,7 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
         &toggle == &camera_lower_angle || &toggle == &dof_blur || &toggle == &ambient_occlusion ||
         &toggle == &anti_aliasing || &toggle == &enhanced_water || &toggle == &atmosphere ||
         &toggle == &adaptive_exposure || &toggle == &bloom || &toggle == &contact_shadows ||
-        &toggle == &color_bounce) {
+        &toggle == &color_bounce || &toggle == &motion_clarity) {
         mark_custom();
         update_grade();
     }
@@ -552,7 +557,7 @@ void set_number(ModContext*, void* user, const UiControlValue* in) {
     setting.value = value;
     if (setting.preset_value || &setting == &bloom_strength_setting ||
         &setting == &contact_shadow_strength_setting || &setting == &movement_fov_boost_setting ||
-        &setting == &color_bounce_strength_setting)
+        &setting == &color_bounce_strength_setting || &setting == &motion_blur_retained_setting)
         mark_custom();
     update_grade();
 }
@@ -1006,7 +1011,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Remaster combines contact shading, contact shadows, screen-space color bounce, depth atmosphere, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera with movement framing, anti-aliasing and enhanced water. "
+        "Remaster combines contact shading, contact shadows, screen-space color bounce, depth atmosphere, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera with movement framing, motion clarity, anti-aliasing and enhanced water. "
         "Vanilla restores original presentation. Advanced tuning stays unchanged.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
@@ -1018,6 +1023,9 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Movement camera framing", movement_camera);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Widens the view during brisk movement and returns smoothly at rest. Native aiming and cutscene framing stay unchanged.", nullptr));
+    add_toggle(panel, "Motion clarity", motion_clarity);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Reduces native frame-blending blur during gameplay. Authored events and cutscenes retain native blur.", nullptr));
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
     add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
@@ -1086,6 +1094,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: detail"));
     add_toggle(panel, "Enable sharpening", detail_toggle);
     add_number(panel, detail_strength_setting);
+    check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: motion"));
+    add_number(panel, motion_blur_retained_setting);
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Advanced: Twilight"));
     add_toggle(panel, "Automatic Twilight profile", auto_twilight);
     add_number(panel, twilight_transition);
@@ -1272,6 +1282,7 @@ bool initialize() {
     register_toggle(atmosphere);
     register_toggle(camera_toggle);
     register_toggle(movement_camera);
+    register_toggle(motion_clarity);
     register_toggle(camera_lower_angle);
     register_toggle(atmosphere_depth_probe);
     register_toggle(atmosphere_depth_view);
@@ -1289,6 +1300,7 @@ bool initialize() {
     register_number(twilight_transition);
     register_number(camera_fov_setting);
     register_number(movement_fov_boost_setting);
+    register_number(motion_blur_retained_setting);
     register_number(camera_transition_setting);
     register_number(camera_angle_setting);
     register_number(atmosphere_distance_setting);
@@ -1377,6 +1389,10 @@ float water_specular_strength() {
 }
 bool camera_enabled() { return camera_toggle.value; }
 bool movement_camera_enabled() { return movement_camera.value; }
+bool motion_clarity_enabled() { return motion_clarity.value; }
+unsigned motion_blur_retained_percent() {
+    return static_cast<unsigned>(std::clamp<std::int64_t>(motion_blur_retained_setting.value, 0, 100));
+}
 float movement_fov_boost() { return static_cast<float>(movement_fov_boost_setting.value) / 100.0f; }
 float camera_fov_scale() { return static_cast<float>(camera_fov_setting.value) / 100.0f; }
 float camera_transition_seconds() {

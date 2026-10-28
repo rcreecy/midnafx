@@ -15,7 +15,8 @@ enum ProductFlag {
     Camera = 8,
     LowerCamera = 16,
     Dof = 32,
-    MovementCamera = 64
+    MovementCamera = 64,
+    MotionClarity = 128
 };
 enum SceneFlag {
     AmbientOcclusion = 1,
