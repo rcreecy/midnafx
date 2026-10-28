@@ -19,6 +19,11 @@
 
 namespace {
 using Pixel = std::array<unsigned char, 4>;
+struct WaterTestInput {
+    std::array<float, 112> parameters{};
+    std::vector<float> scene_depth, surface_depth;
+    std::vector<Pixel> mask, behind_water;
+};
 
 // Keep failure output bounded while distinguishing missing pixels, channel
 // corruption, and coordinate errors on remote GPU runners.
@@ -69,7 +74,10 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
                           float gain = 1.0f, unsigned table = 0, float twilight = 0.0f,
                           WGPUTextureFormat format = WGPUTextureFormat_RGBA8Unorm,
                           float exposure_stops = 0.0f, float bloom_value = 0.0f,
-                          bool water_active = true) {
+                          bool water_active = true, const WaterTestInput* water_input = nullptr) {
+    if (water_input && (water_input->scene_depth.size() != pixels.size() ||
+        water_input->surface_depth.size() != pixels.size() || water_input->mask.size() != pixels.size() ||
+        (!water_input->behind_water.empty() && water_input->behind_water.size() != pixels.size()))) return {};
     wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
     auto queue = wgpuDeviceGetQueue(device);
     WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
@@ -123,10 +131,12 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     // Production Grading layout, with neutral tone controls and selectable detail.
     const bool water = std::strncmp(entry, "fs_absorption", 13) == 0;
     const std::array<float, 12> neutral{gain, gain, gain, 0, 1, 1, 1, 0, detail_strength, 1, 0, 0};
-    std::vector<float> parameters(water ? 96 : 12);
-    std::copy(neutral.begin(), neutral.end(), parameters.end() - 12);
+    std::vector<float> parameters(water ? 112 : 12);
+    std::copy(neutral.begin(), neutral.end(), parameters.begin() + (water ? 84 : 0));
     std::array<WGPUTexture, 3> water_textures{};
     std::array<WGPUTextureView, 3> water_views{};
+    WGPUTexture behind_water = nullptr;
+    WGPUTextureView behind_water_view = nullptr;
     if (water) {
         for (unsigned matrix = 0; matrix < 3; ++matrix)
             for (unsigned diagonal = 0; diagonal < 4; ++diagonal)
@@ -135,15 +145,32 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
         parameters[52] = 0.2f; parameters[53] = 0.3f; parameters[54] = 0.4f;
         parameters[56] = 0.1f; parameters[57] = 0.2f; parameters[58] = 0.3f;
         parameters[61] = 1;
+        for (unsigned diagonal = 0; diagonal < 4; ++diagonal) parameters[96 + diagonal * 5] = 1;
+        if (water_input) std::copy(water_input->parameters.begin(), water_input->parameters.end(), parameters.begin());
         auto texture_desc = td;
         texture_desc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
         for (unsigned i = 0; i < 3; ++i) {
+            texture_desc.format = water_input && i < 2 ? WGPUTextureFormat_R32Float : format;
             water_textures[i] = wgpuDeviceCreateTexture(device, &texture_desc);
             water_views[i] = wgpuTextureCreateView(water_textures[i], nullptr);
             std::vector<Pixel> contents(pixels.size(), Pixel{static_cast<unsigned char>(i == 0 ? 192 : 64), 0, 0, 255});
             if (!water_active && i == 2) for (auto& pixel : contents) pixel[3] = 0;
             upload.texture = water_textures[i];
-            wgpuQueueWriteTexture(queue, &upload, contents.data(), contents.size() * sizeof(Pixel), &upload_layout, &td.size);
+            if (water_input && i < 2) {
+                const auto& depths = i == 0 ? water_input->scene_depth : water_input->surface_depth;
+                wgpuQueueWriteTexture(queue, &upload, depths.data(), depths.size() * sizeof(float), &upload_layout, &td.size);
+            } else {
+                const auto& data = water_input ? water_input->mask : contents;
+                wgpuQueueWriteTexture(queue, &upload, data.data(), data.size() * sizeof(Pixel), &upload_layout, &td.size);
+            }
+        }
+        if (water_input && !water_input->behind_water.empty()) {
+            texture_desc.format = format;
+            behind_water = wgpuDeviceCreateTexture(device, &texture_desc);
+            behind_water_view = wgpuTextureCreateView(behind_water, nullptr);
+            upload.texture = behind_water;
+            wgpuQueueWriteTexture(queue, &upload, water_input->behind_water.data(),
+                water_input->behind_water.size() * sizeof(Pixel), &upload_layout, &td.size);
         }
     }
     WGPUBufferDescriptor bd = WGPU_BUFFER_DESCRIPTOR_INIT;
@@ -203,7 +230,10 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     entries[count].binding = water ? 4 : 1;
     entries[count].buffer = uniform;
     entries[count++].size = parameters.size() * sizeof(float);
-    if (water) { entries[count].binding = 5; entries[count++].textureView = source_view; }
+    if (water) {
+        entries[count].binding = 5;
+        entries[count++].textureView = behind_water_view ? behind_water_view : source_view;
+    }
     if (look_strength >= 0) {
         entries[count].binding = 6; entries[count++].textureView = lattice.view;
         entries[count].binding = 7; entries[count++].textureView = twilight_lattice.view;
@@ -296,8 +326,84 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     wgpuSamplerRelease(bloom_sampler);
     for (auto view : water_views) if (view) wgpuTextureViewRelease(view);
     for (auto texture : water_textures) if (texture) wgpuTextureRelease(texture);
+    if (behind_water_view) wgpuTextureViewRelease(behind_water_view);
+    if (behind_water) wgpuTextureRelease(behind_water);
     wgpuQueueRelease(queue);
     return output;
+}
+
+struct WaterScene {
+    WaterTestInput input;
+    std::vector<Pixel> pixels;
+    std::vector<float> water_distance;
+};
+float reflection_depth(float distance, bool reversed = false) {
+    const float depth = 100.0f / 99 - (100.0f / 99) / distance;
+    return reversed ? 1 - depth : depth;
+}
+WaterScene reflection_scene(unsigned width, unsigned height, Pixel donor,
+                            bool reversed = false, float eye_y = 1, float pitch_degrees = 15) {
+    WaterScene scene;
+    const size_t count = size_t(width) * height;
+    auto& input = scene.input;
+    auto& p = input.parameters;
+    const float angle = pitch_degrees * std::acos(-1.0f) / 180;
+    const float cosine = std::cos(angle), sine = std::sin(angle);
+    std::array<float,16> inverse_projection{}, world_from_view{};
+    inverse_projection[0] = float(width) / height;
+    inverse_projection[5] = 1;
+    inverse_projection[11] = reversed ? 99.0f / 100 : -99.0f / 100;
+    inverse_projection[14] = -1;
+    inverse_projection[15] = reversed ? 1.0f / 100 : 1;
+    std::copy(inverse_projection.begin(), inverse_projection.end(), p.begin());
+    world_from_view[0] = 1; world_from_view[5] = cosine; world_from_view[6] = -sine;
+    world_from_view[9] = sine; world_from_view[10] = cosine;
+    world_from_view[13] = eye_y; world_from_view[15] = 1;
+    for (unsigned column = 0; column < 4; ++column)
+        for (unsigned row = 0; row < 4; ++row)
+            for (unsigned k = 0; k < 4; ++k)
+                p[16 + column * 4 + row] += world_from_view[k * 4 + row] * inverse_projection[column * 4 + k];
+    p[32] = 1; p[37] = cosine; p[38] = sine; p[41] = -sine; p[42] = cosine;
+    p[45] = -cosine * eye_y; p[46] = -sine * eye_y; p[47] = 1;
+    p[48] = 12; p[49] = reversed ? 0.0f : 1.0f;
+    p[61] = 1;
+    p[64] = 0.2f; p[65] = 0.3f; p[66] = 0.4f;
+    p[68] = 1; p[69] = 1; p[70] = 12;
+    p[84] = p[85] = p[86] = p[88] = p[89] = p[90] = p[93] = 1;
+    p[96] = float(height) / width; p[101] = 1;
+    p[106] = reversed ? 1.0f / 99 : -100.0f / 99;
+    p[107] = -1; p[110] = reversed ? 100.0f / 99 : -100.0f / 99;
+    input.scene_depth.resize(count, p[49]); input.surface_depth.resize(count, p[49]);
+    input.mask.resize(count, Pixel{0,0,0,0}); input.behind_water.resize(count, donor);
+    scene.pixels.resize(count, donor); scene.water_distance.resize(count, 0);
+    // Intersect independent analytic rays with water Y=0 and wall Z=-6.
+    // Camera coordinates use a right-handed, 90-degree vertical perspective.
+    for (unsigned y = 0; y < height; ++y)
+        for (unsigned x = 0; x < width; ++x) {
+            const size_t i = size_t(y) * width + x;
+            const float ray_y = 1 - 2 * (y + 0.5f) / height;
+            const float world_y = cosine * ray_y - sine;
+            const float world_z = -sine * ray_y - cosine;
+            const float wall = world_z < 0 ? -6 / world_z : 1e30f;
+            const float water = std::abs(world_y) > 0.000001f ? -eye_y / world_y : -1;
+            if (wall >= 1 && wall <= 100) input.scene_depth[i] = reflection_depth(wall, reversed);
+            if (water >= 1 && water <= 100) {
+                input.surface_depth[i] = reflection_depth(water, reversed);
+                scene.water_distance[i] = water;
+                if (water < wall) {
+                    input.mask[i][3] = 255;
+                    scene.pixels[i] = {80,100,110,0};
+                }
+            }
+            scene.pixels[i][3] = static_cast<unsigned char>((i * 37 + 11) % 256);
+        }
+    return scene;
+}
+bool reflection_alpha(const WaterScene& scene, const std::vector<Pixel>& output) {
+    if (output.size() != scene.pixels.size()) return false;
+    for (size_t i = 0; i < output.size(); ++i)
+        if (output[i][3] != scene.pixels[i][3]) return false;
+    return true;
 }
 
 struct MeterStep {
@@ -1016,6 +1122,170 @@ int main() {
             std::printf("Bloom composite %s LUT=%s: %s\n", entry, look >= 0 ? "identity" : "off", valid ? "PASS" : "FAIL");
             ok &= valid;
         }
+    }
+    {
+        const auto draw_water = [&](unsigned width, unsigned height, const WaterScene& scene) {
+            return render(instance, device, "fs_absorption", width, height, scene.pixels,
+                0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, 0, 0, true, &scene.input);
+        };
+        for (auto size : {std::array<unsigned,2>{96,80}, {65,49}}) {
+            const auto [width, height] = size;
+            auto red = reflection_scene(width, height, Pixel{230,25,25,255});
+            auto blue = reflection_scene(width, height, Pixel{25,25,230,255});
+            auto red_off = red; red_off.input.parameters[69] = 0;
+            auto blue_off = blue; blue_off.input.parameters[69] = 0;
+            const auto red_on_pixels = draw_water(width, height, red);
+            const auto blue_on_pixels = draw_water(width, height, blue);
+            const auto red_off_pixels = draw_water(width, height, red_off);
+            const auto blue_off_pixels = draw_water(width, height, blue_off);
+            bool valid = reflection_alpha(red, red_on_pixels) && reflection_alpha(blue, blue_on_pixels) &&
+                         reflection_alpha(red_off, red_off_pixels) && reflection_alpha(blue_off, blue_off_pixels);
+            unsigned red_hits = 0, blue_hits = 0;
+            if (valid) for (size_t i = 0; i < red.pixels.size(); ++i) {
+                if (red.input.mask[i][3]) {
+                    red_hits += red_on_pixels[i][0] > red_off_pixels[i][0] + 1 &&
+                                red_on_pixels[i][0] > blue_on_pixels[i][0];
+                    blue_hits += blue_on_pixels[i][2] > blue_off_pixels[i][2] + 1 &&
+                                 blue_on_pixels[i][2] > red_on_pixels[i][2];
+                    for (unsigned c = 0; c < 3; ++c) {
+                        // A hit only replaces the old tint inside the bounded
+                        // Fresnel mix; no channel may exceed that 45% envelope.
+                        const int red_bound = int(std::ceil(0.45f * std::abs(float(red.input.behind_water[i][c]) -
+                            red.input.parameters[64 + c] * 255))) + 1;
+                        const int blue_bound = int(std::ceil(0.45f * std::abs(float(blue.input.behind_water[i][c]) -
+                            blue.input.parameters[64 + c] * 255))) + 1;
+                        valid &= std::abs(int(red_on_pixels[i][c]) - int(red_off_pixels[i][c])) <= red_bound;
+                        valid &= std::abs(int(blue_on_pixels[i][c]) - int(blue_off_pixels[i][c])) <= blue_bound;
+                    }
+                } else {
+                    valid &= red_on_pixels[i] == red.pixels[i] && blue_on_pixels[i] == blue.pixels[i];
+                }
+            }
+            valid &= red_hits > 0 && blue_hits > 0;
+            std::printf("Analytic pitched water reflects wall donor hue within Fresnel bounds %ux%u red=%u blue=%u: %s\n",
+                        width, height, red_hits, blue_hits, valid ? "PASS" : "FAIL");
+            ok &= valid;
+
+            if (width == 96) {
+                auto disabled_poison = red_off;
+                for (auto& pixel : disabled_poison.input.behind_water) pixel = {0,255,0,255};
+                const auto poisoned = draw_water(width, height, disabled_poison);
+                auto zero = red; zero.input.parameters[68] = 0;
+                const auto zero_pixels = draw_water(width, height, zero);
+                auto inactive = red;
+                for (auto& pixel : inactive.input.mask) pixel[3] = 0;
+                const auto inactive_pixels = draw_water(width, height, inactive);
+                valid = poisoned == red_off_pixels && zero_pixels == zero.pixels &&
+                        inactive_pixels == inactive.pixels;
+                std::printf("Disabled scene reflections, zero reflection strength, and inactive mask retain exact native paths: %s\n",
+                            valid ? "PASS" : "FAIL");
+                ok &= valid;
+
+                auto miss = red;
+                for (size_t i = 0; i < miss.pixels.size(); ++i)
+                    if (!red.input.mask[i][3]) miss.input.scene_depth[i] = 1;
+                auto miss_off = miss; miss_off.input.parameters[69] = 0;
+                const auto miss_pixels = draw_water(width, height, miss);
+                valid = reflection_alpha(miss, miss_pixels) && miss_pixels == draw_water(width, height, miss_off);
+                std::printf("Missing visible wall depth retains the exact previous reflection tint: %s\n", valid ? "PASS" : "FAIL");
+                ok &= valid;
+
+                auto hidden_water = red;
+                const float angle = 15 * std::acos(-1.0f) / 180;
+                for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = 0; x < width; ++x) {
+                        const size_t i = size_t(y) * width + x;
+                        if (red.input.mask[i][3] || red.input.scene_depth[i] == 1) continue;
+                        const float ray_y = 1 - 2 * (y + 0.5f) / height;
+                        const float wall = -6 / (-std::sin(angle) * ray_y - std::cos(angle));
+                        hidden_water.input.mask[i][3] = 255;
+                        // This separation is smaller than the receiver-origin
+                        // bias. Opaque wall donors must still remain eligible.
+                        hidden_water.input.surface_depth[i] = reflection_depth(wall + 0.03f);
+                    }
+                const auto hidden_pixels = draw_water(width, height, hidden_water);
+                valid = reflection_alpha(hidden_water, hidden_pixels) && hidden_pixels == red_on_pixels;
+                std::printf("Opaque wall with a water mask just behind it retains reflected donor color: %s\n",
+                            valid ? "PASS" : "FAIL");
+                ok &= valid;
+                auto visible_water = hidden_water;
+                for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = 0; x < width; ++x) {
+                        const size_t i = size_t(y) * width + x;
+                        if (red.input.mask[i][3] || red.input.scene_depth[i] == 1) continue;
+                        const float ray_y = 1 - 2 * (y + 0.5f) / height;
+                        const float wall = -6 / (-std::sin(angle) * ray_y - std::cos(angle));
+                        visible_water.input.surface_depth[i] = reflection_depth(wall - 0.03f);
+                    }
+                auto visible_water_off = visible_water; visible_water_off.input.parameters[69] = 0;
+                const auto visible_pixels = draw_water(width, height, visible_water);
+                const auto visible_off_pixels = draw_water(width, height, visible_water_off);
+                valid = reflection_alpha(visible_water, visible_pixels) && reflection_alpha(visible_water_off, visible_off_pixels);
+                if (valid) for (size_t i = 0; i < red.pixels.size(); ++i)
+                    if (red.input.mask[i][3]) valid &= visible_pixels[i] == visible_off_pixels[i];
+                std::printf("Visible water in front of the wall is rejected as a reflection donor: %s\n", valid ? "PASS" : "FAIL");
+                ok &= valid;
+
+                auto below = reflection_scene(width, height, Pixel{230,25,25,255}, false, -1, -15);
+                auto below_off = below; below_off.input.parameters[69] = 0;
+                const auto below_pixels = draw_water(width, height, below);
+                valid = reflection_alpha(below, below_pixels) && below_pixels == draw_water(width, height, below_off);
+                std::printf("Underwater viewing direction retains the exact old tint fallback: %s\n", valid ? "PASS" : "FAIL");
+                ok &= valid;
+
+                auto foreground = red;
+                for (size_t i = 0; i < red.pixels.size(); ++i)
+                    if (red.input.mask[i][3]) foreground.input.scene_depth[i] = reflection_depth((1 + red.water_distance[i]) * 0.5f);
+                const auto foreground_pixels = draw_water(width, height, foreground);
+                valid = reflection_alpha(foreground, foreground_pixels) && foreground_pixels == foreground.pixels;
+                std::printf("Opaque foreground in front of masked water retains original scene pixels: %s\n", valid ? "PASS" : "FAIL");
+                ok &= valid;
+
+                auto clipped = reflection_scene(width, height, Pixel{230,25,25,255}, false, 1, 60);
+                auto clipped_off = clipped; clipped_off.input.parameters[69] = 0;
+                const auto clipped_pixels = draw_water(width, height, clipped);
+                const auto clipped_off_pixels = draw_water(width, height, clipped_off);
+                valid = reflection_alpha(clipped, clipped_pixels) && reflection_alpha(clipped_off, clipped_off_pixels);
+                unsigned clipped_receivers = 0;
+                if (valid) for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = 0; x < width; ++x) {
+                        const size_t i = size_t(y) * width + x;
+                        if (!clipped.input.mask[i][3]) continue;
+                        const float sine = std::sin(std::acos(-1.0f) / 3), cosine = 0.5f;
+                        const float ray_y = 1 - 2 * (y + 0.5f) / height;
+                        const float dy = cosine * ray_y - sine, dz = -sine * ray_y - cosine;
+                        const float water_z = clipped.water_distance[i] * dz;
+                        const float hit_t = (-6 - water_z) / dz;
+                        const float hit_y = -dy * hit_t;
+                        const float hit_view_z = sine * (hit_y - 1) - 6 * cosine;
+                        if (hit_t > 0 && hit_view_z >= -1) {
+                            ++clipped_receivers;
+                            valid &= clipped_pixels[i] == clipped_off_pixels[i];
+                        }
+                    }
+                valid &= clipped_receivers > 0;
+                std::printf("Analytic reflected hits clipped by the near plane retain tint fallback receivers=%u: %s\n",
+                            clipped_receivers, valid ? "PASS" : "FAIL");
+                ok &= valid;
+
+                const auto reversed = reflection_scene(width, height, Pixel{230,25,25,255}, true);
+                const auto reversed_pixels = draw_water(width, height, reversed);
+                valid = reflection_alpha(reversed, reversed_pixels) && reversed_pixels.size() == red_on_pixels.size();
+                if (valid) for (size_t i = 0; i < red_on_pixels.size(); ++i)
+                    for (unsigned c = 0; c < 3; ++c)
+                        valid &= std::abs(int(reversed_pixels[i][c]) - int(red_on_pixels[i][c])) <= 1;
+                std::printf("Matched reversed-Z projection retains wall reflection and source alpha: %s\n", valid ? "PASS" : "FAIL");
+                ok &= valid;
+            }
+        }
+        bool valid = true;
+        for (auto size : {std::array<unsigned,2>{1,1}, {3,5}, {17,13}}) {
+            const auto [width, height] = size;
+            const auto scene = reflection_scene(width, height, Pixel{230,25,25,255});
+            valid &= reflection_alpha(scene, draw_water(width, height, scene));
+        }
+        std::printf("Small and odd water reflection targets stay bounded and preserve alpha: %s\n", valid ? "PASS" : "FAIL");
+        ok &= valid;
     }
     wgpuDeviceRelease(device);
     wgpuAdapterRelease(adapter);

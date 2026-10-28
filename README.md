@@ -1,5 +1,12 @@
 # MidnaFX
 
+MidnaFX 1.13 adds experimental **Water scene reflections** on supported enhanced
+water. Nearby visible opaque scenery contributes reflections without new asset
+lists or rendering passes. Select **Profile / Remaster**, or enable Enhanced
+water and its independent Basic reflection toggle. Off-screen scenery retains
+the existing tint. See [water scene reflections](docs/water-scene-reflections.md)
+for geometric evidence and screen-space limits.
+
 MidnaFX 1.12 adds **Motion clarity** across gameplay contexts. It reduces native
 previous-frame blending while preserving event/demo-camera blur, without asset
 lists. Select **Profile / Remaster** or the independent Basic toggle. Advanced:

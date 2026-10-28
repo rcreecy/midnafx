@@ -76,15 +76,16 @@ struct WaterUniforms {
     float refraction_strength;
     float reflection_tint[4];
     float reflection_strength;
-    float reflection_padding[3];
+    float scene_reflections, reflection_range, reflection_padding;
     float shoreline_strength;
     float shoreline_padding[3];
     float light_position[4];
     float specular_strength;
     float specular_padding[3];
     grade::Uniforms grading;
+    float proj_from_view[16];
 };
-static_assert(sizeof(WaterUniforms) == 384);
+static_assert(sizeof(WaterUniforms) == 448);
 struct Payload {
     WGPUTextureView scene;
     WGPUTextureView depth;
@@ -611,6 +612,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
             return;
     }
     bool water_environment_light = false;
+    bool water_scene_reflections = false;
     if (water_thickness_debug || water_absorption) {
         CameraInfo camera = CAMERA_INFO_INIT;
         if (!camera_probe::latest_camera_info(camera) || invalid_camera_field(camera) != nullptr)
@@ -622,6 +624,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                     sizeof(uniforms.world_from_proj));
         std::memcpy(uniforms.view_from_world, camera.view_from_world,
                     sizeof(uniforms.view_from_world));
+        std::memcpy(uniforms.proj_from_view, camera.proj_from_view,
+                    sizeof(uniforms.proj_from_view));
         uniforms.max_thickness = water_absorption ? settings::water_max_optical_depth()
                                                   : settings::atmosphere_depth_distance();
         uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
@@ -645,6 +649,12 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         std::memcpy(uniforms.reflection_tint, reflection, sizeof(reflection));
         uniforms.reflection_strength =
             water_absorption ? settings::water_reflection_strength() : 0.0f;
+        const bool reflection_projection = std::abs(camera.proj_from_view[11] + 1.0f) < 0.0001f &&
+            std::abs(camera.proj_from_view[15]) < 0.0001f &&
+            std::abs(camera.proj_from_view[3]) < 0.0001f && std::abs(camera.proj_from_view[7]) < 0.0001f;
+        water_scene_reflections = water_absorption && reflection_projection && settings::water_scene_reflections_enabled();
+        uniforms.scene_reflections = water_scene_reflections ? 1.0f : 0.0f;
+        uniforms.reflection_range = 1500.0f;
         uniforms.shoreline_strength =
             water_absorption ? settings::water_shoreline_strength() : 0.0f;
         float light_position[3]{};
@@ -815,11 +825,11 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         water_thickness_logged = true;
     }
     if (water_absorption && !water_absorption_logged && svc_log != nullptr) {
-        char message[224];
+        char message[288];
         std::snprintf(message, sizeof(message),
                       "Water absorption active: size=%ux%u strength=%.2f max_depth=%.0f "
                       "wave_strength=%.2f refraction_strength=%.2f reflection_strength=%.2f "
-                      "shoreline_strength=%.2f specular_strength=%.2f light=%s reversed_z=%s",
+                      "shoreline_strength=%.2f specular_strength=%.2f light=%s reversed_z=%s scene_reflections=%s",
                       snapshot.width, snapshot.height,
                       static_cast<double>(settings::water_absorption_strength()),
                       static_cast<double>(settings::water_max_optical_depth()),
@@ -829,7 +839,8 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                       static_cast<double>(settings::water_shoreline_strength()),
                       static_cast<double>(settings::water_specular_strength()),
                       water_environment_light ? "yes" : "no",
-                      device.uses_reversed_z ? "yes" : "no");
+                      device.uses_reversed_z ? "yes" : "no",
+                      water_scene_reflections ? "yes" : "no");
         svc_log->info(mod_ctx, message);
         water_absorption_logged = true;
     }

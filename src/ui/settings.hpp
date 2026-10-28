@@ -21,6 +21,7 @@ bool water_scene_capture_diagnostic_enabled();
 bool water_surface_capture_diagnostic_enabled();
 bool water_thickness_diagnostic_enabled();
 bool enhanced_water_enabled();
+bool water_scene_reflections_enabled();
 float water_absorption_strength();
 float water_max_optical_depth();
 float water_wave_strength();

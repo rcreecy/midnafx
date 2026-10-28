@@ -14,8 +14,8 @@ struct WaterParameters {
     refraction_strength: f32,
     reflection_tint: vec4f,
     reflection_strength: f32,
-    reflection_padding_0: f32,
-    reflection_padding_1: f32,
+    scene_reflections: f32,
+    reflection_range: f32,
     reflection_padding_2: f32,
     shoreline_strength: f32,
     shoreline_padding_0: f32,
@@ -38,6 +38,7 @@ struct WaterParameters {
     difference_gain: f32,
     debug_mode: u32,
     split_x: u32,
+    proj_from_view: mat4x4f,
 }
 
 @group(0) @binding(0) var scene_color: texture_2d<f32>;
@@ -109,6 +110,113 @@ fn refracted_source(coord: vec2i, water_depth: f32, normalized_depth: f32,
     return mix(native_source, refracted, blend);
 }
 
+fn reflection_point(pixel: vec2i, dimensions: vec2f) -> vec3f {
+    let p = clamp(pixel, vec2i(0), vec2i(dimensions) - vec2i(1));
+    let depth = textureLoad(scene_depth, p, 0).r;
+    if (abs(depth - params.background_depth) <= 0.000001) { return vec3f(0); }
+    let uv = (vec2f(p) + vec2f(0.5)) / dimensions;
+    let h = params.view_from_proj * vec4f(uv.x * 2 - 1, 1 - uv.y * 2, depth, 1);
+    if (abs(h.w) <= 0.000001 || any(h != h) || any(abs(h) > vec4f(1e30))) { return vec3f(0); }
+    let point = h.xyz / h.w;
+    if (point.z >= -0.0001 || any(abs(point) > vec3f(1e20))) { return vec3f(0); }
+    return point;
+}
+fn reflection_uv(point: vec3f) -> vec2f {
+    let h = params.proj_from_view * vec4f(point, 1);
+    if (h.w <= 0.000001 || any(h != h) || any(abs(h) > vec4f(1e30))) { return vec2f(-1); }
+    let ndc = h.xyz / h.w;
+    let uv = vec2f(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
+    if (ndc.z < 0 || ndc.z > 1 || any(uv <= vec2f(0)) || any(uv >= vec2f(1))) { return vec2f(-1); }
+    return uv;
+}
+fn reflection_source_normal(pixel: vec2i, center: vec3f, dimensions: vec2f) -> vec3f {
+    let left = reflection_point(pixel - vec2i(1,0), dimensions);
+    let right = reflection_point(pixel + vec2i(1,0), dimensions);
+    let up = reflection_point(pixel - vec2i(0,1), dimensions);
+    let down = reflection_point(pixel + vec2i(0,1), dimensions);
+    let dx = select(center - left, right - center, abs(right.z-center.z) < abs(center.z-left.z));
+    let dy = select(center - up, down - center, abs(down.z-center.z) < abs(center.z-up.z));
+    let cross_normal = cross(dx,dy);
+    let magnitude = length(cross_normal);
+    if (magnitude < 0.000001 || magnitude != magnitude ||
+        max(length(dx),length(dy)) > params.reflection_range * 0.1) { return vec3f(0); }
+    let normal = cross_normal / magnitude;
+    return select(normal, -normal, dot(normal, -center) < 0);
+}
+
+fn scene_reflection(water: vec3f, normal: vec3f, dimensions: vec2f) -> vec4f {
+    let limit = params.reflection_range;
+    if (limit <= 0 || any(water != water) || any(abs(water) > vec3f(1e20))) { return vec4f(0); }
+    if (abs(params.proj_from_view[2][3]+1) > 0.0001 || abs(params.proj_from_view[3][3]) > 0.0001 ||
+        abs(params.proj_from_view[0][3]) > 0.0001 || abs(params.proj_from_view[1][3]) > 0.0001) { return vec4f(0); }
+    let direction = reflect(normalize(water), normal);
+    if (dot(normal, -normalize(water)) <= 0.05) { return vec4f(0); }
+    let projection_y = abs(params.proj_from_view[1][1]);
+    if (projection_y <= 0.000001) { return vec4f(0); }
+    let footprint = 2 * abs(water.z) / (projection_y * dimensions.y);
+    let bias = max(limit * 0.001, footprint * 1.5);
+    if (bias > limit * 0.05) { return vec4f(0); }
+    let origin = water + normal * bias;
+    let thickness = limit * 0.02;
+    var previous_t = 0.0;
+    var previous_gap = -1e20;
+    for (var step = 1u; step <= 16u; step++) {
+        let fraction = f32(step) / 16;
+        let t = limit * fraction * fraction;
+        let point = origin + direction * t;
+        let uv = reflection_uv(point);
+        if (uv.x < 0) { break; }
+        let sample = reflection_point(vec2i(uv * dimensions), dimensions);
+        if (sample.z >= -0.0001) { previous_t = t; previous_gap = -1e20; continue; }
+        let gap = sample.z - point.z;
+        if (gap >= 0 && previous_gap < 0) {
+            var low = previous_t;
+            var high = t;
+            // Refine the first visible depth crossing instead of accepting a
+            // coarse point behind arbitrary foreground geometry.
+            for (var refine = 0u; refine < 4u; refine++) {
+                let middle = (low + high) * 0.5;
+                let candidate = origin + direction * middle;
+                let sample_uv = reflection_uv(candidate);
+                if (sample_uv.x < 0) { return vec4f(0); }
+                let depth_point = reflection_point(vec2i(sample_uv * dimensions), dimensions);
+                if (depth_point.z < -0.0001 && depth_point.z - candidate.z >= 0) { high = middle; }
+                else { low = middle; }
+            }
+            let hit_point = origin + direction * high;
+            let hit_uv = reflection_uv(hit_point);
+            if (hit_uv.x < 0) { return vec4f(0); }
+            let pixel = vec2i(hit_uv * dimensions);
+            let source = reflection_point(pixel, dimensions);
+            let error = source.z - hit_point.z;
+            let along = dot(source - origin, direction);
+            let ray_error = length(source - (origin + direction * along));
+            if (source.z >= -0.0001 || error < 0 || error > thickness ||
+                along <= bias || along > limit || ray_error > thickness + footprint * 2 ||
+                dot(source - water, normal) <= bias * 0.5) { return vec4f(0); }
+            if (textureLoad(surface_mask,pixel,0).a >= 0.5) {
+                let depth = textureLoad(surface_depth,pixel,0).r;
+                let opaque_depth = textureLoad(scene_depth,pixel,0).r;
+                // The mask can include water hidden behind an opaque bank.
+                // Exclude visible water donors, not opaque objects in front of it.
+                let water_in_front = select((depth < opaque_depth), (depth > opaque_depth),
+                                            params.background_depth < 0.5);
+                if (abs(depth-params.background_depth) > 0.000001 && water_in_front) { return vec4f(0); }
+            }
+            let source_normal = reflection_source_normal(pixel, source, dimensions);
+            let facing = smoothstep(0.05,0.3,dot(source_normal,-direction));
+            let edge = min(min(hit_uv.x,1-hit_uv.x) * dimensions.x,
+                             min(hit_uv.y,1-hit_uv.y) * dimensions.y);
+            let confidence = facing * smoothstep(0,12,edge) *
+                (1-smoothstep(0.75,1,high/limit)) * (1-smoothstep(thickness*0.5,thickness,error));
+            return vec4f(textureLoad(scene_behind_water,pixel,0).rgb, confidence);
+        }
+        previous_t = t;
+        previous_gap = gap;
+    }
+    return vec4f(0);
+}
+
 fn apply_fresnel_reflection(coord: vec2i, water_depth: f32, dimensions: vec2f,
                             transmitted: vec3f, normal: vec3f) -> vec3f {
     if (params.reflection_strength <= 0.0) {
@@ -128,7 +236,12 @@ fn apply_fresnel_reflection(coord: vec2i, water_depth: f32, dimensions: vec2f,
     let facing = clamp(dot(view_direction, view_normal), 0.0, 1.0);
     let fresnel = 0.02 + 0.98 * pow(1.0 - facing, 5.0);
     let weight = clamp(fresnel * params.reflection_strength, 0.0, 0.45);
-    return mix(transmitted, params.reflection_tint.rgb, weight);
+    var reflection = params.reflection_tint.rgb;
+    if (params.scene_reflections > 0) {
+        let hit = scene_reflection(view_position, view_normal, dimensions);
+        reflection = mix(reflection, hit.rgb, clamp(hit.a,0,1));
+    }
+    return mix(transmitted, reflection, weight);
 }
 
 fn apply_shoreline_treatment(color: vec3f, normalized_depth: f32,

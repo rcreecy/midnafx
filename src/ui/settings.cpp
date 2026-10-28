@@ -65,6 +65,7 @@ Toggle adaptive_exposure{"adaptive_exposure", false};
 Toggle bloom{"bloom", false};
 Toggle contact_shadows{"contact_shadows", false};
 Toggle color_bounce{"color_bounce", false};
+Toggle water_scene_reflections{"water_scene_reflections", false};
 Toggle movement_camera{"movement_camera", false};
 Toggle motion_clarity{"motion_clarity", false};
 NumberSetting smoothing_angle_setting{
@@ -245,7 +246,8 @@ presets::Snapshot capture() {
         (adaptive_exposure.value ? presets::AdaptiveExposure : 0) |
         (bloom.value ? presets::Bloom : 0) |
         (contact_shadows.value ? presets::ContactShadows : 0) |
-        (color_bounce.value ? presets::ColorBounce : 0);
+        (color_bounce.value ? presets::ColorBounce : 0) |
+        (water_scene_reflections.value ? presets::WaterSceneReflections : 0);
     value.detail_enabled = detail_toggle.value;
     value.detail_strength = detail_strength_setting.value;
     return value;
@@ -334,6 +336,7 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(ambient_occlusion, presets::AmbientOcclusion);
         apply_toggle(anti_aliasing, presets::AntiAliasing);
         apply_toggle(enhanced_water, presets::Water);
+        apply_toggle(water_scene_reflections, presets::WaterSceneReflections);
         apply_toggle(atmosphere, presets::Atmosphere);
         apply_toggle(adaptive_exposure, presets::AdaptiveExposure);
         apply_toggle(bloom, presets::Bloom);
@@ -410,7 +413,7 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
              user == &camera_lower_angle || user == &dof_blur || user == &ambient_occlusion ||
              user == &anti_aliasing || user == &enhanced_water || user == &atmosphere ||
              user == &adaptive_exposure || user == &bloom || user == &contact_shadows ||
-             user == &color_bounce || user == &motion_clarity) &&
+             user == &color_bounce || user == &motion_clarity || user == &water_scene_reflections) &&
             !applying_preset) {
             mark_custom();
             update_grade();
@@ -537,7 +540,7 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
         &toggle == &camera_lower_angle || &toggle == &dof_blur || &toggle == &ambient_occlusion ||
         &toggle == &anti_aliasing || &toggle == &enhanced_water || &toggle == &atmosphere ||
         &toggle == &adaptive_exposure || &toggle == &bloom || &toggle == &contact_shadows ||
-        &toggle == &color_bounce || &toggle == &motion_clarity) {
+        &toggle == &color_bounce || &toggle == &motion_clarity || &toggle == &water_scene_reflections) {
         mark_custom();
         update_grade();
     }
@@ -1011,7 +1014,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Remaster combines contact shading, contact shadows, screen-space color bounce, depth atmosphere, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera with movement framing, motion clarity, anti-aliasing and enhanced water. "
+        "Remaster combines contact shading, contact shadows, screen-space color bounce, depth atmosphere, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera with movement framing, motion clarity, anti-aliasing and enhanced water with scene reflections. "
         "Vanilla restores original presentation. Advanced tuning stays unchanged.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
@@ -1028,6 +1031,9 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "Reduces native frame-blending blur during gameplay. Authored events and cutscenes retain native blur.", nullptr));
     add_toggle(panel, "Depth of field (experimental)", dof_blur);
     add_toggle(panel, "Enhanced water", enhanced_water);
+    add_toggle(panel, "Water scene reflections", water_scene_reflections);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Experimental reflections of nearby visible scenery on supported enhanced water. Requires Enhanced water; off-screen scenery uses the existing reflection tint.", nullptr));
     add_toggle(panel, "Anti-aliasing (experimental)", anti_aliasing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Smooths stepped scene edges while retaining crisp straight edges. HUD stays unchanged.", nullptr));
@@ -1273,6 +1279,7 @@ bool initialize() {
     register_toggle(water_surface_capture_diagnostic);
     register_toggle(water_thickness_diagnostic);
     register_toggle(enhanced_water);
+    register_toggle(water_scene_reflections);
     register_toggle(anti_aliasing);
     register_toggle(adaptive_exposure);
     register_toggle(bloom);
@@ -1357,6 +1364,7 @@ bool water_scene_capture_diagnostic_enabled() { return water_scene_capture_diagn
 bool water_surface_capture_diagnostic_enabled() { return water_surface_capture_diagnostic.value; }
 bool water_thickness_diagnostic_enabled() { return water_thickness_diagnostic.value; }
 bool enhanced_water_enabled() { return enhanced_water.value; }
+bool water_scene_reflections_enabled() { return water_scene_reflections.value; }
 float water_absorption_strength() {
     return static_cast<float>(water_absorption_setting.value) / 100.0f;
 }

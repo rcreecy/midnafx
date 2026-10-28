@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.13.0 - 2026-10-28
+
+- Add experimental reflections of visible opaque scenery on supported enhanced
+  water. Remaster enables the independent Basic toggle; Vanilla disables it.
+  Existing settings and earlier scene masks preserve the new feature off until
+  profile selection. The existing reflection strength controls both scene color
+  and the tint fallback.
+- Trace bounded reflected rays through the pre-water depth/color snapshot using
+  animated water normals. Reject invalid projection, background, near-plane,
+  below-water, back-facing and recursive water sources. Hidden water behind an
+  opaque bank does not exclude that bank. Preserve source alpha and existing
+  shoreline, Fresnel, grading, exposure, bloom, LUT and HUD composition.
+- Reuse existing water resources and passes with no new asset identities.
+  Add analytic GPU fixtures for color transfer, depth ordering, fallback,
+  reversed Z, clipping and small/odd targets. Screen-space visibility and shader
+  cost remain limitations; Mac gameplay remains unverified and best effort.
+
 ## 1.12.0 - 2026-10-28
 
 - Add gameplay motion clarity without asset or stage lists. Remaster enables the

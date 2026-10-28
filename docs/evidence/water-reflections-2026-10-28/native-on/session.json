@@ -1,0 +1,22 @@
+{
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/water-reflections/native-on/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/water-reflections/native-on/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/water-reflections/native-on/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "driver_sha256": "9CCAB222893C675254A64F07753E3C152E47618ACED847F5593F11D54A81FE7D",
+  "start": "2026-10-28T23:04:05.2010563Z",
+  "package_sha256": "D0BD539F10BC30435F0FA815DA20CEC79C5E6FA817A963E905CF68F9845C32B6",
+  "pid": 25300,
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4"
+}

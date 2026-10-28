@@ -67,6 +67,13 @@ event/demo/pause/fade contexts preserve native blur. It adds no rendering pass o
 host patch and does not replace motion-vector reconstruction. See
 [motion clarity](motion-clarity.md).
 
+Version 1.13 adds experimental visible-scenery reflections to supported enhanced
+water. It reuses pre-water opaque depth/color and qualified water surfaces,
+without expanding asset identities or adding targets/passes. Remaster enables
+the feature; missed and off-screen sources retain the existing tint. This adds
+environment response while retaining first-layer screen-space limits. See
+[water scene reflections](water-scene-reflections.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |
