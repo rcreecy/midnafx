@@ -2,6 +2,7 @@
 @group(0) @binding(1) var scene_depth: texture_2d<f32>;
 @group(0) @binding(2) var<uniform> params: AmbientParams;
 @group(0) @binding(3) var ambient_field: texture_2d<f32>;
+@group(0) @binding(4) var bounce_field: texture_2d<f32>;
 
 @vertex
 fn vs_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
@@ -15,13 +16,14 @@ fn atmosphere(color: vec4f, point: vec3f) -> vec4f {
     let amount = params.fog_color.a * (1.0 - exp(-2.0 * min(distance, 4.0)));
     return vec4f(mix(color.rgb, params.fog_color.rgb, amount), color.a);
 }
-fn visibility(pixel: vec2i, center: vec3f) -> f32 {
+fn lighting(pixel: vec2i, center: vec3f) -> vec4f {
     // Half-resolution representatives sit at full pixel 2*i+1.
     let point = (vec2f(pixel) - 1) * 0.5;
     let base = vec2i(floor(point));
     let fraction = fract(point);
     let size = vec2i(textureDimensions(ambient_field));
     var sum = vec2f(0);
+    var incoming = vec3f(0);
     var weights = 0.0;
     for (var y = 0; y < 2; y++) {
         for (var x = 0; x < 2; x++) {
@@ -36,14 +38,15 @@ fn visibility(pixel: vec2i, center: vec3f) -> f32 {
                            select(1-fraction.y, fraction.y, y == 1);
             let weight = bilinear * edge;
             sum += vec2f(field.x, max(field.y - 1, 0)) * weight;
+            if (params.bounce.x > 0) { incoming += textureLoad(bounce_field, p, 0).rgb * weight; }
             weights += weight;
         }
     }
-    if (weights < 0.0001) { return 1; }
+    if (weights < 0.0001) { return vec4f(0,0,0,1); }
     let value = sum / weights;
     let ambient = 1 - clamp((1 - value.x) * params.strength, 0, 0.5);
     let contact = 1 - clamp(value.y, 0, 0.5);
-    return max(ambient * contact, 0.5);
+    return vec4f(incoming / weights, max(ambient * contact, 0.5));
 }
 @fragment
 fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
@@ -51,6 +54,19 @@ fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let color = textureLoad(scene_color, pixel, 0);
     let center = view_point(pixel);
     if (center.z >= -0.0001) { return color; }
-    if (params.strength <= 0 && params.light_position.w <= 0) { return atmosphere(color, center); }
-    return atmosphere(vec4f(color.rgb * visibility(pixel, center), color.a), center);
+    if (params.strength <= 0 && params.light_position.w <= 0 && params.bounce.x <= 0) {
+        return atmosphere(color, center);
+    }
+    let light = lighting(pixel, center);
+    var shaded = color.rgb * light.a;
+    if (params.bounce.x > 0 && any(light.rgb > vec3f(0))) {
+        let base = bounce_linear(shaded);
+        // Lit receiver color is a conservative reflectance proxy, not albedo.
+        // Bound both energy and remaining headroom; pure black/white stay fixed.
+        let strength = clamp(params.bounce.x, 0, 0.3);
+        let added = min(bounce_linear(color.rgb) * clamp(light.rgb, vec3f(0), vec3f(1)) * strength,
+                        (vec3f(1) - base) * strength);
+        if (any(added > vec3f(0))) { shaded = bounce_display(base + added); }
+    }
+    return atmosphere(vec4f(shaded, color.a), center);
 }

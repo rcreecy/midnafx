@@ -54,6 +54,13 @@ settles at rest, using native speed rather than asset identities or positional
 deltas. Remaster enables the feature; Vanilla disables it. Existing aiming and
 authored-camera safety gates remain in force. See [movement framing](movement-camera.md).
 
+Version 1.11 adds bounded screen-space color bounce across visible opaque
+scenery and characters. It gathers nearby facing surface colors from the
+existing native snapshot and reuses contact-shading geometry and filters.
+Remaster enables restrained 12% strength; Vanilla disables it. This is a visible
+LDR approximation, not a material-aware global illumination system. See
+[color bounce](color-bounce.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

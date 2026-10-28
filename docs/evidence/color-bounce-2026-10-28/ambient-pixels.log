@@ -1,0 +1,34 @@
+Adapter: Intel(R) UHD Graphics 630; backend=4
+Flat perspective plane 96x80 identity: PASS
+Flat perspective plane 65x49 identity: PASS
+Flat perspective plane 1x1 identity: PASS
+All background identity and invalid field: PASS
+Raised box contacts 96x80 darkened=940 maxdrop=26: PASS
+Raised box contacts 65x49 darkened=512 maxdrop=16: PASS
+Separable filter reduces same-plane visibility variation: PASS
+Distant foreground/background planes reject filter and upsample bleed: PASS
+Zero AO strength retains independent fog formula and alpha: PASS
+Shadow attenuation filters smoothly within a plane and rejects depth-step bleed: PASS
+Combined AO and shadow darkness stays capped at fifty percent: PASS
+Directional cast 96x80 receiver counts=654/659 maxdrop=45/45 centroids=36.26/58.65: PASS
+No-caster plane and light-behind-surface identity 96x80: PASS
+Zero shadow strength preserves old AO color and field exactly: PASS
+Reversed-Z matched projection preserves directional shadow and alpha: PASS
+Directional shadow composes before independent fog and retains alpha: PASS
+Directional cast 65x49 receiver counts=205/189 maxdrop=42/43 centroids=23.76/38.78: PASS
+No-caster plane and light-behind-surface identity 65x49: PASS
+Close point light rejects a visible caster beyond its endpoint on the receiver: PASS
+Small and odd shadow targets remain finite and preserve a flat plane: PASS
+Zero bounce strength ignores one-pixel dummy and preserves AO/shadow exactly: PASS
+Default 12% corner transfers donor hue within energy bound 96x80 red=128 blue=128: PASS
+Sources outside the bounce radius contribute no energy: PASS
+Reversed-Z corner keeps color bounce and alpha within one display code: PASS
+Color bounce composes before native-colored fog with exact source alpha: PASS
+Black donors and black/white receivers retain authored endpoints: PASS
+Default 12% corner transfers donor hue within energy bound 65x49 red=66 blue=66: PASS
+Sources outside the bounce radius contribute no energy: PASS
+Coplanar colors, parallel raised faces, and background cannot self-illuminate: PASS
+Bounce filtering reduces same-plane variance while retaining mean energy: PASS
+Shared depth guidance rejects bounce filtering and upsampling across a silhouette: PASS
+Active bounce remains finite and neutral on small and odd flat targets: PASS
+32 ambient pixel cases: PASS

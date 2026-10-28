@@ -1,0 +1,74 @@
+{
+  "simulation_stopped_candidate": {
+    "before": "final-off.jpg",
+    "after": "final-on-candidate.jpg",
+    "world_roi_xyxy": [
+      260,
+      40,
+      700,
+      600
+    ],
+    "changed_pixels": 0,
+    "pixels_over_3_codes": 0,
+    "max_channel_delta": 0,
+    "screen_mean_rgb_delta": [
+      0.11604989604989605,
+      -0.12148888533503918,
+      -0.37253478330401407
+    ]
+  },
+  "camera_and_actor_lock": {
+    "before": "locked-off.jpg",
+    "after": "locked-on.jpg",
+    "world_roi_xyxy": [
+      260,
+      40,
+      700,
+      600
+    ],
+    "changed_pixels": 209985,
+    "pixels_over_3_codes": 180100,
+    "max_channel_delta": 81,
+    "screen_mean_rgb_delta": [
+      5.615755637294098,
+      2.8915736446505678,
+      1.0401871101871103
+    ]
+  },
+  "ao_held_active": {
+    "before": "shared-off.jpg",
+    "after": "shared-on.jpg",
+    "world_roi_xyxy": [
+      260,
+      40,
+      700,
+      600
+    ],
+    "changed_pixels": 150861,
+    "pixels_over_3_codes": 108658,
+    "max_channel_delta": 62,
+    "screen_mean_rgb_delta": [
+      -0.5249720134335519,
+      -0.4679257956181033,
+      -0.2203550295857988
+    ]
+  },
+  "unchanged_ao_control": {
+    "before": "shared-off.jpg",
+    "after": "shared-off-repeat.jpg",
+    "world_roi_xyxy": [
+      260,
+      40,
+      700,
+      600
+    ],
+    "changed_pixels": 201405,
+    "pixels_over_3_codes": 150386,
+    "max_channel_delta": 86,
+    "screen_mean_rgb_delta": [
+      -13.166911882296498,
+      -8.728902926595234,
+      -3.7888965296657604
+    ]
+  }
+}

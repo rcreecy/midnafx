@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.11 adds **Screen-space color bounce (experimental)** across visible
+opaque scenery and characters. Nearby facing surfaces contribute restrained color
+using the native scene image and depth, without asset lists. Select **Profile /
+Remaster** or the independent Basic toggle; Advanced lighting strength defaults
+to 12%. See [color bounce](docs/color-bounce.md) for scope and evidence.
+
 MidnaFX 1.10 adds **Movement camera framing** for exploration. The view widens
 smoothly during brisk movement and settles at rest, with native aiming and
 authored camera contexts preserved. Select **Profile / Remaster** or its

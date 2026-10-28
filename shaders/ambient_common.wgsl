@@ -9,6 +9,15 @@ struct AmbientParams {
     proj_from_view: mat4x4f,
     light_position: vec4f,
     shadow_range: vec4f,
+    bounce: vec4f,
+}
+// Native scene color is an LDR, display-encoded signal, not material albedo.
+fn bounce_linear(color: vec3f) -> vec3f {
+    return select(color / 12.92, pow((color + 0.055) / 1.055, vec3f(2.4)), color > vec3f(0.04045));
+}
+fn bounce_display(color: vec3f) -> vec3f {
+    let c = clamp(color, vec3f(0), vec3f(1));
+    return select(c * 12.92, 1.055 * pow(c, vec3f(1.0 / 2.4)) - 0.055, c > vec3f(0.0031308));
 }
 fn view_point(pixel: vec2i) -> vec3f {
     let dimensions = vec2i(textureDimensions(scene_depth));

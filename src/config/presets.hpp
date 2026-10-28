@@ -24,7 +24,8 @@ enum SceneFlag {
     Atmosphere = 8,
     AdaptiveExposure = 16,
     Bloom = 32,
-    ContactShadows = 64
+    ContactShadows = 64,
+    ColorBounce = 128
 };
 struct Snapshot {
     std::array<std::int64_t, grade::Count> values{0, 0, 100, 100, 100, 0, 0, 0};

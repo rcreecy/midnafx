@@ -25,8 +25,9 @@ struct Params {
     float proj_from_view[16]{};
     float light_position[4]{};
     float shadow_range[4]{};
+    float bounce[4]{};
 };
-static_assert(sizeof(Params) == 208);
+static_assert(sizeof(Params) == 224);
 
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
@@ -78,14 +79,15 @@ std::vector<Pixel> scene(unsigned width, unsigned height) {
 struct Output {
     std::vector<Pixel> color;
     std::vector<Field> raw, filtered;
+    std::vector<Field> raw_bounce, filtered_bounce;
 };
 struct Fixture {
     WGPUInstance instance;
     WGPUDevice device;
     WGPUQueue queue;
     WGPUShaderModule compute_shader, composite_shader;
-    std::array<WGPUComputePipeline, 3> compute{};
-    std::array<WGPUBindGroupLayout, 3> layouts{};
+    std::array<WGPUComputePipeline, 4> compute{};
+    std::array<WGPUBindGroupLayout, 4> layouts{};
     WGPURenderPipeline composite;
     WGPUBindGroupLayout composite_layout;
 
@@ -100,8 +102,8 @@ struct Fixture {
         };
         compute_shader = shader(midnafx::render::ambient_occlusion_compute_shader);
         composite_shader = shader(midnafx::render::ambient_occlusion_shader);
-        const char* names[]{"cs_occlusion", "cs_filter_horizontal", "cs_filter_vertical"};
-        for (unsigned i = 0; i < 3; ++i) {
+        const char* names[]{"cs_occlusion", "cs_bounce", "cs_filter_horizontal", "cs_filter_vertical"};
+        for (unsigned i = 0; i < 4; ++i) {
             WGPUComputePipelineDescriptor desc = WGPU_COMPUTE_PIPELINE_DESCRIPTOR_INIT;
             desc.compute.module = compute_shader; desc.compute.entryPoint = {names[i], WGPU_STRLEN};
             compute[i] = wgpuDeviceCreateComputePipeline(device, &desc);
@@ -128,13 +130,22 @@ struct Fixture {
     }
 
     Output run(unsigned width, unsigned height, const std::vector<float>& depths,
-               const Params& params, const std::vector<Field>& seed = {}) {
+               const Params& params, const std::vector<Field>& seed = {},
+               const std::vector<Pixel>& source_pixels = {},
+               const std::vector<Field>& bounce_seed = {}) {
+        if (depths.size() != size_t(width) * height ||
+            (!source_pixels.empty() && source_pixels.size() != depths.size())) return {};
         wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
         const unsigned half_width = (width + 1) / 2, half_height = (height + 1) / 2;
+        const unsigned bounce_width = params.bounce[0] > 0 ? half_width : 1;
+        const unsigned bounce_height = params.bounce[0] > 0 ? half_height : 1;
         const unsigned color_stride = (width * 4 + 255) & ~255u;
         const unsigned field_stride = (half_width * 8 + 255) & ~255u;
+        const unsigned bounce_stride = (bounce_width * 8 + 255) & ~255u;
         const size_t raw_offset = size_t(color_stride) * height;
         const size_t filtered_offset = raw_offset + size_t(field_stride) * half_height;
+        const size_t raw_bounce_offset = filtered_offset + size_t(field_stride) * half_height;
+        const size_t filtered_bounce_offset = raw_bounce_offset + size_t(bounce_stride) * bounce_height;
         WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
         td.size = {width, height, 1}; td.format = WGPUTextureFormat_RGBA8Unorm;
         td.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
@@ -156,6 +167,13 @@ struct Fixture {
             fields[i] = wgpuDeviceCreateTexture(device, &td);
             views[i] = wgpuTextureCreateView(fields[i], nullptr);
         }
+        td.size = {bounce_width, bounce_height, 1};
+        std::array<WGPUTexture, 2> bounce_fields{};
+        std::array<WGPUTextureView, 2> bounce_views{};
+        for (unsigned i = 0; i < 2; ++i) {
+            bounce_fields[i] = wgpuDeviceCreateTexture(device, &td);
+            bounce_views[i] = wgpuTextureCreateView(bounce_fields[i], nullptr);
+        }
         const auto upload = [&](WGPUTexture texture, const void* data, size_t size,
                                 unsigned w, unsigned h, unsigned bytes_per_pixel) {
             WGPUTexelCopyTextureInfo dest = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
@@ -165,7 +183,7 @@ struct Fixture {
             const WGPUExtent3D extent{w, h, 1};
             wgpuQueueWriteTexture(queue, &dest, data, size, &layout, &extent);
         };
-        const auto pixels = scene(width, height);
+        const auto pixels = source_pixels.empty() ? scene(width, height) : source_pixels;
         upload(source, pixels.data(), pixels.size() * sizeof(Pixel), width, height, 4);
         upload(depth, depths.data(), depths.size() * sizeof(float), width, height, 4);
         if (!seed.empty()) {
@@ -180,34 +198,49 @@ struct Fixture {
                 }
             upload(fields[0], encoded.data(), encoded.size() * 2, half_width, half_height, 8);
         }
+        if (!bounce_seed.empty()) {
+            std::vector<std::uint16_t> encoded(bounce_seed.size() * 4);
+            for (size_t i = 0; i < bounce_seed.size(); ++i)
+                for (unsigned c = 0; c < 4; ++c)
+                    encoded[i * 4 + c] = midnafx::lut::half(bounce_seed[i][c]);
+            upload(bounce_fields[0], encoded.data(), encoded.size() * 2, bounce_width, bounce_height, 8);
+        }
         WGPUBufferDescriptor bd = WGPU_BUFFER_DESCRIPTOR_INIT;
         bd.size = sizeof(Params); bd.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
         auto uniform = wgpuDeviceCreateBuffer(device, &bd);
         wgpuQueueWriteBuffer(queue, uniform, 0, &params, sizeof(params));
-        bd.size = filtered_offset + size_t(field_stride) * half_height;
+        bd.size = filtered_bounce_offset + size_t(bounce_stride) * bounce_height;
         bd.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead;
         auto readback = wgpuDeviceCreateBuffer(device, &bd);
-        std::array<WGPUBindGroup, 3> groups{};
-        for (unsigned i = 0; i < 3; ++i) {
-            WGPUBindGroupEntry entries[4];
+        std::array<WGPUBindGroup, 4> groups{};
+        for (unsigned i = 0; i < 4; ++i) {
+            WGPUBindGroupEntry entries[7];
             for (auto& entry : entries) entry = WGPU_BIND_GROUP_ENTRY_INIT;
             unsigned count = 0;
             entries[count].binding = 0; entries[count++].textureView = depth_view;
-            if (i) { entries[count].binding = 1; entries[count++].textureView = views[i == 1 ? 0 : 1]; }
-            entries[count].binding = 2; entries[count++].textureView = views[i == 1 ? 1 : 0];
+            if (i) { entries[count].binding = 1; entries[count++].textureView = views[i == 3 ? 1 : 0]; }
+            if (i != 1) {
+                entries[count].binding = 2; entries[count++].textureView = views[i == 2 ? 1 : 0];
+            }
             entries[count].binding = 3; entries[count].buffer = uniform; entries[count++].size = sizeof(params);
+            if (i == 1) { entries[count].binding = 4; entries[count++].textureView = source_view; }
+            if (i >= 2) {
+                entries[count].binding = 5; entries[count++].textureView = bounce_views[i == 2 ? 0 : 1];
+            }
+            if (i) { entries[count].binding = 6; entries[count++].textureView = bounce_views[i == 2 ? 1 : 0]; }
             WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
             desc.layout = layouts[i]; desc.entryCount = count; desc.entries = entries;
             groups[i] = wgpuDeviceCreateBindGroup(device, &desc);
         }
-        WGPUBindGroupEntry entries[4];
+        WGPUBindGroupEntry entries[5];
         for (auto& entry : entries) entry = WGPU_BIND_GROUP_ENTRY_INIT;
         entries[0].binding = 0; entries[0].textureView = source_view;
         entries[1].binding = 1; entries[1].textureView = depth_view;
         entries[2].binding = 2; entries[2].buffer = uniform; entries[2].size = sizeof(params);
         entries[3].binding = 3; entries[3].textureView = views[0];
+        entries[4].binding = 4; entries[4].textureView = bounce_views[0];
         WGPUBindGroupDescriptor desc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
-        desc.layout = composite_layout; desc.entryCount = 4; desc.entries = entries;
+        desc.layout = composite_layout; desc.entryCount = 5; desc.entries = entries;
         auto group = wgpuDeviceCreateBindGroup(device, &desc);
         auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
         const auto dispatch = [&](unsigned index) {
@@ -228,8 +261,11 @@ struct Fixture {
         };
         if (seed.empty()) dispatch(0);
         copy(fields[0], raw_offset, field_stride, half_width, half_height);
-        dispatch(1); dispatch(2);
+        if (bounce_seed.empty()) dispatch(1);
+        copy(bounce_fields[0], raw_bounce_offset, bounce_stride, bounce_width, bounce_height);
+        dispatch(2); dispatch(3);
         copy(fields[0], filtered_offset, field_stride, half_width, half_height);
+        copy(bounce_fields[0], filtered_bounce_offset, bounce_stride, bounce_width, bounce_height);
         WGPURenderPassColorAttachment attachment = WGPU_RENDER_PASS_COLOR_ATTACHMENT_INIT;
         attachment.view = target_view; attachment.loadOp = WGPULoadOp_Clear; attachment.storeOp = WGPUStoreOp_Store;
         WGPURenderPassDescriptor pass_desc = WGPU_RENDER_PASS_DESCRIPTOR_INIT;
@@ -256,13 +292,22 @@ struct Fixture {
                 output.color.resize(pixels.size());
                 for (unsigned y = 0; y < height; ++y)
                     std::memcpy(output.color.data() + y * width, data + y * color_stride, width * 4);
-                for (auto [offset, result] : {std::pair{raw_offset, &output.raw}, {filtered_offset, &output.filtered}}) {
-                    result->resize(half_width * half_height);
-                    for (unsigned y = 0; y < half_height; ++y)
-                        for (unsigned x = 0; x < half_width; ++x) {
+                struct FieldRead {
+                    size_t offset;
+                    std::vector<Field>* result;
+                    unsigned width, height, stride;
+                };
+                for (const auto& read : {
+                         FieldRead{raw_offset, &output.raw, half_width, half_height, field_stride},
+                         FieldRead{filtered_offset, &output.filtered, half_width, half_height, field_stride},
+                         FieldRead{raw_bounce_offset, &output.raw_bounce, bounce_width, bounce_height, bounce_stride},
+                         FieldRead{filtered_bounce_offset, &output.filtered_bounce, bounce_width, bounce_height, bounce_stride}}) {
+                    read.result->resize(read.width * read.height);
+                    for (unsigned y = 0; y < read.height; ++y)
+                        for (unsigned x = 0; x < read.width; ++x) {
                             std::array<std::uint16_t, 4> value{};
-                            std::memcpy(value.data(), data + offset + y * field_stride + x * 8, 8);
-                            for (unsigned c = 0; c < 4; ++c) (*result)[y * half_width + x][c] = decode_half(value[c]);
+                            std::memcpy(value.data(), data + read.offset + y * read.stride + x * 8, 8);
+                            for (unsigned c = 0; c < 4; ++c) (*read.result)[y * read.width + x][c] = decode_half(value[c]);
                         }
                 }
             }
@@ -283,6 +328,8 @@ struct Fixture {
         wgpuBufferRelease(readback); wgpuBufferRelease(uniform);
         for (auto view : views) wgpuTextureViewRelease(view);
         for (auto field : fields) wgpuTextureRelease(field);
+        for (auto view : bounce_views) wgpuTextureViewRelease(view);
+        for (auto field : bounce_fields) wgpuTextureRelease(field);
         wgpuTextureViewRelease(depth_view); wgpuTextureRelease(depth);
         wgpuTextureViewRelease(target_view); wgpuTextureRelease(target);
         wgpuTextureViewRelease(source_view); wgpuTextureRelease(source);
@@ -290,8 +337,9 @@ struct Fixture {
     }
 };
 
-bool bounded(const Output& output, unsigned width, unsigned height) {
-    const auto source = scene(width, height);
+bool bounded(const Output& output, unsigned width, unsigned height,
+             const std::vector<Pixel>& source_pixels = {}) {
+    const auto source = source_pixels.empty() ? scene(width, height) : source_pixels;
     if (output.color.size() != source.size() || output.raw.size() != ((width + 1) / 2) * ((height + 1) / 2) ||
         output.filtered.size() != output.raw.size()) return false;
     for (size_t i = 0; i < source.size(); ++i) if (output.color[i][3] != source[i][3]) return false;
@@ -301,6 +349,10 @@ bool bounded(const Output& output, unsigned width, unsigned height) {
             if (value[0] < 0 || value[0] > 1 ||
                 (value[1] != 0 && (value[1] < 1 || value[1] > 1.5f))) return false;
         }
+    if (output.raw_bounce.empty() || output.raw_bounce.size() != output.filtered_bounce.size()) return false;
+    for (const auto* field : {&output.raw_bounce, &output.filtered_bounce})
+        for (const auto& value : *field)
+            for (float channel : value) if (!std::isfinite(channel) || channel < 0 || channel > 1) return false;
     return true;
 }
 float variation(const std::vector<Field>& field, unsigned width, unsigned height, unsigned channel = 0) {
@@ -311,6 +363,45 @@ float variation(const std::vector<Field>& field, unsigned width, unsigned height
             if (y) total += std::abs(field[y * width + x][channel] - field[(y - 1) * width + x][channel]);
         }
     return total;
+}
+
+// Two camera-visible walls meet in a concave vertical corner. Their inward
+// normals face one another, unlike the parallel raised-box AO fixture.
+std::vector<float> corner_depth(unsigned width, unsigned height) {
+    std::vector<float> result(width * height);
+    for (unsigned y = 0; y < height; ++y)
+        for (unsigned x = 0; x < width; ++x) {
+            const float ray_x = (2 * (x + 0.5f) / width - 1) * float(width) / height;
+            result[y * width + x] = depth_at(10 / (1 + std::abs(ray_x)));
+        }
+    return result;
+}
+std::vector<Pixel> corner_colors(unsigned width, unsigned height, Pixel receiver, Pixel donor) {
+    auto result = scene(width, height);
+    for (unsigned y = 0; y < height; ++y)
+        for (unsigned x = 0; x < width; ++x)
+            for (unsigned c = 0; c < 3; ++c)
+                result[y * width + x][c] = (x < width / 2 ? receiver : donor)[c];
+    return result;
+}
+bool bounce_bounds(const Output& output, unsigned width, unsigned height,
+                   const std::vector<Pixel>& source, float strength) {
+    if (!bounded(output, width, height, source)) return false;
+    // Independent energy/headroom bound. Do not reproduce the spatial gather.
+    const auto linear = [](float value) {
+        return value <= 0.04045f ? value / 12.92f : std::pow((value + 0.055f) / 1.055f, 2.4f);
+    };
+    const auto display = [](float value) {
+        return value <= 0.0031308f ? value * 12.92f : 1.055f * std::pow(value, 1 / 2.4f) - 0.055f;
+    };
+    for (size_t i = 0; i < source.size(); ++i)
+        for (unsigned c = 0; c < 3; ++c) {
+            const float base = linear(source[i][c] / 255.0f);
+            const int upper = int(std::ceil(255 * display(base + strength * std::min(base, 1 - base))));
+            if (int(output.color[i][c]) < int(source[i][c]) - 1 || int(output.color[i][c]) > upper + 1)
+                return false;
+        }
+    return true;
 }
 } // namespace
 
@@ -620,6 +711,178 @@ int main() {
                 valid &= bounded(output, width, height) && output.color == scene(width, height);
             }
             report("Small and odd shadow targets remain finite and preserve a flat plane", valid);
+        }
+        {
+            constexpr unsigned width = 65, height = 49;
+            const auto depth = corner_depth(width, height);
+            const auto colors = corner_colors(width, height, Pixel{120,120,120,0}, Pixel{220,25,25,0});
+            auto params = perspective(width, height);
+            params.light_position[0] = 8; params.light_position[2] = -4;
+            params.light_position[3] = 0.3f; params.shadow_range[0] = 4;
+            const auto baseline = fixture.run(width, height, depth, params, {}, colors);
+            params.bounce[1] = 4;
+            // Poison the actual one-pixel disabled field. Neither filtering nor
+            // composition may consume it when bounce strength is zero.
+            const auto disabled = fixture.run(width, height, depth, params, {}, colors,
+                                               std::vector<Field>{Field{1,1,1,1}});
+            report("Zero bounce strength ignores one-pixel dummy and preserves AO/shadow exactly",
+                   bounded(baseline, width, height, colors) && bounded(disabled, width, height, colors) &&
+                   baseline.color == disabled.color && baseline.raw == disabled.raw &&
+                   baseline.filtered == disabled.filtered && disabled.filtered_bounce.size() == 1);
+        }
+        for (auto size : {std::array<unsigned,2>{96,80}, {65,49}}) {
+            const auto [width, height] = size;
+            const auto depth = corner_depth(width, height);
+            const auto red = corner_colors(width, height, Pixel{120,120,120,0}, Pixel{220,25,25,0});
+            const auto blue = corner_colors(width, height, Pixel{120,120,120,0}, Pixel{25,25,220,0});
+            auto params = perspective(width, height); params.strength = 0;
+            params.bounce[0] = 0.12f; params.bounce[1] = 4;
+            const auto from_red = fixture.run(width, height, depth, params, {}, red);
+            const auto from_blue = fixture.run(width, height, depth, params, {}, blue);
+            bool valid = bounce_bounds(from_red, width, height, red, params.bounce[0]) &&
+                         bounce_bounds(from_blue, width, height, blue, params.bounce[0]);
+            unsigned red_lifted = 0, blue_lifted = 0;
+            if (valid) for (unsigned y = 8; y + 8 < height; ++y)
+                for (unsigned x = 0; x + 1 < width / 2; ++x) {
+                    const size_t i = size_t(y) * width + x;
+                    red_lifted += from_red.color[i][0] > red[i][0] &&
+                                  from_red.color[i][0] > from_blue.color[i][0];
+                    blue_lifted += from_blue.color[i][2] > blue[i][2] &&
+                                   from_blue.color[i][2] > from_red.color[i][2];
+                }
+            valid &= red_lifted > 0 && blue_lifted > 0;
+            char label[144];
+            std::snprintf(label, sizeof(label), "Default 12%% corner transfers donor hue within energy bound %ux%u red=%u blue=%u",
+                          width, height, red_lifted, blue_lifted);
+            report(label, valid);
+
+            auto tiny_radius = params; tiny_radius.bounce[1] = 0.05f;
+            const auto distant = fixture.run(width, height, depth, tiny_radius, {}, red);
+            valid = bounded(distant, width, height, red) && distant.color == red;
+            for (const auto& value : distant.raw_bounce)
+                valid &= value[0] == 0 && value[1] == 0 && value[2] == 0;
+            report("Sources outside the bounce radius contribute no energy", valid);
+
+            if (width == 96) {
+                auto reversed_params = params;
+                reversed_params.background_depth = 0;
+                reversed_params.proj_from_view[10] = 1.0f / 99;
+                reversed_params.proj_from_view[14] = 100.0f / 99;
+                reversed_params.view_from_proj[11] = 99.0f / 100;
+                reversed_params.view_from_proj[15] = 1.0f / 100;
+                auto reversed_depth = depth;
+                for (auto& value : reversed_depth) value = 1 - value;
+                const auto reversed = fixture.run(width, height, reversed_depth, reversed_params, {}, red);
+                valid = bounded(reversed, width, height, red) && reversed.color.size() == from_red.color.size();
+                if (valid) for (size_t i = 0; i < from_red.color.size(); ++i)
+                    for (unsigned c = 0; c < 3; ++c)
+                        valid &= std::abs(int(reversed.color[i][c]) - int(from_red.color[i][c])) <= 1;
+                report("Reversed-Z corner keeps color bounce and alpha within one display code", valid);
+
+                auto fog = params;
+                fog.fog_color[0] = 0.2f; fog.fog_color[1] = 0.3f;
+                fog.fog_color[2] = 0.4f; fog.fog_color[3] = 0.3f;
+                fog.fog_range[0] = 2; fog.fog_range[1] = 18;
+                const auto hazy = fixture.run(width, height, depth, fog, {}, red);
+                valid = bounded(hazy, width, height, red) && hazy.color.size() == from_red.color.size();
+                if (valid) for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = 0; x < width; ++x) {
+                        const size_t i = size_t(y) * width + x;
+                        const float ray_x = (2 * (x + 0.5f) / width - 1) * float(width) / height;
+                        const float distance = 10 / (1 + std::abs(ray_x));
+                        const float amount = 0.3f * (1 - std::exp(-2 * (distance - 2) / 16));
+                        for (unsigned c = 0; c < 3; ++c) {
+                            const int expected = int(std::lround(from_red.color[i][c] * (1 - amount) +
+                                                                fog.fog_color[c] * 255 * amount));
+                            valid &= std::abs(int(hazy.color[i][c]) - expected) <= 1;
+                        }
+                    }
+                report("Color bounce composes before native-colored fog with exact source alpha", valid);
+
+                bool endpoints = true;
+                for (unsigned level : {0u, 255u}) {
+                    const auto colors = corner_colors(width, height,
+                        Pixel{static_cast<unsigned char>(level), static_cast<unsigned char>(level),
+                              static_cast<unsigned char>(level), 0}, Pixel{220,25,25,0});
+                    const auto output = fixture.run(width, height, depth, params, {}, colors);
+                    endpoints &= bounded(output, width, height, colors);
+                    if (output.color.size() == colors.size())
+                        for (unsigned y = 0; y < height; ++y)
+                            for (unsigned x = 0; x < width / 2; ++x)
+                                endpoints &= output.color[y * width + x] == colors[y * width + x];
+                }
+                const auto black_donor = corner_colors(width, height, Pixel{120,120,120,0}, Pixel{0,0,0,0});
+                const auto black = fixture.run(width, height, depth, params, {}, black_donor);
+                endpoints &= bounded(black, width, height, black_donor) && black.color == black_donor;
+                report("Black donors and black/white receivers retain authored endpoints", endpoints);
+            }
+        }
+        {
+            constexpr unsigned width = 64, height = 48;
+            auto params = perspective(width, height); params.strength = 0;
+            params.bounce[0] = 0.3f; params.bounce[1] = 4;
+            const auto colors = corner_colors(width, height, Pixel{120,120,120,0}, Pixel{220,25,25,0});
+            bool valid = true;
+            auto depth = std::vector<float>(width * height, depth_at(10));
+            for (unsigned shape = 0; shape < 3; ++shape) {
+                if (shape == 1) for (unsigned y = height / 3; y < 2 * height / 3; ++y)
+                    for (unsigned x = width / 3; x < 2 * width / 3; ++x) depth[y * width + x] = depth_at(8.5f);
+                if (shape == 2) std::fill(depth.begin(), depth.end(), 1.0f);
+                const auto output = fixture.run(width, height, depth, params, {}, colors);
+                valid &= bounded(output, width, height, colors) && output.color == colors;
+                for (const auto& value : output.raw_bounce)
+                    valid &= value[0] == 0 && value[1] == 0 && value[2] == 0;
+            }
+            report("Coplanar colors, parallel raised faces, and background cannot self-illuminate", valid);
+        }
+        {
+            constexpr unsigned width = 64, height = 48, half_width = width / 2, half_height = height / 2;
+            auto params = perspective(width, height); params.strength = 0;
+            params.bounce[0] = 0.3f; params.bounce[1] = 4;
+            std::vector<Field> ambient(half_width * half_height, Field{1,1,0.5f,0.5f});
+            std::vector<Field> seed(ambient.size());
+            for (unsigned y = 0; y < half_height; ++y)
+                for (unsigned x = 0; x < half_width; ++x)
+                    seed[y * half_width + x] = {(x + y) % 2 ? 0.6f : 0, 0, 0, 1};
+            auto depth = std::vector<float>(width * height, depth_at(10));
+            const auto smooth = fixture.run(width, height, depth, params, ambient, {}, seed);
+            bool valid = bounded(smooth, width, height);
+            if (valid) {
+                valid &= variation(smooth.filtered_bounce, half_width, half_height) <
+                         variation(smooth.raw_bounce, half_width, half_height) * 0.25f;
+                float mean = 0;
+                for (const auto& value : smooth.filtered_bounce) mean += value[0];
+                valid &= std::abs(mean / smooth.filtered_bounce.size() - 0.3f) < 0.005f;
+            }
+            report("Bounce filtering reduces same-plane variance while retaining mean energy", valid);
+            for (unsigned y = 0; y < height; ++y)
+                for (unsigned x = width / 2; x < width; ++x) depth[y * width + x] = depth_at(40);
+            for (unsigned y = 0; y < half_height; ++y)
+                for (unsigned x = 0; x < half_width; ++x)
+                    seed[y * half_width + x] = {x < half_width / 2 ? 0.6f : 0, 0, 0, 1};
+            const auto separated = fixture.run(width, height, depth, params, ambient, {}, seed);
+            valid = bounded(separated, width, height);
+            const auto colors = scene(width, height);
+            if (valid) {
+                for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = width / 2; x < width; ++x)
+                        valid &= separated.color[y * width + x] == colors[y * width + x];
+                for (size_t i = 0; i < seed.size(); ++i)
+                    valid &= std::abs(separated.filtered_bounce[i][0] - seed[i][0]) < 0.001f;
+            }
+            report("Shared depth guidance rejects bounce filtering and upsampling across a silhouette", valid);
+        }
+        {
+            bool valid = true;
+            for (auto size : {std::array<unsigned,2>{1,1}, {3,5}, {33,25}}) {
+                const auto [width, height] = size;
+                auto params = perspective(width, height); params.strength = 0;
+                params.bounce[0] = 0.3f; params.bounce[1] = 4;
+                const auto output = fixture.run(width, height,
+                    std::vector<float>(width * height, depth_at(10)), params);
+                valid &= bounded(output, width, height) && output.color == scene(width, height);
+            }
+            report("Active bounce remains finite and neutral on small and odd flat targets", valid);
         }
     }
     std::printf("%u ambient pixel cases: %s\n", cases, ok ? "PASS" : "FAIL");

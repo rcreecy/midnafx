@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "author": "MidnaFX contributors",
-  "description": "Remaster profile with movement-aware camera framing, directional contact shadows, filtered ambient shading, bloom, edge-directed AA and enhanced water"
+  "description": "Remaster profile with screen-space color bounce, directional contact shadows, movement-aware camera, filtered ambient shading, bloom and enhanced water"
 }

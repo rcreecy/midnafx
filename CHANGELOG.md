@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.11.0 - 2026-10-28
+
+- Add bounded screen-space color bounce across visible opaque scenery and
+  characters, without asset or stage lists. Remaster enables it; Vanilla disables
+  it. An independent experimental Basic toggle and Advanced 0–30% strength
+  default to 12%. Existing saved settings remain intact until profile selection.
+- Gather nearby facing surfaces from the native opaque color/depth snapshot,
+  reject invalid and interrupted depth segments, and filter separate color
+  fields using the existing contact-shading geometry. Compose bounded linear
+  light before atmosphere while preserving scene alpha and downstream water/HUD.
+- Keep AO, contact shadows and bounce independent. Disabled shared operation uses
+  1×1 binding placeholders and skips the gather dispatch. Resize/unload lifetime
+  follows the existing pending-callback target ownership.
+- Retain explicit LDR, visible-depth and lit-color limits: this does not provide
+  material albedo, hidden surfaces or physically based global illumination.
+  macOS gameplay remains unverified and support remains best effort.
+
 ## 1.10.0 - 2026-10-27
 
 - Add movement-aware exploration framing across native chase-camera contexts,

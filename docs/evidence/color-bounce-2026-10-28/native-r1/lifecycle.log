@@ -1,0 +1,18 @@
+[INFO | com.midnafx.midnafx] found 'MidnaFX' v1.11.0 by MidnaFX contributors (C:\dev\midnafx\build\color-bounce\native-r1\mods\midnafx.dusk)
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | com.midnafx.midnafx] Water classification diagnostic ready (default off, classifiers=6)
+[INFO | com.midnafx.midnafx] MidnaFX grading, detail, diagnostics, and Twilight prototype initialized
+[INFO | com.midnafx.midnafx] Camera chase: type=40 mode=0 flags=0x07 active=no latitude far/near=10.00/25.00 offset=0.00
+[INFO | com.midnafx.midnafx] Camera FOV: type=40 mode=0 flags=0x07 active=no aspect=1.333 native=61.25 effective=61.25 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Camera chase: type=41 mode=0 flags=0x13 active=no latitude far/near=10.00/25.00 offset=0.00
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=no aspect=1.333 native=61.38 effective=61.38 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Diagnostics sample: preset=Custom grading=off values=[0,0,100,102,108,25,0,0] active=0xff detail=off/12% status=Pre-HUD grading ready size=0x0 samples(active/disabled/neutral)=0/256/0 draws(submitted/encoded)=0/0 cpu_us(active_p50/p95/latest)=0.00/0.00/0.00 cpu_us(disabled_p50/p95/latest)=0.10/0.20/0.10 layout_us=0.00 resolve_us=0.00 config_us=0.60 atmosphere_depth=off/5000 dof_coc=off/1200/500
+[INFO | com.midnafx.midnafx] Color bounce active: 16 visible surface samples, range=180, linear-light bounded blend, HUD excluded
+[INFO | com.midnafx.midnafx] Contact shading shutdown: compute=1281 draw=1281 target_sets=1
+[INFO | com.midnafx.midnafx] Color look shutdown: encoded=0 cached_layouts=1
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=shutdown profile=pumpkin-warm requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | dusk::mods::loader] all mods unloaded
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.

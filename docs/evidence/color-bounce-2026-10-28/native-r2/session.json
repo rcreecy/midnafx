@@ -1,0 +1,21 @@
+{
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/color-bounce/native-r2/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/color-bounce/native-r2/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/color-bounce/native-r2/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "package_sha256": "E4DFA3590BFFB95E4CA03BAD720F372B4092829DD64C12BC9D2D51EF79B10DF6",
+  "pid": 7432,
+  "start": "2026-10-28T12:49:27.9309805Z"
+}

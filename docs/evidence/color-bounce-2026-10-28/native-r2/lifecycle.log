@@ -1,0 +1,144 @@
+[INFO | com.midnafx.midnafx] found 'MidnaFX' v1.11.0 by MidnaFX contributors (C:\dev\midnafx\build\color-bounce\native-r2\mods\midnafx.dusk)
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | com.midnafx.midnafx] Water classification diagnostic ready (default off, classifiers=6)
+[INFO | com.midnafx.midnafx] MidnaFX grading, detail, diagnostics, and Twilight prototype initialized
+[INFO | com.midnafx.midnafx] Camera chase: type=40 mode=0 flags=0x07 active=no latitude far/near=10.00/25.00 offset=0.00
+[INFO | com.midnafx.midnafx] Camera FOV: type=40 mode=0 flags=0x07 active=no aspect=1.333 native=61.25 effective=61.25 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Camera chase: type=41 mode=0 flags=0x13 active=no latitude far/near=10.00/25.00 offset=0.00
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x13 active=no aspect=1.333 native=61.38 effective=61.38 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Diagnostics sample: preset=Custom grading=off values=[0,0,100,102,108,25,0,0] active=0xff detail=off/12% status=Pre-HUD grading ready size=0x0 samples(active/disabled/neutral)=0/256/0 draws(submitted/encoded)=0/0 cpu_us(active_p50/p95/latest)=0.00/0.00/0.00 cpu_us(disabled_p50/p95/latest)=0.10/0.30/0.10 layout_us=0.00 resolve_us=0.00 config_us=0.70 atmosphere_depth=off/5000 dof_coc=off/1200/500
+[INFO | com.midnafx.midnafx] Color bounce active: 16 visible surface samples, range=180, linear-light bounded blend, HUD excluded
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x0b active=no aspect=1.333 native=61.63 effective=61.63 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Ambient occlusion active: half-resolution 32-tap contacts, edge-aware filter, HUD excluded
+[INFO | com.midnafx.midnafx] Character shading source: native_hash=c945defef88edfc9 normals=2282 topology=fefc475b8f9a6309 draw_source=original
+[INFO | com.midnafx.midnafx] Character shading plan: changed=297 preserved_indices=1402 unresolved=0 ambiguous=0 preserved_faces=2
+[INFO | com.midnafx.midnafx] Geometry smoothing: applied qualified model
+[INFO | com.midnafx.midnafx] Geometry qualification: Bmdl/bl.bmd class=SAFE knownGood=yes reason=qualified classifyUs=1151 planUs=2709 applied=yes processed=1
+[INFO | com.midnafx.midnafx] Topology JSON: {"archive":"Bmdl","file":"bl.bmd","resourceBytes":165088,"resourceHash":"d6086e4e198c23f9","positions":2301,"normals":2282,"shapes":8,"envelopes":133,"primitives":1023,"normalType":3,"normalStride":6,"normalFrac":15,"strips":1023,"fans":0,"indexed":0,"triangles":3617,"degenerate":0,"uniquePositions":2300,"uniqueNormals":2278,"positionNormalSplits":52,"cornerHash":"fefc475b8f9a6309","decodeUs":1353,"error":"","smoothGroups":4445,"smoothCandidates":2278,"smoothChanges":297,"indexConflicts":0,"ambiguousFaces":0,"normalDecodeUs":7,"adjacencyUs":760,"smoothUs":2709,"totalUs":5503,"peakTrackedVectorBytes":844784,"backupBytes":13692,"cacheEntries":1,"smoothError":""}
+[INFO | com.midnafx.midnafx] Depth atmosphere active: native fog RGB=30,35,40 range=0..40000 strength=0.35
+[INFO | com.midnafx.midnafx] Contact shadows active: native base light view=(-30599.2,58051.4,-50842.6) length=120 strength=0.30 steps=12 HUD excluded
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=0 name=aa_Kibako_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=1 name=aa_MA00_IshidanKabe_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=2 name=aa_MA00_IwaGoro_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=3 name=aa_MA00_IwaKabe_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=4 name=aa_MA00_KokeWood_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=5 name=aa_MA00_KusaTuchiBlend_v_x shapes=35 materials=35 texgens=3 tev_stages=5 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=6 name=aa_MA00_Nenrin_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=7 name=aa_MA00_Wood_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=8 name=aa_MA00_YanePink_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=9 name=aa_MA00_deck_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=10 name=aa_MA00_ishiyane_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=11 name=aa_MA00_kihasira_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=12 name=aa_MA00_kusa_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=13 name=aa_MA00_kusakabe_suna_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=14 name=aa_MA00_kusakabe_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=15 name=aa_MA00_miki_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=16 name=aa_MikiKTree_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=17 name=aa_MikiSTree_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=18 name=aa_nawahasigo_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=19 name=aa_shopkanban_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=20 name=aa_yaneki_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=21 name=bb_MA00_KusaNukiSet_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=22 name=bb_MA00_KusanukiSet2_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=23 name=bb_MA00_TuchiMichi_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=24 name=bb_MA00_tuta_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=25 name=bb_kiwaku_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=26 name=bb_simenawa_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=27 name=cc_MA09_Water_v shapes=35 materials=35 texgens=3 tev_stages=2 blend=1/2/0 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=28 name=cd_MA03_WaterKasan_v_x shapes=35 materials=35 texgens=3 tev_stages=2 blend=1/4/1 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=29 name=dd_MA00_Mizusoko_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=30 name=dd_MA00_TuchiMichi_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=31 name=dd_MA00_tuchi_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=32 name=dd_MA01_Mizusoko_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=33 name=de_MA01_Mizusoko_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=34 name=ee_MA00_kusa_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-1 model=000001FD0AF06500 material=0 name=cc_MA02_IndirectWater_v shapes=1 materials=1 texgens=2 tev_stages=1 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-2 model=000001FD0AF09220 material=0 name=cc_MA13_Kirikae_v_x shapes=1 materials=1 texgens=0 tev_stages=1 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=bgobj-0 model=000001FD0B00E098 material=0 name=aa_A_Kanban_v shapes=1 materials=1 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=357.11 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=bgobj-0 model=000001FD0B00FD60 material=0 name=aa_Kibako_v shapes=1 materials=1 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] Water thickness pre-depth {ready=yes requested=608x448 resolved=960x720 color=yes depth=yes}
+[INFO | com.midnafx.midnafx] Water thickness target {material=000001FD0AF08608 name=cc_MA02_IndirectWater_v shape=000001FD0AF06940}
+[INFO | com.midnafx.midnafx] Water thickness surface capture ready {size=960x720 packets=1 mask=color depth=R32F}
+[INFO | com.midnafx.midnafx] Water absorption active: size=960x720 strength=0.65 max_depth=5000 wave_strength=0.20 refraction_strength=0.15 reflection_strength=0.25 shoreline_strength=0.20 specular_strength=0.12 light=yes reversed_z=yes
+[INFO | com.midnafx.midnafx] deactivating mod
+[INFO | com.midnafx.midnafx] Contact shading shutdown: compute=26812 draw=26812 target_sets=1
+[INFO | com.midnafx.midnafx] Color look shutdown: encoded=0 cached_layouts=1
+[INFO | com.midnafx.midnafx] Adaptive exposure shutdown: encoded=423 samples_per_frame=256
+[INFO | com.midnafx.midnafx] Scene bloom shutdown: compute=423 target_sets=1
+[INFO | com.midnafx.midnafx] WaterClass summary {reason=shutdown marked_draws=0 active_models=2 stage_scan_frames=423 stage_scan_us=33070 thickness_captures=423 thickness_failures=0 thickness_capture_us=33287 packets_total=423 packets_max=1}
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=shutdown profile=pumpkin-warm requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] Geometry restore proof: bytes=13692 hash=3f85e23fd6ac3e78 exact=yes
+[INFO | com.midnafx.midnafx] Geometry smoothing: original normals restored
+[INFO | com.midnafx.midnafx] reloading from C:\dev\midnafx\build\color-bounce\native-r2\mods\midnafx.dusk
+[INFO | com.midnafx.midnafx] activating mod
+[INFO | com.midnafx.midnafx] Water classification diagnostic ready (default off, classifiers=6)
+[INFO | com.midnafx.midnafx] MidnaFX grading, detail, diagnostics, and Twilight prototype initialized
+[INFO | com.midnafx.midnafx] Character shading source: native_hash=c945defef88edfc9 normals=2282 topology=fefc475b8f9a6309 draw_source=original
+[INFO | com.midnafx.midnafx] Character shading plan: changed=297 preserved_indices=1402 unresolved=0 ambiguous=0 preserved_faces=2
+[INFO | com.midnafx.midnafx] Geometry smoothing: applied qualified model
+[INFO | com.midnafx.midnafx] Geometry qualification: Bmdl/bl.bmd class=SAFE knownGood=yes reason=qualified classifyUs=1100 planUs=2211 applied=yes processed=1
+[INFO | com.midnafx.midnafx] Topology JSON: {"archive":"Bmdl","file":"bl.bmd","resourceBytes":165088,"resourceHash":"d6086e4e198c23f9","positions":2301,"normals":2282,"shapes":8,"envelopes":133,"primitives":1023,"normalType":3,"normalStride":6,"normalFrac":15,"strips":1023,"fans":0,"indexed":0,"triangles":3617,"degenerate":0,"uniquePositions":2300,"uniqueNormals":2278,"positionNormalSplits":52,"cornerHash":"fefc475b8f9a6309","decodeUs":1583,"error":"","smoothGroups":4445,"smoothCandidates":2278,"smoothChanges":297,"indexConflicts":0,"ambiguousFaces":0,"normalDecodeUs":10,"adjacencyUs":644,"smoothUs":2211,"totalUs":5096,"peakTrackedVectorBytes":844784,"backupBytes":13692,"cacheEntries":1,"smoothError":""}
+[INFO | com.midnafx.midnafx] Ambient occlusion active: half-resolution 32-tap contacts, edge-aware filter, HUD excluded
+[INFO | com.midnafx.midnafx] Depth atmosphere active: native fog RGB=30,35,40 range=0..40000 strength=0.35
+[INFO | com.midnafx.midnafx] Contact shadows active: native base light view=(-30599.2,58051.4,-50842.6) length=120 strength=0.30 steps=12 HUD excluded
+[INFO | com.midnafx.midnafx] Color bounce active: 16 visible surface samples, range=180, linear-light bounded blend, HUD excluded
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=0 name=aa_Kibako_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=1 name=aa_MA00_IshidanKabe_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=2 name=aa_MA00_IwaGoro_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=3 name=aa_MA00_IwaKabe_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=4 name=aa_MA00_KokeWood_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=5 name=aa_MA00_KusaTuchiBlend_v_x shapes=35 materials=35 texgens=3 tev_stages=5 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=6 name=aa_MA00_Nenrin_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=7 name=aa_MA00_Wood_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=8 name=aa_MA00_YanePink_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=9 name=aa_MA00_deck_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=10 name=aa_MA00_ishiyane_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=11 name=aa_MA00_kihasira_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=12 name=aa_MA00_kusa_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=13 name=aa_MA00_kusakabe_suna_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=14 name=aa_MA00_kusakabe_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=15 name=aa_MA00_miki_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=16 name=aa_MikiKTree_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=17 name=aa_MikiSTree_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=18 name=aa_nawahasigo_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=19 name=aa_shopkanban_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=20 name=aa_yaneki_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=21 name=bb_MA00_KusaNukiSet_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=22 name=bb_MA00_KusanukiSet2_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=23 name=bb_MA00_TuchiMichi_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=24 name=bb_MA00_tuta_v shapes=35 materials=35 texgens=2 tev_stages=3 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=25 name=bb_kiwaku_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=26 name=bb_simenawa_v shapes=35 materials=35 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=27 name=cc_MA09_Water_v shapes=35 materials=35 texgens=3 tev_stages=2 blend=1/2/0 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=28 name=cd_MA03_WaterKasan_v_x shapes=35 materials=35 texgens=3 tev_stages=2 blend=1/4/1 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=29 name=dd_MA00_Mizusoko_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=30 name=dd_MA00_TuchiMichi_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=31 name=dd_MA00_tuchi_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=32 name=dd_MA01_Mizusoko_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=33 name=de_MA01_Mizusoko_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-0 model=000001FD0AE6D9B8 material=34 name=ee_MA00_kusa_v_x shapes=35 materials=35 texgens=2 tev_stages=3 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-1 model=000001FD0AF06500 material=0 name=cc_MA02_IndirectWater_v shapes=1 materials=1 texgens=2 tev_stages=1 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=part-2 model=000001FD0AF09220 material=0 name=cc_MA13_Kirikae_v_x shapes=1 materials=1 texgens=0 tev_stages=1 blend=1/4/5 depth=1/3/0 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=bgobj-0 model=000001FD0B00E098 material=0 name=aa_A_Kanban_v shapes=1 materials=1 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=357.11 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] WaterClass {class=F_SP103 role=bgobj-0 model=000001FD0B00FD60 material=0 name=aa_Kibako_v shapes=1 materials=1 texgens=1 tev_stages=1 blend=0/1/0 depth=1/3/1 water_y=0.00 room=0 stay_room=0}
+[INFO | com.midnafx.midnafx] Water thickness pre-depth {ready=yes requested=608x448 resolved=960x720 color=yes depth=yes}
+[INFO | com.midnafx.midnafx] Water thickness target {material=000001FD0AF08608 name=cc_MA02_IndirectWater_v shape=000001FD0AF06940}
+[INFO | com.midnafx.midnafx] Water thickness surface capture ready {size=960x720 packets=1 mask=color depth=R32F}
+[INFO | com.midnafx.midnafx] Water absorption active: size=960x720 strength=0.65 max_depth=5000 wave_strength=0.20 refraction_strength=0.15 reflection_strength=0.25 shoreline_strength=0.20 specular_strength=0.12 light=yes reversed_z=yes
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x0b active=no aspect=1.333 native=61.63 effective=61.63 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Diagnostics sample: preset=Profile / Remaster grading=on values=[0,0,100,102,108,25,0,0] active=0xff detail=on/12% status=Pre-HUD grading ready size=960x720 samples(active/disabled/neutral)=256/0/0 draws(submitted/encoded)=256/255 cpu_us(active_p50/p95/latest)=22.50/35.60/25.70 cpu_us(disabled_p50/p95/latest)=0.00/0.00/0.00 layout_us=1.10 resolve_us=7.40 config_us=0.60 atmosphere_depth=off/5000 dof_coc=off/1200/500
+[INFO | com.midnafx.midnafx] Camera FOV: type=41 mode=0 flags=0x0b active=no aspect=1.565 native=61.63 effective=61.63 movement=0.000 speed=0.00
+[INFO | com.midnafx.midnafx] Contact shading shutdown: compute=858 draw=858 target_sets=1
+[INFO | com.midnafx.midnafx] Color look shutdown: encoded=0 cached_layouts=1
+[INFO | com.midnafx.midnafx] Adaptive exposure shutdown: encoded=858 samples_per_frame=256
+[INFO | com.midnafx.midnafx] Scene bloom shutdown: compute=858 target_sets=1
+[INFO | com.midnafx.midnafx] WaterClass summary {reason=shutdown marked_draws=0 active_models=2 stage_scan_frames=859 stage_scan_us=67828 thickness_captures=859 thickness_failures=0 thickness_capture_us=66658 packets_total=859 packets_max=1}
+[INFO | com.midnafx.midnafx] MaterialControl event=shutdown requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] MaterialProfile event=shutdown profile=pumpkin-warm requested=0 bound=0 applies=0 restores=0 rejected=0
+[INFO | com.midnafx.midnafx] Geometry restore proof: bytes=13692 hash=3f85e23fd6ac3e78 exact=yes
+[INFO | com.midnafx.midnafx] Geometry smoothing: original normals restored
+[INFO | dusk::mods::loader] all mods unloaded
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gfx] Buffer mapping Aborted: Buffer was destroyed before mapping was resolved.
+[WARNING | aurora::gpu] Device lost: Device was destroyed.
