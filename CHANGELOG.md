@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.16.0 - 2026-10-29
+
+- Improve the shared depth-normal reconstruction used by ambient occlusion,
+  directional contact shadows and screen-space color bounce. Two-sample device
+  depth continuity preserves steep surfaces beside unrelated depth steps,
+  reducing false contact shading without asset or stage lists.
+- Reject invalid/background first neighbors and avoid clamped border derivatives.
+  Incomplete second-neighbor pairs and near-ties retain the nearest-depth fallback.
+  Reversed-Z projections use the same continuity criterion.
+- Reuse existing half-resolution fields, filters, strengths and Remaster controls.
+  No target, pass, history, host patch or preset migration is added. Reconstruction
+  adds up to four depth reads and four view reconstructions per valid field pixel;
+  GPU duration and whole-game quality remain unmeasured.
+- Add eight analytic GPU fixtures with sixteen normal/rendering assertions across
+  both image axes, forward/reversed depth and ordinary/odd target sizes. Mac
+  gameplay remains unverified and support stays best effort.
+
 ## 1.15.0 - 2026-10-29
 
 - Upgrade the existing opt-in Enhanced model shading control with live activation

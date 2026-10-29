@@ -61,9 +61,14 @@ fn cs_occlusion(@builtin(global_invocation_id) id: vec3u) {
     let size = textureDimensions(field_output);
     if (any(id.xy >= size)) { return; }
     let pixel = min(vec2i(id.xy * 2 + vec2u(1)), vec2i(textureDimensions(scene_depth)) - 1);
-    let center = view_point(pixel);
-    let normal = surface_normal(pixel, center);
-    if (center.z >= -0.0001 || dot(normal, normal) < 0.5) {
+    let sample = view_sample(pixel);
+    let center = sample.point;
+    if (center.z >= -0.0001) {
+        textureStore(field_output, vec2i(id.xy), vec4f(1,0,0,0));
+        return;
+    }
+    let normal = surface_normal(pixel, sample);
+    if (dot(normal, normal) < 0.5) {
         textureStore(field_output, vec2i(id.xy), vec4f(1,0,0,0));
         return;
     }

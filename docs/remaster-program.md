@@ -89,6 +89,12 @@ make the path usable without a rendering effect or extra geometry. This does not
 establish complete geometry coverage or justify default-on art quality. See
 [model shading](model-shading.md).
 
+Version 1.16 improves the shared contact-lighting surface reconstruction across
+AO, contact shadows and color bounce. Projected-plane continuity prevents a
+nearby unrelated depth step from reversing a steep surface normal. It reuses
+existing controls, fields and passes, with focused analytic rendering comparisons.
+Screen-space and whole-game quality limits remain; see [contact lighting](contact-lighting.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

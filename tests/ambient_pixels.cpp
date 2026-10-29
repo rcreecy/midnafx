@@ -460,6 +460,80 @@ int main() {
             char label[80]; std::snprintf(label, sizeof(label), "Flat perspective plane %ux%u identity", width, height);
             report(label, bounded(output, width, height) && output.color == scene(width, height));
         }
+        for (auto size : {std::array<unsigned, 2>{96, 96}, {39, 27}}) {
+            const auto [width, height] = size;
+            for (bool transpose : {false, true}) {
+                const unsigned extent = transpose ? height : width;
+                const unsigned boundary = ((extent / 2 - 1) | 1u);
+                const unsigned receiver_x = transpose ? (width / 2 | 1u) : boundary;
+                const unsigned receiver_y = transpose ? boundary : (height / 2 | 1u);
+                // A clipped steep plane ends at the receiver. Its reciprocal
+                // distance is affine in screen position, as required by its
+                // equation -6*X+Z=-offset (or 6*Y+Z=-offset when transposed).
+                // The separate wall beyond that edge is behind this plane,
+                // but its smaller view-Z delta makes the old derivative choose
+                // the wrong surface and reverse the normal's steep component.
+                const float center_ray = (2 * (boundary + 0.5f) - extent) / height;
+                const float offset = 10 * (1 + 6 * center_ray);
+                std::vector<float> depths(width * height, depth_at(11));
+                for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = 0; x < width; ++x) {
+                        const unsigned coordinate = transpose ? y : x;
+                        if (coordinate > boundary) continue;
+                        const float ray = (2 * (coordinate + 0.5f) - extent) / height;
+                        const float distance = offset / (1 + 6 * ray);
+                        depths[y * width + x] = distance > 1 && distance < 100 ? depth_at(distance) : 1;
+                    }
+                for (bool reversed_z : {false, true}) {
+                    auto params = perspective(width, height);
+                    params.radius = 20; // The steep plane's first-neighbor displacement remains valid.
+                    auto input = depths;
+                    if (reversed_z) {
+                        params.background_depth = 0;
+                        params.proj_from_view[10] = 1.0f / 99;
+                        params.proj_from_view[14] = 100.0f / 99;
+                        params.view_from_proj[11] = 99.0f / 100;
+                        params.view_from_proj[15] = 1.0f / 100;
+                        for (auto& depth : input) depth = 1 - depth;
+                    }
+                    const auto output = fixture.run(width, height, input, params);
+                    bool normal_valid = bounded(output, width, height);
+                    float normal_dot = -1, visibility = -1;
+                    if (normal_valid) {
+                        const auto field = output.raw[(receiver_y / 2) * ((width + 1) / 2) + receiver_x / 2];
+                        // Decode the public octahedral field representation;
+                        // the expected direction comes from the analytic plane.
+                        float nx = field[2] * 2 - 1, ny = field[3] * 2 - 1;
+                        const float nz = 1 - std::abs(nx) - std::abs(ny);
+                        const float fold = std::max(-nz, 0.0f);
+                        nx += nx >= 0 ? -fold : fold;
+                        ny += ny >= 0 ? -fold : fold;
+                        const float length = std::sqrt(nx * nx + ny * ny + nz * nz);
+                        normal_dot = (transpose ? 6 * ny + nz : -6 * nx + nz) /
+                                     (std::sqrt(37.0f) * length);
+                        visibility = field[0];
+                        normal_valid &= field[1] >= 1 && normal_dot > std::cos(2.0f * 3.14159265358979323846f / 180);
+                    }
+                    char label[180];
+                    std::snprintf(label, sizeof(label),
+                        "Steep plane edge normal %ux%u transpose=%u reversed=%u dot=%.6f",
+                        width, height, unsigned(transpose), unsigned(reversed_z), normal_dot);
+                    report(label, normal_valid);
+                    bool no_false_contact = bounded(output, width, height) && visibility >= 0.999f;
+                    if (no_false_contact) {
+                        const auto source = scene(width, height)[receiver_y * width + receiver_x];
+                        const auto result = output.color[receiver_y * width + receiver_x];
+                        for (unsigned channel = 0; channel < 3; ++channel)
+                            no_false_contact &= std::abs(int(result[channel]) - int(source[channel])) <= 1;
+                        no_false_contact &= result[3] == source[3];
+                    }
+                    std::snprintf(label, sizeof(label),
+                        "Steep plane edge rejects false AO %ux%u transpose=%u reversed=%u visibility=%.6f",
+                        width, height, unsigned(transpose), unsigned(reversed_z), visibility);
+                    report(label, no_false_contact);
+                }
+            }
+        }
         {
             const unsigned width = 33, height = 25;
             const auto output = fixture.run(width, height, std::vector<float>(width * height, 1), perspective(width, height));

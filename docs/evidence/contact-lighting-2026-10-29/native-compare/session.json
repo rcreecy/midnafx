@@ -1,0 +1,21 @@
+{
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/surface-lighting/native-compare/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/surface-lighting/native-compare/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/surface-lighting/native-compare/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "start": "2026-10-29T19:20:30.9282385Z",
+  "baseline_package_sha256": "AFCDD3231D31B42DDAE047B2631C05C021116963C836D0112F4D605E45C19BF5",
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+  "pid": 13756
+}

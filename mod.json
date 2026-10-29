@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "author": "MidnaFX contributors",
-  "description": "Guarded automatic model shading with preserved seams and live activation, alongside Remaster lighting, water, motion clarity and camera controls"
+  "description": "Cleaner contact lighting across steep surfaces and depth edges, alongside Remaster shading, sunlight, water, motion clarity and camera controls"
 }

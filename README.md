@@ -1,5 +1,10 @@
 # MidnaFX
 
+MidnaFX 1.16 improves scene contact lighting at steep surfaces and depth edges.
+Surface normals follow projected plane continuity instead of crossing a nearby
+depth step. Existing AO, contact shadows and color bounce share the improvement,
+without new controls or rendering passes. See [contact lighting](docs/contact-lighting.md).
+
 MidnaFX 1.15 upgrades **Enhanced model shading** with guarded automatic rigid-model
 coverage and live activation. Safe regions can improve while uncertain seams and
 shared normal indices retain their original shading, without new asset lists.
