@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.14 adds experimental **Sunlight shafts** across supported outdoor
+scenes. Native sun color and visibility drive depth-occluded rays without asset
+lists or extra targets/passes. Select **Profile / Remaster**, or its independent
+Basic toggle. Advanced lighting strength defaults to 10%. See
+[sunlight shafts](docs/sunlight-shafts.md) for evidence and screen-space limits.
+
 MidnaFX 1.13 adds experimental **Water scene reflections** on supported enhanced
 water. Nearby visible opaque scenery contributes reflections without new asset
 lists or rendering passes. Select **Profile / Remaster**, or enable Enhanced

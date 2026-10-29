@@ -62,6 +62,8 @@ bool contact_shadows_enabled();
 float contact_shadow_strength();
 bool color_bounce_enabled();
 float color_bounce_strength();
+bool sunlight_shafts_enabled();
+float sunlight_shafts_strength();
 bool atmosphere_enabled();
 float atmosphere_strength();
 unsigned color_look();

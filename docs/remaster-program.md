@@ -74,6 +74,13 @@ the feature; missed and off-screen sources retain the existing tint. This adds
 environment response while retaining first-layer screen-space limits. See
 [water scene reflections](water-scene-reflections.md).
 
+Version 1.14 adds experimental outdoor sunlight shafts, driven by native sun
+position, color and visibility. Visible opaque silhouettes interrupt the radial
+field, with foreground suppression and bounded linear-light composition. It
+shares the existing opaque-stage draw and adds no targets or asset identities.
+Remaster enables it at 10% strength; screen-space and transparent-occlusion
+limits remain explicit. See [sunlight shafts](sunlight-shafts.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

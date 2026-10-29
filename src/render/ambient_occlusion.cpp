@@ -1,5 +1,6 @@
 #include "ambient_occlusion.hpp"
 #include "gpu_validation.hpp"
+#include "sunlight_shafts_state.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -8,6 +9,7 @@
 #include <helpers/gx_helper.h>
 #include <m_Do/m_Do_graphic.h>
 #include <d/d_kankyo.h>
+#include <d/d_kankyo_wether.h>
 #include <d/d_com_inf_game.h>
 #include <algorithm>
 #include <atomic>
@@ -29,8 +31,10 @@ struct Uniforms {
     float light_position[4];
     float shadow_range[4];
     float bounce[4];
+    float sun_screen[4];
+    float sun_color[4];
 };
-static_assert(sizeof(Uniforms) == 224);
+static_assert(sizeof(Uniforms) == 256);
 struct Pipeline {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPURenderPipeline pipeline = nullptr;
@@ -82,6 +86,7 @@ bool logged = false;
 bool shadows_logged = false;
 bool bounce_logged = false;
 bool atmosphere_logged = false;
+bool sunlight_logged = false;
 bool submitted = false;
 
 void collect_targets() {
@@ -275,6 +280,11 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     float bounce = settings::color_bounce_enabled() && !compute_failed.load() && compute_type &&
         dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() && !dKy_camera_water_in_status_check()
                          ? settings::color_bounce_strength() : 0.0f;
+    const auto* sun = g_env_light.mpSunPacket;
+    float shafts = settings::sunlight_shafts_enabled() && dComIfGp_getPlayer(0) &&
+        !dComIfGp_isPauseFlag() && !dKy_camera_water_in_status_check() &&
+        !dKy_darkworld_check() && !g_env_light.hide_vrbox && g_env_light.mSunInitialized &&
+        sun && dKy_Outdoor_check() ? settings::sunlight_shafts_strength() : 0.0f;
     const float fog_near = std::max(g_env_light.mFogNear, 0.0f);
     const bool atmosphere_available = settings::atmosphere_enabled() &&
         settings::atmosphere_strength() > 0 && dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() &&
@@ -282,7 +292,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         std::isfinite(g_env_light.mFogFar) && g_env_light.mFogFar > fog_near + 1;
     const float haze = settings::atmosphere_enabled() && atmosphere_available
                            ? settings::atmosphere_strength() : 0.0f;
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0) return;
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0 && shafts <= 0) return;
     // Camera reconstruction currently supports one full native world viewport.
     const auto* viewport = static_cast<const view_port_class*>(context->game_viewport);
     if (!viewport || viewport->x_orig != 0 || viewport->y_orig != 0 ||
@@ -316,7 +326,16 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
                              [](float v) { return std::isfinite(v); })) shadows = 0;
         }
     }
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0) return;
+    sunlight_shafts::Source sunlight;
+    if (shafts > 0) {
+        const float world[]{sun->mPos[0].x, sun->mPos[0].y, sun->mPos[0].z};
+        const float color[]{sun->mColor.r / 255.0f, sun->mColor.g / 255.0f, sun->mColor.b / 255.0f};
+        sunlight = sunlight_shafts::prepare(camera.view_from_world, camera.proj_from_view,
+            world, color, shafts, sun->mSunAlpha, sun->mVisibility,
+            mDoGph_gInf_c::getWidth(), mDoGph_gInf_c::getHeight());
+        shafts = sunlight.screen[2];
+    }
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0 && shafts <= 0) return;
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK || !supported(layout)) return;
     auto* pipeline = get_pipeline(layout);
@@ -324,7 +343,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     Targets* targets = occlusion > 0 || shadows > 0 || bounce > 0
         ? ensure_targets(layout.color_attachments[0].width, layout.color_attachments[0].height, bounce > 0) : nullptr;
     if (!targets) { occlusion = 0; shadows = 0; bounce = 0; }
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0) return;
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0 && shafts <= 0) return;
     GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
     request.color = request.depth = true;
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
@@ -340,6 +359,8 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
     uniforms.bounce[0] = bounce;
     uniforms.bounce[1] = 180.0f;
+    std::copy(sunlight.screen.begin(), sunlight.screen.end(), uniforms.sun_screen);
+    std::copy(sunlight.color.begin(), sunlight.color.end(), uniforms.sun_color);
     if (shadows > 0 || bounce > 0)
         std::memcpy(uniforms.proj_from_view, camera.proj_from_view, sizeof(uniforms.proj_from_view));
     if (shadows > 0) {
@@ -363,7 +384,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         if (svc_gfx->push_compute(mod_ctx, compute_type, &work, sizeof(work)) != MOD_OK) {
             targets->pending.fetch_sub(1);
             targets = nullptr;
-            if (haze <= 0) return;
+            if (haze <= 0 && shafts <= 0) return;
         }
     }
     const Payload payload{pipeline, snapshot.color, snapshot.depth, range.offset, range.size, targets};
@@ -397,6 +418,14 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         svc_log->info(mod_ctx, "Color bounce active: 16 visible surface samples, range=180, linear-light bounded blend, HUD excluded");
         bounce_logged = true;
     }
+    if (!sunlight_logged && shafts > 0 && svc_log) {
+        char message[224];
+        std::snprintf(message, sizeof(message),
+            "Sunlight shafts active: native sun UV=(%.3f,%.3f) RGB=(%.2f,%.2f,%.2f) strength=%.3f sky-depth taps=16 HUD excluded",
+            sunlight.screen[0], sunlight.screen[1], sunlight.color[0], sunlight.color[1], sunlight.color[2], shafts);
+        svc_log->info(mod_ctx,message);
+        sunlight_logged = true;
+    }
 }
 void begin_scene(ModContext*, const GfxStageContext*, void*) {
     submitted = false;
@@ -405,6 +434,7 @@ void begin_scene(ModContext*, const GfxStageContext*, void*) {
 }
 void apply(const GfxStageContext* context) { stage(nullptr, context, nullptr); }
 void initialize() {
+    sunlight_logged = false;
     logged = false;
     shadows_logged = false;
     bounce_logged = false;

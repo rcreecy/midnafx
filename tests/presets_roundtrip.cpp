@@ -68,9 +68,9 @@ int main() {
     CHECK((remaster.product_flags & presets::MotionClarity) != 0);
     CHECK(presets::decode("MFX3\nOld camera\t0,0,100,100,100,0,0,0,255,1,12,127\n", decoded));
     CHECK((decoded[0].snapshot.product_flags & presets::MotionClarity) == 0);
-    CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere | presets::AdaptiveExposure | presets::Bloom | presets::ContactShadows | presets::ColorBounce | presets::WaterSceneReflections));
+    CHECK(remaster.scene_flags == (presets::AmbientOcclusion | presets::AntiAliasing | presets::Water | presets::Atmosphere | presets::AdaptiveExposure | presets::Bloom | presets::ContactShadows | presets::ColorBounce | presets::WaterSceneReflections | presets::SunlightShafts));
     CHECK(presets::vanilla().scene_flags == 0 && presets::vanilla().product_flags == 0);
-    for (int flags = -1; flags <= 511; ++flags) {
+    for (int flags = -1; flags <= 1023; ++flags) {
         auto snapshot = remaster;
         snapshot.scene_flags = flags;
         const auto text = presets::encode({{"Remaster copy", snapshot}, {"Legacy copy", realism}});
@@ -79,8 +79,10 @@ int main() {
         CHECK(decoded[0].snapshot.product_flags == remaster.product_flags);
         CHECK(decoded[1].snapshot.scene_flags == -1);
     }
-    CHECK(!presets::decode("MFX4\nBad\t0,0,100,100,100,0,0,0,255,1,12,9,512\n", decoded));
-    CHECK(decoded.size() == 2 && decoded[0].snapshot.scene_flags == 511);
+    CHECK(!presets::decode("MFX4\nBad\t0,0,100,100,100,0,0,0,255,1,12,9,1024\n", decoded));
+    CHECK(decoded.size() == 2 && decoded[0].snapshot.scene_flags == 1023);
+    CHECK(presets::decode("MFX4\nOld reflections\t0,0,100,100,100,0,0,0,255,1,12,9,511\n", decoded));
+    CHECK((decoded[0].snapshot.scene_flags & presets::SunlightShafts) == 0);
     CHECK(presets::decode("MFX4\nOld bounce\t0,0,100,100,100,0,0,0,255,1,12,9,255\n", decoded));
     CHECK((decoded[0].snapshot.scene_flags & presets::WaterSceneReflections) == 0);
     CHECK(presets::decode("MFX4\nOld shadows\t0,0,100,100,100,0,0,0,255,1,12,9,127\n", decoded));
@@ -94,6 +96,6 @@ int main() {
     CHECK(presets::decode("MFX3\nOld camera\t0,0,100,100,100,0,0,0,255,1,12,63\n", decoded));
     CHECK((decoded[0].snapshot.product_flags & presets::MovementCamera) == 0);
     auto invalid = remaster;
-    invalid.scene_flags = 512;
+    invalid.scene_flags = 1024;
     CHECK(presets::encode({{"Invalid", invalid}}).empty());
 }

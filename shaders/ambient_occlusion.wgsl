@@ -16,6 +16,44 @@ fn atmosphere(color: vec4f, point: vec3f) -> vec4f {
     let amount = params.fog_color.a * (1.0 - exp(-2.0 * min(distance, 4.0)));
     return vec4f(mix(color.rgb, params.fog_color.rgb, amount), color.a);
 }
+fn sunlight(color: vec4f, pixel: vec2i, center: vec3f) -> vec4f {
+    let strength = clamp(params.sun_screen.z, 0, 0.25);
+    if (strength <= 0 || params.sun_screen.w <= 0 ||
+        any(params.sun_screen != params.sun_screen) || any(params.sun_color != params.sun_color)) { return color; }
+    let size = vec2f(textureDimensions(scene_depth));
+    let receiver_depth = textureLoad(scene_depth, pixel, 0).r;
+    let background = abs(receiver_depth - params.background_depth) <= 0.000001;
+    if (receiver_depth != receiver_depth || (!background &&
+        (center.z >= -0.0001 || any(center != center) || any(abs(center) > vec3f(1e20))))) { return color; }
+    let uv = (vec2f(pixel) + vec2f(0.5)) / size;
+    let sun = params.sun_screen.xy;
+    if (any(sun <= vec2f(0)) || any(sun >= vec2f(1))) { return color; }
+    let delta = sun - uv;
+    let radial = length(delta * vec2f(params.sun_screen.w, 1));
+    let falloff = 1 - smoothstep(0.05, 0.65, radial);
+    if (falloff <= 0) { return color; }
+    let sun_edge = min(min(sun.x, 1-sun.x) * size.x, min(sun.y, 1-sun.y) * size.y);
+    let edge_fade = smoothstep(0, 24, sun_edge);
+    var visible = 0.0;
+    var weights = 0.0;
+    // Gather sky visibility toward the native sun. Opaque silhouettes create
+    // radial interruptions; transparent clouds/effects are not in this snapshot.
+    for (var tap = 0u; tap < 16u; tap++) {
+        let t = (f32(tap) + 0.5) / 16;
+        let sample_uv = uv + delta * t;
+        let depth = textureLoad(scene_depth, vec2i(sample_uv * size), 0).r;
+        let weight = 1 - t * 0.5;
+        visible += select(0.0, weight, abs(depth - params.background_depth) <= 0.000001);
+        weights += weight;
+    }
+    // Restrict foreground veiling while retaining sky and distant atmosphere.
+    let receiver = select(1-exp(-max(-center.z,0)/2000), 1.0, background);
+    let amount = strength * falloff * edge_fade * receiver * visible / max(weights,0.0001);
+    let base = bounce_linear(clamp(color.rgb, vec3f(0), vec3f(1)));
+    let added = (vec3f(1)-base) * bounce_linear(clamp(params.sun_color.rgb,vec3f(0),vec3f(1))) * amount;
+    if (!any(added > vec3f(0))) { return color; }
+    return vec4f(bounce_display(base+added),color.a);
+}
 fn lighting(pixel: vec2i, center: vec3f) -> vec4f {
     // Half-resolution representatives sit at full pixel 2*i+1.
     let point = (vec2f(pixel) - 1) * 0.5;
@@ -53,9 +91,9 @@ fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let pixel = vec2i(position.xy);
     let color = textureLoad(scene_color, pixel, 0);
     let center = view_point(pixel);
-    if (center.z >= -0.0001) { return color; }
+    if (center.z >= -0.0001) { return sunlight(color, pixel, center); }
     if (params.strength <= 0 && params.light_position.w <= 0 && params.bounce.x <= 0) {
-        return atmosphere(color, center);
+        return sunlight(atmosphere(color, center), pixel, center);
     }
     let light = lighting(pixel, center);
     var shaded = color.rgb * light.a;
@@ -68,5 +106,5 @@ fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
                         (vec3f(1) - base) * strength);
         if (any(added > vec3f(0))) { shaded = bounce_display(base + added); }
     }
-    return atmosphere(vec4f(shaded, color.a), center);
+    return sunlight(atmosphere(vec4f(shaded, color.a), center), pixel, center);
 }

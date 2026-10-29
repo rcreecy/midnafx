@@ -1,0 +1,15 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start  1: sunlight_shafts
+1/5 Test  #1: sunlight_shafts ..................   Passed    0.02 sec
+    Start 14: presets_roundtrip
+2/5 Test #14: presets_roundtrip ................   Passed    0.03 sec
+    Start 22: shader_compile
+3/5 Test #22: shader_compile ...................   Passed    0.09 sec
+    Start 24: ambient_pixels
+4/5 Test #24: ambient_pixels ...................   Passed    1.29 sec
+    Start 26: package_contract
+5/5 Test #26: package_contract .................   Passed    0.20 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   1.65 sec

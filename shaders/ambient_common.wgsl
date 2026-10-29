@@ -10,6 +10,8 @@ struct AmbientParams {
     light_position: vec4f,
     shadow_range: vec4f,
     bounce: vec4f,
+    sun_screen: vec4f,
+    sun_color: vec4f,
 }
 // Native scene color is an LDR, display-encoded signal, not material albedo.
 fn bounce_linear(color: vec3f) -> vec3f {

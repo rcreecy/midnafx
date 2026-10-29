@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "author": "MidnaFX contributors",
-  "description": "Remaster profile with visible-scenery water reflections, motion clarity, color bounce, contact shadows, movement-aware camera and bloom"
+  "description": "Remaster profile with native-sun light shafts, water scene reflections, motion clarity, color bounce, contact shadows and movement-aware camera"
 }

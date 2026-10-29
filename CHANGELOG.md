@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.14.0 - 2026-10-29
+
+- Add experimental sunlight shafts across supported outdoor scenes, without
+  asset or stage lists. Remaster enables the independent Basic toggle; Vanilla
+  disables it. Advanced lighting strength defaults to 10% with a 25% maximum.
+  Earlier scene masks keep the feature off until profile selection.
+- Read native sun position, color, alpha and visibility. Preserve native weather
+  and daylight fades; bypass missing, off-screen, behind-camera, paused,
+  underwater, Twilight and hidden-sky contexts. Use bounded screen-space depth
+  sampling to interrupt rays around visible opaque silhouettes.
+- Compose in linear light with bounded color headroom and foreground suppression,
+  preserving alpha and downstream water, grading, exposure, bloom, LUT and HUD.
+  Reuse the existing opaque-stage draw and snapshots. Shafts-only operation
+  requires no AO/bounce compute dispatch or extra targets.
+- Retain first-layer visibility limits: transparent/cloud occlusion, off-screen
+  geometry, physical volumetric transport, whole-game motion quality and universal
+  GPU cost remain unqualified. Mac gameplay remains unverified and best effort.
+
 ## 1.13.0 - 2026-10-28
 
 - Add experimental reflections of visible opaque scenery on supported enhanced

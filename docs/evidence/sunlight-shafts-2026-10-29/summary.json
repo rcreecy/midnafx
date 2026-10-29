@@ -1,0 +1,34 @@
+{
+  "native-on": {
+    "frames": 300,
+    "positive_source_frames": 0,
+    "last_visibility": 0.0,
+    "last_strength": 0.0
+  },
+  "native-probe": {
+    "frames": 300,
+    "positive_source_frames": 0,
+    "last_visibility": 0.0,
+    "last_strength": 0.0,
+    "last_peek_z": [
+      16777148,
+      16777146,
+      16777215,
+      16777215,
+      16777215
+    ]
+  },
+  "native-noon": {
+    "frames": 300,
+    "positive_source_frames": 295,
+    "last_visibility": 1.0,
+    "last_strength": 0.1,
+    "last_peek_z": [
+      16777215,
+      16777215,
+      16777215,
+      16777215,
+      16777215
+    ]
+  }
+}

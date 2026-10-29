@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.26)
+project(SunlightAudit VERSION 0.0.1 LANGUAGES CXX)
+add_subdirectory("C:/dev/midnafx/upstream/dusklight/sdk" sdk EXCLUDE_FROM_ALL)
+file(WRITE "${CMAKE_BINARY_DIR}/mod.json" "{\"id\":\"com.midnafx.sunlight_audit\",\"name\":\"Temporary sunlight audit\",\"version\":\"0.0.1\",\"author\":\"MidnaFX validation\"}")
+add_mod(sunlight_audit FEATURES game webgpu SOURCES driver.cpp MOD_JSON "${CMAKE_BINARY_DIR}/mod.json")
+target_include_directories(sunlight_audit PRIVATE "C:/dev/midnafx/src")

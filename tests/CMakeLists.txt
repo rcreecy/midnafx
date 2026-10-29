@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(sunlight_shafts sunlight_shafts.cpp)
+target_compile_features(sunlight_shafts PRIVATE cxx_std_20)
+target_include_directories(sunlight_shafts PRIVATE ../src)
+add_test(NAME sunlight_shafts COMMAND sunlight_shafts)
 add_executable(motion_clarity motion_clarity.cpp)
 target_compile_features(motion_clarity PRIVATE cxx_std_20)
 target_include_directories(motion_clarity PRIVATE ../src)

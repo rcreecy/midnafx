@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -26,8 +27,10 @@ struct Params {
     float light_position[4]{};
     float shadow_range[4]{};
     float bounce[4]{};
+    float sun_screen[4]{};
+    float sun_color[4]{};
 };
-static_assert(sizeof(Params) == 224);
+static_assert(sizeof(Params) == 256);
 
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
@@ -402,6 +405,13 @@ bool bounce_bounds(const Output& output, unsigned width, unsigned height,
                 return false;
         }
     return true;
+}
+int sunlight_code(unsigned char base, float color, float amount) {
+    const auto linear = [](float v) { return v <= 0.04045f ? v / 12.92f : std::pow((v + 0.055f) / 1.055f, 2.4f); };
+    const float value = linear(base / 255.0f);
+    const float result = value + (1 - value) * linear(color) * amount;
+    const float encoded = result <= 0.0031308f ? result * 12.92f : 1.055f * std::pow(result, 1 / 2.4f) - 0.055f;
+    return int(std::lround(encoded * 255));
 }
 } // namespace
 
@@ -883,6 +893,147 @@ int main() {
                 valid &= bounded(output, width, height) && output.color == scene(width, height);
             }
             report("Active bounce remains finite and neutral on small and odd flat targets", valid);
+        }
+        {
+            const auto shafts = [](unsigned width, unsigned height) {
+                auto p = perspective(width, height); p.strength = 0;
+                p.sun_screen[0] = p.sun_screen[1] = 0.5f;
+                p.sun_screen[2] = 0.1f; p.sun_screen[3] = float(width) / height;
+                p.sun_color[0] = 1; p.sun_color[1] = 0.4f; p.sun_color[2] = 0.1f;
+                return p;
+            };
+            const auto colors = [](unsigned width, unsigned height) {
+                auto pixels = scene(width, height);
+                for (auto& pixel : pixels) pixel[0] = pixel[1] = pixel[2] = 100;
+                return pixels;
+            };
+            for (auto size : {std::array<unsigned,2>{96,80}, {65,49}, {1,1}, {3,5}}) {
+                const auto [width, height] = size;
+                auto p = shafts(width, height);
+                const auto pixels = colors(width, height);
+                const std::vector<float> sky(width * height, 1);
+                const auto output = fixture.run(width, height, sky, p, {}, pixels);
+                bool valid = bounded(output, width, height, pixels);
+                unsigned lifted = 0;
+                if (valid) for (size_t i = 0; i < pixels.size(); ++i) {
+                    lifted += output.color[i][0] > pixels[i][0];
+                    for (unsigned c = 0; c < 3; ++c)
+                        valid &= output.color[i][c] >= pixels[i][c] &&
+                            output.color[i][c] <= sunlight_code(pixels[i][c], p.sun_color[c], 0.1f) + 1;
+                }
+                if (width > 24 && valid) {
+                    const auto& center = output.color[(height / 2) * width + width / 2];
+                    valid &= lifted > 0 && center[0] > center[1] && center[1] > center[2];
+                    for (unsigned c = 0; c < 3; ++c)
+                        valid &= std::abs(int(center[c]) - sunlight_code(100, p.sun_color[c], 0.1f)) <= 1;
+                }
+                char label[128];
+                std::snprintf(label, sizeof(label), "Default ten-percent sunlight sky, linear headroom and exact alpha %ux%u lifted=%u", width, height, lifted);
+                report(label, valid);
+                if (width != 96) continue;
+                auto blue = p; blue.sun_color[0] = 0.1f; blue.sun_color[2] = 1;
+                const auto cool = fixture.run(width, height, sky, blue, {}, pixels);
+                valid = bounded(cool, width, height, pixels);
+                const size_t middle = (height / 2) * width + width / 2;
+                if (valid) valid &= cool.color[middle][2] > cool.color[middle][0] &&
+                    cool.color[middle][2] > output.color[middle][2];
+                report("Sunlight contribution follows the supplied native source hue", valid);
+
+                auto masked = sky;
+                for (unsigned y = 0; y < height; ++y)
+                    for (unsigned x = width * 2 / 5; x < width * 9 / 20; ++x)
+                        masked[y * width + x] = depth_at(10);
+                const auto occluded = fixture.run(width, height, masked, p, {}, pixels);
+                const size_t receiver = (height / 2) * width + width / 4;
+                valid = bounded(occluded, width, height, pixels) && masked[receiver] == sky[receiver];
+                if (valid) valid &= occluded.color[receiver][0] < output.color[receiver][0];
+                report("Opaque radial mask decreases shafts at an unchanged sky receiver depth", valid);
+                const auto opaque = fixture.run(width, height,
+                    std::vector<float>(width * height, depth_at(10)), p, {}, pixels);
+                report("All-opaque visibility produces exact source-color bypass",
+                       bounded(opaque, width, height, pixels) && opaque.color == pixels);
+
+                auto distant_params = p;
+                constexpr float far = 10000;
+                distant_params.proj_from_view[10] = distant_params.proj_from_view[14] = -far / (far - 1);
+                distant_params.view_from_proj[11] = -(far - 1) / far;
+                const auto depth = [](float distance) { return far / (far - 1) - (far / (far - 1)) / distance; };
+                auto nearby_depth = sky, distant_depth = sky;
+                nearby_depth[receiver] = depth(10); distant_depth[receiver] = depth(5000);
+                const auto nearby = fixture.run(width, height, nearby_depth, distant_params, {}, pixels);
+                const auto distant = fixture.run(width, height, distant_depth, distant_params, {}, pixels);
+                valid = bounded(nearby, width, height, pixels) && bounded(distant, width, height, pixels);
+                if (valid) valid &= distant.color[receiver][0] > nearby.color[receiver][0] &&
+                    nearby.color[receiver][0] <= pixels[receiver][0] + 1;
+                report("Equal radial visibility suppresses near-foreground veiling relative to distant receivers", valid);
+
+                auto legacy = p; legacy.sun_screen[2] = 0; legacy.strength = 0.8f;
+                legacy.fog_color[0] = 0.2f; legacy.fog_color[1] = 0.3f; legacy.fog_color[2] = 0.4f;
+                legacy.fog_color[3] = 0.3f; legacy.fog_range[0] = 2; legacy.fog_range[1] = 18;
+                const auto legacy_depth = corner_depth(width, height);
+                const auto reference = fixture.run(width, height, legacy_depth, legacy, {}, pixels);
+                legacy.sun_screen[0] = -1; legacy.sun_screen[1] = 2;
+                const auto zero = fixture.run(width, height, legacy_depth, legacy, {}, pixels);
+                report("Zero shaft strength preserves existing AO and fog color/fields exactly",
+                       bounded(zero, width, height, pixels) && reference.color == zero.color &&
+                       reference.raw == zero.raw && reference.filtered == zero.filtered);
+
+                bool bypass = true;
+                for (unsigned invalid = 0; invalid < 4; ++invalid) {
+                    auto invalid_sun = p;
+                    if (invalid == 0) invalid_sun.sun_screen[0] = 0;
+                    if (invalid == 1) invalid_sun.sun_screen[1] = 1.01f;
+                    if (invalid == 2) invalid_sun.sun_screen[3] = 0;
+                    if (invalid == 3) invalid_sun.sun_color[0] = std::numeric_limits<float>::quiet_NaN();
+                    const auto bad = fixture.run(width, height, sky, invalid_sun, {}, pixels);
+                    bypass &= bounded(bad, width, height, pixels) && bad.color == pixels;
+                }
+                auto invalid_depth = sky; invalid_depth[receiver] = std::numeric_limits<float>::quiet_NaN();
+                const auto bad_depth = fixture.run(width, height, invalid_depth, p, {}, pixels);
+                bypass &= bounded(bad_depth, width, height, pixels);
+                if (bad_depth.color.size() == pixels.size()) bypass &= bad_depth.color[receiver] == pixels[receiver];
+                report("Invalid/offscreen sunlight and invalid receiver depth bypass without alpha corruption", bypass);
+
+                auto composition = distant_params; composition.strength = 0.8f; composition.radius = 800;
+                composition.fog_color[0] = 0.2f; composition.fog_color[1] = 0.3f; composition.fog_color[2] = 0.4f;
+                composition.fog_color[3] = 0.3f; composition.fog_range[0] = 500; composition.fog_range[1] = 6000;
+                auto geometry = sky;
+                // Put the opaque horizon below the sun. With a horizon at
+                // exactly sun_screen.y, every finite radial tap stays opaque.
+                for (unsigned y = height * 3 / 5; y < height; ++y)
+                    for (unsigned x = 0; x < width; ++x) geometry[y * width + x] = depth(2000);
+                auto composition_off = composition; composition_off.sun_screen[2] = 0;
+                const std::vector<Field> ambient_seed(((width + 1) / 2) * ((height + 1) / 2), Field{0.5f,1,0.5f,0.5f});
+                const auto before = fixture.run(width, height, geometry, composition_off, ambient_seed, pixels);
+                const auto after = fixture.run(width, height, geometry, composition, ambient_seed, pixels);
+                valid = bounded(before, width, height, pixels) && bounded(after, width, height, pixels);
+                unsigned distant_lifted = 0, bound_failures = 0;
+                if (valid) for (size_t i = 0; i < pixels.size(); ++i) {
+                    if (geometry[i] != 1) distant_lifted += after.color[i][0] > before.color[i][0];
+                    for (unsigned c = 0; c < 3; ++c) {
+                        const bool within_bound = int(after.color[i][c]) >= int(before.color[i][c]) - 1 &&
+                            after.color[i][c] <= sunlight_code(before.color[i][c], p.sun_color[c], 0.1f) + 1;
+                        bound_failures += !within_bound;
+                        valid &= within_bound;
+                    }
+                }
+                valid &= distant_lifted > 0;
+                std::printf("Sunlight composition diagnostic: distant_lifted=%u bound_failures=%u\n",
+                            distant_lifted, bound_failures);
+                report("Sunlight composes over AO/fog inside a bounded linear headroom envelope", valid);
+                auto reversed = composition;
+                reversed.background_depth = 0; reversed.proj_from_view[10] = 1 / (far - 1);
+                reversed.proj_from_view[14] = far / (far - 1);
+                reversed.view_from_proj[11] = (far - 1) / far; reversed.view_from_proj[15] = 1 / far;
+                auto reversed_depth = geometry;
+                for (auto& value : reversed_depth) value = 1 - value;
+                const auto reverse = fixture.run(width, height, reversed_depth, reversed, ambient_seed, pixels);
+                valid = bounded(reverse, width, height, pixels) && reverse.color.size() == after.color.size();
+                if (valid) for (size_t i = 0; i < after.color.size(); ++i)
+                    for (unsigned c = 0; c < 3; ++c)
+                        valid &= std::abs(int(reverse.color[i][c]) - int(after.color[i][c])) <= 1;
+                report("Matched reversed-Z sunlight geometry and alpha agree within one display code", valid);
+            }
         }
     }
     std::printf("%u ambient pixel cases: %s\n", cases, ok ? "PASS" : "FAIL");

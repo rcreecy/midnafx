@@ -1,0 +1,22 @@
+{
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+  "driver_sha256": "A840FA9CD730A5F9405F283C0483DA43EF53A7B4DE5226B518439BD17D2087B9",
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/sunlight-shafts/native-noon/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/sunlight-shafts/native-noon/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/sunlight-shafts/native-noon/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "package_sha256": "32D26DA7F6498FCBB1B598A42EB5508F8F4CCDDDEA989B1A0AFD8361E8FCBDAB",
+  "start": "2026-10-29T12:30:59.8992219Z",
+  "pid": 28460
+}
