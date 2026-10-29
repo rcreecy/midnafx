@@ -1,4 +1,6 @@
 *.patch whitespace=-blank-at-eol
+# Preserve native shading logs, including emitted trailing spaces.
+docs/evidence/rigid-shading-2026-10-29/**/native.log -text whitespace=-blank-at-eol,cr-at-eol
 # Raw timing evidence is hash-qualified; preserve its bytes across checkouts.
 docs/evidence/**/frame-timing.json -text
 # These retained receipts and probe sources are qualified by their exact bytes.

@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.15.0 - 2026-10-29
+
+- Upgrade the existing opt-in Enhanced model shading control with live activation
+  on qualified resident archives. Resume the bounded sweep between models; keep
+  ordinary frames free of recurring topology scans once it completes.
+- Broaden automatic rigid qualification through partial normal preservation.
+  Coincident position identities remain separate; every normal index used at
+  uncertain seams or overlapping groups stays unchanged at all uses. Independently
+  safe regions can improve without new asset allowlists or index rewriting.
+- Require supported opaque materials, rigid shape/joint palettes, matrix-zero
+  vertex references, bounded source descriptors/draws and complete load history.
+  Restore owned rigid normals before native deformation attachment and exclude
+  that generation until archive deletion. Mod reload requires a subsequent
+  genuine archive load or game restart for automatic coverage.
+- Preserve intervening normal writers during disable/delete/unload restoration.
+  Bound original/applied backups together within 16 MiB. Keep strict planner
+  defaults, the existing Link contract and separate legacy rebuilds intact.
+- Add portable matrix, topology, partial-preservation and byte-ownership checks.
+  Broad art/motion quality and universal performance remain unqualified; model
+  shading stays opt-in. Mac gameplay remains unverified and best effort.
+
 ## 1.14.0 - 2026-10-29
 
 - Add experimental sunlight shafts across supported outdoor scenes, without

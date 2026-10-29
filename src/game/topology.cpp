@@ -162,7 +162,7 @@ bool add_triangle(Result& out, std::span<const Vec3> positions, const std::vecto
 
 bool decode_group(Result& out, std::span<const Vec3> positions, std::uint32_t normal_count,
                   std::span<const std::uint8_t> dl, const Layout& layout, std::uint16_t shape,
-                  std::uint16_t material, std::uint16_t group) {
+                  std::uint16_t material, std::uint16_t group, bool require_matrix_zero) {
     std::size_t at = 0;
     while (at < dl.size()) {
         const std::uint8_t cmd = dl[at];
@@ -258,6 +258,12 @@ bool decode_group(Result& out, std::span<const Vec3> positions, std::uint32_t no
         for (std::size_t i = 0; i < vertex_count; ++i) {
             const auto* vertex = dl.data() + vertices_at + i * layout.stride;
             const Slot ps = layout.slots[Pos], ns = layout.slots[Nrm];
+            const Slot matrix = layout.slots[0];
+            if (require_matrix_zero && matrix.kind &&
+                (matrix.kind != 1 || matrix.size != 1 || vertex[matrix.offset] != 0)) {
+                out.error = "unproven rigid position matrix index";
+                return false;
+            }
             const std::uint16_t p = ps.kind == 2 ? vertex[ps.offset] : be16(vertex + ps.offset);
             const std::uint16_t n = ns.kind == 2 ? vertex[ns.offset] : be16(vertex + ns.offset);
             if (p >= positions.size() || n >= normal_count) {
@@ -332,7 +338,7 @@ Result decode(std::span<const Shape> shapes, std::span<const Format> formats,
             }
             if (!decode_group(result, positions, normal_count, {group.display_list, group.size},
                               layout, static_cast<std::uint16_t>(si), shape.material,
-                              static_cast<std::uint16_t>(gi)))
+                              static_cast<std::uint16_t>(gi), shape.require_matrix_zero))
                 return result;
         }
     }

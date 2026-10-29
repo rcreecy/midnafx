@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(rigid_shading rigid_shading.cpp)
+target_compile_features(rigid_shading PRIVATE cxx_std_20)
+target_include_directories(rigid_shading PRIVATE ../src)
+add_test(NAME rigid_shading COMMAND rigid_shading)
 add_executable(sunlight_shafts sunlight_shafts.cpp)
 target_compile_features(sunlight_shafts PRIVATE cxx_std_20)
 target_include_directories(sunlight_shafts PRIVATE ../src)

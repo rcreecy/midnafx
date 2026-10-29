@@ -1,5 +1,11 @@
 # Automatic model shading qualification
 
+Version 1.15 adds guarded resident activation and partial preservation for
+automatic rigid models. The historical whole-model duplicate-position and
+overlapping-group vetoes below remain the strict default; the new explicit
+policy preserves affected normal indices globally while qualifying the remaining
+regions. See [the current contract](model-shading.md) and its evidence ledger.
+
 ## Starting audit (2026-10-03)
 
 Work starts at `69aedbfd44bd9d3511d0df5985c842df9b3bc540`, branch

@@ -1,0 +1,106 @@
+{
+  "resident-off": {
+    "package_sha256": "F0B156FBF5FC35C0C8696937174F197EB52C514E335CFA384B1709D5EE025667",
+    "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+    "sweeps": [
+      {
+        "examined": 115,
+        "applied": 3,
+        "skipped": 112
+      }
+    ],
+    "distinct_loaded_arrays": [
+      "Always/breakwoodbox.bmd",
+      "Always/o_g_rupy.bmd",
+      "E_nest/o_hachinosu_02.bmd"
+    ],
+    "application_events": 3,
+    "exact_restoration_events": 3,
+    "restored_bytes": 762,
+    "exit_code": 0
+  },
+  "partial-resident": {
+    "package_sha256": "835A7EBFCA6BA29D2DEC4A4C80E894663731422B3F7417A07F6EFD3ADDBF984E",
+    "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+    "sweeps": [
+      {
+        "examined": 115,
+        "applied": 20,
+        "skipped": 95
+      }
+    ],
+    "distinct_loaded_arrays": [
+      "Alink/sango_fook.bmd",
+      "Alink/wl_change.bmd",
+      "Always/breakwoodbox.bmd",
+      "Always/d_brockbrk.bmd",
+      "Always/mpm_tubo.bmd",
+      "Always/o_g_hart.bmd",
+      "Always/o_g_rupy.bmd",
+      "E_bee/be03.bmd",
+      "E_bee/be04.bmd",
+      "E_nest/o_hachinosu_01.bmd",
+      "E_nest/o_hachinosu_02.bmd",
+      "Npc_ks/saru_bara.bmd",
+      "Npc_ks/saru_stick.bmd",
+      "Stg_00/door-knob_00.bmd",
+      "Stg_00/door-knob_01.bmd",
+      "Uri1/uri_kago.bmd",
+      "d_srock/d_srock.bmd",
+      "hanjo1/hanjo_hare.bmd",
+      "uri_kago/baby_kago.bmd",
+      "uri_kago/uri_kago_on.bmd"
+    ],
+    "application_events": 20,
+    "exact_restoration_events": 20,
+    "restored_bytes": 16296,
+    "exit_code": 0
+  },
+  "final-resident": {
+    "package_sha256": "61637925EC5620AFBA48A258C579CF6CCB0ACEA7C111712E3C11D62332D37102",
+    "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+    "sweeps": [
+      {
+        "examined": 107,
+        "applied": 20,
+        "skipped": 87
+      },
+      {
+        "examined": 107,
+        "applied": 20,
+        "skipped": 87
+      },
+      {
+        "examined": 0,
+        "applied": 0,
+        "skipped": 0
+      }
+    ],
+    "distinct_loaded_arrays": [
+      "Alink/sango_fook.bmd",
+      "Alink/wl_change.bmd",
+      "Always/breakwoodbox.bmd",
+      "Always/d_brockbrk.bmd",
+      "Always/mpm_tubo.bmd",
+      "Always/o_g_hart.bmd",
+      "Always/o_g_rupy.bmd",
+      "E_bee/be03.bmd",
+      "E_bee/be04.bmd",
+      "E_nest/o_hachinosu_01.bmd",
+      "E_nest/o_hachinosu_02.bmd",
+      "Npc_ks/saru_bara.bmd",
+      "Npc_ks/saru_stick.bmd",
+      "Stg_00/door-knob_00.bmd",
+      "Stg_00/door-knob_01.bmd",
+      "Uri1/uri_kago.bmd",
+      "d_srock/d_srock.bmd",
+      "hanjo1/hanjo_hare.bmd",
+      "uri_kago/baby_kago.bmd",
+      "uri_kago/uri_kago_on.bmd"
+    ],
+    "application_events": 40,
+    "exact_restoration_events": 40,
+    "restored_bytes": 32592,
+    "exit_code": 0
+  }
+}

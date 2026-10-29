@@ -1030,6 +1030,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
     add_toggle(panel, "Enhanced model shading", geometry_smoothing);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Smooths qualified rigid models without changing silhouettes. After reloading MidnaFX, restart the game to restore automatic coverage.", nullptr));
     add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Smooths supported regions of Link's original Ordon and Hero's Clothes. Armor outfits and replacement models stay unchanged.", nullptr));
@@ -1177,9 +1179,9 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_number(panel, smoothing_angle_setting);
     add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Hard normal splits and material boundaries are always preserved. Unsupported or ambiguous models are skipped. "
+        "Hard normal splits and material boundaries stay intact. Uncertain regions keep their original shading. "
         "Link's supported Ordon and Hero's Clothes update on the next game update and restore source normals when disabled. "
-        "Other model shading requires enabling before a scene load.", nullptr));
+        "Model shading updates eligible resident models. After reloading MidnaFX, restart the game for automatic coverage.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Developer: visual diagnostics"));
     add_toggle(panel, "Bypass color look", look_bypass);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel, "Color look resources pending", &look_element));

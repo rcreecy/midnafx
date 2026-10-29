@@ -5,10 +5,13 @@
 #include "character_identity.hpp"
 #include "services.hpp"
 #include "smoothing.hpp"
+#include "rigid_shading_state.hpp"
 #include "topology.hpp"
 #include "ui/settings.hpp"
 
 #include <JSystem/J3DGraphAnimator/J3DModelData.h>
+#include <JSystem/J3DGraphAnimator/J3DModel.h>
+#include <JSystem/J3DGraphAnimator/J3DJoint.h>
 #include <JSystem/J3DGraphBase/J3DMaterial.h>
 #include <JSystem/J3DGraphBase/J3DShape.h>
 #include <JSystem/J3DGraphLoader/J3DModelLoader.h>
@@ -39,10 +42,30 @@ DEFINE_HOOK(&dRes_info_c::loadResource, ResourceLoad);
 DEFINE_HOOK(&dRes_info_c::deleteArchiveRes, ResourceDelete);
 DEFINE_HOOK(&mDoExt_J3DModel__create, ModelCreate);
 DEFINE_HOOK(&J3DModelLoaderDataBase::load, ModelLoad);
+DEFINE_HOOK(&J3DModel::setDeformData, DeformAttach);
+DEFINE_HOOK(&J3DModel::setSkinDeform, SkinAttach);
 bool load_registered = false;
 bool delete_registered = false;
 bool create_registered = false;
 bool model_load_registered = false;
+bool deform_registered = false, skin_registered = false;
+bool rigid_history_lost = false;
+bool rigid_enabled_last = false;
+unsigned rigid_cursor = 192;
+unsigned rigid_node = 0, rigid_file = 0;
+std::vector<dRes_info_c*> fresh_owners;
+struct DeformedModel { dRes_info_c* owner; J3DModelData* model; };
+std::vector<DeformedModel> deformed_models;
+struct SourceModel {
+    dRes_info_c* owner;
+    J3DModelData* model;
+    const void* raw;
+    const void* normals;
+    std::size_t normal_bytes;
+    const void* positions;
+    std::size_t position_bytes;
+};
+std::vector<SourceModel> source_models;
 
 struct Replacement {
     enum class Kind { Pot, LinkBody, Nest, Pumpkin } kind = Kind::Pot;
@@ -251,14 +274,18 @@ struct MutationBackup {
     u32 bytes = 0;
     u32 instances = 0;
     std::unique_ptr<std::byte[]> original;
+    std::unique_ptr<std::byte[]> applied;
+    u32 normal_stride = 0;
 };
 std::vector<MutationBackup> mutations;
 struct ProcessedModel {
     const dRes_info_c* owner;
     J3DModelData* model;
+    bool skinned = false;
 };
 std::vector<ProcessedModel> processed;
 Summary current_summary;
+Summary rigid_sweep_start;
 
 bool is_smoothing(MutationBackup::Kind kind) {
     return kind == MutationBackup::Kind::RigidSmoothing ||
@@ -276,14 +303,27 @@ bool has_mutation_kind(MutationBackup::Kind kind) {
 }
 
 void restore_mutations(MutationBackup::Kind kind = MutationBackup::Kind::None,
-                       dRes_info_c* owner = nullptr) {
+                       dRes_info_c* owner = nullptr, J3DModelData* model = nullptr) {
     for (auto it = mutations.begin(); it != mutations.end();) {
         if ((kind != MutationBackup::Kind::None && it->kind != kind) ||
-            (owner && it->owner != owner)) {
+            (owner && it->owner != owner) || (model && it->model_data != model)) {
             ++it;
             continue;
         }
-        std::memcpy(it->normals, it->original.get(), it->bytes);
+        if (it->applied) {
+            const auto result = rigid_shading::restore_owned(
+                {static_cast<std::byte*>(it->normals), it->bytes},
+                {it->original.get(), it->bytes}, {it->applied.get(), it->bytes}, it->normal_stride);
+            if (!result.valid || result.preserved) {
+                char message[160];
+                std::snprintf(message, sizeof(message),
+                    "Geometry restore ownership: restored=%zu preserved_external=%zu valid=%s",
+                    result.restored, result.preserved, result.valid ? "yes" : "NO");
+                svc_log->warn(mod_ctx, message);
+            }
+        } else {
+            std::memcpy(it->normals, it->original.get(), it->bytes);
+        }
         char restoration[180];
         std::snprintf(restoration, sizeof(restoration),
                       "Geometry restore proof: bytes=%u hash=%016llx exact=%s", it->bytes,
@@ -411,6 +451,119 @@ bool shared_normal_storage(const dRes_info_c& info, J3DModelData& model) {
     return false;
 }
 
+bool fresh_owner(const dRes_info_c& info) {
+    return std::find(fresh_owners.begin(), fresh_owners.end(), &info) != fresh_owners.end();
+}
+
+const char* rigid_rejection(const dRes_info_c& info, J3DModelData& model) {
+    if (!deform_registered || !skin_registered) return "deformation guards unavailable";
+    if (rigid_history_lost) return "load history budget unavailable";
+    if (!fresh_owner(info)) return "load history unavailable; reload the scene archive";
+    if (!info.mArchive || !info.mRes || info.mArchive->countFile() > 4096)
+        return "archive exceeds deformation ownership budget";
+    rigid_shading::Layout layout;
+    layout.envelopes = model.getWEvlpMtxNum();
+    layout.joints = model.getJointNum();
+    layout.draw_matrices = model.getDrawMtxNum();
+    layout.shapes = model.getShapeNum();
+    layout.materials = model.getMaterialNum();
+    layout.billboard = model.checkBBoardFlag();
+    layout.bump = model.checkBumpFlag();
+    layout.deformed = std::any_of(deformed_models.begin(), deformed_models.end(),
+        [&](const DeformedModel& item) { return item.model == &model; });
+    if (layout.draw_matrices == 1) {
+        layout.draw_flag = model.getDrawMtxFlag(0);
+        layout.draw_index = model.getDrawMtxIndex(0);
+    }
+    if (const auto* reason = rigid_shading::rejection(layout)) return reason;
+    if (!model.getJointNodePointer(0) || model.getJointNodePointer(0)->getMtxType() != 0)
+        return "non-rigid joint matrix type";
+    for (u16 i = 0; i < model.getMaterialNum(); ++i) {
+        auto* material = model.getMaterialNodePointer(i);
+        if (!material || (material->getMaterialMode() & 7) != 1 || !material->getPEBlock())
+            return "non-opaque material";
+        // The compact opaque block encodes these fixed states without exposing
+        // individual blend/alpha objects. Null/edge/translucent blocks do not.
+        if (material->getPEBlock()->getType() == 'PEOP') continue;
+        auto* blend = material->getBlend();
+        auto* alpha = material->getPEBlock()->getAlphaComp();
+        if (!blend || blend->getBlendMode() != GX_BM_NONE || !alpha ||
+            alpha->getComp0() != GX_ALWAYS || alpha->getComp1() != GX_ALWAYS ||
+            (alpha->getOp() != GX_AOP_AND && alpha->getOp() != GX_AOP_OR))
+            return "blended or alpha-tested material";
+    }
+    for (u16 i = 0; i < model.getShapeNum(); ++i) {
+        auto* shape = model.getShapeNodePointer(i);
+        if (!shape || shape->checkFlag(J3DShpFlag_SkinPosCpu | J3DShpFlag_SkinNrmCpu) ||
+            !shape->getMtxGroupNum() || shape->getMtxGroupNum() > 4096)
+            return "unsupported rigid shape";
+        for (u16 group = 0; group < shape->getMtxGroupNum(); ++group) {
+            auto* matrix = shape->getShapeMtx(group);
+            if (!matrix || (matrix->getType() != 'SMTX' && matrix->getType() != 'SMCV') ||
+                matrix->getUseMtxNum() != 1 || matrix->getUseMtxIndex(0) != 0)
+                return "unsupported shape matrix palette";
+        }
+    }
+    return nullptr;
+}
+
+bool exclude_deformation(dRes_info_c* owner, J3DModelData* model) {
+    restore_mutations(MutationBackup::Kind::RigidSmoothing, owner, model);
+    if (std::none_of(deformed_models.begin(), deformed_models.end(),
+                     [&](const DeformedModel& item) { return item.model == model; })) {
+        try {
+            if (deformed_models.size() >= 4096) throw std::bad_alloc{};
+            deformed_models.push_back({owner, model});
+        } catch (const std::bad_alloc&) {
+            rigid_history_lost = true;
+            restore_mutations(MutationBackup::Kind::RigidSmoothing);
+            svc_log->warn(mod_ctx, "Rigid shading disabled: deformation history unavailable");
+            return false;
+        }
+    }
+    return true;
+}
+
+HookAction before_deformation(J3DModel* instance) {
+    auto* model = instance ? instance->getModelData() : nullptr;
+    if (!model) return HOOK_CONTINUE;
+    const auto& vertex = model->getVertexData();
+    const auto* raw = model->getRawData();
+    const auto normal_bytes = std::size_t(vertex.getNrmNum()) * vertex.getVtxArrStride(GX_VA_NRM);
+    const auto position_bytes = std::size_t(vertex.getVtxArrNum(GX_VA_POS)) * vertex.getVtxArrStride(GX_VA_POS);
+    // An actor can copy model-data metadata while retaining the original raw
+    // arrays. Match source identity/ranges, not only the model-data pointer.
+    for (const auto& source : source_models) {
+        if (source.model == model ||
+            rigid_shading::aliases_source(source.raw, source.normals, source.normal_bytes,
+                                         raw, vertex.getVtxNrmArray(), normal_bytes) ||
+            rigid_shading::aliases_source(source.raw, source.positions, source.position_bytes,
+                                         raw, vertex.getVtxPosArray(), position_bytes))
+            if (!exclude_deformation(source.owner, source.model)) return HOOK_CONTINUE;
+    }
+    // Also protect older validated rebuilds if history allocation was lost.
+    for (std::size_t i = 0; i < mutations.size();) {
+        const auto& mutation = mutations[i];
+        if (mutation.kind == MutationBackup::Kind::RigidSmoothing &&
+            rigid_shading::aliases_source(mutation.model_data->getRawData(), mutation.normals, mutation.bytes,
+                                         raw, vertex.getVtxNrmArray(), normal_bytes)) {
+            auto* owner = mutation.owner;
+            auto* data = mutation.model_data;
+            if (!exclude_deformation(owner, data)) return HOOK_CONTINUE;
+        } else ++i;
+    }
+    return HOOK_CONTINUE;
+}
+
+HookAction before_deform(ModContext*, void* args, void*, void*) {
+    return args && mods::arg<J3DDeformData*>(args, 1)
+        ? before_deformation(mods::arg<J3DModel*>(args, 0)) : HOOK_CONTINUE;
+}
+HookAction before_skin(ModContext*, void* args, void*, void*) {
+    return args && mods::arg<J3DSkinDeform*>(args, 1)
+        ? before_deformation(mods::arg<J3DModel*>(args, 0)) : HOOK_CONTINUE;
+}
+
 void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& model) {
     const bool character_candidate = std::any_of(
         std::begin(character_targets), std::end(character_targets),
@@ -430,12 +583,33 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                     [&](const ProcessedModel& item) { return item.model == &model; }) ||
         processed.size() >= 4096)
         return;
-    processed.push_back({&info, &model});
+    processed.push_back({&info, &model, model.getWEvlpMtxNum() != 0});
     const auto begin = std::chrono::steady_clock::now();
     const auto* owned_replacement = replacement_for(model.getRawData());
+    if (!model.getWEvlpMtxNum() && (rigid_history_lost || !deform_registered || !skin_registered ||
+        !fresh_owner(info) ||
+        std::none_of(source_models.begin(), source_models.end(),
+            [&](const SourceModel& item) { return item.owner == &info && item.model == &model; }) ||
+        std::any_of(deformed_models.begin(), deformed_models.end(),
+            [&](const DeformedModel& item) { return item.model == &model; }))) return;
+    const bool automatic_rigid = !owned_replacement && !character_candidate;
+    if (automatic_rigid) {
+        if (const auto* reason = rigid_rejection(info, model)) {
+            ++current_summary.examined; ++current_summary.skipped;
+            current_summary.classification = "UNSUPPORTED"; current_summary.reason = reason;
+            if (svc_log && settings::geometry_diagnostics_enabled()) {
+                char message[224];
+                std::snprintf(message, sizeof(message), "Rigid shading skipped: %.10s/%s reason=%s",
+                    info.mArchiveName, name, reason);
+                svc_log->info(mod_ctx, message);
+            }
+            return;
+        }
+    }
     const u32 resource_size = owned_replacement
                                   ? owned_replacement->size
                                   : info.mArchive->getExpandedResSize(model.getRawData());
+    if (automatic_rigid && (resource_size > 512 * 1024 || resource_size < 32)) return;
     const std::uint64_t resource_hash =
         resource_size != static_cast<u32>(-1)
             ? fnv1a(static_cast<const std::byte*>(model.getRawData()), resource_size)
@@ -505,7 +679,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 result.error = "missing shape descriptor";
                 break;
             }
-            if (original_character_source) {
+            if (original_character_source || automatic_rigid) {
                 const auto descriptor = character_identity::source_attributes(
                     {static_cast<const std::byte*>(model.getRawData()), resource_size}, si);
                 if (descriptor.empty()) {
@@ -530,9 +704,9 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 break;
             }
             for (u16 gi = 0; gi < shape->getMtxGroupNum(); ++gi) {
-                if (original_character_source) {
+                if (original_character_source || automatic_rigid) {
                     // Native optimized draw copies can change during gameplay.
-                    // Plan from the fingerprinted original draw, without changing
+                    // Plan from the bounded original draw, without changing
                     // the native draw copy or its visibility/animation state.
                     const auto draw = character_identity::source_draw(
                         {static_cast<const std::byte*>(model.getRawData()), resource_size}, si, gi);
@@ -554,7 +728,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 break;
             shapes[si] = {attrs[si], groups[si],
                           shape->getMaterial() ? shape->getMaterial()->getIndex()
-                                               : static_cast<u16>(0xffff)};
+                                               : static_cast<u16>(0xffff), automatic_rigid};
         }
         if (!result.error)
             result = topology::decode(shapes, formats, positions, normal_count);
@@ -630,7 +804,8 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                 .count();
         smoothing::Options options;
         options.face_angle_degrees = settings::geometry_smoothing_angle();
-        options.preserve_conflicting_indices = original_character;
+        options.preserve_conflicting_indices = original_character || automatic_rigid;
+        options.preserve_uncertain_vertices = automatic_rigid;
         if (original_character) {
             char message[224];
             std::snprintf(message, sizeof(message),
@@ -670,13 +845,14 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
     if (apply) {
         std::uint64_t retained_bytes = 0;
         for (const auto& mutation : mutations)
-            retained_bytes += mutation.bytes;
+            retained_bytes += mutation.bytes * (mutation.applied ? 2u : 1u);
         if (qualification.classification == smoothing::Class::Safe && smooth.safe() &&
             smooth.changed_indices > 0 && delete_registered && mutations.size() < 1024 &&
-            retained_bytes + std::uint64_t(normal_count) * normal_stride <= 16 * 1024 * 1024) {
+            retained_bytes + std::uint64_t(normal_count) * normal_stride * 2 <= 16 * 1024 * 1024) {
             const u32 bytes_count = normal_count * normal_stride;
             std::unique_ptr<std::byte[]> backup{new (std::nothrow) std::byte[bytes_count]};
-            if (backup) {
+            std::unique_ptr<std::byte[]> applied_bytes{new (std::nothrow) std::byte[bytes_count]};
+            if (backup && applied_bytes) {
                 auto* destination = static_cast<std::byte*>(vertex.getVtxNrmArray());
                 std::memcpy(backup.get(), destination, bytes_count);
                 // Publish ownership before changing bytes; vector allocation failure
@@ -685,7 +861,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                                                 : MutationBackup::Kind::RigidSmoothing,
                                      exact ? "known-good model" : "automatically qualified model",
                                      const_cast<dRes_info_c*>(&info), &model, destination,
-                                     bytes_count, 0, std::move(backup)});
+                                     bytes_count, 0, std::move(backup), std::move(applied_bytes), normal_stride});
                 for (u32 i = 0; i < normal_count; ++i) {
                     if (normal_type == GX_F32) {
                         const float encoded[]{smooth.normals[i].x, smooth.normals[i].y,
@@ -702,6 +878,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
                     }
                     std::memcpy(destination + i * 6, encoded, 6);
                 }
+                std::memcpy(mutations.back().applied.get(), destination, bytes_count);
                 svc_log->info(mod_ctx, "Geometry smoothing: applied qualified model");
             }
         } else {
@@ -808,12 +985,55 @@ void describe_model(const dRes_info_c& info, u32 type, u32 file_index) {
         svc_log->info(mod_ctx, message);
 }
 
+void remember_source_models(dRes_info_c& info) {
+    auto* archive = info.mArchive;
+    const auto count = archive->countFile();
+    const int directories = archive->countDirectory();
+    if (count > 4096 || directories < 0 || directories > 4096 || !archive->mNodes) return;
+    for (int n = 0; n < directories; ++n) {
+        const auto& node = archive->mNodes[n];
+        if (!is_model_node(node.type) || node.first_file_index > count ||
+            node.num_entries > count - node.first_file_index) continue;
+        for (u32 j = 0; j < node.num_entries; ++j) {
+            const auto index = node.first_file_index + j;
+            if (!archive->isFileEntry(index)) continue;
+            auto* model = static_cast<J3DModelData*>(info.mRes[index]);
+            if (!model || model->getWEvlpMtxNum() ||
+                std::any_of(source_models.begin(), source_models.end(),
+                    [model](const SourceModel& item) { return item.model == model; })) continue;
+            const auto& vertex = model->getVertexData();
+            const auto normals = vertex.getNrmNum(), positions = vertex.getVtxArrNum(GX_VA_POS);
+            const auto ns = vertex.getVtxArrStride(GX_VA_NRM), ps = vertex.getVtxArrStride(GX_VA_POS);
+            if (!normals || !positions || (ns != 6 && ns != 12) || (ps != 6 && ps != 12) ||
+                !array_in_resource(info, *model, vertex.getVtxNrmArray(), normals, ns) ||
+                !array_in_resource(info, *model, vertex.getVtxPosArray(), positions, ps)) continue;
+            if (source_models.size() >= 4096) throw std::bad_alloc{};
+            source_models.push_back({&info, model, model->getRawData(), vertex.getVtxNrmArray(),
+                std::size_t(normals) * ns, vertex.getVtxPosArray(), std::size_t(positions) * ps});
+        }
+    }
+}
+
 void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
     auto* info = args ? mods::arg<dRes_info_c*>(args, 0) : nullptr;
     if (info) {
         const auto owner = std::find(loading_owners.rbegin(), loading_owners.rend(), info);
         if (owner != loading_owners.rend())
             loading_owners.erase(std::next(owner).base());
+    }
+    // Observe successful generations even with shading disabled. This establishes
+    // complete deformation-attachment history for later resident activation.
+    if (info && retval && *static_cast<int*>(retval) >= 0 && info->mArchive && info->mRes &&
+        !rigid_history_lost && !fresh_owner(*info)) {
+        try {
+            if (fresh_owners.size() >= 192) throw std::bad_alloc{};
+            fresh_owners.push_back(info);
+            remember_source_models(*info);
+        } catch (const std::bad_alloc&) {
+            rigid_history_lost = true;
+            restore_mutations(MutationBackup::Kind::RigidSmoothing);
+            svc_log->warn(mod_ctx, "Rigid shading disabled: resource history unavailable");
+        }
     }
     if ((!settings::geometry_diagnostics_enabled() && !settings::geometry_mutation_test_enabled() &&
          !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled() &&
@@ -848,6 +1068,15 @@ HookAction on_resource_delete(ModContext*, void* args, void*, void*) {
         }))
         svc_log->info(mod_ctx, "Geometry smoothing: archive pre-delete restoration");
     restore_mutations(MutationBackup::Kind::None, owner);
+    if (rigid_cursor < 192) {
+        auto& resources = g_dComIfG_gameInfo.mResControl;
+        auto* pending = rigid_cursor < 128 ? &resources.mObjectInfo[rigid_cursor]
+                                           : &resources.mStageInfo[rigid_cursor - 128];
+        if (pending == owner) rigid_node = rigid_file = 0;
+    }
+    std::erase(fresh_owners, owner);
+    std::erase_if(source_models, [owner](const SourceModel& item) { return item.owner == owner; });
+    std::erase_if(deformed_models, [owner](const DeformedModel& item) { return item.owner == owner; });
     std::erase_if(processed, [owner](const ProcessedModel& item) { return item.owner == owner; });
     const auto old_size = replacements.size();
     std::erase_if(replacements, [owner](const Replacement& item) { return item.owner == owner; });
@@ -868,6 +1097,44 @@ void on_model_created(ModContext*, void* args, void* retval, void*) {
                   ++found->instances);
     svc_log->info(mod_ctx, message);
 }
+
+bool visit_resident_rigid(dRes_info_c& owner, std::chrono::steady_clock::time_point deadline) {
+    if (!fresh_owner(owner) || !owner.mCount || owner.mDMCommand || !owner.mArchive || !owner.mRes)
+        return true;
+    auto* archive = owner.mArchive;
+    if (!archive->isMounted() || !archive->mArcInfoBlock || !archive->mStringTable || !archive->mNodes)
+        return true;
+    const u32 count = archive->countFile();
+    const u32 strings = archive->mArcInfoBlock->string_table_length;
+    const int directories = archive->countDirectory();
+    if (count > 4096 || directories < 0 || directories > 4096) return true;
+    for (; rigid_node < static_cast<unsigned>(directories); ++rigid_node, rigid_file = 0) {
+        const auto& node = archive->mNodes[rigid_node];
+        if (!is_model_node(node.type) || node.first_file_index > count ||
+            node.num_entries > count - node.first_file_index) continue;
+        for (; rigid_file < node.num_entries;) {
+            if (std::chrono::steady_clock::now() >= deadline) return false;
+            const u32 index = node.first_file_index + rigid_file++;
+            auto* entry = archive->findIdxResource(index);
+            if (!entry || !archive->isFileEntry(index) || entry->isDirectory() ||
+                entry->getNameOffset() >= strings) continue;
+            const auto* name = archive->mStringTable + entry->getNameOffset();
+            const auto available = std::min<u32>(strings - entry->getNameOffset(), 256);
+            if (!std::memchr(name, 0, available) || !is_topology_target(owner, name)) continue;
+            auto* model = static_cast<J3DModelData*>(owner.mRes[index]);
+            if (!model || model->getWEvlpMtxNum() || find_mutation(model) != mutations.end()) continue;
+            const auto* replacement = replacement_for(model->getRawData());
+            const auto* original = replacement ? replacement->source : model->getRawData();
+            if (archive->findPtrResource(original) != entry) continue;
+            try {
+                analyze_topology(owner, name, *model);
+            } catch (const std::bad_alloc&) {
+                svc_log->warn(mod_ctx, "Rigid shading: resident qualification allocation failed; skipped");
+            }
+        }
+    }
+    return true;
+}
 } // namespace
 
 void initialize() {
@@ -876,6 +1143,9 @@ void initialize() {
     delete_registered = false;
     create_registered = false;
     model_load_registered = false;
+    deform_registered = skin_registered = rigid_history_lost = false;
+    rigid_enabled_last = false; rigid_cursor = 192; rigid_node = rigid_file = 0;
+    fresh_owners.clear(); deformed_models.clear(); source_models.clear();
     replacements.clear();
     character_enabled_last = false;
     loading_owners.clear();
@@ -884,6 +1154,16 @@ void initialize() {
     current_summary = {};
     if (!svc_hook)
         return;
+    HookOptions guard_options = HOOK_OPTIONS_INIT;
+    guard_options.priority = 10000;
+    if (mods::hook::add_pre<DeformAttach>(before_deform, &guard_options) == MOD_OK)
+        deform_registered = true;
+    else
+        (void)mods::hook::uninstall<DeformAttach>();
+    if (mods::hook::add_pre<SkinAttach>(before_skin, &guard_options) == MOD_OK)
+        skin_registered = true;
+    else
+        (void)mods::hook::uninstall<SkinAttach>();
     if (mods::hook::add_pre<ModelLoad>(use_rebuilt_model) == MOD_OK)
         model_load_registered = true;
     else
@@ -902,12 +1182,47 @@ void initialize() {
         create_registered = true;
     else
         (void)mods::hook::uninstall<ModelCreate>();
+    if (svc_log)
+        svc_log->info(mod_ctx, deform_registered && skin_registered
+            ? "Rigid shading guards ready: deformation attachments intercepted; complete load history required"
+            : "Rigid shading guards unavailable; automatic models preserved");
     asset_probe::initialize_draw_probe(load_registered && delete_registered && model_load_registered);
 }
 
 void update() {
+    if (resource_load_active()) return;
+    const bool rigid = settings::geometry_smoothing_enabled();
+    if (rigid != rigid_enabled_last) {
+        rigid_enabled_last = rigid;
+        rigid_cursor = rigid ? 0 : 192;
+        rigid_node = rigid_file = 0;
+        if (rigid) std::erase_if(processed, [](const ProcessedModel& item) {
+            return !item.skinned && find_mutation(item.model) == mutations.end();
+        });
+        rigid_sweep_start = current_summary;
+    }
+    if (rigid && rigid_cursor < 192) {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(2);
+        auto& resources = g_dComIfG_gameInfo.mResControl;
+        for (unsigned budget = 0; budget < 8 && rigid_cursor < 192; ++budget) {
+            const auto cursor = rigid_cursor;
+            auto& owner = cursor < 128 ? resources.mObjectInfo[cursor] : resources.mStageInfo[cursor - 128];
+            if (!visit_resident_rigid(owner, deadline)) break;
+            ++rigid_cursor; rigid_node = rigid_file = 0;
+            if (std::chrono::steady_clock::now() >= deadline) break;
+        }
+        if (rigid_cursor == 192 && svc_log) {
+            char message[192];
+            std::snprintf(message, sizeof(message),
+                "Rigid shading resident sweep complete: examined=%u applied=%u skipped=%u; no recurring topology scan",
+                current_summary.examined - rigid_sweep_start.examined,
+                current_summary.applied - rigid_sweep_start.applied,
+                current_summary.skipped - rigid_sweep_start.skipped);
+            svc_log->info(mod_ctx, message);
+        }
+    }
     const bool enabled = settings::geometry_skinned_smoothing_enabled();
-    if (enabled == character_enabled_last || resource_load_active()) return;
+    if (enabled == character_enabled_last) return;
     character_enabled_last = enabled;
     if (!enabled || !delete_registered) return;
     // Look up resident models without fetching resources or taking references.
@@ -960,6 +1275,13 @@ void shutdown() {
         (void)mods::hook::uninstall<ModelCreate>();
     if (model_load_registered)
         (void)mods::hook::uninstall<ModelLoad>();
+    if (deform_registered)
+        (void)mods::hook::uninstall<DeformAttach>();
+    if (skin_registered)
+        (void)mods::hook::uninstall<SkinAttach>();
+    deform_registered = skin_registered = false;
+    rigid_enabled_last = false; rigid_cursor = 192; rigid_node = rigid_file = 0;
+    fresh_owners.clear(); deformed_models.clear(); source_models.clear();
     load_registered = delete_registered = create_registered = false;
     model_load_registered = false;
     replacements.clear();
@@ -969,13 +1291,10 @@ void shutdown() {
 void restore_mutation() { restore_mutations(MutationBackup::Kind::Diagnostic); }
 void restore_smoothing(bool skinned) {
     if (skinned) character_enabled_last = false;
+    else { rigid_enabled_last = false; rigid_cursor = 192; rigid_node = rigid_file = 0; }
     const auto kind = skinned ? MutationBackup::Kind::SkinnedSmoothing
                              : MutationBackup::Kind::RigidSmoothing;
-    for (const auto& mutation : mutations)
-        if (mutation.kind == kind)
-            std::erase_if(processed, [&](const ProcessedModel& item) {
-                return item.model == mutation.model_data;
-            });
+    std::erase_if(processed, [skinned](const ProcessedModel& item) { return item.skinned == skinned; });
     restore_mutations(kind);
 }
 Summary summary() { return current_summary; }

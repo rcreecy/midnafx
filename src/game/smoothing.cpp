@@ -56,7 +56,8 @@ bool encode_s16_xyz(Vec3 normal, unsigned fraction_bits, std::int16_t values[3])
     return true;
 }
 
-Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Options options) {
+Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Options options,
+            std::span<const std::uint16_t> fixed_indices) {
     Result result;
     if (!mesh.ok() || originals.empty() || originals.size() > 65536 ||
         !(options.face_angle_degrees > 0 && options.face_angle_degrees <= 90) ||
@@ -66,6 +67,11 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
         result.error = "invalid smoothing input";
         return result;
     }
+    for (const auto index : fixed_indices)
+        if (index >= originals.size()) {
+            result.error = "fixed normal index outside array";
+            return result;
+        }
     std::vector<Vec3> original_unit(originals.size());
     for (std::size_t i = 0; i < originals.size(); ++i) {
         if (!std::isfinite(originals[i].x) || !std::isfinite(originals[i].y) ||
@@ -80,13 +86,15 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
             return result;
         }
     }
-    std::vector<bool> preserved(options.preserve_conflicting_indices ? originals.size() : 0);
+    std::vector<bool> preserved(
+        options.preserve_conflicting_indices || !fixed_indices.empty() ? originals.size() : 0);
     const auto preserve_index = [&](std::size_t index) {
         if (!preserved[index]) {
             preserved[index] = true;
             ++result.preserved_indices;
         }
     };
+    for (const auto index : fixed_indices) preserve_index(index);
     std::uint16_t max_position = 0;
     std::vector<Vec3> oriented_faces(mesh.triangles.size());
     for (std::size_t ti = 0; ti < mesh.triangles.size(); ++ti) {
@@ -149,6 +157,7 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     std::vector<bool> assigned(originals.size());
     std::vector<bool> candidate(originals.size());
     const auto note_conflict = [&](std::size_t index) {
+        if (!preserved.empty() && preserved[index]) return;
         if (!options.preserve_conflicting_indices) {
             ++result.index_conflicts;
         } else {
@@ -264,7 +273,7 @@ Result plan(const topology::Result& mesh, std::span<const Vec3> originals, Optio
     result.working_vector_bytes =
         std::max(result.working_vector_bytes, base_working_bytes + vector_bytes(result.normals));
     for (std::size_t i = 0; i < originals.size(); ++i)
-        if (assigned[i] && !(options.preserve_conflicting_indices && preserved[i]) &&
+        if (assigned[i] && (preserved.empty() || !preserved[i]) &&
             dot(original_unit[i], desired[i]) < conflict_limit) {
             result.normals[i] = desired[i];
             ++result.changed_indices;
@@ -294,6 +303,10 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
     std::vector<Edge> edges;
     std::vector<std::uint32_t> parent;
     std::vector<std::vector<std::uint32_t>> refs;
+    std::vector<std::uint16_t> fixed_indices;
+    std::vector<std::uint16_t> used;
+    const bool preserve_uncertain =
+        options.preserve_uncertain_vertices && options.preserve_conflicting_indices;
     const auto begin = std::chrono::steady_clock::now();
     const auto elapsed = [](auto start) {
         return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
@@ -305,7 +318,8 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
         out.reason = reason;
         out.classification_us = elapsed(begin);
         out.working_vector_bytes = std::max(out.working_vector_bytes,
-            vector_bytes(edges) + vector_bytes(parent) + nested_vector_bytes(refs));
+            vector_bytes(edges) + vector_bytes(parent) + nested_vector_bytes(refs) +
+            vector_bytes(fixed_indices) + vector_bytes(used));
         return out;
     };
     if (representation.known_bad)
@@ -359,7 +373,6 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
     out.working_vector_bytes =
         vector_bytes(edges) + vector_bytes(parent) + nested_vector_bytes(refs);
     if (!representation.known_good) {
-        std::vector<std::uint16_t> used;
         for (std::size_t p = 0; p < refs.size(); ++p)
             if (!refs[p].empty())
                 used.push_back(static_cast<std::uint16_t>(p));
@@ -369,9 +382,18 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
         };
         std::sort(used.begin(), used.end(),
                   [&](unsigned a, unsigned b) { return key(a) < key(b); });
-        for (std::size_t i = 1; i < used.size(); ++i)
-            if (key(used[i - 1]) == key(used[i]))
-                return reject(Class::Ambiguous, "duplicated position identities");
+        for (std::size_t i = 0; i < used.size();) {
+            std::size_t end = i + 1;
+            while (end < used.size() && key(used[i]) == key(used[end])) ++end;
+            if (end - i > 1) {
+                if (!preserve_uncertain)
+                    return reject(Class::Ambiguous, "duplicated position identities");
+                for (std::size_t duplicate = i; duplicate < end; ++duplicate)
+                    for (const auto corner : refs[used[duplicate]])
+                        fixed_indices.push_back(mesh.triangles[corner / 3].corners[corner % 3].normal);
+            }
+            i = end;
+        }
         const auto edge_key = [](const Edge& e) { return std::minmax(e.a, e.b); };
         std::sort(edges.begin(), edges.end(),
                   [&](const Edge& a, const Edge& b) { return edge_key(a) < edge_key(b); });
@@ -398,7 +420,7 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
                     return reject(Class::Ambiguous, "disconnected vertex fan");
             // Threshold compatibility is not transitive. A-B and B-C can
             // qualify while A-C does not; greedy grouping would then depend
-            // on primitive order. Reject overlapping groups instead.
+            // on primitive order. Reject the fan or preserve all its normal indices.
             std::array<unsigned, 64> component{};
             std::iota(component.begin(), component.end(), 0);
             const auto component_root = [&](unsigned i) {
@@ -428,15 +450,27 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
                 for (unsigned b = a + 1; b < fan.size(); ++b)
                     if (compatible(a, b))
                         component[component_root(a)] = component_root(b);
-            for (unsigned a = 0; a < fan.size(); ++a)
+            bool overlapping = false;
+            for (unsigned a = 0; a < fan.size() && !overlapping; ++a)
                 for (unsigned b = a + 1; b < fan.size(); ++b)
-                    if (component_root(a) == component_root(b) && !compatible(a, b))
-                        return reject(Class::Ambiguous, "overlapping smoothing groups");
+                    if (component_root(a) == component_root(b) && !compatible(a, b)) {
+                        overlapping = true;
+                        break;
+                    }
+            if (overlapping) {
+                if (!preserve_uncertain)
+                    return reject(Class::Ambiguous, "overlapping smoothing groups");
+                for (const auto corner : fan)
+                    fixed_indices.push_back(mesh.triangles[corner / 3].corners[corner % 3].normal);
+            }
         }
     }
+    std::sort(fixed_indices.begin(), fixed_indices.end());
+    fixed_indices.erase(std::unique(fixed_indices.begin(), fixed_indices.end()), fixed_indices.end());
+    out.working_vector_bytes += vector_bytes(fixed_indices);
     out.classification_us = elapsed(begin);
     const auto plan_begin = std::chrono::steady_clock::now();
-    out.smoothing = plan(mesh, originals, options);
+    out.smoothing = plan(mesh, originals, options, fixed_indices);
     out.smoothing_us = elapsed(plan_begin);
     out.working_vector_bytes += out.smoothing.working_vector_bytes;
     out.classification = out.smoothing.safe() ? Class::Safe : Class::Ambiguous;

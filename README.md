@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.15 upgrades **Enhanced model shading** with guarded automatic rigid-model
+coverage and live activation. Safe regions can improve while uncertain seams and
+shared normal indices retain their original shading, without new asset lists.
+Enable the independent Basic control; it remains opt-in. See
+[model shading](docs/model-shading.md) for ownership, coverage and limitations.
+
 MidnaFX 1.14 adds experimental **Sunlight shafts** across supported outdoor
 scenes. Native sun color and visibility drive depth-occluded rays without asset
 lists or extra targets/passes. Select **Profile / Remaster**, or its independent

@@ -1,0 +1,19 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start  1: rigid_shading
+1/7 Test  #1: rigid_shading ....................   Passed    0.02 sec
+    Start  4: character_identity
+2/7 Test  #4: character_identity ...............   Passed    0.02 sec
+    Start  5: topology
+3/7 Test  #5: topology .........................   Passed    0.02 sec
+    Start 11: smoothing
+4/7 Test #11: smoothing ........................   Passed    0.02 sec
+    Start 12: qualification
+5/7 Test #12: qualification ....................   Passed    0.02 sec
+    Start 13: bmd_rebuild
+6/7 Test #13: bmd_rebuild ......................   Passed    0.02 sec
+    Start 27: package_contract
+7/7 Test #27: package_contract .................   Passed    0.15 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) =   0.29 sec

@@ -81,6 +81,14 @@ shares the existing opaque-stage draw and adds no targets or asset identities.
 Remaster enables it at 10% strength; screen-space and transparent-occlusion
 limits remain explicit. See [sunlight shafts](sunlight-shafts.md).
 
+Version 1.15 returns to geometry consistency by upgrading the existing opt-in
+model shading control. Structurally qualified rigid models can retain uncertain
+seam/index regions while improving safe normals, without new asset identities.
+Resident activation, native deformation interception and per-normal restoration
+make the path usable without a rendering effect or extra geometry. This does not
+establish complete geometry coverage or justify default-on art quality. See
+[model shading](model-shading.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

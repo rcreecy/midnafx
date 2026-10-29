@@ -32,6 +32,7 @@ struct Shape {
     std::span<const Attribute> attributes;
     std::span<const Group> groups;
     std::uint16_t material = 0xffff;
+    bool require_matrix_zero = false;
 };
 
 struct Corner {

@@ -17,6 +17,8 @@ struct Options {
     float geometric_weight = 0.25f;
     // Preserve indices with conflicting proposals or uncertain face orientation.
     bool preserve_conflicting_indices = false;
+    // With conflict preservation, retain normals at uncertain automatic vertices.
+    bool preserve_uncertain_vertices = false;
 };
 
 struct Result {
@@ -39,9 +41,10 @@ struct Result {
 // the model by default; the opt-in preservation mode retains that index's exact
 // original normal instead. It also preserves every index on a face whose
 // orientation is ambiguous and excludes that face from smoothing contributions.
+// Explicit fixed indices retain their exact original values at every use.
 // No DL index rewriting occurs.
 Result plan(const topology::Result& mesh, std::span<const topology::Vec3> originals,
-            Options options = {});
+            Options options = {}, std::span<const std::uint16_t> fixed_indices = {});
 
 enum class Class { Safe, Ambiguous, Unsupported };
 struct Representation {

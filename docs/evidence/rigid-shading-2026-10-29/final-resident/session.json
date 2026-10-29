@@ -1,0 +1,21 @@
+{
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/rigid-shading/final-resident/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/rigid-shading/final-resident/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/rigid-shading/final-resident/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "pid": 26088,
+  "start": "2026-10-29T18:03:05.4672549Z",
+  "package_sha256": "61637925EC5620AFBA48A258C579CF6CCB0ACEA7C111712E3C11D62332D37102",
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4"
+}
