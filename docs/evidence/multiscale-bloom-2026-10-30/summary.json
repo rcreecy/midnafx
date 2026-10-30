@@ -1,0 +1,64 @@
+{
+  "gpu_cases": 14,
+  "comparison": {
+    "viewport": [
+      960,
+      720
+    ],
+    "patch": [
+      416,
+      296,
+      128,
+      128
+    ],
+    "strength_percent": 20,
+    "reference": "production core Gaussian only, same extraction and strength",
+    "core_energy": 71.61295509,
+    "multiscale_energy": 71.38690197,
+    "energy_change_percent": -0.3156595335521484,
+    "outer_region": "at least 24 pixels beyond source rectangle",
+    "core_outer_energy": 0.0,
+    "multiscale_outer_energy": 1.25543702,
+    "extra_visible_outer_pixels": 1184
+  },
+  "motion": {
+    "viewport": [
+      512,
+      384
+    ],
+    "strength_percent": 50,
+    "patch_size": [
+      4,
+      4
+    ],
+    "measurements": [
+      [
+        0.0,
+        0.17468089,
+        253.97833,
+        189.97936
+      ],
+      [
+        1.0,
+        0.17468637,
+        254.98928,
+        189.9789
+      ],
+      [
+        2.0,
+        0.17462945,
+        256.0,
+        189.97858
+      ],
+      [
+        3.0,
+        0.17468637,
+        257.01072,
+        189.9789
+      ]
+    ],
+    "max_centroid_error_pixels": 0.0216700000000003
+  },
+  "native": "desktop capture unavailable; no visual/reload/normal-close pass",
+  "macos": "best effort; no gameplay/Metal execution"
+}

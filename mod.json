@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "author": "MidnaFX contributors",
-  "description": "Moving native lantern and local-light response across opaque scenery, alongside Remaster contact lighting, sunlight, water, motion clarity and camera controls"
+  "description": "Multi-scale scene bloom with restrained highlight cores and broad halos, alongside Remaster local lighting, sunlight, water, motion clarity and camera controls"
 }

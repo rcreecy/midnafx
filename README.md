@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.19 upgrades **Scene bloom** with a retained highlight core and wider
+soft halos across bright scenery, characters and replacement textures. The
+existing 20% default, independent control and Remaster integration remain.
+Normalized multi-scale blending redistributes glow without multiplying brightness
+by the number of levels. See [scene bloom](docs/scene-bloom.md) for cost and limits.
+
 MidnaFX 1.18 extends **Local light response** to the default native lantern.
 Moving player-light position and fading reference power feed the existing
 illumination pipeline, using native steep attenuation with bounded screen-space

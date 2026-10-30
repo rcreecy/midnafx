@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(bloom_plan bloom_plan.cpp)
+target_compile_features(bloom_plan PRIVATE cxx_std_20)
+target_include_directories(bloom_plan PRIVATE ../src)
+add_test(NAME bloom_plan COMMAND bloom_plan)
 add_executable(local_lights local_lights.cpp)
 target_compile_features(local_lights PRIVATE cxx_std_20)
 target_include_directories(local_lights PRIVATE ../src)

@@ -1,0 +1,41 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start  1: bloom_plan
+1/5 Test  #1: bloom_plan .......................   Passed    0.03 sec
+    Start 17: presets_roundtrip
+2/5 Test #17: presets_roundtrip ................   Passed    0.04 sec
+    Start 25: shader_compile
+3/5 Test #25: shader_compile ...................   Passed    0.15 sec
+    Start 28: bloom_pixels
+4/5 Test #28: bloom_pixels .....................***Failed    0.96 sec
+Adapter: Intel(R) UHD Graphics 630; backend=4
+Black and dim scenes remain exact: PASS
+White endpoint and alpha survive active bloom: PASS
+Small bright feature spreads locally without wrapping: PASS
+Colored glow retains its source RGB channel: PASS
+Zero strength is exact identity: PASS
+Odd tiles and one pixel have finite, unduplicated edge energy: PASS
+Soft threshold opens continuously above dark-scene cutoff: PASS
+Fresh black draw after bright inputs remains exact: PASS
+Multi-scale uniform fields retain strength, color, alpha and dark/white endpoints: PASS
+Halo comparison: core_energy=17.90024757 multi_energy=17.88883615 core_outer=0.00000000 multi_outer=0.15562606 visible_outer=0
+Default strength gains a wider visible halo while retaining core and total interior energy: FAIL
+Moving highlight: shift=0 energy=0.17468089 centroid=(253.97833,189.97936)
+Moving highlight: shift=1 energy=0.17468637 centroid=(254.98928,189.97890)
+Moving highlight: shift=2 energy=0.17462945 centroid=(256.00000,189.97858)
+Moving highlight: shift=3 energy=0.17468637 centroid=(257.01072,189.97890)
+One-pixel motion across extraction phases retains small-highlight energy and centroid: PASS
+Odd-size pyramid at a bright border remains bounded without opposite-edge wrap: PASS
+One-column odd pyramid retains finite uniform energy: PASS
+Existing strength scales the complete halo without multiplying level count: PASS
+14 bloom pixel cases: FAIL
+
+    Start 29: package_contract
+5/5 Test #29: package_contract .................   Passed    0.18 sec
+
+80% tests passed, 1 tests failed out of 5
+
+Total Test time (real) =   1.38 sec
+
+The following tests FAILED:
+	 28 - bloom_pixels (Failed)
+Errors while running CTest

@@ -109,6 +109,14 @@ source-channel integration is observed; equipped-lantern gameplay, unsupported
 spotlight modes and whole-game quality remain open. See
 [lantern coverage](local-lighting.md#player-lantern-source).
 
+Version 1.19 upgrades scene-wide bloom with a tight highlight core and a broader
+multi-scale halo. Normalized reconstruction retains the existing strength and
+uniform-field response while redistributing light beyond the original Gaussian
+footprint. This uses the existing controls and composite, with additional bounded
+compute work and field memory. Synthetic rendering demonstrates visible spread
+at the default strength; native desktop capture is unavailable in this iteration.
+See [scene bloom](scene-bloom.md) for evidence and remaining quality limits.
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

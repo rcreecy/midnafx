@@ -1063,7 +1063,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Scene bloom", bloom);
     add_number(panel, bloom_strength_setting);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Adds restrained glow around bright scene pixels. HUD stays unchanged.", nullptr));
+        "Blends a tight highlight glow with wider soft halos. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Ambient occlusion (contact shading)", ambient_occlusion);
     add_number(panel, ambient_occlusion_strength_setting);
     add_number(panel, ambient_occlusion_radius_setting);

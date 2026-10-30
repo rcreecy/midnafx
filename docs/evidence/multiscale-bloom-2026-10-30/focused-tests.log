@@ -1,0 +1,15 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start  1: bloom_plan
+1/5 Test  #1: bloom_plan .......................   Passed    0.03 sec
+    Start 17: presets_roundtrip
+2/5 Test #17: presets_roundtrip ................   Passed    0.03 sec
+    Start 25: shader_compile
+3/5 Test #25: shader_compile ...................   Passed    0.11 sec
+    Start 28: bloom_pixels
+4/5 Test #28: bloom_pixels .....................   Passed    0.88 sec
+    Start 29: package_contract
+5/5 Test #29: package_contract .................   Passed    0.15 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   1.22 sec

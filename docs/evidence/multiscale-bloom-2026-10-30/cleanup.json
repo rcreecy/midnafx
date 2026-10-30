@@ -1,0 +1,8 @@
+{
+  "method": "Stop-Process",
+  "normal_close_verified": false,
+  "time": "2026-10-30T19:35:21.5874989Z",
+  "path": "C:\\dev\\midnafx\\build\\frame-timing\\hosts\\baseline\\dusklight.exe",
+  "reason": "Desktop capture unavailable after one fresh-window recovery; terminate owned trial process for cleanup",
+  "pid": 16604
+}

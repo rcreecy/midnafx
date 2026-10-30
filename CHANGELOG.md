@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.19.0 - 2026-10-30
+
+- Upgrade scene bloom with a normalized multi-scale halo around the existing
+  filtered highlight core. The scene-wide feature requires no material identities,
+  stage lists, new setting or saved-look migration. Existing 20% default and
+  Remaster/Vanilla controls remain unchanged.
+- Build up to five bounded resolution levels and reconstruct them with normalized
+  tent filters and convex merges. Uniform-field brightness, highlight headroom,
+  alpha and zero-strength identity remain intact; no frame history is retained.
+- Reuse the existing bloom compute callback and fused grading/water composite.
+  Four levels at 1080p use nine dispatches and about 2.63 MiB of fields; five at
+  4K use eleven dispatches and about 10.54 MiB, excluding resize retirement.
+  GPU duration and whole-game quality remain unmeasured.
+- Add portable pyramid-boundary checks and six GPU cases for wider visible halos,
+  small-highlight motion, energy, odd edges, maximum levels and strength scaling.
+  Native desktop capture is unavailable in this iteration; visual, reload and
+  normal-close qualification remain open. macOS remains best effort through
+  native builds and portable checks, without hosted Metal execution.
+
 ## 1.18.0 - 2026-10-30
 
 - Extend experimental Local light response to the default native player lantern
