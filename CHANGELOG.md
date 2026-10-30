@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.17.0 - 2026-10-29
+
+- Add experimental Local light response across visible opaque scenery, driven by
+  copied native point-light positions, colors and influence radii without asset
+  or stage lists. Remaster enables the independent toggle at 15%; Vanilla disables
+  it. Older saved scene looks retain the new bit off.
+- Select up to four supported ordinary lights using bounded camera coverage and
+  brightness. Reject invalid, negative-color, priority/special-index and excessive
+  radius sources. Native lantern/boss spotlight paths remain outside this slice.
+- Add normal-facing, smooth radial falloff and eight projected visibility taps
+  per contributing source. Limit blockers to the biased receiver/light segment.
+  Preserve scene alpha and bound combined local/bounce energy with one maximum
+  30% gain. Native lighting remains intact.
+- Reuse the color-bounce fields, gather dispatch, surface filters and composite.
+  Local-only operation uses the existing contact-lighting pipeline; no new target
+  type, fullscreen draw, history or host patch is added. GPU cost and broad art/
+  motion quality remain unmeasured. Mac gameplay remains unverified, best effort.
+
 ## 1.16.0 - 2026-10-29
 
 - Improve the shared depth-normal reconstruction used by ambient occlusion,

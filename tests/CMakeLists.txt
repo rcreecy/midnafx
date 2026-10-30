@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(local_lights local_lights.cpp)
+target_compile_features(local_lights PRIVATE cxx_std_20)
+target_include_directories(local_lights PRIVATE ../src)
+add_test(NAME local_lights COMMAND local_lights)
 add_executable(rigid_shading rigid_shading.cpp)
 target_compile_features(rigid_shading PRIVATE cxx_std_20)
 target_include_directories(rigid_shading PRIVATE ../src)

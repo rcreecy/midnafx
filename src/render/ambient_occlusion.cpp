@@ -1,6 +1,7 @@
 #include "ambient_occlusion.hpp"
 #include "gpu_validation.hpp"
 #include "sunlight_shafts_state.hpp"
+#include "local_light_state.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -33,8 +34,11 @@ struct Uniforms {
     float bounce[4];
     float sun_screen[4];
     float sun_color[4];
+    float local[4];
+    float local_position[4][4];
+    float local_color[4][4];
 };
-static_assert(sizeof(Uniforms) == 256);
+static_assert(sizeof(Uniforms) == 400);
 struct Pipeline {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPURenderPipeline pipeline = nullptr;
@@ -85,6 +89,7 @@ std::vector<std::unique_ptr<Pipeline>> pipelines;
 bool logged = false;
 bool shadows_logged = false;
 bool bounce_logged = false;
+bool local_logged = false;
 bool atmosphere_logged = false;
 bool sunlight_logged = false;
 bool submitted = false;
@@ -280,6 +285,9 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     float bounce = settings::color_bounce_enabled() && !compute_failed.load() && compute_type &&
         dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() && !dKy_camera_water_in_status_check()
                          ? settings::color_bounce_strength() : 0.0f;
+    float local = settings::local_lights_enabled() && !compute_failed.load() && compute_type &&
+        dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() && !dComIfGp_event_runCheck() &&
+        !dKy_camera_water_in_status_check() ? settings::local_lights_strength() : 0.0f;
     const auto* sun = g_env_light.mpSunPacket;
     float shafts = settings::sunlight_shafts_enabled() && dComIfGp_getPlayer(0) &&
         !dComIfGp_isPauseFlag() && !dKy_camera_water_in_status_check() &&
@@ -292,7 +300,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         std::isfinite(g_env_light.mFogFar) && g_env_light.mFogFar > fog_near + 1;
     const float haze = settings::atmosphere_enabled() && atmosphere_available
                            ? settings::atmosphere_strength() : 0.0f;
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0 && shafts <= 0) return;
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && haze <= 0 && shafts <= 0) return;
     // Camera reconstruction currently supports one full native world viewport.
     const auto* viewport = static_cast<const view_port_class*>(context->game_viewport);
     if (!viewport || viewport->x_orig != 0 || viewport->y_orig != 0 ||
@@ -308,6 +316,25 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     float light_view[3]{};
     if (bounce > 0 && !std::all_of(std::begin(camera.proj_from_view), std::end(camera.proj_from_view),
                                   [](float v) { return std::isfinite(v); })) bounce = 0;
+    local_lights::Prepared local_sources;
+    if (local > 0) {
+        if (!std::all_of(std::begin(camera.proj_from_view), std::end(camera.proj_from_view),
+                         [](float value) { return std::isfinite(value); })) local = 0;
+        else {
+            std::array<local_lights::Source,100> sources{};
+            unsigned count = 0;
+            // Copy values on the game thread. Actor-owned registry pointers never
+            // reach a queued GPU callback or survive into another frame.
+            for (const auto* source : g_env_light.pointlight) {
+                if (!source) continue;
+                sources[count++] = {{source->mPosition.x,source->mPosition.y,source->mPosition.z},
+                    {float(source->mColor.r),float(source->mColor.g),float(source->mColor.b)},
+                    source->mPow,source->mIndex};
+            }
+            local_sources = local_lights::prepare({sources.data(),count}, camera.view_from_world);
+            if (!local_sources.count) local = 0;
+        }
+    }
     if (shadows > 0) {
         // Use the same native base-light position sampled by enhanced water.
         if (!water_probe::latest_environment_light(light_world) ||
@@ -335,15 +362,15 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
             mDoGph_gInf_c::getWidth(), mDoGph_gInf_c::getHeight());
         shafts = sunlight.screen[2];
     }
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0 && shafts <= 0) return;
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && haze <= 0 && shafts <= 0) return;
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK || !supported(layout)) return;
     auto* pipeline = get_pipeline(layout);
     if (!pipeline) return;
-    Targets* targets = occlusion > 0 || shadows > 0 || bounce > 0
-        ? ensure_targets(layout.color_attachments[0].width, layout.color_attachments[0].height, bounce > 0) : nullptr;
-    if (!targets) { occlusion = 0; shadows = 0; bounce = 0; }
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && haze <= 0 && shafts <= 0) return;
+    Targets* targets = occlusion > 0 || shadows > 0 || bounce > 0 || local > 0
+        ? ensure_targets(layout.color_attachments[0].width, layout.color_attachments[0].height, bounce > 0 || local > 0) : nullptr;
+    if (!targets) { occlusion = 0; shadows = 0; bounce = 0; local = 0; }
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && haze <= 0 && shafts <= 0) return;
     GfxResolveDesc request = GFX_RESOLVE_DESC_INIT;
     request.color = request.depth = true;
     GfxResolvedTargets snapshot = GFX_RESOLVED_TARGETS_INIT;
@@ -361,7 +388,13 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     uniforms.bounce[1] = 180.0f;
     std::copy(sunlight.screen.begin(), sunlight.screen.end(), uniforms.sun_screen);
     std::copy(sunlight.color.begin(), sunlight.color.end(), uniforms.sun_color);
-    if (shadows > 0 || bounce > 0)
+    uniforms.local[0] = local;
+    uniforms.local[1] = float(local_sources.count);
+    for (unsigned i = 0; i < local_sources.count; ++i) {
+        std::copy(local_sources.lights[i].position_radius.begin(),local_sources.lights[i].position_radius.end(),uniforms.local_position[i]);
+        std::copy(local_sources.lights[i].color.begin(),local_sources.lights[i].color.end(),uniforms.local_color[i]);
+    }
+    if (shadows > 0 || bounce > 0 || local > 0)
         std::memcpy(uniforms.proj_from_view, camera.proj_from_view, sizeof(uniforms.proj_from_view));
     if (shadows > 0) {
         std::copy(std::begin(light_view), std::end(light_view), uniforms.light_position);
@@ -396,6 +429,14 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     if (!logged && occlusion > 0 && svc_log) {
         svc_log->info(mod_ctx, "Ambient occlusion active: half-resolution 32-tap contacts, edge-aware filter, HUD excluded");
         logged = true;
+    }
+    if (!local_logged && local > 0 && svc_log) {
+        char message[192];
+        std::snprintf(message,sizeof(message),
+            "Local light response active: sources=%u strength=%.2f bounded linear-light blend, 8 visibility taps, HUD excluded",
+            local_sources.count,local);
+        svc_log->info(mod_ctx,message);
+        local_logged = true;
     }
     if (!atmosphere_logged && uniforms.fog_color[3] > 0 && svc_log) {
         char message[192];
@@ -438,6 +479,7 @@ void initialize() {
     logged = false;
     shadows_logged = false;
     bounce_logged = false;
+    local_logged = false;
     atmosphere_logged = false;
     submitted = false;
     compute_failed.store(false); encoded_compute.store(0); encoded_draw.store(0);

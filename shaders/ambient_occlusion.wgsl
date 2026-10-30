@@ -76,7 +76,7 @@ fn lighting(pixel: vec2i, center: vec3f) -> vec4f {
                            select(1-fraction.y, fraction.y, y == 1);
             let weight = bilinear * edge;
             sum += vec2f(field.x, max(field.y - 1, 0)) * weight;
-            if (params.bounce.x > 0) { incoming += textureLoad(bounce_field, p, 0).rgb * weight; }
+            if (lighting_strength() > 0) { incoming += textureLoad(bounce_field, p, 0).rgb * weight; }
             weights += weight;
         }
     }
@@ -92,16 +92,16 @@ fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let color = textureLoad(scene_color, pixel, 0);
     let center = view_point(pixel);
     if (center.z >= -0.0001) { return sunlight(color, pixel, center); }
-    if (params.strength <= 0 && params.light_position.w <= 0 && params.bounce.x <= 0) {
+    if (params.strength <= 0 && params.light_position.w <= 0 && lighting_strength() <= 0) {
         return sunlight(atmosphere(color, center), pixel, center);
     }
     let light = lighting(pixel, center);
     var shaded = color.rgb * light.a;
-    if (params.bounce.x > 0 && any(light.rgb > vec3f(0))) {
+    if (lighting_strength() > 0 && any(light.rgb > vec3f(0))) {
         let base = bounce_linear(shaded);
         // Lit receiver color is a conservative reflectance proxy, not albedo.
         // Bound both energy and remaining headroom; pure black/white stay fixed.
-        let strength = clamp(params.bounce.x, 0, 0.3);
+        let strength = clamp(lighting_strength(), 0, 0.3);
         let added = min(bounce_linear(color.rgb) * clamp(light.rgb, vec3f(0), vec3f(1)) * strength,
                         (vec3f(1) - base) * strength);
         if (any(added > vec3f(0))) { shaded = bounce_display(base + added); }

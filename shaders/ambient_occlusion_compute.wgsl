@@ -118,9 +118,59 @@ fn bounce_visible(center: vec3f, source: vec3f) -> bool {
     return true;
 }
 
+fn local_visibility(center: vec3f, normal: vec3f, light: vec3f, radius: f32) -> f32 {
+    let size = vec2i(textureDimensions(scene_depth));
+    let footprint = 2 * abs(center.z) / (params.projection_y * f32(size.y));
+    let bias = max(radius * 0.005, footprint * 1.25);
+    if (dot(light-center,normal) <= bias) { return 0; }
+    let start = center + normal * bias;
+    let delta = light-start;
+    let limit = length(delta);
+    if (limit < 0.0001 || limit != limit) { return 0; }
+    let direction = delta/limit;
+    let thickness = max(radius*0.04,bias*2);
+    // Trace only the receiver/light segment. Missing screen coverage is unknown,
+    // so it cannot establish a new unoccluded local-light contribution.
+    for (var tap = 0u; tap < 8u; tap++) {
+        let point = mix(start, light, (f32(tap)+0.5)/8);
+        let h = params.proj_from_view * vec4f(point,1);
+        if (h.w <= 0.0001 || any(h != h) || any(abs(h) > vec4f(1e30))) { return 0; }
+        let ndc = h.xyz/h.w;
+        let uv = vec2f(ndc.x*0.5+0.5,0.5-ndc.y*0.5);
+        if (any(uv <= vec2f(0)) || any(uv >= vec2f(1)) || ndc.z < 0 || ndc.z > 1) { return 0; }
+        let sample = view_point(vec2i(uv*vec2f(size)));
+        let along = dot(sample-start,direction);
+        let gap = sample.z-point.z;
+        let separation = length(sample-(start+direction*along));
+        if (sample.z < -0.0001 && along > 0 && along < limit && gap > bias &&
+            gap < thickness && separation < thickness+footprint) { return 0; }
+    }
+    return 1;
+}
+
+fn local_irradiance(center: vec3f, normal: vec3f) -> vec3f {
+    var incoming = vec3f(0);
+    if (params.local.x <= 0) { return incoming; }
+    for (var index = 0u; index < 4u; index++) {
+        if (f32(index) >= params.local.y) { break; }
+        let light = params.local_position[index];
+        let color = params.local_color[index].rgb;
+        let delta = light.xyz-center;
+        let distance = length(delta);
+        if (light.w <= 0.01 || distance < 0.0001 || distance >= light.w ||
+            distance != distance || any(color != color) || any(light != light)) { continue; }
+        let facing = max(dot(normal,delta/distance),0);
+        if (facing <= 0) { continue; }
+        let falloff = pow(1-distance/light.w,2);
+        incoming += bounce_linear(clamp(color,vec3f(0),vec3f(1))) * facing * falloff *
+                    local_visibility(center,normal,light.xyz,light.w);
+    }
+    return clamp(incoming,vec3f(0),vec3f(1));
+}
+
 @compute @workgroup_size(8,8)
 fn cs_bounce(@builtin(global_invocation_id) id: vec3u) {
-    if (params.bounce.x <= 0 || any(id.xy >= textureDimensions(bounce_output))) { return; }
+    if (lighting_strength() <= 0 || any(id.xy >= textureDimensions(bounce_output))) { return; }
     let field_pixel = vec2i(id.xy);
     let field = textureLoad(field_input, field_pixel, 0);
     if (field.y <= 0) {
@@ -140,7 +190,7 @@ fn cs_bounce(@builtin(global_invocation_id) id: vec3u) {
         vec2f(-0.707107,-0.707107), vec2f(0,-1), vec2f(0.707107,-0.707107));
     let rings = array<f32,2>(0.35,0.8);
     var incoming = vec3f(0);
-    for (var d = 0u; d < 8u; d++) {
+    if (params.bounce.x > 0) { for (var d = 0u; d < 8u; d++) {
         for (var r = 0u; r < 2u; r++) {
             let candidate = pixel + vec2i(round(directions[d] * screen_radius * rings[r]));
             if (any(candidate < vec2i(0)) || any(candidate >= size)) { continue; }
@@ -164,10 +214,15 @@ fn cs_bounce(@builtin(global_invocation_id) id: vec3u) {
                            min(f32(candidate.y), f32(size.y - 1 - candidate.y)));
             incoming += bounce_linear(color) * facing * falloff * smoothstep(0, 4, edge);
         }
-    }
+    } }
     // Fixed normalization keeps missing/off-screen sources dark rather than
     // amplifying the remaining samples. This is one bounded LDR bounce only.
-    textureStore(bounce_output, field_pixel, vec4f(clamp(incoming * 0.25, vec3f(0), vec3f(1)), 1));
+    // Keep the existing bounce-only field unchanged. Both effects share one
+    // normalized field and one maximum gain, so they cannot add unbounded energy.
+    let gain = lighting_strength();
+    let combined = incoming * 0.25 * (params.bounce.x/gain) +
+                   local_irradiance(center,normal) * (params.local.x/gain);
+    textureStore(bounce_output, field_pixel, vec4f(clamp(combined,vec3f(0),vec3f(1)),1));
 }
 
 fn filter_field(pixel: vec2i, direction: vec2i) -> vec4f {
@@ -190,10 +245,10 @@ fn filter_field(pixel: vec2i, direction: vec2i) -> vec4f {
         let edge = 1 - smoothstep(params.radius * 0.015, params.radius * 0.12, plane_distance);
         let weight = kernel[u32(tap + 2)] * edge * pow(max(dot(normal, other_normal), 0), 16);
         sum += sample.xy * weight;
-        if (params.bounce.x > 0) { bounce_sum += textureLoad(bounce_input, p, 0).rgb * weight; }
+        if (lighting_strength() > 0) { bounce_sum += textureLoad(bounce_input, p, 0).rgb * weight; }
         weights += weight;
     }
-    if (params.bounce.x > 0) {
+    if (lighting_strength() > 0) {
         textureStore(bounce_output, pixel, vec4f(bounce_sum / max(weights, 0.000001), 1));
     }
     return vec4f(select(center.xy, sum / max(weights, 0.000001), weights > 0.000001), center.zw);

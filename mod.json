@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "author": "MidnaFX contributors",
-  "description": "Cleaner contact lighting across steep surfaces and depth edges, alongside Remaster shading, sunlight, water, motion clarity and camera controls"
+  "description": "Native local-light response across visible opaque scenery, alongside Remaster contact lighting, sunlight, water, motion clarity and camera controls"
 }

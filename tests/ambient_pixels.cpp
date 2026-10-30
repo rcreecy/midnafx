@@ -29,8 +29,11 @@ struct Params {
     float bounce[4]{};
     float sun_screen[4]{};
     float sun_color[4]{};
+    float local[4]{};
+    float local_position[4][4]{};
+    float local_color[4][4]{};
 };
-static_assert(sizeof(Params) == 256);
+static_assert(sizeof(Params) == 400);
 
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
@@ -140,8 +143,8 @@ struct Fixture {
             (!source_pixels.empty() && source_pixels.size() != depths.size())) return {};
         wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
         const unsigned half_width = (width + 1) / 2, half_height = (height + 1) / 2;
-        const unsigned bounce_width = params.bounce[0] > 0 ? half_width : 1;
-        const unsigned bounce_height = params.bounce[0] > 0 ? half_height : 1;
+        const unsigned bounce_width = std::max(params.bounce[0],params.local[0]) > 0 ? half_width : 1;
+        const unsigned bounce_height = std::max(params.bounce[0],params.local[0]) > 0 ? half_height : 1;
         const unsigned color_stride = (width * 4 + 255) & ~255u;
         const unsigned field_stride = (half_width * 8 + 255) & ~255u;
         const unsigned bounce_stride = (bounce_width * 8 + 255) & ~255u;
@@ -541,6 +544,83 @@ int main() {
             for (const auto& value : output.filtered) valid &= value[0] == 1 && value[1] == 0;
             report("All background identity and invalid field", valid);
         }
+        for (auto size : {std::array<unsigned,2>{96,80},{65,49}}) {
+            const auto [width,height] = size;
+            const auto source = scene(width,height);
+            const std::vector<float> plane(width*height,depth_at(10));
+            auto params = perspective(width,height);
+            params.strength = 0;
+            params.local[0] = 0.15f; params.local[1] = 1;
+            params.local_position[0][2] = -8; params.local_position[0][3] = 6;
+            params.local_color[0][0] = 1; params.local_color[0][1] = 0.15f;
+            const auto warm = fixture.run(width,height,plane,params);
+            unsigned lifted = 0;
+            bool valid = bounce_bounds(warm,width,height,source,0.15f);
+            for (size_t i = 0; i < source.size(); ++i) lifted += warm.color[i][0] > source[i][0];
+            const auto center = (height/2)*width+width/2;
+            valid &= lifted > 30 && warm.color[center][0] >= source[center][0]+2;
+            valid &= warm.color.front() == source.front();
+            char label[150];
+            std::snprintf(label,sizeof(label),"Default 15%% local light has bounded spatial response %ux%u lifted=%u",width,height,lifted);
+            report(label,valid);
+
+            params.local_color[0][0] = 0; params.local_color[0][2] = 1;
+            const auto cool = fixture.run(width,height,plane,params);
+            report("Native-source hue changes local response without changing alpha",
+                bounce_bounds(cool,width,height,source,0.15f) &&
+                cool.color[center][2] > warm.color[center][2] && warm.color[center][0] > cool.color[center][0]);
+
+            params.local[1] = 0;
+            const auto no_lights = fixture.run(width,height,plane,params);
+            params.local[1] = 1; params.local[0] = 0;
+            const auto disabled = fixture.run(width,height,plane,params);
+            params.local[0] = 0.15f; params.local_position[0][2] = -12;
+            const auto behind = fixture.run(width,height,plane,params);
+            params.local_position[0][2] = -8; params.local_position[0][3] = 1;
+            const auto distant = fixture.run(width,height,plane,params);
+            report("Missing, disabled, back-facing and out-of-radius lights preserve exact source",
+                no_lights.color == source && disabled.color == source && behind.color == source && distant.color == source);
+
+            params.local_position[0][3] = 6;
+            params.local_color[0][0] = 1; params.local_color[0][2] = 0;
+            params.local[1] = 4; params.local[0] = 0.3f;
+            for (unsigned i = 1; i < 4; ++i) {
+                std::copy(std::begin(params.local_position[0]),std::end(params.local_position[0]),params.local_position[i]);
+                std::copy(std::begin(params.local_color[0]),std::end(params.local_color[0]),params.local_color[i]);
+            }
+            const auto overlapping = fixture.run(width,height,plane,params);
+            report("Four overlapping local lights respect one total energy/headroom bound",
+                bounce_bounds(overlapping,width,height,source,0.3f) && overlapping.color[center][0] > source[center][0]);
+
+            params.local[1] = 1; params.local[0] = 0.15f;
+            auto reversed = params;
+            reversed.background_depth = 0;
+            reversed.proj_from_view[10] = 1.0f/99; reversed.proj_from_view[14] = 100.0f/99;
+            reversed.view_from_proj[11] = 99.0f/100; reversed.view_from_proj[15] = 1.0f/100;
+            auto inverse_depth = plane;
+            for (auto& depth : inverse_depth) depth = 1-depth;
+            const auto inverse = fixture.run(width,height,inverse_depth,reversed);
+            valid = bounce_bounds(inverse,width,height,source,0.15f);
+            for (size_t i = 0; i < source.size(); ++i)
+                for (unsigned c = 0; c < 4; ++c)
+                    valid &= std::abs(int(inverse.color[i][c])-int(warm.color[i][c])) <= 1;
+            report("Local lighting agrees across matched reversed-Z projections",valid);
+
+            params.local_position[0][0] = 4; params.local_position[0][2] = -6; params.local_position[0][3] = 12;
+            const auto clear = fixture.run(width,height,plane,params);
+            auto blocked_depth = plane;
+            for (unsigned y = height/3; y < 2*height/3; ++y)
+                for (unsigned x = width/2; x < width/2+width/8; ++x) blocked_depth[y*width+x] = depth_at(8.5f);
+            const auto blocked = fixture.run(width,height,blocked_depth,params);
+            unsigned occluded = 0;
+            for (unsigned y = height/3; y < 2*height/3; ++y)
+                for (unsigned x = width/4; x < width/2-2; ++x) {
+                    const auto i = y*width+x;
+                    occluded += blocked.color[i][0] < clear.color[i][0];
+                }
+            std::snprintf(label,sizeof(label),"Visible opaque caster interrupts local light on unchanged receivers count=%u",occluded);
+            report(label,bounce_bounds(blocked,width,height,source,0.15f) && occluded > 2);
+        }
         for (auto size : {std::array<unsigned, 2>{96, 80}, {65, 49}}) {
             const auto [width, height] = size;
             std::vector<float> depth(width * height, depth_at(10));
@@ -783,6 +863,61 @@ int main() {
                         valid &= output.color[y * width + x] == source[y * width + x];
             }
             report("Close point light rejects a visible caster beyond its endpoint on the receiver", valid);
+            params.light_position[3] = 0;
+            params.local[0] = 0.15f; params.local[1] = 1;
+            std::copy(std::begin(params.light_position),std::end(params.light_position),params.local_position[0]);
+            params.local_position[0][3] = 4;
+            params.local_color[0][0] = 1;
+            const auto clear_local = fixture.run(width,height,std::vector<float>(width*height,depth_at(10)),params);
+            const auto beyond_local = fixture.run(width,height,depth,params);
+            valid = bounce_bounds(clear_local,width,height,source,0.15f) && bounce_bounds(beyond_local,width,height,source,0.15f);
+            for (unsigned y = 93; y <= 97; y += 2)
+                for (unsigned x = 91; x <= 97; x += 2) {
+                    const auto i = ((y-1)/2)*(width/2)+(x-1)/2;
+                    valid &= clear_local.raw_bounce[i][0] > 0;
+                    valid &= std::abs(clear_local.raw_bounce[i][0]-beyond_local.raw_bounce[i][0]) < 0.001f;
+                }
+            report("Local visibility ignores caster geometry beyond a close source",valid);
+            params.local_position[0][2] = -9.999f;
+            const auto near_source = fixture.run(width,height,std::vector<float>(width*height,depth_at(10)),params);
+            report("Local source inside normal-bias distance retains original shading",near_source.color == source);
+        }
+        {
+            constexpr unsigned width = 65,height = 49;
+            auto params = perspective(width,height); params.strength = 0;
+            params.bounce[0] = 0.12f; params.bounce[1] = 4;
+            params.local[0] = 0.15f; params.local[1] = 1;
+            params.local_position[0][2] = -4; params.local_position[0][3] = 12;
+            params.local_color[0][0] = 1;
+            const auto colors = corner_colors(width,height,Pixel{120,120,120,0},Pixel{220,25,25,0});
+            const auto combined = fixture.run(width,height,corner_depth(width,height),params,{},colors);
+            report("Local and bounce lighting share one bounded energy/headroom gain",
+                bounce_bounds(combined,width,height,colors,0.15f) && combined.color != colors);
+            auto legacy = params; legacy.local[0] = 0; legacy.local[1] = 0;
+            const auto bounce_only = fixture.run(width,height,corner_depth(width,height),legacy,{},colors);
+            legacy.local[1] = 4;
+            for (auto& light : legacy.local_position)
+                for (auto& value : light) value = std::numeric_limits<float>::quiet_NaN();
+            const auto disabled_local = fixture.run(width,height,corner_depth(width,height),legacy,{},colors);
+            report("Zero local strength preserves bounce output and fields exactly despite poisoned sources",
+                disabled_local.color == bounce_only.color && disabled_local.raw == bounce_only.raw &&
+                disabled_local.filtered == bounce_only.filtered && disabled_local.raw_bounce == bounce_only.raw_bounce &&
+                disabled_local.filtered_bounce == bounce_only.filtered_bounce);
+            for (auto endpoint : {Pixel{0,0,0,37},Pixel{255,255,255,193}}) {
+                const std::vector<Pixel> solid(width*height,endpoint);
+                const auto unchanged = fixture.run(width,height,corner_depth(width,height),params,{},solid);
+                report("Combined local/bounce response preserves black or white endpoint exactly",unchanged.color == solid);
+            }
+            bool finite = true;
+            for (auto size : {std::array<unsigned,2>{1,1},{3,5}}) {
+                const auto [w,h] = size;
+                auto small = perspective(w,h); small.strength=0;
+                small.local[0]=0.15f; small.local[1]=1;
+                small.local_position[0][2]=-8; small.local_position[0][3]=6; small.local_color[0][0]=1;
+                const auto output = fixture.run(w,h,std::vector<float>(w*h,depth_at(10)),small);
+                finite &= bounce_bounds(output,w,h,scene(w,h),0.15f);
+            }
+            report("Local lighting remains finite on one-pixel and odd tiny targets",finite);
         }
         {
             bool valid = true;

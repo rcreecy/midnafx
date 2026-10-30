@@ -1,0 +1,54 @@
+{
+  "gpu_cases": 79,
+  "default_strength": 0.15,
+  "gpu_lifted_pixels": [
+    608,
+    241
+  ],
+  "gpu_occluded_receivers": [
+    60,
+    5
+  ],
+  "native_source_count": 1,
+  "session": {
+    "package_sha256": "EFF9A814268212229E020CA6E0BBC613EBF87A6059E3FF4C92A293FBCAB43257",
+    "start": "2026-10-30T04:06:03.1480181Z",
+    "pid": 10772,
+    "fixture_sha256": "2FCE57E0A914690345B2F6F648D54A9860CA4BA5D7A70355CEDCD74633D5E7C5",
+    "arguments": [
+      "--backend",
+      "d3d12",
+      "--log-level",
+      "debug",
+      "--log-dir",
+      "\"C:/dev/midnafx/build/local-lights/native-final/logs\"",
+      "--user-dir",
+      "\"C:/dev/midnafx/build/local-lights/native-final/user\"",
+      "--mods",
+      "\"C:/dev/midnafx/build/local-lights/native-final/mods\"",
+      "--stage",
+      "F_SP103,0,27,0",
+      "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+    ],
+    "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4"
+  },
+  "final_reload": {
+    "reason": "Correct help placement; lighting implementation unchanged",
+    "recorded": "2026-10-30T04:08:36.0237611Z",
+    "package_sha256": "6E67FBCE102BA008FBE78F98AC3233B6AC0FBBB4C45BB5C53E5B90A763AADB97"
+  },
+  "native_shutdowns": [
+    {
+      "compute": 4290,
+      "draw": 4290,
+      "target_sets": 1
+    },
+    {
+      "compute": 2913,
+      "draw": 2913,
+      "target_sets": 1
+    }
+  ],
+  "exit_code": 0,
+  "native_quality": "context only; no frozen image comparison or natural torch matrix"
+}

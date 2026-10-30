@@ -95,6 +95,13 @@ nearby unrelated depth step from reversing a steep surface normal. It reuses
 existing controls, fields and passes, with focused analytic rendering comparisons.
 Screen-space and whole-game quality limits remain; see [contact lighting](contact-lighting.md).
 
+Version 1.17 adds experimental local-light response using the native ordinary
+point-light registry. Supported torch, campfire and stage sources supplement
+visible opaque scenery with bounded colored illumination and screen-space
+occlusion. No new asset lists or renderer pass types are required. Native lantern
+spotlights, hidden geometry and full material relighting remain outside scope.
+See [local lighting](local-lighting.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

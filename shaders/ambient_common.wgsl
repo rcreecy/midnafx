@@ -12,7 +12,11 @@ struct AmbientParams {
     bounce: vec4f,
     sun_screen: vec4f,
     sun_color: vec4f,
+    local: vec4f,
+    local_position: array<vec4f,4>,
+    local_color: array<vec4f,4>,
 }
+fn lighting_strength() -> f32 { return max(params.bounce.x, params.local.x); }
 // Native scene color is an LDR, display-encoded signal, not material albedo.
 fn bounce_linear(color: vec3f) -> vec3f {
     return select(color / 12.92, pow((color + 0.055) / 1.055, vec3f(2.4)), color > vec3f(0.04045));

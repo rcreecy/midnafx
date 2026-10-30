@@ -3,9 +3,9 @@ namespace midnafx::render {
 inline constexpr char bloom_compute_shader[] = R"midnafx(@MIDNAFX_BLOOM_COMPUTE_SHADER@)midnafx";
 inline constexpr char adaptive_exposure_shader[] = R"midnafx(@MIDNAFX_ADAPTIVE_EXPOSURE_SHADER@)midnafx";
 inline constexpr char ambient_occlusion_shader[] = R"midnafx(@MIDNAFX_AMBIENT_COMMON_SHADER@
-@MIDNAFX_AMBIENT_OCCLUSION_SHADER@)midnafx";
+)midnafx" R"midnafx(@MIDNAFX_AMBIENT_OCCLUSION_SHADER@)midnafx";
 inline constexpr char ambient_occlusion_compute_shader[] = R"midnafx(@MIDNAFX_AMBIENT_COMMON_SHADER@
-@MIDNAFX_AMBIENT_COMPUTE_SHADER@)midnafx";
+)midnafx" R"midnafx(@MIDNAFX_AMBIENT_COMPUTE_SHADER@)midnafx";
 inline constexpr char passthrough_shader[] = R"midnafx(@MIDNAFX_SHADER@)midnafx";
 inline constexpr char grading_shader[] = R"midnafx(@MIDNAFX_LUT_SHADER@
 @MIDNAFX_EXPOSURE_COMPOSITE_SHADER@

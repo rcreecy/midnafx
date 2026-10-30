@@ -33,6 +33,10 @@ addition. Pure black and white endpoints are preserved without other effects.
 Alpha stays unchanged. Water capture follows this pass; native translucent
 effects and HUD render downstream. Pause and underwater cameras bypass bounce.
 No temporal history, GPU readback or additional host patch is used.
+From 1.17, optional [local light response](local-lighting.md) shares these color
+fields and filters. When both effects run, their normalized contributions share
+one maximum gain rather than adding two independent energy budgets. Bounce-only
+behavior remains unchanged when local lighting is off.
 The energy bound applies at this opaque composite. Native downstream motion blur,
 bloom and other game rendering can change the final displayed difference.
 

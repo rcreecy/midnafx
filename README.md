@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.17 adds experimental **Local light response** across visible opaque
+scenery. Supported native torch, campfire and stage point lights add bounded
+colored illumination with depth-based visibility. Select Remaster or its
+independent Basic toggle; strength defaults to 15%. See
+[local lighting](docs/local-lighting.md) for source coverage and limitations.
+
 MidnaFX 1.16 improves scene contact lighting at steep surfaces and depth edges.
 Surface normals follow projected plane continuity instead of crossing a nearby
 depth step. Existing AO, contact shadows and color bounce share the improvement,
