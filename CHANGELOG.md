@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.18.0 - 2026-10-30
+
+- Extend experimental Local light response to the default native player lantern
+  channel. Copy only current active slot-zero values; retain no source history or
+  native pointer. Existing 15% strength, Remaster integration and saved looks stay
+  unchanged. Ordinary point-light behavior remains intact.
+- Respect the native steep GX distance polynomial at reference brightness
+  0.99999. Reference distance is not treated as a radius. Bound tracing with a
+  separate one-percent-response envelope, capped at 6,000 world units and faded
+  over its last quarter. Movement and native reference-power fading update each
+  frame without creating extra rendering passes or targets.
+- Accept only active alpha-255, omnidirectional, steep-distance player sources.
+  Other spotlight/attenuation modes and boss slots remain excluded. Existing
+  visibility, energy/headroom, alpha and gameplay-context gates remain in force.
+- Add native-coefficient, inactive-source, power-fade and moving-illumination
+  checks. Controlled native source phases, reload and normal shutdown pass;
+  equipped-lantern gameplay and broad art/motion quality remain unverified.
+  macOS support stays best effort without native gameplay or hosted Metal gates.
+
 ## 1.17.0 - 2026-10-29
 
 - Add experimental Local light response across visible opaque scenery, driven by

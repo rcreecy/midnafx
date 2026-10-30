@@ -32,8 +32,9 @@ struct Params {
     float local[4]{};
     float local_position[4][4]{};
     float local_color[4][4]{};
+    float local_distance[4][4]{};
 };
-static_assert(sizeof(Params) == 400);
+static_assert(sizeof(Params) == 464);
 
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
@@ -543,6 +544,51 @@ int main() {
             bool valid = bounded(output, width, height) && output.color == scene(width, height);
             for (const auto& value : output.filtered) valid &= value[0] == 1 && value[1] == 0;
             report("All background identity and invalid field", valid);
+        }
+        for (auto size : {std::array<unsigned,2>{96,80},{65,49}}) {
+            const auto [width,height] = size;
+            const unsigned px = (width/2)|1u, py = (height/2)|1u;
+            const auto field_index = (py/2)*((width+1)/2)+px/2;
+            auto params = perspective(width,height); params.strength=0;
+            params.local[0]=0.15f; params.local[1]=1;
+            params.local_position[0][0]=(2*(px+0.5f)/width-1)*float(width)/height*10;
+            params.local_position[0][1]=(1-2*(py+0.5f)/height)*10;
+            params.local_position[0][2]=-8; params.local_position[0][3]=20;
+            params.local_color[0][0]=1;
+            params.local_distance[0][0]=1; params.local_distance[0][2]=0.25f; params.local_distance[0][3]=1;
+            const std::vector<float> plane(width*height,depth_at(10));
+            const auto source = scene(width,height);
+            const auto near = fixture.run(width,height,plane,params);
+            bool valid = bounce_bounds(near,width,height,source,0.15f) &&
+                std::abs(near.raw_bounce[field_index][0]-0.5f)<0.003f;
+            params.local_position[0][2]=-6;
+            const auto far = fixture.run(width,height,plane,params);
+            valid &= bounce_bounds(far,width,height,source,0.15f) &&
+                std::abs(far.raw_bounce[field_index][0]-0.2f)<0.003f;
+            char label[150];
+            std::snprintf(label,sizeof(label),"Native steep curve at half/fifth intensity distances %ux%u",width,height);
+            report(label,valid);
+            params.local_position[0][2]=-8; params.local_distance[0][2]=1;
+            const auto fading = fixture.run(width,height,plane,params);
+            report("Fading native reference power reduces illumination without changing alpha",
+                bounce_bounds(fading,width,height,source,0.15f) &&
+                std::abs(fading.raw_bounce[field_index][0]-0.2f)<0.003f &&
+                fading.color[py*width+px][0]<near.color[py*width+px][0]);
+            params.local_distance[0][2]=0.25f; params.local_position[0][0]+=4;
+            const auto moving = fixture.run(width,height,plane,params);
+            const auto centroid = [&](const Output& output) {
+                double weight=0,position=0;
+                for (unsigned y=0; y<height; ++y) for (unsigned x=0; x<width; ++x) {
+                    const auto gain = std::max(int(output.color[y*width+x][0])-int(source[y*width+x][0]),0);
+                    weight+=gain; position+=double(x)*gain;
+                }
+                return weight>0 ? position/weight : -1;
+            };
+            report("Moving lantern source moves its visible illumination footprint",
+                bounce_bounds(moving,width,height,source,0.15f) && centroid(moving)>centroid(near)+1);
+            params.local[1]=0;
+            const auto retired = fixture.run(width,height,plane,params);
+            report("Retired native player-light slot contributes no stale illumination",retired.color==source);
         }
         for (auto size : {std::array<unsigned,2>{96,80},{65,49}}) {
             const auto [width,height] = size;

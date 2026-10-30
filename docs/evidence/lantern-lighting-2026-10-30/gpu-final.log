@@ -1,0 +1,90 @@
+Adapter: Intel(R) UHD Graphics 630; backend=4
+Flat perspective plane 96x80 identity: PASS
+Flat perspective plane 65x49 identity: PASS
+Flat perspective plane 1x1 identity: PASS
+Steep plane edge normal 96x96 transpose=0 reversed=0 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=0 reversed=0 visibility=1.000000: PASS
+Steep plane edge normal 96x96 transpose=0 reversed=1 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=0 reversed=1 visibility=1.000000: PASS
+Steep plane edge normal 96x96 transpose=1 reversed=0 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=1 reversed=0 visibility=1.000000: PASS
+Steep plane edge normal 96x96 transpose=1 reversed=1 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=1 reversed=1 visibility=1.000000: PASS
+Steep plane edge normal 39x27 transpose=0 reversed=0 dot=1.000000: PASS
+Steep plane edge rejects false AO 39x27 transpose=0 reversed=0 visibility=1.000000: PASS
+Steep plane edge normal 39x27 transpose=0 reversed=1 dot=1.000000: PASS
+Steep plane edge rejects false AO 39x27 transpose=0 reversed=1 visibility=1.000000: PASS
+Steep plane edge normal 39x27 transpose=1 reversed=0 dot=1.000000: PASS
+Steep plane edge rejects false AO 39x27 transpose=1 reversed=0 visibility=1.000000: PASS
+Steep plane edge normal 39x27 transpose=1 reversed=1 dot=1.000000: PASS
+Steep plane edge rejects false AO 39x27 transpose=1 reversed=1 visibility=1.000000: PASS
+All background identity and invalid field: PASS
+Native steep curve at half/fifth intensity distances 96x80: PASS
+Fading native reference power reduces illumination without changing alpha: PASS
+Moving lantern source moves its visible illumination footprint: PASS
+Retired native player-light slot contributes no stale illumination: PASS
+Native steep curve at half/fifth intensity distances 65x49: PASS
+Fading native reference power reduces illumination without changing alpha: PASS
+Moving lantern source moves its visible illumination footprint: PASS
+Retired native player-light slot contributes no stale illumination: PASS
+Default 15% local light has bounded spatial response 96x80 lifted=608: PASS
+Native-source hue changes local response without changing alpha: PASS
+Missing, disabled, back-facing and out-of-radius lights preserve exact source: PASS
+Four overlapping local lights respect one total energy/headroom bound: PASS
+Local lighting agrees across matched reversed-Z projections: PASS
+Visible opaque caster interrupts local light on unchanged receivers count=60: PASS
+Default 15% local light has bounded spatial response 65x49 lifted=241: PASS
+Native-source hue changes local response without changing alpha: PASS
+Missing, disabled, back-facing and out-of-radius lights preserve exact source: PASS
+Four overlapping local lights respect one total energy/headroom bound: PASS
+Local lighting agrees across matched reversed-Z projections: PASS
+Visible opaque caster interrupts local light on unchanged receivers count=5: PASS
+Raised box contacts 96x80 darkened=940 maxdrop=26: PASS
+Raised box contacts 65x49 darkened=512 maxdrop=16: PASS
+Separable filter reduces same-plane visibility variation: PASS
+Distant foreground/background planes reject filter and upsample bleed: PASS
+Zero AO strength retains independent fog formula and alpha: PASS
+Shadow attenuation filters smoothly within a plane and rejects depth-step bleed: PASS
+Combined AO and shadow darkness stays capped at fifty percent: PASS
+Directional cast 96x80 receiver counts=654/659 maxdrop=45/45 centroids=36.26/58.65: PASS
+No-caster plane and light-behind-surface identity 96x80: PASS
+Zero shadow strength preserves old AO color and field exactly: PASS
+Reversed-Z matched projection preserves directional shadow and alpha: PASS
+Directional shadow composes before independent fog and retains alpha: PASS
+Directional cast 65x49 receiver counts=205/189 maxdrop=42/43 centroids=23.76/38.78: PASS
+No-caster plane and light-behind-surface identity 65x49: PASS
+Close point light rejects a visible caster beyond its endpoint on the receiver: PASS
+Local visibility ignores caster geometry beyond a close source: PASS
+Local source inside normal-bias distance retains original shading: PASS
+Local and bounce lighting share one bounded energy/headroom gain: PASS
+Zero local strength preserves bounce output and fields exactly despite poisoned sources: PASS
+Combined local/bounce response preserves black or white endpoint exactly: PASS
+Combined local/bounce response preserves black or white endpoint exactly: PASS
+Local lighting remains finite on one-pixel and odd tiny targets: PASS
+Small and odd shadow targets remain finite and preserve a flat plane: PASS
+Zero bounce strength ignores one-pixel dummy and preserves AO/shadow exactly: PASS
+Default 12% corner transfers donor hue within energy bound 96x80 red=128 blue=128: PASS
+Sources outside the bounce radius contribute no energy: PASS
+Reversed-Z corner keeps color bounce and alpha within one display code: PASS
+Color bounce composes before native-colored fog with exact source alpha: PASS
+Black donors and black/white receivers retain authored endpoints: PASS
+Default 12% corner transfers donor hue within energy bound 65x49 red=66 blue=66: PASS
+Sources outside the bounce radius contribute no energy: PASS
+Coplanar colors, parallel raised faces, and background cannot self-illuminate: PASS
+Bounce filtering reduces same-plane variance while retaining mean energy: PASS
+Shared depth guidance rejects bounce filtering and upsampling across a silhouette: PASS
+Active bounce remains finite and neutral on small and odd flat targets: PASS
+Default ten-percent sunlight sky, linear headroom and exact alpha 96x80 lifted=6744: PASS
+Sunlight contribution follows the supplied native source hue: PASS
+Opaque radial mask decreases shafts at an unchanged sky receiver depth: PASS
+All-opaque visibility produces exact source-color bypass: PASS
+Equal radial visibility suppresses near-foreground veiling relative to distant receivers: PASS
+Zero shaft strength preserves existing AO and fog color/fields exactly: PASS
+Invalid/offscreen sunlight and invalid receiver depth bypass without alpha corruption: PASS
+Sunlight composition diagnostic: distant_lifted=2300 bound_failures=0
+Sunlight composes over AO/fog inside a bounded linear headroom envelope: PASS
+Matched reversed-Z sunlight geometry and alpha agree within one display code: PASS
+Default ten-percent sunlight sky, linear headroom and exact alpha 65x49 lifted=2527: PASS
+Default ten-percent sunlight sky, linear headroom and exact alpha 1x1 lifted=0: PASS
+Default ten-percent sunlight sky, linear headroom and exact alpha 3x5 lifted=0: PASS
+87 ambient pixel cases: PASS

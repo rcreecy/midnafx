@@ -161,7 +161,15 @@ fn local_irradiance(center: vec3f, normal: vec3f) -> vec3f {
             distance != distance || any(color != color) || any(light != light)) { continue; }
         let facing = max(dot(normal,delta/distance),0);
         if (facing <= 0) { continue; }
-        let falloff = pow(1-distance/light.w,2);
+        var falloff = pow(1-distance/light.w,2);
+        let attenuation = params.local_distance[index];
+        if (attenuation.w > 0) {
+            // Native lantern reference distance controls a GX distance
+            // polynomial, not a cutoff sphere. The sphere only bounds tracing.
+            let denominator = dot(attenuation.xyz,vec3f(1,distance,distance*distance));
+            if (denominator < 1 || denominator != denominator) { continue; }
+            falloff = (1-smoothstep(light.w*0.75,light.w,distance))/denominator;
+        }
         incoming += bounce_linear(clamp(color,vec3f(0),vec3f(1))) * facing * falloff *
                     local_visibility(center,normal,light.xyz,light.w);
     }

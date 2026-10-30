@@ -102,6 +102,13 @@ occlusion. No new asset lists or renderer pass types are required. Native lanter
 spotlights, hidden geometry and full material relighting remain outside scope.
 See [local lighting](local-lighting.md).
 
+Version 1.18 extends local-light response to the default native lantern channel,
+including source movement, native steep attenuation and reference-power fading.
+It reuses the existing control and four-source pipeline. Controlled native
+source-channel integration is observed; equipped-lantern gameplay, unsupported
+spotlight modes and whole-game quality remain open. See
+[lantern coverage](local-lighting.md#player-lantern-source).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

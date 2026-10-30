@@ -15,6 +15,7 @@ struct AmbientParams {
     local: vec4f,
     local_position: array<vec4f,4>,
     local_color: array<vec4f,4>,
+    local_distance: array<vec4f,4>,
 }
 fn lighting_strength() -> f32 { return max(params.bounce.x, params.local.x); }
 // Native scene color is an LDR, display-encoded signal, not material albedo.

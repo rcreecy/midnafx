@@ -37,8 +37,9 @@ struct Uniforms {
     float local[4];
     float local_position[4][4];
     float local_color[4][4];
+    float local_distance[4][4];
 };
-static_assert(sizeof(Uniforms) == 400);
+static_assert(sizeof(Uniforms) == 464);
 struct Pipeline {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPURenderPipeline pipeline = nullptr;
@@ -90,6 +91,7 @@ bool logged = false;
 bool shadows_logged = false;
 bool bounce_logged = false;
 bool local_logged = false;
+bool lantern_logged = false;
 bool atmosphere_logged = false;
 bool sunlight_logged = false;
 bool submitted = false;
@@ -321,7 +323,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         if (!std::all_of(std::begin(camera.proj_from_view), std::end(camera.proj_from_view),
                          [](float value) { return std::isfinite(value); })) local = 0;
         else {
-            std::array<local_lights::Source,100> sources{};
+            std::array<local_lights::Source,101> sources{};
             unsigned count = 0;
             // Copy values on the game thread. Actor-owned registry pointers never
             // reach a queued GPU callback or survive into another frame.
@@ -330,6 +332,16 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
                 sources[count++] = {{source->mPosition.x,source->mPosition.y,source->mPosition.z},
                     {float(source->mColor.r),float(source->mColor.g),float(source->mColor.b)},
                     source->mPow,source->mIndex};
+            }
+            // Slot zero is the native player-light channel. Its active marker
+            // is reset and refreshed each game update; do not reuse stale data.
+            const auto& player_light = g_env_light.field_0x0c18[0];
+            if (player_light.field_0x26 == 1) {
+                sources[count++] = local_lights::lantern_source(
+                    {player_light.mPos.x,player_light.mPos.y,player_light.mPos.z},
+                    {float(player_light.mColor.r),float(player_light.mColor.g),float(player_light.mColor.b)},
+                    player_light.mRefDistance,player_light.field_0x26,player_light.mColor.a,
+                    player_light.mAngleAttenuation,player_light.mDistAttenuation);
             }
             local_sources = local_lights::prepare({sources.data(),count}, camera.view_from_world);
             if (!local_sources.count) local = 0;
@@ -393,6 +405,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     for (unsigned i = 0; i < local_sources.count; ++i) {
         std::copy(local_sources.lights[i].position_radius.begin(),local_sources.lights[i].position_radius.end(),uniforms.local_position[i]);
         std::copy(local_sources.lights[i].color.begin(),local_sources.lights[i].color.end(),uniforms.local_color[i]);
+        std::copy(local_sources.lights[i].distance.begin(),local_sources.lights[i].distance.end(),uniforms.local_distance[i]);
     }
     if (shadows > 0 || bounce > 0 || local > 0)
         std::memcpy(uniforms.proj_from_view, camera.proj_from_view, sizeof(uniforms.proj_from_view));
@@ -438,6 +451,12 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         svc_log->info(mod_ctx,message);
         local_logged = true;
     }
+    if (!lantern_logged && local > 0 && svc_log &&
+        std::any_of(local_sources.lights.begin(),local_sources.lights.begin()+local_sources.count,
+                    [](const local_lights::Light& source) { return source.distance[3] == 1; })) {
+        svc_log->info(mod_ctx,"Player local light active: current native slot, omnidirectional steep GX attenuation, bounded trace envelope");
+        lantern_logged = true;
+    }
     if (!atmosphere_logged && uniforms.fog_color[3] > 0 && svc_log) {
         char message[192];
         std::snprintf(message, sizeof(message),
@@ -480,6 +499,7 @@ void initialize() {
     shadows_logged = false;
     bounce_logged = false;
     local_logged = false;
+    lantern_logged = false;
     atmosphere_logged = false;
     submitted = false;
     compute_failed.store(false); encoded_compute.store(0); encoded_draw.store(0);

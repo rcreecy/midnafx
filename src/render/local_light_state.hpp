@@ -12,15 +12,34 @@ struct Source {
     std::array<float, 3> color{};
     float radius = 0;
     int index = 0;
+    // Zero retains ordinary radius falloff; {1,0,K2,1} selects native steep attenuation.
+    std::array<float, 4> distance{};
 };
 struct Light {
     std::array<float, 4> position_radius{};
     std::array<float, 4> color{};
+    std::array<float, 4> distance{};
 };
 struct Prepared {
     std::array<Light, 4> lights{};
     unsigned count = 0;
 };
+
+inline Source lantern_source(std::array<float, 3> position, std::array<float, 3> raw_color,
+                             float reference_distance, unsigned active, unsigned alpha,
+                             unsigned spot_mode, unsigned distance_mode) noexcept {
+    if (active != 1 || alpha != 255 || spot_mode != 0 || distance_mode != 3 ||
+        !std::isfinite(reference_distance) || reference_distance <= 0) return {};
+    // Match native GX steep attenuation at its actual reference brightness.
+    constexpr float brightness = 0.99999f;
+    const float coefficient = (1 - brightness) /
+                              (reference_distance * (brightness * reference_distance));
+    if (!std::isfinite(coefficient) || coefficient <= 0) return {};
+    // This is a separate tracing envelope at one-percent native response,
+    // capped for bounded work. It is not the native reference distance.
+    const float radius = static_cast<float>(std::min(6000.0, std::sqrt(99.0 / coefficient)));
+    return {position, raw_color, radius, 101, {1, 0, coefficient, 1}};
+}
 
 inline Prepared prepare(std::span<const Source> sources,
                         std::span<const float, 16> view_from_world) noexcept {
@@ -49,8 +68,13 @@ inline Prepared prepare(std::span<const Source> sources,
         if (source.index <= 0 || (source.index & 0x8000) != 0 ||
             !std::isfinite(source.radius) || source.radius <= 0.01f || source.radius > 6000)
             continue;
+        if (source.distance != std::array<float, 4>{} &&
+            (source.distance[0] != 1 || source.distance[1] != 0 ||
+             !std::isfinite(source.distance[2]) || source.distance[2] <= 0 ||
+             source.distance[3] != 1)) continue;
         bool valid = true;
         Light light;
+        light.distance = source.distance;
         double brightest = 0;
         for (unsigned component = 0; component < 3; ++component) {
             if (!std::isfinite(source.position[component]) ||

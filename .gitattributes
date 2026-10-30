@@ -3,6 +3,7 @@
 docs/evidence/rigid-shading-2026-10-29/**/native.log -text whitespace=-blank-at-eol,cr-at-eol
 docs/evidence/contact-lighting-2026-10-29/**/native.log -text whitespace=-blank-at-eol,cr-at-eol
 docs/evidence/local-lighting-2026-10-29/**/native.log -text whitespace=-blank-at-eol,cr-at-eol
+docs/evidence/lantern-lighting-2026-10-30/**/native.log -text whitespace=-blank-at-eol,cr-at-eol
 # Raw timing evidence is hash-qualified; preserve its bytes across checkouts.
 docs/evidence/**/frame-timing.json -text
 # These retained receipts and probe sources are qualified by their exact bytes.

@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.26)
+project(LanternAudit VERSION 0.0.1 LANGUAGES CXX)
+add_subdirectory("C:/dev/midnafx/upstream/dusklight/sdk" sdk EXCLUDE_FROM_ALL)
+file(WRITE "${CMAKE_BINARY_DIR}/mod.json" "{\"id\":\"com.midnafx.lantern_audit\",\"name\":\"Temporary player-light audit\",\"version\":\"0.0.1\",\"author\":\"MidnaFX validation\"}")
+add_mod(lantern_audit FEATURES game webgpu SOURCES driver.cpp MOD_JSON "${CMAKE_BINARY_DIR}/mod.json")
+target_include_directories(lantern_audit PRIVATE "C:/dev/midnafx/src")

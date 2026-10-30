@@ -1,0 +1,15 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start  1: local_lights
+1/5 Test  #1: local_lights .....................   Passed    0.03 sec
+    Start 16: presets_roundtrip
+2/5 Test #16: presets_roundtrip ................   Passed    0.03 sec
+    Start 24: shader_compile
+3/5 Test #24: shader_compile ...................   Passed    0.11 sec
+    Start 26: ambient_pixels
+4/5 Test #26: ambient_pixels ...................   Passed    2.50 sec
+    Start 28: package_contract
+5/5 Test #28: package_contract .................   Passed    0.26 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   2.95 sec

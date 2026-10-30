@@ -1083,7 +1083,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "Adds outdoor sun rays shaped by visible scenery. Off-screen sun bypasses the effect; hidden sun fades it out.", nullptr));
     add_toggle(panel, "Local light response (experimental)", local_lights);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Adds restrained color from supported nearby lights to opaque scenery. Native lantern spotlights are not included.", nullptr));
+        "Adds restrained color from supported nearby lights and the default native lantern to opaque scenery. Other spotlight modes stay unchanged.", nullptr));
     UiControlDesc look = UI_CONTROL_DESC_INIT;
     look.kind = UI_CONTROL_DROPDOWN;
     look.label = "Color Look";

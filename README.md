@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.18 extends **Local light response** to the default native lantern.
+Moving player-light position and fading reference power feed the existing
+illumination pipeline, using native steep attenuation with bounded screen-space
+visibility. Existing controls and saved looks stay unchanged. See
+[lantern coverage](docs/local-lighting.md#player-lantern-source).
+
 MidnaFX 1.17 adds experimental **Local light response** across visible opaque
 scenery. Supported native torch, campfire and stage point lights add bounded
 colored illumination with depth-based visibility. Select Remaster or its

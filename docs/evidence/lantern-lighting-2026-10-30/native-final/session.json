@@ -1,0 +1,22 @@
+{
+  "host_sha256": "444D8EE33ED78BA4A427810E35A62731F4D845CBAC7343B37B16A5C20F3C34A4",
+  "arguments": [
+    "--backend",
+    "d3d12",
+    "--log-level",
+    "debug",
+    "--log-dir",
+    "\"C:/dev/midnafx/build/lantern-light/native-final/logs\"",
+    "--user-dir",
+    "\"C:/dev/midnafx/build/lantern-light/native-final/user\"",
+    "--mods",
+    "\"C:/dev/midnafx/build/lantern-light/native-final/mods\"",
+    "--stage",
+    "F_SP103,0,27,0",
+    "\"C:/dev/Dusklight_Runtime/Legend of Zelda, The - Twilight Princess (USA).rvz\""
+  ],
+  "package_sha256": "E1C0881A799880C2DDFC8B9E9D5A51A8A0A7A92C149FCF16F187AC1E48A2050D",
+  "pid": 20552,
+  "fixture_sha256": "256E606F01C8F27171E02204CA3DC121664DA122EE0A1D861000E7BFB1D8D6F3",
+  "start": "2026-10-30T12:31:53.9667862Z"
+}
