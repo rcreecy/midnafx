@@ -114,8 +114,10 @@ multi-scale halo. Normalized reconstruction retains the existing strength and
 uniform-field response while redistributing light beyond the original Gaussian
 footprint. This uses the existing controls and composite, with additional bounded
 compute work and field memory. Synthetic rendering demonstrates visible spread
-at the default strength; native desktop capture is unavailable in this iteration.
-See [scene bloom](scene-bloom.md) for evidence and remaining quality limits.
+at the default strength. Native capture was unavailable at publication; the
+2026-10-31 follow-up passes published-package Ordon visual smoke, toggle,
+fullscreen resize/return, live reload and normal close. Whole-game motion and
+GPU cost remain open. See [scene bloom](scene-bloom.md) for evidence and limits.
 
 | Slice | Observable completion | Current state |
 |---|---|---|

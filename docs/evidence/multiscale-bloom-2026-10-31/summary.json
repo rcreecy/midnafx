@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-31",
+  "package": "published v1.19.0 windows-amd64",
+  "package_sha256": "06D9E03CB313A830A000EB9F7E6EDE624337B5D6A73ABDFE8C9DA0EA83C0FD55",
+  "backend": "D3D12",
+  "stage": "F_SP103,0,27,0",
+  "strength_percent": 20,
+  "observed": [
+    "bloom on/off control",
+    "fullscreen resize and return",
+    "live module reload",
+    "bloom On at 20% after reload",
+    "world rendering after reload",
+    "normal Alt+F4 close"
+  ],
+  "shutdowns": [
+    {
+      "compute_callbacks": 3685,
+      "target_sets": 1,
+      "maximum_levels": 5
+    },
+    {
+      "compute_callbacks": 814,
+      "target_sets": 1,
+      "maximum_levels": 4
+    }
+  ],
+  "exit_code": 0,
+  "errors": [
+    "[ERROR | aurora::card] Failed to open file: gczelda2"
+  ],
+  "capture_dimensions": {
+    "control.jpg": [
+      962,
+      752
+    ],
+    "off.jpg": [
+      962,
+      752
+    ],
+    "on.jpg": [
+      962,
+      752
+    ],
+    "reloaded-control.jpg": [
+      962,
+      752
+    ],
+    "reloaded.jpg": [
+      962,
+      752
+    ],
+    "resized.jpg": [
+      1648,
+      1098
+    ]
+  },
+  "limitations": [
+    "unfrozen JPEG context images, not matched pixel-quality comparisons",
+    "no gameplay movement route or GPU duration measurement",
+    "macOS gameplay/Metal unverified"
+  ]
+}

@@ -16,11 +16,11 @@ and output quantization. Whole-game art and motion qualification remain open.
 
 The existing scene snapshot feeds a soft highlight extraction before exposure
 and manual grading. Extraction thresholds each source pixel before averaging
-its 4×4 tile, including only valid pixels at odd-size edges. Two separable
+its 4Ã—4 tile, including only valid pixels at odd-size edges. Two separable
 nine-tap Gaussian filters build a quarter-resolution highlight core. The core
 blur radius scales with scene height.
 
-Version 1.19 adds a broader halo. Valid 2×2 averages build progressively smaller
+Version 1.19 adds a broader halo. Valid 2Ã—2 averages build progressively smaller
 RGBA16Float fields. Starting with the smallest level, a normalized nine-tap tent
 filter reconstructs each larger field and blends equally with that level's
 original field. Every merge is convex: a uniform highlight retains the same
@@ -29,8 +29,8 @@ part of the final result. No temporal history or CPU readback is used, so a
 previous frame cannot leave a bloom trail.
 
 The pyramid stops when its height reaches 34 texels or five total levels have
-been allocated. At 1080p the levels are 480×270, 240×135, 120×68 and 60×34.
-4K adds a 960×540 base. Targets at or below 136 pixels high keep the original
+been allocated. At 1080p the levels are 480Ã—270, 240Ã—135, 120Ã—68 and 60Ã—34.
+4K adds a 960Ã—540 base. Targets at or below 136 pixels high keep the original
 single-level core. Odd dimensions use valid-texel averages, without repeated edge
 texels. Clamp sampling prevents wraparound, but border highlights can retain
 different integrated energy from interior highlights. Resolution changes can
@@ -62,9 +62,12 @@ visible halo at 20%, small-highlight motion through extraction phases, odd borde
 behavior, maximum-level narrow targets and linear strength scaling. Portable
 planning checks cover boundaries, overflow-safe dimensions and memory bounds.
 The [1.19 evidence ledger](evidence/multiscale-bloom-2026-10-30/README.md) retains
-production rendering outputs and measured limits. Native desktop capture is
-unavailable in this iteration; 1.19 native visual, reload and normal-close
-qualification remain open.
+production rendering outputs and measured limits. Native desktop capture was
+unavailable at publication. The [2026-10-31 follow-up](evidence/multiscale-bloom-2026-10-31/README.md)
+uses the published Windows package and passes Ordon visual smoke, bloom toggling,
+fullscreen resize/return, live reload and normal close with exit zero. The native
+captures retain unfrozen context, not matched pixel-quality or whole-game motion
+comparisons. Five bloom levels are exercised before reload and four afterward.
 
 Earlier native Ordon toggle, resize, reload and normal-close observations cover
 the 1.7 implementation only. Sixteen earlier ordinary/water/detail/AA/LUT

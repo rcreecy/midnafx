@@ -15,9 +15,11 @@
   GPU duration and whole-game quality remain unmeasured.
 - Add portable pyramid-boundary checks and six GPU cases for wider visible halos,
   small-highlight motion, energy, odd edges, maximum levels and strength scaling.
-  Native desktop capture is unavailable in this iteration; visual, reload and
-  normal-close qualification remain open. macOS remains best effort through
-  native builds and portable checks, without hosted Metal execution.
+  Native capture was unavailable at publication. A 2026-10-31 follow-up using the
+  published Windows package passes Ordon visual smoke, bloom toggle, fullscreen
+  resize/return, live reload and normal close with exit zero. Whole-game motion
+  and GPU cost remain open. macOS remains best effort through native builds and
+  portable checks, without hosted Metal execution.
 
 ## 1.18.0 - 2026-10-30
 

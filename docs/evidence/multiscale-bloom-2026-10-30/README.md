@@ -53,6 +53,11 @@ records the 1.19.0 module discovery and startup. The owned trial process is
 terminated for cleanup after desktop recovery remains unavailable. `cleanup.json`
 records the forced termination; it is not a normal-close or exit-zero result.
 
+The [2026-10-31 follow-up](../multiscale-bloom-2026-10-31/README.md) recovers
+desktop capture and passes published-package native smoke, toggling, fullscreen
+resize/return, live reload and normal close with exit zero. That later success
+does not erase the failed capture and forced cleanup retained here.
+
 macOS support remains best effort through native builds and portable checks.
 Gameplay and Metal execution are unverified. No remote Metal execution is added.
 GPU duration, 4K performance and whole-game art/motion quality remain open.
