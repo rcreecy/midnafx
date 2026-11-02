@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.20 upgrades **Adaptive exposure** for steadier scene brightness during
+texture motion and passing highlights. Denser fixed sampling and weighted
+percentile bounds reduce small-feature influence while retaining native night
+mood, fades and the existing exposure limits. Remaster and the independent Basic
+control use the upgrade without new settings. See [adaptive exposure](docs/adaptive-exposure.md).
+
 MidnaFX 1.19 upgrades **Scene bloom** with a retained highlight core and wider
 soft halos across bright scenery, characters and replacement textures. The
 existing 20% default, independent control and Remaster integration remain.

@@ -119,6 +119,13 @@ at the default strength. Native capture was unavailable at publication; the
 fullscreen resize/return, live reload and normal close. Whole-game motion and
 GPU cost remain open. See [scene bloom](scene-bloom.md) for evidence and limits.
 
+Version 1.20 improves scene-wide adaptive exposure stability. Denser deterministic
+sampling and weighted percentile bounds reduce the influence of moving texture
+details and isolated highlights, while preserving authored dark scenes and fade
+rejection. It reuses the existing control, dispatch and exposure history. Focused
+synthetic motion and native Ordon lifecycle checks pass; a whole-game moving-camera
+route and GPU duration remain unqualified. See [adaptive exposure](adaptive-exposure.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

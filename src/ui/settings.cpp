@@ -1059,7 +1059,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "Smooths stepped scene edges while retaining crisp straight edges. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Adaptive exposure", adaptive_exposure);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Adapts scene brightness gradually while preserving dark scenes and bright highlights. HUD stays unchanged.", nullptr));
+        "Keeps scene brightness steady as small highlights move. Gradual adaptation preserves dark scenes and bright highlights. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Scene bloom", bloom);
     add_number(panel, bloom_strength_setting);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,

@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-01",
+  "version": "1.20.0",
+  "local_package_sha256": "BA8E32FEB1FC306793310074B9902BE738BF0D078EC3230CAE6C6266365CA642",
+  "gpu": {
+    "existing_history_group": "passed",
+    "new_spatial_groups": 8,
+    "stripes": {
+      "legacy_mean_range": 0.74901961,
+      "new_mean_range": 0.00024414,
+      "legacy_ev_range": 0.12601293,
+      "new_ev_range": 6.866e-05
+    },
+    "stripe_context": "256x256, one-pixel white stripes every sixteen pixels over RGB 64, sixteen translation phases; one 0.1-second response from neutral per phase"
+  },
+  "native": {
+    "backend": "D3D12",
+    "stage": "F_SP103,0,27,0",
+    "encoded_before_after_reload": [
+      2296,
+      1792
+    ],
+    "samples_per_frame": 4096,
+    "normal_exit": 0,
+    "errors": [
+      "[ERROR | aurora::card] Failed to open file: gczelda2"
+    ],
+    "capture_dimensions": {
+      "control.jpg": [
+        962,
+        752
+      ],
+      "off.jpg": [
+        962,
+        752
+      ],
+      "on.jpg": [
+        962,
+        752
+      ],
+      "resized.jpg": [
+        1800,
+        1022
+      ],
+      "restored.jpg": [
+        962,
+        752
+      ]
+    }
+  },
+  "limits": [
+    "No native moving-camera route or whole-game motion qualification",
+    "Unfrozen JPEG images provide context only",
+    "No GPU duration or 4K performance measurement",
+    "Mac gameplay/Metal remain unverified; support is best effort"
+  ]
+}

@@ -426,11 +426,16 @@ float decode_half(std::uint16_t value) {
 // Each write precedes its own submission. History alternates GPU textures;
 // snapshots occupy separate aligned rows and are read only after the last step.
 std::vector<MeterValue> meter(WGPUInstance instance, WGPUDevice device,
-                              const std::vector<MeterStep>& steps) {
+                              const std::vector<MeterStep>& steps,
+                              unsigned width = 16, unsigned height = 16) {
+    if (!width || !height || steps.empty() ||
+        std::any_of(steps.begin(), steps.end(), [&](const auto& step) {
+            return step.pixels.size() != size_t(width) * height;
+        })) return {};
     wgpuDevicePushErrorScope(device, WGPUErrorFilter_Validation);
     auto queue = wgpuDeviceGetQueue(device);
     WGPUTextureDescriptor td = WGPU_TEXTURE_DESCRIPTOR_INIT;
-    td.size = {16, 16, 1};
+    td.size = {width, height, 1};
     td.format = WGPUTextureFormat_RGBA8Unorm;
     td.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
     auto source = wgpuDeviceCreateTexture(device, &td);
@@ -482,8 +487,8 @@ std::vector<MeterValue> meter(WGPUInstance instance, WGPUDevice device,
         WGPUTexelCopyTextureInfo upload = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
         upload.texture = source;
         WGPUTexelCopyBufferLayout upload_layout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
-        upload_layout.bytesPerRow = 16 * 4; upload_layout.rowsPerImage = 16;
-        const WGPUExtent3D source_size{16, 16, 1};
+        upload_layout.bytesPerRow = width * 4; upload_layout.rowsPerImage = height;
+        const WGPUExtent3D source_size{width, height, 1};
         wgpuQueueWriteTexture(queue, &upload, steps[i].pixels.data(),
                               steps[i].pixels.size() * sizeof(Pixel), &upload_layout, &source_size);
         auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
@@ -550,6 +555,233 @@ std::vector<MeterValue> meter(WGPUInstance instance, WGPUDevice device,
     wgpuTextureRelease(source);
     wgpuQueueRelease(queue);
     return output;
+}
+
+// The retired meter is an independent comparison baseline. Its coherent point
+// grid intentionally aliases the translating stripes below; no replacement
+// sample positions or histogram implementation appear in this oracle.
+double legacy_meter_mean(unsigned width, unsigned height, const std::vector<Pixel>& pixels) {
+    double sum = 0, weights = 0;
+    for (unsigned y = 0; y < 16; ++y)
+        for (unsigned x = 0; x < 16; ++x) {
+            const double u = (x + 0.5) / 16, v = (y + 0.5) / 16;
+            const auto& color = pixels[std::min(unsigned(v * height), height - 1) * width +
+                                       std::min(unsigned(u * width), width - 1)];
+            const double luma = (color[0] * 0.2126 + color[1] * 0.7152 + color[2] * 0.0722) / 255;
+            if (luma < 0.004) continue;
+            const double cx = u * 2 - 1, cy = v * 2 - 1;
+            const double weight = 1 - 0.35 * (cx * cx + cy * cy);
+            sum += std::log2(std::max(luma, 0.0001)) * weight;
+            weights += weight;
+        }
+    return std::exp2(sum / std::max(weights, 1.0));
+}
+
+bool spatial_exposure_tests(WGPUInstance instance, WGPUDevice device) {
+    bool ok = true;
+    const auto report = [&](const char* label, bool passed) {
+        std::printf("Exposure spatial %s: %s\n", label, passed ? "PASS" : "FAIL");
+        ok &= passed;
+    };
+    const auto finite = [](const MeterValue& value) {
+        return std::all_of(value.begin(), value.end(), [](float channel) { return std::isfinite(channel); }) &&
+               value[0] >= -0.5f && value[0] <= 0.75f && value[3] == 1;
+    };
+    constexpr double base_mean = 64.0 / 255;
+    for (unsigned size : {128u, 256u}) {
+        for (unsigned code : {255u, 4u}) {
+            std::vector<MeterStep> steps;
+            for (unsigned phase = 0; phase < 8; ++phase) {
+                auto pixels = std::vector<Pixel>(size * size, Pixel{64,64,64,17});
+                const unsigned side = size / 8; // 1.56 percent of the screen, below either tail cutoff.
+                const unsigned left = size / 2 - side / 2 + phase, top = size / 2 - side / 2;
+                for (unsigned y = top; y < top + side; ++y)
+                    for (unsigned x = left; x < left + side; ++x)
+                        pixels[y * size + x] = {static_cast<unsigned char>(code),
+                            static_cast<unsigned char>(code), static_cast<unsigned char>(code), 231};
+                steps.push_back({std::move(pixels), 0.1f, 1});
+            }
+            const auto values = meter(instance, device, steps, size, size);
+            bool valid = values.size() == steps.size();
+            double old_error = 0, new_error = 0;
+            if (valid) for (unsigned phase = 0; phase < values.size(); ++phase) {
+                valid &= finite(values[phase]) && values[phase][2] == 1;
+                old_error = std::max(old_error,
+                    std::abs(legacy_meter_mean(size, size, steps[phase].pixels) - base_mean));
+                new_error = std::max(new_error, std::abs(double(values[phase][1]) - base_mean));
+            }
+            valid &= new_error < base_mean * 0.02 && new_error < old_error * 0.5;
+            std::printf("Exposure outlier %ux%u code=%u: legacy_max_mean_error=%.8f new_max_mean_error=%.8f\n",
+                        size, size, code, old_error, new_error);
+            report(code == 255 ? "small moving bright patch preserves the scene meter" :
+                                 "small moving dark patch preserves the scene meter", valid);
+        }
+    }
+    {
+        constexpr unsigned width = 256, height = 256;
+        std::vector<MeterStep> steps;
+        for (unsigned phase = 0; phase < 16; ++phase) {
+            std::vector<Pixel> pixels(width * height);
+            for (unsigned y = 0; y < height; ++y)
+                for (unsigned x = 0; x < width; ++x) {
+                    const unsigned char code = x % 16 == phase ? 255 : 64;
+                    pixels[y * width + x] = {code, code, code, static_cast<unsigned char>((x * 37 + y * 19) % 256)};
+                }
+            steps.push_back({std::move(pixels), 0.1f, 1});
+        }
+        auto repeated = steps.front();
+        for (auto& pixel : repeated.pixels) pixel[3] ^= 255;
+        steps.push_back(std::move(repeated));
+        const auto values = meter(instance, device, steps, width, height);
+        bool valid = values.size() == steps.size();
+        double old_min_mean = 1, old_max_mean = 0, new_min_mean = 1, new_max_mean = 0;
+        double old_min_ev = 1, old_max_ev = -1, new_min_ev = 1, new_max_ev = -1;
+        if (valid) for (unsigned phase = 0; phase < 16; ++phase) {
+            const double mean = legacy_meter_mean(width, height, steps[phase].pixels);
+            // These scenes are above the fade region. Compare one reset step
+            // with the old asymmetric temporal response at the same 0.1 seconds.
+            const double desired = std::clamp(std::log2(0.32 / mean) * 0.55, -0.5, 0.75);
+            const double old_ev = desired * (1 - std::exp(-0.1 / (desired < 0 ? 0.4 : 1.2)));
+            valid &= finite(values[phase]) && values[phase][2] == 1;
+            old_min_mean = std::min(old_min_mean, mean); old_max_mean = std::max(old_max_mean, mean);
+            new_min_mean = std::min(new_min_mean, double(values[phase][1]));
+            new_max_mean = std::max(new_max_mean, double(values[phase][1]));
+            old_min_ev = std::min(old_min_ev, old_ev); old_max_ev = std::max(old_max_ev, old_ev);
+            new_min_ev = std::min(new_min_ev, double(values[phase][0]));
+            new_max_ev = std::max(new_max_ev, double(values[phase][0]));
+        }
+        const double old_mean_range = old_max_mean - old_min_mean, new_mean_range = new_max_mean - new_min_mean;
+        const double old_ev_range = old_max_ev - old_min_ev, new_ev_range = new_max_ev - new_min_ev;
+        valid &= old_mean_range > 0.7 && new_mean_range < old_mean_range * 0.25 &&
+                 new_ev_range < old_ev_range * 0.25;
+        if (values.size() == steps.size()) valid &= values.front() == values.back();
+        std::printf("Exposure stripe phases: legacy_mean_range=%.8f new_mean_range=%.8f legacy_ev_range=%.8f new_ev_range=%.8f\n",
+                    old_mean_range, new_mean_range, old_ev_range, new_ev_range);
+        report("one-pixel stripe translation reduces legacy mean and EV aliasing", valid);
+        report("fixed spatial pattern and alpha changes retain exact meter output",
+               values.size() == steps.size() && values.front() == values.back());
+    }
+    {
+        constexpr unsigned width = 128, height = 128;
+        auto pixels = std::vector<Pixel>(width * height, Pixel{64,64,64,17});
+        for (unsigned y = 0; y < height; ++y)
+            for (unsigned x = 0; x < width / 2; ++x) pixels[y * width + x] = {255,255,255,231};
+        const auto values = meter(instance, device, {{std::move(pixels), 0.1f, 1}}, width, height);
+        report("large bright region still changes mean and exposure",
+               values.size() == 1 && finite(values[0]) && values[0][1] > 0.4f &&
+               values[0][0] < -0.04f && values[0][2] == 1);
+    }
+    {
+        bool valid = true;
+        for (auto size : {std::array<unsigned,2>{1,1}, {3,5}, {127,65}}) {
+            const auto [width, height] = size;
+            for (auto color : {Pixel{0,0,0,17}, Pixel{4,4,4,17}, Pixel{12,12,12,17},
+                               Pixel{64,64,64,17}, Pixel{128,128,128,17}, Pixel{255,255,255,17},
+                               Pixel{128,0,0,17}}) {
+                const auto pixels = std::vector<Pixel>(size_t(width) * height, color);
+                auto alpha = pixels;
+                for (auto& pixel : alpha) pixel[3] = 231;
+                const auto values = meter(instance, device,
+                    {{pixels,0,1}, {pixels,0.1f,0}, {std::move(alpha),0,1}}, width, height);
+                valid &= values.size() == 3;
+                if (values.size() != 3) continue;
+                for (const auto& value : values) valid &= finite(value);
+                valid &= values[0] == values[2];
+                const double expected = (color[0] * 0.2126 + color[1] * 0.7152 + color[2] * 0.0722) / 255;
+                if (expected < 0.02) {
+                    for (const auto& value : values) valid &= value[0] == 0 && value[2] == 0;
+                } else {
+                    valid &= values[0][0] == 0 && values[0][2] == 1;
+                }
+                if (expected >= 0.004)
+                    for (const auto& value : values) valid &= std::abs(value[1] - expected) < 0.0005;
+            }
+        }
+        report("uniform tiny and odd scenes retain luma, fade gates, bounds and alpha", valid);
+    }
+    return ok;
+}
+
+bool exposure_tests(WGPUInstance instance, WGPUDevice device) {
+    std::vector<MeterStep> meter_steps;
+    const auto append_scene = [&](Pixel color, unsigned frames, bool reset = true) {
+        const size_t first = meter_steps.size();
+        for (unsigned i = 0; i < frames; ++i)
+            meter_steps.push_back({std::vector<Pixel>(256, color),
+                                   reset && i == 0 ? 0.0f : 0.1f,
+                                   reset && i == 0 ? 1u : 0u});
+        return first;
+    };
+    const auto dark = append_scene({32, 32, 32, 17}, 61);
+    const auto bright_transition = append_scene({255, 255, 255, 29}, 31, false);
+    const auto bright = append_scene({255, 255, 255, 0}, 61);
+    const auto middle = append_scene({82, 82, 82, 255}, 61);
+    const auto night = append_scene({12, 12, 12, 85}, 61);
+    const auto red = append_scene({128, 0, 0, 7}, 1);
+    const auto blue = append_scene({0, 0, 128, 99}, 1);
+    const auto alpha_variant = append_scene({32, 32, 32, 255}, 2);
+    const auto before_fade = append_scene({32, 32, 32, 0}, 31);
+    const auto fade = append_scene({4, 4, 4, 123}, 1, false);
+    const auto black = append_scene({0, 0, 0, 255}, 1, false);
+    // Invalid dark history must restart from neutral, even without a reset bit.
+    const size_t recovery = meter_steps.size();
+    meter_steps.push_back({std::vector<Pixel>(256, Pixel{32, 32, 32, 123}), 0, 0});
+    append_scene({32, 32, 32, 123}, 1, false);
+    const auto unframed = append_scene({128, 128, 128, 51}, 1);
+    const size_t framed = meter_steps.size();
+    auto bars = std::vector<Pixel>(256, Pixel{128, 128, 128, 51});
+    for (unsigned y = 0; y < 16; ++y)
+        if (y < 4 || y >= 12)
+            for (unsigned x = 0; x < 16; ++x) bars[y * 16 + x] = {0, 0, 0, 255};
+    meter_steps.push_back({std::move(bars), 0, 1});
+    const auto metered = meter(instance, device, meter_steps);
+    bool meter_ok = metered.size() == meter_steps.size();
+    if (meter_ok) {
+        for (const auto& value : metered)
+            meter_ok &= std::isfinite(value[0]) && std::isfinite(value[1]) &&
+                        value[0] >= -0.5f && value[0] <= 0.75f && value[3] == 1;
+        for (auto first : {dark, bright, middle, night, red, blue, alpha_variant, before_fade, unframed})
+            meter_ok &= metered[first][0] == 0 && metered[first][2] == 1;
+        meter_ok &= metered[dark + 60][0] > 0.70f &&
+                    metered[bright + 60][0] < -0.48f &&
+                    std::abs(metered[middle + 60][0]) < 0.02f;
+        for (unsigned i = 1; i < 61; ++i) {
+            meter_ok &= metered[dark + i][0] >= metered[dark + i - 1][0];
+            meter_ok &= metered[bright + i][0] <= metered[bright + i - 1][0];
+        }
+        for (unsigned i = 1; i < 31; ++i)
+            meter_ok &= metered[bright_transition + i][0] <= metered[bright_transition + i - 1][0];
+        meter_ok &= metered[bright_transition][0] < metered[dark + 60][0] &&
+                    metered[bright_transition + 30][0] < -0.48f;
+        // Compare fractions of the two clamped targets to separate speed from range.
+        meter_ok &= -metered[bright + 1][0] / 0.5f > metered[dark + 1][0] / 0.75f;
+        meter_ok &= std::abs(metered[red][1] - (128.0f / 255 * 0.2126f)) < 0.0003f &&
+                    std::abs(metered[blue][1] - (128.0f / 255 * 0.0722f)) < 0.0001f;
+        meter_ok &= metered[alpha_variant + 1] == metered[dark + 1];
+        meter_ok &= metered[before_fade + 30][0] > 0.5f &&
+                    metered[fade][0] == 0 && metered[fade][2] == 0 &&
+                    metered[black][0] == 0 && metered[black][2] == 0 &&
+                    metered[recovery][0] == 0 && metered[recovery][2] == 1 &&
+                    metered[recovery + 1][0] > 0;
+        meter_ok &= std::abs(metered[framed][1] - metered[unframed][1]) < 0.0005f;
+        const auto night_output = render(instance, device, "fs_main", 1, 1, {{12, 12, 12, 85}},
+            0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, metered[night + 60][0]);
+        const auto day_output = render(instance, device, "fs_main", 1, 1, {{82, 82, 82, 255}},
+            0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, metered[middle + 60][0]);
+        meter_ok &= night_output.size() == 1 && day_output.size() == 1;
+        if (night_output.size() == 1 && day_output.size() == 1)
+            meter_ok &= night_output[0][0] < day_output[0][0] &&
+                        night_output[0][3] == 85 && day_output[0][3] == 255;
+    }
+    std::printf("Exposure meter: convergence, Rec709, temporal history, reset, fades, bars, alpha: %s\n",
+                meter_ok ? "PASS" : "FAIL");
+    if (!meter_ok && metered.size() == meter_steps.size())
+        for (auto i : {dark, dark + 1, dark + 60, bright_transition, bright_transition + 30,
+                       bright + 1, bright + 60, middle + 60, red, blue, fade, black, recovery, framed})
+            std::fprintf(stderr, "Meter step %zu: stops=%g mean=%g valid=%g alpha=%g\n",
+                         i, metered[i][0], metered[i][1], metered[i][2], metered[i][3]);
+    const bool spatial_ok = spatial_exposure_tests(instance, device);
+    return meter_ok && spatial_ok;
 }
 
 struct HalfPlane {
@@ -624,7 +856,7 @@ double coverage_error(unsigned width, unsigned height, const std::vector<Pixel>&
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
     auto instance = wgpuCreateInstance(nullptr);
     if (!instance) return 77;
     WGPUAdapter adapter = nullptr;
@@ -665,6 +897,13 @@ int main() {
         wgpuAdapterRelease(adapter);
         wgpuInstanceRelease(instance);
         return 1;
+    }
+    if (argc == 2 && std::strcmp(argv[1], "--exposure-only") == 0) {
+        const bool passed = exposure_tests(instance, device);
+        wgpuDeviceRelease(device);
+        wgpuAdapterRelease(adapter);
+        wgpuInstanceRelease(instance);
+        return passed ? 0 : 1;
     }
     bool ok = true;
     unsigned cases = 0;
@@ -977,84 +1216,7 @@ int main() {
             ok &= valid;
         }
     }
-    std::vector<MeterStep> meter_steps;
-    const auto append_scene = [&](Pixel color, unsigned frames, bool reset = true) {
-        const size_t first = meter_steps.size();
-        for (unsigned i = 0; i < frames; ++i)
-            meter_steps.push_back({std::vector<Pixel>(256, color),
-                                   reset && i == 0 ? 0.0f : 0.1f,
-                                   reset && i == 0 ? 1u : 0u});
-        return first;
-    };
-    const auto dark = append_scene({32, 32, 32, 17}, 61);
-    const auto bright_transition = append_scene({255, 255, 255, 29}, 31, false);
-    const auto bright = append_scene({255, 255, 255, 0}, 61);
-    const auto middle = append_scene({82, 82, 82, 255}, 61);
-    const auto night = append_scene({12, 12, 12, 85}, 61);
-    const auto red = append_scene({128, 0, 0, 7}, 1);
-    const auto blue = append_scene({0, 0, 128, 99}, 1);
-    const auto alpha_variant = append_scene({32, 32, 32, 255}, 2);
-    const auto before_fade = append_scene({32, 32, 32, 0}, 31);
-    const auto fade = append_scene({4, 4, 4, 123}, 1, false);
-    const auto black = append_scene({0, 0, 0, 255}, 1, false);
-    // Invalid dark history must restart from neutral, even without a reset bit.
-    const size_t recovery = meter_steps.size();
-    meter_steps.push_back({std::vector<Pixel>(256, Pixel{32, 32, 32, 123}), 0, 0});
-    append_scene({32, 32, 32, 123}, 1, false);
-    const auto unframed = append_scene({128, 128, 128, 51}, 1);
-    const size_t framed = meter_steps.size();
-    auto bars = std::vector<Pixel>(256, Pixel{128, 128, 128, 51});
-    for (unsigned y = 0; y < 16; ++y)
-        if (y < 4 || y >= 12)
-            for (unsigned x = 0; x < 16; ++x) bars[y * 16 + x] = {0, 0, 0, 255};
-    meter_steps.push_back({std::move(bars), 0, 1});
-    const auto metered = meter(instance, device, meter_steps);
-    bool meter_ok = metered.size() == meter_steps.size();
-    if (meter_ok) {
-        for (const auto& value : metered)
-            meter_ok &= std::isfinite(value[0]) && std::isfinite(value[1]) &&
-                        value[0] >= -0.5f && value[0] <= 0.75f && value[3] == 1;
-        for (auto first : {dark, bright, middle, night, red, blue, alpha_variant, before_fade, unframed})
-            meter_ok &= metered[first][0] == 0 && metered[first][2] == 1;
-        meter_ok &= metered[dark + 60][0] > 0.70f &&
-                    metered[bright + 60][0] < -0.48f &&
-                    std::abs(metered[middle + 60][0]) < 0.02f;
-        for (unsigned i = 1; i < 61; ++i) {
-            meter_ok &= metered[dark + i][0] >= metered[dark + i - 1][0];
-            meter_ok &= metered[bright + i][0] <= metered[bright + i - 1][0];
-        }
-        for (unsigned i = 1; i < 31; ++i)
-            meter_ok &= metered[bright_transition + i][0] <= metered[bright_transition + i - 1][0];
-        meter_ok &= metered[bright_transition][0] < metered[dark + 60][0] &&
-                    metered[bright_transition + 30][0] < -0.48f;
-        // Compare fractions of the two clamped targets to separate speed from range.
-        meter_ok &= -metered[bright + 1][0] / 0.5f > metered[dark + 1][0] / 0.75f;
-        meter_ok &= std::abs(metered[red][1] - (128.0f / 255 * 0.2126f)) < 0.0003f &&
-                    std::abs(metered[blue][1] - (128.0f / 255 * 0.0722f)) < 0.0001f;
-        meter_ok &= metered[alpha_variant + 1] == metered[dark + 1];
-        meter_ok &= metered[before_fade + 30][0] > 0.5f &&
-                    metered[fade][0] == 0 && metered[fade][2] == 0 &&
-                    metered[black][0] == 0 && metered[black][2] == 0 &&
-                    metered[recovery][0] == 0 && metered[recovery][2] == 1 &&
-                    metered[recovery + 1][0] > 0;
-        meter_ok &= std::abs(metered[framed][1] - metered[unframed][1]) < 0.0005f;
-        const auto night_output = render(instance, device, "fs_main", 1, 1, {{12, 12, 12, 85}},
-            0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, metered[night + 60][0]);
-        const auto day_output = render(instance, device, "fs_main", 1, 1, {{82, 82, 82, 255}},
-            0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, metered[middle + 60][0]);
-        meter_ok &= night_output.size() == 1 && day_output.size() == 1;
-        if (night_output.size() == 1 && day_output.size() == 1)
-            meter_ok &= night_output[0][0] < day_output[0][0] &&
-                        night_output[0][3] == 85 && day_output[0][3] == 255;
-    }
-    std::printf("Exposure meter: convergence, Rec709, temporal history, reset, fades, bars, alpha: %s\n",
-                meter_ok ? "PASS" : "FAIL");
-    if (!meter_ok && metered.size() == meter_steps.size())
-        for (auto i : {dark, dark + 1, dark + 60, bright_transition, bright_transition + 30,
-                       bright + 1, bright + 60, middle + 60, red, blue, fade, black, recovery, framed})
-            std::fprintf(stderr, "Meter step %zu: stops=%g mean=%g valid=%g alpha=%g\n",
-                         i, metered[i][0], metered[i][1], metered[i][2], metered[i][3]);
-    ok &= meter_ok;
+    ok &= exposure_tests(instance, device);
 
     std::vector<Pixel> exposure_source(17 * 3);
     for (unsigned y = 0; y < 3; ++y)

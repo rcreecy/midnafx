@@ -1,0 +1,15 @@
+Adapter: Intel(R) UHD Graphics 630; backend=4; type=2
+Exposure meter: convergence, Rec709, temporal history, reset, fades, bars, alpha: PASS
+Exposure outlier 128x128 code=255: legacy_max_mean_error=0.00714305 new_max_mean_error=0.00024031
+Exposure spatial small moving bright patch preserves the scene meter: PASS
+Exposure outlier 128x128 code=4: legacy_max_mean_error=0.01373627 new_max_mean_error=0.00024797
+Exposure spatial small moving dark patch preserves the scene meter: PASS
+Exposure outlier 256x256 code=255: legacy_max_mean_error=0.00714305 new_max_mean_error=0.00024031
+Exposure spatial small moving bright patch preserves the scene meter: PASS
+Exposure outlier 256x256 code=4: legacy_max_mean_error=0.01373627 new_max_mean_error=0.00024797
+Exposure spatial small moving dark patch preserves the scene meter: PASS
+Exposure stripe phases: legacy_mean_range=0.74901961 new_mean_range=0.00024414 legacy_ev_range=0.12601293 new_ev_range=0.00006866
+Exposure spatial one-pixel stripe translation reduces legacy mean and EV aliasing: PASS
+Exposure spatial fixed spatial pattern and alpha changes retain exact meter output: PASS
+Exposure spatial large bright region still changes mean and exposure: PASS
+Exposure spatial uniform tiny and odd scenes retain luma, fade gates, bounds and alpha: PASS

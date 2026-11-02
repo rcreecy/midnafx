@@ -145,7 +145,7 @@ WGPUTextureView prepare(const GfxResolvedTargets& scene, std::uint64_t layout_ke
 void shutdown() {
     if (svc_log && encoded.load()) {
         char message[160];
-        std::snprintf(message, sizeof(message), "Adaptive exposure shutdown: encoded=%llu samples_per_frame=256",
+        std::snprintf(message, sizeof(message), "Adaptive exposure shutdown: encoded=%llu samples_per_frame=4096 percentile_bounds=10..90",
                       static_cast<unsigned long long>(encoded.load()));
         svc_log->info(mod_ctx, message);
     }

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.20.0 - 2026-11-01
+
+- Upgrade scene-wide adaptive exposure with 4,096 fixed stratified samples and
+  a weighted 64-bin luminance histogram. Clamp the outer 10% weighted tails to
+  percentile-bin edges before averaging, reducing isolated highlights, dark
+  details and coherent point-grid aliasing. No asset or stage lists are added.
+- Preserve uniform-scene luminance, the original untrimmed fade gate, -0.5 to
+  +0.75 stop limits, adaptation speeds and history resets. Existing Remaster,
+  Vanilla and saved-look behavior remains; no new setting or migration is needed.
+- Reuse the existing dispatch, three single-texel exposure textures and fused
+  composite. Additional sampling, histogram atomics and synchronization cost GPU
+  work; GPU duration and 4K performance remain unmeasured.
+- Add eight spatial GPU groups alongside the original temporal, fade, color,
+  black-bar and composition checks. Native Ordon toggle, fullscreen resize/return,
+  reload and normal close pass with exit zero. Whole-game motion and artistic
+  quality remain open. macOS stays best effort without hosted Metal execution.
+
 ## 1.19.0 - 2026-10-30
 
 - Upgrade scene bloom with a normalized multi-scale halo around the existing

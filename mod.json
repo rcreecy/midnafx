@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "author": "MidnaFX contributors",
-  "description": "Multi-scale scene bloom with restrained highlight cores and broad halos, alongside Remaster local lighting, sunlight, water, motion clarity and camera controls"
+  "description": "Robust adaptive exposure for steadier scene brightness during texture motion and passing highlights, alongside Remaster lighting, bloom, water and camera controls"
 }
