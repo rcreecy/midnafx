@@ -33,8 +33,10 @@ struct Params {
     float local_position[4][4]{};
     float local_color[4][4]{};
     float local_distance[4][4]{};
+    float fog_light_direction[4]{};
+    float fog_light_color[4]{};
 };
-static_assert(sizeof(Params) == 464);
+static_assert(sizeof(Params) == 496);
 
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
@@ -1288,6 +1290,131 @@ int main() {
                     for (unsigned c = 0; c < 3; ++c)
                         valid &= std::abs(int(reverse.color[i][c]) - int(after.color[i][c])) <= 1;
                 report("Matched reversed-Z sunlight geometry and alpha agree within one display code", valid);
+            }
+        }
+    }
+    {
+        Fixture fixture(instance, device);
+        for (auto size : {std::array<unsigned,2>{65,49}, {33,25}}) {
+            const auto [width,height] = size;
+            const auto pixels = scene(width,height);
+            const std::vector<float> depth(width*height,depth_at(10));
+            auto base = perspective(width,height); base.strength = 0;
+            base.fog_color[0] = 0.1f; base.fog_color[1] = 0.15f; base.fog_color[2] = 0.2f;
+            base.fog_color[3] = 0.35f; base.fog_range[0] = 2; base.fog_range[1] = 18;
+            auto lit = base;
+            lit.fog_light_direction[2] = -1; lit.fog_light_direction[3] = 0.5f;
+            lit.fog_light_color[0] = 1; lit.fog_light_color[1] = 0.8f; lit.fog_light_color[2] = 0.6f;
+            const auto legacy = fixture.run(width,height,depth,base);
+            const auto forward = fixture.run(width,height,depth,lit);
+            const auto center = (height/2)*width+width/2;
+            const float amount = 0.35f*(1-std::exp(-1.0f));
+            bool valid = bounded(legacy,width,height) && bounded(forward,width,height);
+            if (valid) {
+                for (size_t i=0;i<pixels.size();++i) for (unsigned c=0;c<3;++c) {
+                    const float ceiling = base.fog_color[c]*0.5f+lit.fog_light_color[c]*0.5f;
+                    const int upper = int(std::ceil(pixels[i][c]*(1-amount)+ceiling*255*amount));
+                    valid &= forward.color[i][c]>=legacy.color[i][c] && int(forward.color[i][c])<=upper+1;
+                }
+                for (unsigned c=0;c<3;++c) {
+                    const float fog = base.fog_color[c]*0.5f+lit.fog_light_color[c]*0.5f;
+                    const int expected = int(std::lround(pixels[center][c]*(1-amount)+fog*255*amount));
+                    valid &= std::abs(int(forward.color[center][c])-expected)<=1;
+                }
+                valid &= forward.raw==legacy.raw && forward.filtered==legacy.filtered;
+                valid &= forward.color[center][0]>legacy.color[center][0]+15;
+                auto maximum = lit; maximum.fog_light_direction[3]=2;
+                valid &= fixture.run(width,height,depth,maximum).color==forward.color;
+            }
+            report("Sunlit haze reaches the analytic forward cap without changing density, alpha or contact fields",valid);
+            {
+                auto behind = lit; behind.fog_light_direction[2]=1;
+                const auto back = fixture.run(width,height,depth,behind);
+                valid = bounded(back,width,height) && bounded(forward,width,height);
+                if (valid) {
+                    valid &= forward.color[center][0]>back.color[center][0]+15;
+                    for (unsigned y=0;y<height;++y) for (unsigned x=0;x<width;++x)
+                        for (unsigned c=0;c<3;++c)
+                            valid &= forward.color[y*width+x][c]==forward.color[y*width+width-1-x][c];
+                }
+                report("Directional haze follows the sun across the full sphere with horizontal symmetry",valid);
+            }
+            {
+                const auto direction = [](Params params,float x) {
+                    const float norm=std::hypot(x,1.0f);
+                    params.fog_light_direction[0]=x/norm;
+                    params.fog_light_direction[2]=-1/norm;
+                    return params;
+                };
+                const float edge=float(width)/height;
+                const auto inside=fixture.run(width,height,depth,direction(lit,edge*0.99f));
+                const auto outside=fixture.run(width,height,depth,direction(lit,edge*1.01f));
+                valid=bounded(inside,width,height)&&bounded(outside,width,height);
+                if(valid) {
+                    for(size_t i=0;i<pixels.size();++i) for(unsigned c=0;c<3;++c)
+                        valid &= std::abs(int(inside.color[i][c])-int(outside.color[i][c]))<=2;
+                    valid &= outside.color[(height/2)*width+width-1][0]>
+                             outside.color[(height/2)*width][0]+5;
+                }
+                report("Sun crossing the screen boundary retains a continuous off-screen haze contribution",valid);
+            }
+            {
+                auto half=lit; half.fog_light_direction[3]=0.25f;
+                const auto faded=fixture.run(width,height,depth,half);
+                valid=bounded(faded,width,height)&&bounded(forward,width,height)&&bounded(legacy,width,height);
+                if(valid) for(size_t i=0;i<pixels.size();++i) for(unsigned c=0;c<3;++c) {
+                    valid &= faded.color[i][c]>=legacy.color[i][c] && faded.color[i][c]<=forward.color[i][c];
+                    valid &= std::abs(2*int(faded.color[i][c])-int(forward.color[i][c])-int(legacy.color[i][c]))<=2;
+                }
+                report("Native daylight alpha fades the haze tint linearly without changing source alpha",valid);
+            }
+            {
+                valid=bounded(legacy,width,height);
+                std::vector<Params> invalid;
+                auto zero=lit; zero.fog_light_direction[3]=0; invalid.push_back(zero);
+                auto black=lit; std::fill(std::begin(black.fog_light_color),std::end(black.fog_light_color),0); invalid.push_back(black);
+                auto absent=lit; absent.fog_light_direction[2]=0; invalid.push_back(absent);
+                auto nonunit=lit; nonunit.fog_light_direction[2]=-2; invalid.push_back(nonunit);
+                auto bad_direction=lit; bad_direction.fog_light_direction[0]=NAN; invalid.push_back(bad_direction);
+                auto bad_color=lit; bad_color.fog_light_color[0]=NAN; invalid.push_back(bad_color);
+                auto bad_strength=lit; bad_strength.fog_light_direction[3]=NAN; invalid.push_back(bad_strength);
+                for(const auto& p:invalid) {
+                    const auto result=fixture.run(width,height,depth,p);
+                    valid &= bounded(result,width,height) && result.color==legacy.color;
+                }
+                report("Missing, dark, inactive and invalid sun inputs preserve the original fog exactly",valid);
+            }
+            {
+                auto zero=lit; zero.fog_color[3]=0;
+                const auto disabled=fixture.run(width,height,depth,zero);
+                const auto near=fixture.run(width,height,std::vector<float>(width*height,depth_at(1.5f)),lit);
+                const auto sky=fixture.run(width,height,std::vector<float>(width*height,1),lit);
+                valid=bounded(disabled,width,height)&&bounded(near,width,height)&&bounded(sky,width,height)&&
+                    disabled.color==pixels&&near.color==pixels&&sky.color==pixels;
+                report("Zero atmosphere, pre-fog geometry and background bypass sunlit haze exactly",valid);
+            }
+            {
+                auto reversed=lit;
+                reversed.background_depth=0;
+                reversed.proj_from_view[10]=1.0f/99; reversed.proj_from_view[14]=100.0f/99;
+                reversed.view_from_proj[11]=99.0f/100; reversed.view_from_proj[15]=1.0f/100;
+                const auto result=fixture.run(width,height,std::vector<float>(width*height,1-depth_at(10)),reversed);
+                valid=bounded(result,width,height)&&bounded(forward,width,height);
+                if(valid) for(size_t i=0;i<pixels.size();++i) for(unsigned c=0;c<3;++c)
+                    valid &= std::abs(int(result.color[i][c])-int(forward.color[i][c]))<=1;
+                report("Reversed-Z reconstructs the same directional haze and exact alpha",valid);
+            }
+            {
+                auto shaded=lit; shaded.strength=0.8f;
+                std::vector<Field> seed(((width+1)/2)*((height+1)/2),Field{0.5f,1,0.5f,0.5f});
+                const auto result=fixture.run(width,height,depth,shaded,seed);
+                valid=bounded(result,width,height);
+                if(valid) for(unsigned c=0;c<3;++c) {
+                    const float fog=base.fog_color[c]*0.5f+lit.fog_light_color[c]*0.5f;
+                    const int expected=int(std::lround(pixels[center][c]*0.6f*(1-amount)+fog*255*amount));
+                    valid &= std::abs(int(result.color[center][c])-expected)<=1;
+                }
+                report("Directional haze composes after contact darkening with the original atmosphere cap",valid);
             }
         }
     }

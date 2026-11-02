@@ -1,5 +1,11 @@
 # MidnaFX
 
+MidnaFX 1.21 upgrades **Depth atmosphere** with sunlit outdoor haze. The native
+sun's color and direction tint distant atmosphere more strongly toward the sun,
+while preserving the existing fog range and strength. No additional control or
+rendering pass is required. Missing or unsupported daylight keeps the original
+atmosphere. See [depth atmosphere](docs/depth-atmosphere.md).
+
 MidnaFX 1.20 upgrades **Adaptive exposure** for steadier scene brightness during
 texture motion and passing highlights. Denser fixed sampling and weighted
 percentile bounds reduce small-feature influence while retaining native night

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.21.0 - 2026-11-02
+
+- Upgrade depth atmosphere with a bounded directional tint toward native sun
+  color. A peak-normalized forward lobe adds sunlit haze while retaining native
+  fog distance, density, strength and source alpha. Existing Remaster, Vanilla
+  and saved-look behavior remain; no new setting or migration is required.
+- Use native daylight alpha and a validated full-sphere view direction. The sun
+  need not appear on screen; lens/depth-probe visibility does not control haze.
+  Native clear-weather, snow, outdoor, skybox, Twilight, event, pause and water
+  gates preserve the original fog when the new source is unavailable.
+- Reuse the existing opaque snapshot and composite. Add no texture, compute
+  dispatch, fullscreen draw, source history, asset identity or host patch. GPU
+  duration and broad artistic/motion quality remain unmeasured.
+- Add portable source validation and sixteen production GPU cases, including
+  forward bounds, off-screen continuity, alpha fading, original-fog fallback,
+  reversed-Z and contact-shading composition. Native desktop capture is unavailable
+  because RDP is disconnected; visual, toggle, reload and normal-close checks
+  remain unverified. macOS remains best effort through native builds and portable
+  checks, without hosted Metal execution.
+
 ## 1.20.0 - 2026-11-01
 
 - Upgrade scene-wide adaptive exposure with 4,096 fixed stratified samples and

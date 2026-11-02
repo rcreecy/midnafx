@@ -1,0 +1,8 @@
+{
+  "time": "2026-11-02T18:54:44.7731336Z",
+  "normal_close_verified": false,
+  "path": "C:\\dev\\midnafx\\build\\frame-timing\\hosts\\baseline\\dusklight.exe",
+  "pid": 6140,
+  "reason": "RDP session 2 disconnected; capture failed twice with invalid monitor; terminate owned trial for cleanup",
+  "method": "Stop-Process"
+}

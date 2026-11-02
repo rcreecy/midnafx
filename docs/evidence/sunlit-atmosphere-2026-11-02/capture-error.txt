@@ -1,0 +1,2 @@
+IGraphicsCaptureItemInterop.CreateForMonitor failed: Could not capture the given monitor. (0x80070057)
+Fresh window selection repeats the same failure. Read-only session inventory reports session 2 disconnected.

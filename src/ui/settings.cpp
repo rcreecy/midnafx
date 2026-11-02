@@ -1078,6 +1078,8 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
         "Approximates reflected color between nearby visible surfaces. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Depth atmosphere", atmosphere);
     add_number(panel, atmosphere_strength_setting);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        "Uses native fog color and range for distance atmosphere. Clear outdoor daylight adds directional sun color to distant haze. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Sunlight shafts (experimental)", sunlight_shafts);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Adds outdoor sun rays shaped by visible scenery. Off-screen sun bypasses the effect; hidden sun fades it out.", nullptr));

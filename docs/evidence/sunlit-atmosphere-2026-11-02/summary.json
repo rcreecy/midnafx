@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-02",
+  "version": "1.21.0",
+  "local_package_sha256": "A95EF09DE16CA038BD4BBA73B7E61C9941728CD0F20CE0B8A65268EC70B2E0FD",
+  "gpu_cases": 103,
+  "new_gpu_cases": 16,
+  "uniform_bytes": 496,
+  "native": {
+    "capture": "unavailable: disconnected RDP session 2",
+    "visual": "unverified",
+    "toggle": "unverified",
+    "reload": "unverified",
+    "normal_close": "unverified",
+    "cleanup": "owned trial forcibly terminated; not exit-zero proof"
+  },
+  "limits": [
+    "LDR directional tint, not volumetric transport or atmospheric shadows",
+    "Native whole-game art and motion unverified",
+    "GPU duration and 4K cost unmeasured",
+    "macOS gameplay and Metal unavailable; support is best effort"
+  ]
+}

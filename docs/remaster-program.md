@@ -126,6 +126,13 @@ rejection. It reuses the existing control, dispatch and exposure history. Focuse
 synthetic motion and native Ordon lifecycle checks pass; a whole-game moving-camera
 route and GPU duration remain unqualified. See [adaptive exposure](adaptive-exposure.md).
 
+Version 1.21 adds directional sun color to the existing depth atmosphere across
+supported clear outdoor scenes. A full-sphere native sun direction avoids a
+screen-edge source cutoff; native daylight alpha and environmental gates preserve
+the original fog where sunlight is unavailable. Fog density and controls remain
+unchanged, with no extra draw, texture or asset identity. Portable and focused GPU
+checks pass; broad art/motion and GPU cost remain open. See [depth atmosphere](depth-atmosphere.md).
+
 | Slice | Observable completion | Current state |
 |---|---|---|
 | R0: reliable runtime and measurement | Explain/fix or explicitly isolate the baseline shutdown stall; measure frame timing and observer allocation behavior during steady rendering, active sampling and texture reload; retain valid baseline/off/on controls | Full-queue shutdown defect reproduced and repaired; eight settled CPU timing controls retained; active sampling/reload, allocation measurements and historical stall attribution remain open |

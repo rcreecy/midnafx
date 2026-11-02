@@ -1,6 +1,7 @@
 #include "ambient_occlusion.hpp"
 #include "gpu_validation.hpp"
 #include "sunlight_shafts_state.hpp"
+#include "atmosphere_light_state.hpp"
 #include "local_light_state.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
@@ -38,8 +39,10 @@ struct Uniforms {
     float local_position[4][4];
     float local_color[4][4];
     float local_distance[4][4];
+    float fog_light_direction[4];
+    float fog_light_color[4];
 };
-static_assert(sizeof(Uniforms) == 464);
+static_assert(sizeof(Uniforms) == 496);
 struct Pipeline {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPURenderPipeline pipeline = nullptr;
@@ -93,6 +96,7 @@ bool bounce_logged = false;
 bool local_logged = false;
 bool lantern_logged = false;
 bool atmosphere_logged = false;
+bool sunlit_logged = false;
 bool sunlight_logged = false;
 bool submitted = false;
 
@@ -374,6 +378,18 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
             mDoGph_gInf_c::getWidth(), mDoGph_gInf_c::getHeight());
         shafts = sunlight.screen[2];
     }
+    atmosphere_light::Source atmosphere_sun;
+    if (haze > 0 && !dKy_darkworld_check() && !g_env_light.hide_vrbox &&
+        g_env_light.mSunInitialized && sun && dKy_Outdoor_check() &&
+        g_env_light.mColpatWeather == 0 && g_env_light.mSnowCount <= 10 &&
+        !dComIfGp_event_runCheck()) {
+        const float world[]{sun->mPos[0].x, sun->mPos[0].y, sun->mPos[0].z};
+        const float color[]{sun->mColor.r / 255.0f, sun->mColor.g / 255.0f, sun->mColor.b / 255.0f};
+        // Sprite visibility is a lens/depth-probe result, not daylight
+        // availability. Directional haze remains defined for off-screen suns.
+        atmosphere_sun = atmosphere_light::prepare(camera.view_from_world, camera.proj_from_view,
+            world, color, sun->mSunAlpha);
+    }
     if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && haze <= 0 && shafts <= 0) return;
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK || !supported(layout)) return;
@@ -400,6 +416,8 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     uniforms.bounce[1] = 180.0f;
     std::copy(sunlight.screen.begin(), sunlight.screen.end(), uniforms.sun_screen);
     std::copy(sunlight.color.begin(), sunlight.color.end(), uniforms.sun_color);
+    std::copy(atmosphere_sun.direction.begin(), atmosphere_sun.direction.end(), uniforms.fog_light_direction);
+    std::copy(atmosphere_sun.color.begin(), atmosphere_sun.color.end(), uniforms.fog_light_color);
     uniforms.local[0] = local;
     uniforms.local[1] = float(local_sources.count);
     for (unsigned i = 0; i < local_sources.count; ++i) {
@@ -466,6 +484,15 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         svc_log->info(mod_ctx, message);
         atmosphere_logged = true;
     }
+    if (!sunlit_logged && uniforms.fog_light_direction[3] > 0 && svc_log) {
+        char message[256];
+        std::snprintf(message, sizeof(message),
+            "Sunlit atmosphere active: direction=(%.3f,%.3f,%.3f) tint=%.3f RGB=(%.3f,%.3f,%.3f), native daylight, sprite visibility ignored",
+            uniforms.fog_light_direction[0], uniforms.fog_light_direction[1], uniforms.fog_light_direction[2],
+            uniforms.fog_light_direction[3], uniforms.fog_light_color[0], uniforms.fog_light_color[1], uniforms.fog_light_color[2]);
+        svc_log->info(mod_ctx, message);
+        sunlit_logged = true;
+    }
     if (!shadows_logged && shadows > 0 && svc_log) {
         char message[224];
         std::snprintf(message, sizeof(message),
@@ -501,6 +528,7 @@ void initialize() {
     local_logged = false;
     lantern_logged = false;
     atmosphere_logged = false;
+    sunlit_logged = false;
     submitted = false;
     compute_failed.store(false); encoded_compute.store(0); encoded_draw.store(0);
     if (!svc_gfx || svc_gfx->get_device_info(mod_ctx, &device) != MOD_OK || !device.device || !device.instance) return;

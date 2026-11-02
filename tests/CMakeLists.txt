@@ -1,4 +1,8 @@
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+add_executable(atmosphere_light atmosphere_light.cpp)
+target_compile_features(atmosphere_light PRIVATE cxx_std_20)
+target_include_directories(atmosphere_light PRIVATE ../src)
+add_test(NAME atmosphere_light COMMAND atmosphere_light)
 add_executable(bloom_plan bloom_plan.cpp)
 target_compile_features(bloom_plan PRIVATE cxx_std_20)
 target_include_directories(bloom_plan PRIVATE ../src)

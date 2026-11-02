@@ -14,7 +14,26 @@ fn atmosphere(color: vec4f, point: vec3f) -> vec4f {
     let span = max(params.fog_range.y - params.fog_range.x, 1.0);
     let distance = max(-point.z - params.fog_range.x, 0.0) / span;
     let amount = params.fog_color.a * (1.0 - exp(-2.0 * min(distance, 4.0)));
-    return vec4f(mix(color.rgb, params.fog_color.rgb, amount), color.a);
+    var fog_target = params.fog_color.rgb;
+    let sun = params.fog_light_direction;
+    let sun_color = params.fog_light_color;
+    if (sun.w > 0 && all(sun == sun) && all(abs(sun) < vec4f(1e20)) &&
+        all(sun_color == sun_color) && all(abs(sun_color) < vec4f(1e20)) &&
+        any(sun_color.rgb > vec3f(0))) {
+        let ray_length = length(point);
+        let sun_length = length(sun.xyz);
+        if (ray_length > 0.0001 && ray_length < 1e20 && sun_length > 0.99 && sun_length < 1.01) {
+            let cosine = clamp(dot(point / ray_length, sun.xyz / sun_length), -1.0, 1.0);
+            // A peak-normalized forward lobe changes the fog target color only.
+            // Density, distance interval and the existing atmosphere cap stay intact.
+            let g = 0.65;
+            let denominator = 1 + g * g - 2 * g * cosine;
+            let phase = pow(((1-g)*(1-g)) / denominator, 1.5);
+            let tint = clamp(sun.w, 0, 0.5) * clamp(phase, 0, 1);
+            fog_target = mix(fog_target, clamp(sun_color.rgb, vec3f(0), vec3f(1)), tint);
+        }
+    }
+    return vec4f(mix(color.rgb, fog_target, amount), color.a);
 }
 fn sunlight(color: vec4f, pixel: vec2i, center: vec3f) -> vec4f {
     let strength = clamp(params.sun_screen.z, 0, 0.25);

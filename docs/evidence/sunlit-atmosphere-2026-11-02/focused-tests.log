@@ -1,0 +1,15 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start  1: atmosphere_light
+1/5 Test  #1: atmosphere_light .................   Passed    0.02 sec
+    Start 18: presets_roundtrip
+2/5 Test #18: presets_roundtrip ................   Passed    0.02 sec
+    Start 26: shader_compile
+3/5 Test #26: shader_compile ...................   Passed    0.07 sec
+    Start 28: ambient_pixels
+4/5 Test #28: ambient_pixels ...................   Passed    2.95 sec
+    Start 30: package_contract
+5/5 Test #30: package_contract .................   Passed    0.14 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   3.23 sec

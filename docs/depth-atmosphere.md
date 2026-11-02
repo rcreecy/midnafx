@@ -11,6 +11,39 @@ The shader reads the current palette every scene, so room, weather and time-of-d
 palette changes flow through without a separate color schedule. This adds to
 native fog; it does not replace the game's original fog or add volumetric lights.
 
+## Sunlit atmosphere
+
+Version 1.21 adds a directional daylight tint to the existing fog target color.
+It uses the native sun packet's world position, RGB and daylight alpha. The
+world position is transformed into a normalized view direction, including
+off-screen and behind-camera directions. Source preparation validates a finite
+right-handed rigid view and supported perspective projection. No native pointer
+or source history reaches the render worker.
+
+A peak-normalized forward lobe with fixed asymmetry 0.65 blends the native fog
+target toward native sun RGB. Its blend is capped at half the current daylight
+alpha. The original axial distance interval, exponential density and atmosphere
+strength remain unchanged. The effect redistributes fog color; it does not add
+an independent light-energy term or change the atmosphere cap. Scene alpha stays
+exact, including at the peak. Existing contact lighting still composes first.
+
+Native daylight alpha responds to daytime and rain. The sun sprite's separate
+visibility is based on projection and local depth probes, so it is intentionally
+not used for haze availability. A sun leaving the viewport does not introduce a
+source cutoff. Clear native weather, at most ten native snow particles, an
+initialized sun packet, non-hidden outdoor sky, non-Twilight and non-event
+contexts qualify. Existing player, pause, water, fog-range and viewport gates
+remain. Missing, black or invalid sun input keeps the original fog exactly.
+Weather/event gates can change discretely; whole-game transition quality is
+not established.
+
+This is a bounded LDR directional tint, not a volumetric transport simulation,
+height fog, shadowed participating medium or material relighting. Hidden and
+transparent geometry do not produce new atmospheric shadowing. Indoors, Twilight,
+unsupported weather and unavailable sun data retain the earlier atmosphere.
+The implementation adds scalar/vector shader work and 32 uniform bytes without
+another texture, compute dispatch or draw. GPU duration and 4K cost remain open.
+
 The implementation reuses ambient occlusion's opaque-stage snapshot, pipeline
 and draw. When only atmosphere is enabled, the shader skips normal reconstruction
 and AO's neighborhood samples. With AO enabled, atmosphere composites after
@@ -35,3 +68,11 @@ including shader compilation, preset persistence and the package contract.
 The native preview closes normally with exit code 0.
 It is not a claim of broad scene/motion quality or measured GPU performance.
 macOS gameplay/Metal execution remains unavailable and support is best effort.
+
+The [1.21 evidence ledger](evidence/sunlit-atmosphere-2026-11-02/README.md)
+retains portable source checks and 103 production GPU cases, including sixteen
+new directional-haze comparisons. These establish synthetic bounds and source
+fallback, not whole-game motion or artistic quality. RDP is disconnected during
+the 1.21 trial; native visual, toggle, reload and normal-close checks remain
+unverified. Earlier native observations
+above cover the previous implementation and do not independently qualify 1.21.
