@@ -72,7 +72,9 @@ macOS gameplay/Metal execution remains unavailable and support is best effort.
 The [1.21 evidence ledger](evidence/sunlit-atmosphere-2026-11-02/README.md)
 retains portable source checks and 103 production GPU cases, including sixteen
 new directional-haze comparisons. These establish synthetic bounds and source
-fallback, not whole-game motion or artistic quality. RDP is disconnected during
-the 1.21 trial; native visual, toggle, reload and normal-close checks remain
-unverified. Earlier native observations
-above cover the previous implementation and do not independently qualify 1.21.
+fallback, not whole-game motion or artistic quality. RDP initially blocks native
+capture. After desktop restoration, a [published-package follow-up](evidence/sunlit-atmosphere-2026-11-02/native-release/README.md)
+passes native source activation, Ordon visual smoke, toggle at 35%, fullscreen
+resize/return, live reload and normal close with exit zero. The captures retain
+unfrozen context rather than an isolated old-fog versus sunlit-haze comparison.
+Earlier native observations above cover the previous implementation separately.

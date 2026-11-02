@@ -4,6 +4,11 @@ Version 1.21 tints the existing native-colored depth fog toward native sunlight
 with a bounded directional lobe. See [the feature contract](../../depth-atmosphere.md)
 for controls, source gates, composition and artistic limits.
 
+After the initial failed native capture below, the [published-package follow-up](native-release/README.md)
+passes source activation, Ordon visual smoke, toggle, fullscreen resize/return,
+live reload and normal close with exit zero. The failed attempt remains retained;
+no product code or published binary changes are needed for the later checks.
+
 ## Source semantics
 
 Source references use pinned Dusklight revision
@@ -50,7 +55,7 @@ appended vectors. The existing opaque snapshot, draw and target lifetime remain;
 there is no additional texture, compute dispatch, fullscreen draw or history.
 Additional per-fragment arithmetic is not a measured GPU cost.
 
-## Native attempt and limits
+## Initial native attempt and limits
 
 The locally launched package SHA-256 is
 `A95EF09DE16CA038BD4BBA73B7E61C9941728CD0F20CE0B8A65268EC70B2E0FD`.
@@ -65,7 +70,7 @@ Monitor capture fails with `IGraphicsCaptureItemInterop.CreateForMonitor failed:
 Could not capture the given monitor. (0x80070057)`, including one fresh-window
 recovery. Read-only session inventory reports RDP session 2 disconnected.
 `capture-error.txt` retains the error. No subsequent UI input is attempted.
-Native visual, toggle, reload and normal-close checks remain unverified.
+That attempt provides no native visual, toggle, reload or normal-close proof.
 
 `native.log` retains the attempted startup. The owned trial is forcibly stopped
 for cleanup after its process path and start time are checked; `cleanup.json`

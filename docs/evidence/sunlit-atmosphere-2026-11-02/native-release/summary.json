@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-02",
+  "package": "published v1.21.0 windows-amd64",
+  "package_sha256": "A770780DD61CF045E0D7474804BA640559DACB54FDB0CBAB19559A9C25E5ECFD",
+  "backend": "D3D12",
+  "stage": "F_SP103,0,27,0",
+  "atmosphere_strength_percent": 35,
+  "sun_activations": [
+    {
+      "direction": [
+        -0.369,
+        0.721,
+        -0.587
+      ],
+      "tint": 0.387,
+      "color": [
+        1.0,
+        1.0,
+        0.996
+      ]
+    },
+    {
+      "direction": [
+        -0.369,
+        0.699,
+        -0.612
+      ],
+      "tint": 0.5,
+      "color": [
+        1.0,
+        1.0,
+        0.996
+      ]
+    }
+  ],
+  "shutdowns": [
+    {
+      "compute": 0,
+      "draw": 4313,
+      "target_sets": 0
+    },
+    {
+      "compute": 0,
+      "draw": 1870,
+      "target_sets": 0
+    }
+  ],
+  "normal_exit": 0,
+  "errors": [
+    "[ERROR | aurora::card] Failed to open file: gczelda2"
+  ],
+  "captures": {
+    "control.jpg": [
+      962,
+      752
+    ],
+    "off.jpg": [
+      962,
+      752
+    ],
+    "on.jpg": [
+      962,
+      752
+    ],
+    "reloaded-control.jpg": [
+      962,
+      752
+    ],
+    "resized.jpg": [
+      1800,
+      1022
+    ],
+    "restored.jpg": [
+      962,
+      752
+    ]
+  },
+  "limits": [
+    "Unfrozen JPEG context, not a matched comparison of old fog versus sunlit haze",
+    "No native moving-camera route or whole-game art qualification",
+    "GPU duration and 4K cost remain unmeasured",
+    "Mac gameplay and Metal remain unverified"
+  ]
+}

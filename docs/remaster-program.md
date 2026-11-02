@@ -131,7 +131,10 @@ supported clear outdoor scenes. A full-sphere native sun direction avoids a
 screen-edge source cutoff; native daylight alpha and environmental gates preserve
 the original fog where sunlight is unavailable. Fog density and controls remain
 unchanged, with no extra draw, texture or asset identity. Portable and focused GPU
-checks pass; broad art/motion and GPU cost remain open. See [depth atmosphere](depth-atmosphere.md).
+checks pass. After initial RDP capture failure, the published Windows package
+also passes sun-source activation, Ordon visual smoke, toggle, fullscreen resize,
+reload and normal close. Broad art/motion and GPU cost remain open. See
+[depth atmosphere](depth-atmosphere.md).
 
 | Slice | Observable completion | Current state |
 |---|---|---|

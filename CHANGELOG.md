@@ -15,10 +15,11 @@
   duration and broad artistic/motion quality remain unmeasured.
 - Add portable source validation and sixteen production GPU cases, including
   forward bounds, off-screen continuity, alpha fading, original-fog fallback,
-  reversed-Z and contact-shading composition. Native desktop capture is unavailable
-  because RDP is disconnected; visual, toggle, reload and normal-close checks
-  remain unverified. macOS remains best effort through native builds and portable
-  checks, without hosted Metal execution.
+  reversed-Z and contact-shading composition. Initial native capture is blocked by
+  disconnected RDP. A same-day follow-up with the published Windows package passes
+  sun-source activation, toggle, fullscreen resize/return, live reload and normal
+  close with exit zero. macOS remains best effort through native builds and
+  portable checks, without hosted Metal execution.
 
 ## 1.20.0 - 2026-11-01
 

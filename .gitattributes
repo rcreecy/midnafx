@@ -8,6 +8,7 @@ docs/evidence/multiscale-bloom-2026-10-30/native.log -text whitespace=-blank-at-
 docs/evidence/multiscale-bloom-2026-10-31/native.log -text whitespace=-blank-at-eol,cr-at-eol
 docs/evidence/robust-exposure-2026-11-01/native.log -text whitespace=-blank-at-eol,cr-at-eol
 docs/evidence/sunlit-atmosphere-2026-11-02/native.log -text whitespace=-blank-at-eol,cr-at-eol
+docs/evidence/sunlit-atmosphere-2026-11-02/native-release/native.log -text whitespace=-blank-at-eol,cr-at-eol
 # Raw timing evidence is hash-qualified; preserve its bytes across checkouts.
 docs/evidence/**/frame-timing.json -text
 # These retained receipts and probe sources are qualified by their exact bytes.
