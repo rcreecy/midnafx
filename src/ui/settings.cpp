@@ -69,6 +69,7 @@ Toggle color_bounce{"color_bounce", true};
 Toggle sunlight_shafts{"sunlight_shafts", true};
 Toggle local_lights{"local_lights", true};
 Toggle material_relighting{"material_relighting", true};
+Toggle ground_grass{"ground_grass", true};
 Toggle water_scene_reflections{"water_scene_reflections", true};
 Toggle movement_camera{"movement_camera", false};
 Toggle motion_clarity{"motion_clarity", false};
@@ -258,7 +259,8 @@ presets::Snapshot capture() {
         (water_scene_reflections.value ? presets::WaterSceneReflections : 0) |
         (sunlight_shafts.value ? presets::SunlightShafts : 0) |
         (local_lights.value ? presets::LocalLights : 0) |
-        (material_relighting.value ? presets::MaterialRelighting : 0);
+        (material_relighting.value ? presets::MaterialRelighting : 0) |
+        (ground_grass.value ? presets::GroundGrass : 0);
     value.detail_enabled = detail_toggle.value;
     value.detail_strength = detail_strength_setting.value;
     return value;
@@ -356,6 +358,7 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(sunlight_shafts, presets::SunlightShafts);
         apply_toggle(local_lights, presets::LocalLights);
         apply_toggle(material_relighting, presets::MaterialRelighting);
+        apply_toggle(ground_grass, presets::GroundGrass);
     }
     // A failed config write must not advertise a completely applied profile.
     // Keep the saved Custom snapshot available for explicit recovery.
@@ -428,7 +431,7 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
              user == &anti_aliasing || user == &enhanced_water || user == &atmosphere ||
              user == &adaptive_exposure || user == &bloom || user == &contact_shadows ||
              user == &color_bounce || user == &sunlight_shafts || user == &local_lights || user == &motion_clarity ||
-             user == &water_scene_reflections || user == &material_relighting) &&
+             user == &water_scene_reflections || user == &material_relighting || user == &ground_grass) &&
             !applying_preset) {
             mark_custom();
             update_grade();
@@ -557,7 +560,7 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
         &toggle == &anti_aliasing || &toggle == &enhanced_water || &toggle == &atmosphere ||
         &toggle == &adaptive_exposure || &toggle == &bloom || &toggle == &contact_shadows ||
         &toggle == &color_bounce || &toggle == &sunlight_shafts || &toggle == &local_lights || &toggle == &motion_clarity ||
-        &toggle == &water_scene_reflections || &toggle == &material_relighting) {
+        &toggle == &water_scene_reflections || &toggle == &material_relighting || &toggle == &ground_grass) {
         mark_custom();
         update_grade();
     }
@@ -1047,6 +1050,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Smooths supported regions of Link's original Ordon and Hero's Clothes. Armor outfits and replacement models stay unchanged.", nullptr));
     add_toggle(panel, "Material relighting (experimental)", material_relighting);
+    add_toggle(panel, "Short grass (Ordon prototype)", ground_grass);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         render::material_relighting::available()
             ? "Uses each lit material's original lights and normals for per-pixel lighting. Preserves transparency and textures."
@@ -1328,6 +1332,7 @@ bool initialize() {
     register_toggle(sunlight_shafts);
     register_toggle(local_lights);
     register_toggle(material_relighting);
+    register_toggle(ground_grass);
     register_toggle(atmosphere);
     register_toggle(camera_toggle);
     register_toggle(movement_camera);
@@ -1488,6 +1493,7 @@ float color_bounce_strength() {
 bool sunlight_shafts_enabled() { return sunlight_shafts.value; }
 bool local_lights_enabled() { return local_lights.value; }
 bool material_relighting_enabled() { return material_relighting.value; }
+bool ground_grass_enabled() { return ground_grass.value; }
 float local_lights_strength() {
     return static_cast<float>(local_lights_strength_setting.value) / 100.0f;
 }

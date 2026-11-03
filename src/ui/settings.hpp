@@ -65,6 +65,7 @@ float color_bounce_strength();
 bool sunlight_shafts_enabled();
 bool local_lights_enabled();
 bool material_relighting_enabled();
+bool ground_grass_enabled();
 float local_lights_strength();
 float sunlight_shafts_strength();
 bool atmosphere_enabled();

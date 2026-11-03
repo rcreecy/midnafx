@@ -1,5 +1,18 @@
 # Texture-colored short grass
 
+The Windows prototype renders short grass in Ordon room 0 using the original
+grass image for root color. It is enabled for unset settings and the Remaster
+profile. Use **Short grass (Ordon prototype)** or **Vanilla** to disable it.
+
+The D3D12 trial generated a stable reservoir of 16,000 roots and submitted
+508 visible clumps in the first measured frame. Each clump uses two crossed
+triangles. The renderer caps each frame at 4,500 clumps and fades height near
+the distance limit. It uses terrain depth and approximate scene fog. The
+trial closed with exit code 0. Five focused checks passed. Motion and GPU
+duration still need measurement.
+
+![Ordon short grass](evidence/ground-grass-2026-11-03/grass-on.jpg)
+
 The first prototype can use the Ordon room 0 terrain model
 `F_SP103/R00_00.arc!bmde/model.bmd`. The local asset catalog identifies
 `I_kusa` as a 256 × 256 CMPR texture with source hash `6e94ac1fd8d0cb24`.

@@ -270,7 +270,10 @@ bool decode_group(Result& out, std::span<const Vec3> positions, std::uint32_t no
                 out.error = "position or normal index out of bounds";
                 return false;
             }
-            vertices.push_back({p, n});
+            const Slot uv = layout.slots[Tex0];
+            const auto texcoord = uv.kind == 2 ? std::uint16_t(vertex[uv.offset])
+                                : uv.kind == 3 ? be16(vertex + uv.offset) : std::uint16_t(0xffff);
+            vertices.push_back({p, n, texcoord});
         }
         const auto v = [&](std::size_t i) -> unsigned {
             if (!indexed)

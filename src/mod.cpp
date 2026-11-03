@@ -7,6 +7,7 @@
 #include "render/renderer.hpp"
 #include "render/motion_clarity.hpp"
 #include "render/material_relighting.hpp"
+#include "render/ground_grass.hpp"
 #include "render/native_material_service.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -31,6 +32,7 @@ extern "C" {
 MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
     midnafx::render::material_relighting::update();
+    midnafx::render::ground_grass::initialize();
     midnafx::camera_probe::initialize();
     midnafx::motion_clarity::initialize();
     midnafx::render::ambient_occlusion::initialize();
@@ -50,6 +52,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
     midnafx::settings::update_twilight(midnafx::game_state::sample(), elapsed);
     midnafx::geometry_probe::update();
     midnafx::render::update();
+    midnafx::render::ground_grass::update();
     midnafx::render::material_relighting::update();
     midnafx::render::dof_blur::update();
     midnafx::water_probe::update();
@@ -58,6 +61,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
 }
 MOD_EXPORT ModResult mod_shutdown(ModError*) {
     // Dusklight deactivates/drains draw callbacks before invoking this export.
+    midnafx::render::ground_grass::shutdown();
     midnafx::render::material_relighting::shutdown();
     midnafx::motion_clarity::shutdown();
     midnafx::render::ambient_occlusion::shutdown();

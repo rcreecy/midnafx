@@ -38,6 +38,7 @@ struct Shape {
 struct Corner {
     std::uint16_t position = 0;
     std::uint16_t normal = 0;
+    std::uint16_t texcoord = 0xffff;
 };
 
 struct Triangle {

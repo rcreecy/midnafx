@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add experimental short grass to one reviewed Ordon terrain material. Blade
+  roots follow terrain triangles and take their color from the original grass
+  texture. Enable it by default in the supported room and through Remaster.
+
 ## 1.22.0 - 2026-11-03
 
 - Use the Remaster scene effects as defaults for unset controls. Saved
