@@ -1,0 +1,21 @@
+Test project C:/dev/midnafx/build/windows-release
+    Start  8: topology
+1/8 Test  #8: topology .........................   Passed    0.02 sec
+    Start  9: asset_identity
+2/8 Test  #9: asset_identity ...................   Passed    0.01 sec
+    Start 11: asset_intelligence
+3/8 Test #11: asset_intelligence ...............   Passed    0.44 sec
+    Start 12: archive_inventory
+4/8 Test #12: archive_inventory ................   Passed    0.23 sec
+    Start 13: asset_census
+5/8 Test #13: asset_census .....................   Passed    1.06 sec
+    Start 17: qualification
+6/8 Test #17: qualification ....................   Passed    0.02 sec
+    Start 18: bmd_rebuild
+7/8 Test #18: bmd_rebuild ......................   Passed    0.02 sec
+    Start 32: package_contract
+8/8 Test #32: package_contract .................   Passed    0.17 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) =   1.99 sec

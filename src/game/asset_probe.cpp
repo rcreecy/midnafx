@@ -391,12 +391,8 @@ void begin(dRes_info_c* owner) noexcept {
         if (!settings::asset_diagnostics_enabled()) return;
         const auto start = std::chrono::steady_clock::now();
         auto* archive = owner->mArchive;
-        if (records.size() == 128 && !limited) {
-            limited = true;
-            emit("\"event\":\"unsupported\",\"reason\":\"resource limit reached; discovery incomplete\"");
-        }
         // Reuse the archive's validated file table; do not parse arbitrary memory.
-        for (unsigned i = 0; i < unsigned(archive->countFile()) && records.size() < 128; ++i) {
+        for (unsigned i = 0; i < unsigned(archive->countFile()); ++i) {
             if (!archive->isFileEntry(i)) continue;
             auto* entry = archive->findIdxResource(i);
             if (!entry) continue;
@@ -407,6 +403,13 @@ void begin(dRes_info_c* owner) noexcept {
             const auto size = bytes ? archive->getExpandedResSize(bytes) : 0;
             if (!bytes || size < 32 || size > 8 * 1024 * 1024 || std::memcmp(bytes, "J3D2bmd3", 8)) {
                 emit("\"event\":\"unsupported\",\"reason\":\"resource format or bounds\""); continue;
+            }
+            if (records.size() >= 128) {
+                if (!limited) {
+                    limited = true;
+                    emit("\"event\":\"unsupported\",\"reason\":\"resource limit reached; discovery incomplete\"");
+                }
+                break;
             }
             unsigned long long hash = 14695981039346656037ULL;
             for (unsigned j = 0; j < size; ++j) { hash ^= bytes[j]; hash *= 1099511628211ULL; }

@@ -1,5 +1,10 @@
 # MidnaFX
 
+Developer tooling now supports a whole resource-tree [asset catalog](docs/asset-awareness.md),
+including nested archives, model/material relationships and indexed replacement
+candidates. This closes offline discovery gaps without adding gameplay scanning.
+Generic runtime material control remains incomplete.
+
 MidnaFX 1.21 upgrades **Depth atmosphere** with sunlit outdoor haze. The native
 sun's color and direction tint distant atmosphere more strongly toward the sun,
 while preserving the existing fog range and strength. No additional control or

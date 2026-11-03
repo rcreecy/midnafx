@@ -1,5 +1,11 @@
 # Asset-aware remaster roadmap
 
+November 2 update: [resource-tree asset awareness](asset-awareness.md) replaces
+single-object offline discovery with one scoped catalog, including supported
+nested containers and indexed replacement candidates. Runtime attribution and
+material-control limits remain separate. The older filtered pumpkin milestone
+below is historical, not a requirement to repeat that proof before broader work.
+
 The user has expanded the objective into an ongoing [remaster program](remaster-program.md). Its delivery sequence supersedes this document's earlier diagnostic-only stopping point and broad-feature exclusions. The asset evidence and safety requirements below remain applicable; the next goal includes a visible reversible material-control capability after the immediate reliability/cost work.
 
 Support update: macOS remains in scope on a best-effort basis, including package builds and compatibility work. Native gameplay/Metal verification is currently unavailable and is not a development or release blocker. If user testing becomes available, launch/gameplay without a crash is the chosen minimum smoke check. Metal validation is included only when it can run on the current working host. This Windows/D3D12 host cannot run it; remote hosted Metal checks are excluded. Hosted macOS package/portable checks continue. See the [working-host policy](development.md#validation-on-the-working-host).

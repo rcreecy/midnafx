@@ -170,6 +170,12 @@ from asset metadata alone.
 
 ## Product quality and iteration
 
+The 2026-11-02 [asset-awareness closure](asset-awareness.md) adds a shared offline
+catalog across the supplied resource tree rather than extending a target list.
+It provides original model/material/texture relationships and explicit metadata
+gaps for subsequent broad content work. Generic runtime draw ownership, authored
+material semantics and remaster-quality qualification remain open.
+
 Maintain an acceptance ledger distinguishing implemented, automatically tested, visually observed, unavailable and failed. A diagnostic screenshot is not a motion-quality pass. A rendered draw is not proof of GPU completion or visible pixels. Record package/host revisions, backend, viewport, settings and pack identity for runtime evidence.
 
 Grow coverage through outdoor foliage/architecture, interiors/dungeons, water, night/Twilight, characters/skinning, transparent effects, combat and cutscenes. Use matched routes or reproducible camera states where possible. Failures must remain recorded; do not select only passing scenes or reruns.

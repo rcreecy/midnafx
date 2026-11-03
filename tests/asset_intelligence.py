@@ -84,7 +84,9 @@ class AssetTests(unittest.TestCase):
         key=a.model(data,'x','y')['textures'][0]['source_key']
         self.assertEqual(key['tlut_hash'],'cbf59c5116ff32b4')
         struct.pack_into('>H',data,tex+0x20+10,15)
-        with self.assertRaises(ValueError): a.model(data,'x','y')
+        self.assertEqual(a.model(data,'x','y')['textures'][0]['source_key']['tlut_hash'], '0000000000000000')
+        self.assertEqual(a.model(data,'x','y')['textures'][0]['warnings'],
+                         ['palette range exceeds declared colors; native zero TLUT hash'])
 
     def test_cli_failure_is_structured(self):
         with tempfile.TemporaryDirectory() as root:

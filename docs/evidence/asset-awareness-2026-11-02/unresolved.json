@@ -1,0 +1,6095 @@
+[
+  {
+    "resource": "res/Object/%40bg000f.arc!bmdr/model1.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Q_rock00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg0010.arc!bmdr/model1.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Q_rock00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg001e.arc!bmdr/model0.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "M_BiridgWall_a",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_kumo_060112",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg0026.arc!bmdr/model1.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Q_rock00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg0027.arc!bmdr/model1.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Q_rock00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg0042.arc!bmdr/model1.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "TestMMBG",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg0043.arc!bmdr/model0.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "H_rock_wall03",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg004d.arc!bmdr/model1.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_rock00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg0050.arc!bmdr/model0.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "M_SD_tuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "M_SubDanWall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "M_SubDanWall",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg0051.arc!bmdr/model0.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "M_SD_tuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "M_SubDanWall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "M_SubDanWall",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/%40bg005c.arc!bmdr/model0.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "L_castle_all",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "I_mizusoko",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "I_MachiHanebasi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "I_IwaKabe_A256b",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "I_iwayamaEnkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "I_IsekiRenga2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "I_IsekiRelieaf",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "I_IsekiParts_B",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "I_IsekiKoware2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "I_IsekiHasira",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "I_IsekiBlock64",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "I_GrayRenga",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/D_KGate00.arc!bmdr/d_kikogate_a_hook.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "D_KikoGate_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/D_KGate00.arc!bmdr/d_kikogate_a_key.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "D_KikoGate_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/H_Knktsn.arc!bmdr/h_kanketsusen.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "H_yuka",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/M_THouse.arc!bmdr/u_tobyhouse_low.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "U_metl19S.jpg",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "E_redmetal_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "U_ki01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_01.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_02.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_03.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_04.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_05.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_06.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_07.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_08.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_09.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_10.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_11.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_12.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_13.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_14.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_15.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_16.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_17.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Obj_kn2.arc!bmdr/j_kanban00_18.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_01.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_02.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_03.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_04.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_05.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_06.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_07.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_08.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_09.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_10.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_11.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_12.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_13.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_14.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_15.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_16.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_17.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_00.arc!arc/obj_kn2.arc!bmdr/j_kanban00_18.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_01.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_02.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_03.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_04.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_05.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_06.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_07.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_08.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_09.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_10.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_11.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_12.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_13.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_14.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_15.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_16.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_17.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Pack00_01.arc!arc/obj_kn2.arc!bmdr/j_kanban00_18.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "J_kanaban0430a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/RiverRock.arc!bmdr/m_riverrock.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "M_RiverWall01_256",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_RiverWall02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Sample.arc!bmdr/file1.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "D_Brock",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Sample.arc!bmdr/file2.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "hs_body",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "hs_eye",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "hs_eye.1",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "hs_eye.2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "hs_eye.3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "hs_hair",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "hs_tail",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "hs_tail",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "hs_body",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "hs_hair",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "hs_eye",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "hs_eye.1",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock01.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GFloor",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock02.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock03.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GFloor",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock04.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GFloor",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock05.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GFloor",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock06.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GFloor",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock07.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GFloor",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock08.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/StaBlock.arc!bmdr/m_stairblock09.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_GFloor",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_GBroken",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/T_Maki1.arc!bmdr/i_maki.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_SakuWood",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_SakuNenrin",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/T_Maki2.arc!bmdr/i_maki2.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_SakuWood",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_SakuNenrin",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/U_THouse.arc!bmdr/u_tobyhouse_low2.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "U_metl19S.jpg",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "E_redmetal_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "U_ki01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Object/Y_icecube.arc!bmdr/yicecube.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "E_icecube",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 2,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Srope_al",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "F09_ita02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 6,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Srope_al",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "R_rope02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R02_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 4,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Srope_al",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "R_rope02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "F09_ita02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R03_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 3,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "R_rope02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R04_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 5,
+        "name": "Srope_al",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "R_rope02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "F09_ita02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R05_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 6,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R07_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 10,
+        "name": "F09_ita02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R10_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 6,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "F09_ita02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R11_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R12_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 5,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Srope_al",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "R_rope02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "F09_ita02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R19_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "F09_ita02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN05/R22_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 10,
+        "name": "Q_Ivy",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Srope_al",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "R_rope02",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN06/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "R_whitesquea",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "R_planewall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "R_corrido2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "R_kuromoyou_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "R_steps_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "E_lv6r02_ramp",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "R_poledeco3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "R_poleline_nl",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "R_newgate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "R_churchwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "E_floorpatern",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "R_maintile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "R_goldline_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "R_releafwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "R_mableblack2",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN06/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 2,
+        "name": "R_whitesquea",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "R_planewall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "R_corrido2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "R_kuromoyou_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "R_steps_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "E_lv6r02_ramp",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "R_poledeco3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "R_poleline_nl",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "E_floorpatern",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "R_newgate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "R_churchwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "R_maintile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "R_goldline_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "R_releafwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "R_mableblack2",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN06/R02_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 4,
+        "name": "R_whitesquea",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "R_planewall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "R_corrido2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "R_kuromoyou_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "R_steps_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "E_lv6r02_ramp",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "R_poledeco3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "R_poleline_nl",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "R_newgate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "R_churchwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "R_maintile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "E_floorpatern",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "R_goldline_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 26,
+        "name": "R_releafwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 29,
+        "name": "R_mableblack2",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN06/R04_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 3,
+        "name": "R_whitesquea",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "R_planewall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "R_corrido2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "R_steps_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "E_lv6r02_ramp",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "R_poledeco3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "R_poleline_nl",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "R_newgate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "R_churchwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "E_lv6_kazari06",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "R_maintile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "R_goldline_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "E_floorpatern",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "R_releafwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "R_mableblack2",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN06/R05_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "R_whitesquea",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "R_planewall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "R_corrido2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "R_kuromoyou_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "R_steps_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "E_lv6r02_ramp",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "R_poledeco3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "R_newgate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "R_churchwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "E_lv6_kazari06",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "R_poleline_nl",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "E_floorpatern",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "R_maintile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "R_goldline_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "R_releafwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "R_mableblack2",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN06/R07_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 3,
+        "name": "R_whitesquea",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "R_planewall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "R_corrido2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "R_steps_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "E_lv6r02_ramp",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "R_poledeco3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "R_newgate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "R_kuromoyou_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "R_churchwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "E_lv6_kazari06",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "R_poleline_nl",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "R_goldline_n",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "R_maintile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "E_floorpatern",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "R_releafwall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "R_mableblack2",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN09/R09_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_lv9tile_yo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_Lv9Ground",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_Lv9tesuri",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv9Wall04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv9W",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_Lv9Tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "Z_Kadan",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_0727e",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "Z_0727c",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_gara1_2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "U_CrvKi_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_Lv9Wall01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "Z_Lv9Line",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "Z_lv9Roof_sita",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "Z_Lv9Bt",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "Z_0727a",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "Z_Lv9Wall002",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "Z_Lv9RW",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "yane",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "Z_Lv9HaiArm",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN09/R11_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Zj_lv9_tree05",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_Lv9tesuri",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_Lv9tree",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_Lv9Wall04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv9W",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Kadan",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv9Ground",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_lv9_miki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "j_l7Gold",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv9gate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_FloorFuchi01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "Z_Lv9Tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "ZQ_Step",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "Z_0727e",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_0727c",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "Z_gara1_2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "Z_lv9tile_yo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "Z_Lv9Wall01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "Z_Lv9Line",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "Z_lv9Roof_sita",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "Z_Lv9Bt",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "Z_0727a",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "Z_Lv9Wall002",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 26,
+        "name": "Z_Lv9RW",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 27,
+        "name": "Z_Lv9top0",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 28,
+        "name": "yane",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 29,
+        "name": "Z_Lv9HaiArm",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN09/R13_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Zj_lv9_tree05",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_Lv9tesuri",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_Lv9tree",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_Lv9Wall04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv9W",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Kadan",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv9Ground",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_lv9_miki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "j_l7Gold",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_Lv9gate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_FloorFuchi01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "Z_Lv9Tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "ZQ_Step",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "Z_0727e",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_0727c",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "Z_gara1_2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "Z_lv9tile_yo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "U_CrvKi_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "Z_Lv9Wall01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "Z_Lv9Line",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "Z_lv9Roof_sita",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "Z_Lv9Bt",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "Z_0727a",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 26,
+        "name": "Z_Lv9Wall002",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 27,
+        "name": "Z_Lv9RW",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 28,
+        "name": "Z_Lv9top0",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 29,
+        "name": "yane",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 30,
+        "name": "Z_Lv9HaiArm",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN09/R14_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 2,
+        "name": "Z_Lv9tesuri",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_Lv9tree",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv9Wall04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv9W",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_lv9_miki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_Lv9gate",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv9Tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "Z_0727e",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_0727c",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "Z_gara1_2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "Z_lv9tile_yo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "Z_Lv9Ground",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "Z_Lv9Wall01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "Z_Lv9Line",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "Z_lv9Roof_sita",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "Z_Lv9Bt",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "Z_0727a",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 26,
+        "name": "Z_Lv9Wall002",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 27,
+        "name": "Z_Lv9RW",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 28,
+        "name": "Z_Lv9top0",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 29,
+        "name": "yane",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 30,
+        "name": "Z_Lv9HaiArm",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN09/R15_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "Z_Lv9tesuri",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv9tree",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv9Wall04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv9Tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "Z_0727e",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_0727c",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "Z_gara1_2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_lv9tile_yo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "Z_Lv9Line",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "Z_lv9Roof_sita",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "Z_Lv9Bt",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "Z_0727a",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "Z_Lv9RW",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "yane",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "Z_Lv9HaiArm",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "bs_spear",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "TE_pole2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R02_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "TE_pole",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R03_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "T_Lv4_pict",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "TE_pole",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R04_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "bs_spear",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "T_hekiga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "TE_pole2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R05_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "T_Lv4_pict",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "TE_pole2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R06_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "E_rockkuzure",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "TE_pole2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R07_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "T_Lv4_pict",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R08_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R09_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "bs_spear",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "T_Lv4_pict",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "T_hekiga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "P_Spin_rale",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "TE_pole",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R10_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "bs_spear",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "P_Spin_rale",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R11_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "bs_spear",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "E_rockkuzure",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "T_Lv4_pict",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "P_Spin_rale",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "TE_pole",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R12_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "T_Lv4_pict",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "TE_pole",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R13_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_SandSizumu",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "E_rockkuzure",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "T_hekiga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "P_Spin_rale",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "TE_pole2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R14_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "T_hekiga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "E_rockkuzure",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "TE_pole2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R15_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 2,
+        "name": "E_floor01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "T_Lv4_pict",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "T_hekiga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "TE_pole",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN10/R16_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_tile",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "P_Lv4ceil_128",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "Z_Lv4steps",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "Sand_s",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Z_relief",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "Z_Lv4pall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "ZQ_RengaBroken00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "Z_Lv4moyou3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "T_hekiga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "Z_Lv4wall",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "TP_Lv04floor4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "Z_lv4mizo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "T_lv4goldLine",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_Ice3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Q_Iron_Decoflame2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "W_WoodTileSnow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "W_RedCarpet00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "W_Piller_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "W_lv5picture02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "W_lv5picture01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "W_Gakubuchi.tga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 26,
+        "name": "Q_CeilBack_00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 5,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "W_isiblock01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "W_lv5picture02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "W_Gakubuchi.tga",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R02_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 3,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "W_house_wall00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "W_kidana",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "W_Box",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R03_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_Ice3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "W_door2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "W_house_wall00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "W_kidana",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "W_Piller_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "W_Box",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "W_anatilefloor_snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "Q_CeilBack_00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R04_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "0228_outkabe03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "Q_Iron_Decoflame2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "Z_teppen",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "W_door2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "W_house_wall00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "W_isiblock01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "W_anatilefloor_snow",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R05_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "0228_outkabe03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "W_RedCarpet00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "W_Piller_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "W_lv5picture01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "W_Gakubuchi.tga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 27,
+        "name": "Q_CeilBack_00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R06_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "Z_Ice3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "W_door2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "W_WoodTileSnow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "W_Piller_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "Q_CeilBack_00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R07_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "W_isiblock01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "W_house_wall00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "0228_outkabe03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "Q_Iron_Decoflame2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "Z_teppen",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "W_WoodTileSnow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "W_kidana",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "W_RedCarpet00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "W_Piller_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "W_lv5picture02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "W_lv5picture01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "W_Box",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "W_Gakubuchi.tga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "Q_CeilBack_00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R08_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "0228_outkabe03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "W_WoodTileSnow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "W_Piller_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "W_lv5picture02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "W_lv5picture01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "W_Gakubuchi.tga",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "Q_CeilBack_00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R09_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_Ice3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "W_door2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "W_house_wall00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "W_kidana",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "W_Box",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "W_anatilefloor_snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R11_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "0228_outkabe03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "W_RedCarpet00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "W_Piller_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "Q_CeilBack_00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_MN11/R13_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "Z_Ice3",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "G_white",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "W_door2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "W_WoodMon_Snow_00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "W_house_wall00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "W_kidana",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "W_Box",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "W_anatilefloor_snow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "W_door_waku00_Snow",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_SB01/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "M_SD_tuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_SubDanFuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "M_SubDanWall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "M_SubDanWall",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_SB01/R10_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "M_SD_tuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_SubDanFuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "M_SubDanWall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "M_SubDanWall",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/D_SB01/R49_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "M_SD_tuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_SubDanFuchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "M_SubDanWall2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "M_SubDanWall",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP103/R00_00.arc!bmde/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 27,
+        "name": "I_SakuWood",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 28,
+        "name": "I_SakuNenrin",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_a_HM_Rock00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_a_HM_Kokage",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "C_a_HM_Kabe00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Kusa00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "C_a_HM_Miti",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "C_a_HM_Sida",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "C_a_HM_Iriguchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "C_a_HM_Kilow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "C_a_HM_Kikabe",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "C_a_HM_Wood00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_a_HM_Kokage",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "C_a_HM_Kabe00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Kusa00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "C_a_HM_Sida",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "C_a_HM_Iriguchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "C_a_HM_Kilow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "C_a_HM_Kikabe",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "C_a_HM_Wood00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R01_00.arc!bmdr/model2.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_light_8ia",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_moya_8i",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R02_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_a_HM_Kabe00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "C_a_HM_Kusa00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Rock00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R03_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_a_HM_Kabe01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "C_a_HM_Kokage",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kabe00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "C_a_HM_Kusa00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "C_a_HM_Iriguchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "C_a_HM_Kilow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "C_a_HM_Kikabe",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "C_a_HM_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "C_a_HM_Kidanmen00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "C_a_HM_Kanban",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "C_a_HM_Kiita00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "C_a_HM_Kiita01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R03_00.arc!bmdr/model2.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_light_8ia",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_moya_8i",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R04_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_a_HM_Kabe00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_a_HM_Kokage",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kusa00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "C_a_HM_Sida",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "C_a_HM_Iriguchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "C_a_HM_Cloth00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "C_a_HM_Kilow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "C_a_HM_Kikabe",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "C_a_HM_Wood00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "C_a_HM_Kidanmen00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "C_a_HM_Kanban",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "C_a_HM_Kiita00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "C_a_HM_Kiita01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "C_a_chimney3",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R05_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_a_HM_Kabe01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "C_a_HM_Sida",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "C_a_HM_Iriguchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "C_a_HM_Kilow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "C_a_HM_Wood01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "C_a_HM_Rock00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "C_a_HM_Miti",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "C_a_HM_Kidanmen00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "C_a_HM_Kiita00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R05_00.arc!bmdr/model2.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_light_8ia",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_moya_8i",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R06_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 2,
+        "name": "C_a_HM_Kokage",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kusa00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "C_a_HM_Sida",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "C_a_HM_Iriguchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "C_a_HM_Cloth00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "C_a_HM_Kilow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "C_a_HM_Kikabe",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "C_a_HM_Wood01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 22,
+        "name": "C_a_HM_Rock00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 24,
+        "name": "C_a_HM_Miti",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 26,
+        "name": "C_a_HM_Kidanmen00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 27,
+        "name": "C_a_HM_Kabe01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 28,
+        "name": "C_a_HM_Kiita00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 29,
+        "name": "C_a_HM_Kiita01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 30,
+        "name": "C_a_chimney3",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R06_00.arc!bmdr/model2.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_light_8ia",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_moya_8i",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R08_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "C_a_HM_Kabe01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "C_a_HM_Kokage",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kusa00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Tuti00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "C_a_HM_Wood01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "C_a_HM_Rock00",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "C_a_HM_Kabe00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R11_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 2,
+        "name": "C_a_HM_Leaf000",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Kilow",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "C_a_HM_Kikabe",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "C_a_HM_Wood01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "C_a_HM_Mountain",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "C_a_HM_Miti",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "C_a_HM_Kusa01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "C_a_HM_Kabe01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP108/R14_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "C_a_HM_Sida",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "C_a_HM_Iriguchi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "C_a_HM_Wood01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "C_a_HM_Kidanmen00",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP110/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "H_field04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_kumo04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "H_road01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "H_hibi_mipmap",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "H_rope",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "H_tetsugoshi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "R_redmetal_lv01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "H_wall01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "H_yuka",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "H_rock_wall03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "H_rock_ue01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP110/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "H_hibi_mipmap",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_kumo04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "H_wall01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "H_rock_wall03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "H_road01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "H_yuka",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "H_rock_ue01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP110/R02_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "H_hibi_mipmap",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "M_kumo04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "R_redmetal_lv01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "H_yuka",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "H_rock_wall03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "H_road01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "H_rock_ue01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP110/R03_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "M_kumo04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "H_yuka",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "H_hibi_mipmap",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "H_rock_wall03",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "H_rope",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "H_tetsugoshi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "R_redmetal_lv01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "H_wall01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "H_field04",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "H_road01",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "H_rock_ue01",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP112/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 4,
+        "name": "M_RiverWall01_256",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "M_kumo_060112",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "M_RiverWall02",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "M_BiridgWall_a",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R00_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "I_iwayama",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R01_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R02_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R03_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 16,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 23,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R04_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R05_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R06_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R07_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "I_iwayama",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R09_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_iwayama",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R10_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "I_iwayama",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R11_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 4,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R12_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R13_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 11,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "I_iwayama",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 19,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R14_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP121/R15_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 0,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 2,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 6,
+        "name": "I_iwayama",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 7,
+        "name": "I_IwaKabe_A",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP122/R08_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 5,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 12,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 13,
+        "name": "L_castle_all",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 14,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "I_TuchiMichi_A_Nuki",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "I_mizusoko",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "I_MachiHanebasi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 25,
+        "name": "I_IwaKabe_A256b",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 26,
+        "name": "I_iwayamaEnkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 27,
+        "name": "I_IsekiRenga2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 28,
+        "name": "I_IsekiRelieaf",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 29,
+        "name": "I_IsekiParts_B",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 30,
+        "name": "I_IsekiKoware2",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 31,
+        "name": "I_IsekiHasira",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 32,
+        "name": "I_IsekiBlock64",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 34,
+        "name": "I_GrayRenga",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP122/R16_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 3,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 17,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 20,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 28,
+        "name": "I_mizusoko",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 38,
+        "name": "I_MachiHanebasi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 43,
+        "name": "I_iwayamaEnkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 50,
+        "name": "I_IsekiBlock64",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 52,
+        "name": "I_GrayRenga",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  },
+  {
+    "resource": "res/Stage/F_SP122/R17_00.arc!bmdr/model.bmd",
+    "status": "metadata-partial",
+    "textures": [
+      {
+        "index": 1,
+        "name": "I_kumo",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 8,
+        "name": "I_koyojyu4",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 9,
+        "name": "L_castle_all",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 10,
+        "name": "I_Enkei",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 15,
+        "name": "I_mizusoko",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 18,
+        "name": "I_Kusa_A",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 21,
+        "name": "I_MachiHanebasi",
+        "reason": "external-texture-unresolved"
+      },
+      {
+        "index": 30,
+        "name": "I_GrayRenga",
+        "reason": "external-texture-unresolved"
+      }
+    ]
+  }
+]

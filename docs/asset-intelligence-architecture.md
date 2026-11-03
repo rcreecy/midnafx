@@ -1,5 +1,10 @@
 # Asset intelligence architecture
 
+The 2026-11-02 [resource-tree catalog](asset-awareness.md) extends offline identity
+coverage to nested archives, BMD2/3, BDL3/4, BMT2/3 and standalone textures. The
+original resource-only runtime observer described below retains its bounded scope;
+offline coverage does not establish generic draw or actor ownership.
+
 The [October 20 native draw extension](asset-draw-correlation.md) adds a separate opt-in shape hook and experimental host patch. This document describes the original resource-only observer; its no-frame-work statement does not cover that extension.
 
 ## Scope and implementation

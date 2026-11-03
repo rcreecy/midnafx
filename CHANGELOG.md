@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Add a schema-2 offline asset census across an extracted resource tree, including
+  nested RARC/Yaz0 containers, full member paths and explicit coverage outcomes.
+  Share material/texture parsing across BMD2/3, BDL3/4, BMT2/3 and standalone BTI.
+- Index replacement candidates by original source key, remove the exporter's
+  two-filename provider restriction, and reject ambiguous runtime joins. Preserve
+  unresolved external textures and native zero-hash palette fallback explicitly.
+- Report runtime discovery truncation when a supported resource is actually
+  skipped, including within the final archive. Existing opt-in limits and
+  qualified rendering controls remain unchanged.
+
 ## 1.21.0 - 2026-11-02
 
 - Upgrade depth atmosphere with a bounded directional tint toward native sun

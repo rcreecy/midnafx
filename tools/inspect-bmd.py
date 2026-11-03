@@ -36,6 +36,15 @@ def yaz0(data):
             code = data[src]
             src += 1
             bits = 8
+            if code == 0xFF:
+                count = min(8, size - dst)
+                if src + count > len(data):
+                    raise ValueError("truncated Yaz0 literal")
+                out[dst:dst + count] = data[src:src + count]
+                src += count
+                dst += count
+                bits = 0
+                continue
         if code & 0x80:
             if src >= len(data):
                 raise ValueError("truncated Yaz0 literal")
@@ -59,16 +68,20 @@ def yaz0(data):
             source = dst - distance - 1
             if source < 0 or dst + count > size:
                 raise ValueError("invalid Yaz0 back-reference")
-            for _ in range(count):
-                out[dst] = out[source]
-                dst += 1
-                source += 1
+            # A back-reference repeats the already decoded distance-sized
+            # prefix when source and destination overlap. Slice operations avoid
+            # a Python iteration for every expanded byte without changing that
+            # sequential-copy behavior.
+            period = min(count, dst - source)
+            pattern = out[source:source + period]
+            out[dst:dst + count] = (pattern * ((count + period - 1) // period))[:count]
+            dst += count
         code <<= 1
         bits -= 1
     return bytes(out)
 
 
-def archive_entries(data):
+def _archive_tables(data):
     data = yaz0(data)
     if len(data) < 64 or data[:4] != b"RARC":
         raise ValueError("expected RARC or Yaz0-compressed RARC")
@@ -90,6 +103,12 @@ def archive_entries(data):
             file_base + file_count * 20 > len(data) or
             string_base + string_size > len(data) or resource_base > len(data)):
         raise ValueError("RARC table exceeds archive length")
+    return data, node_base, node_count, file_base, file_count, string_base, string_size, resource_base
+
+
+def archive_entries(data):
+    """Yield the legacy node-tag/basename/payload view in node order."""
+    data, node_base, node_count, file_base, file_count, string_base, string_size, resource_base = _archive_tables(data)
     for node in range(node_count):
         n = node_base + node * 16
         tag = data[n:n + 4].decode("ascii", "replace")
@@ -109,6 +128,82 @@ def archive_entries(data):
             if start + length > len(data):
                 raise ValueError("RARC payload exceeds archive length")
             yield tag, name, data[start:start + length]
+
+
+def archive_records(data):
+    """Yield validated root-relative members without flattening directory names.
+
+    Each result is (node tag, member path, file-table index, payload). Directory
+    links must form one tree rooted at node zero. The conventional '.' and '..'
+    entries are not tree edges. No incomplete table or unreachable node is hidden.
+    """
+    data, node_base, node_count, file_base, file_count, string_base, string_size, resource_base = _archive_tables(data)
+    if not node_count:
+        raise ValueError("RARC has no root node")
+
+    def name_at(offset):
+        if offset >= string_size:
+            raise ValueError("RARC name offset exceeds string table")
+        begin = string_base + offset
+        end = data.find(b"\0", begin, string_base + string_size)
+        if end < 0:
+            raise ValueError("unterminated RARC name")
+        # Latin-1 preserves every source byte. Unlike replacement decoding, it
+        # cannot merge two distinct archive names into the same identity.
+        name = data[begin:end].decode("latin-1")
+        if not name or "/" in name or "\\" in name:
+            raise ValueError("invalid RARC member name")
+        return name
+
+    paths = {0: ""}
+    pending = [0]
+    used_entries = set()
+    used_paths = set()
+    records = []
+    while pending:
+        node = pending.pop()
+        at = node_base + node * 16
+        tag = data[at:at + 4].decode("ascii", "backslashreplace")
+        count, first = be16(data, at + 10), be32(data, at + 12)
+        if first > file_count or count > file_count - first:
+            raise ValueError("RARC node entries exceed file table")
+        for index in range(first, first + count):
+            if index in used_entries:
+                raise ValueError("RARC file entry belongs to multiple nodes")
+            used_entries.add(index)
+            entry = file_base + index * 20
+            flags_and_name = be32(data, entry + 4)
+            name = name_at(flags_and_name & 0xFFFFFF)
+            directory = bool(flags_and_name >> 24 & 2)
+            if directory and name in (".", ".."):
+                continue
+            if name in (".", ".."):
+                raise ValueError("invalid RARC file name")
+            path = paths[node] + name
+            if path in used_paths:
+                raise ValueError("duplicate RARC member path")
+            used_paths.add(path)
+            if directory:
+                child = be32(data, entry + 8)
+                if child >= node_count:
+                    raise ValueError("RARC child node exceeds node table")
+                if child in paths:
+                    raise ValueError("cyclic or ambiguous RARC directory tree")
+                paths[child] = path + "/"
+                pending.append(child)
+            else:
+                start = resource_base + be32(data, entry + 8)
+                length = be32(data, entry + 12)
+                if start + length > len(data):
+                    raise ValueError("RARC payload exceeds archive length")
+                records.append((tag, path, index, start, length))
+    if len(paths) != node_count:
+        raise ValueError("unreachable RARC node")
+    if len(used_entries) != file_count:
+        raise ValueError("unreachable RARC file entry")
+    # File-table order makes output independent of traversal implementation.
+    for tag, path, index, start, length in sorted(records, key=lambda r: r[2]):
+        yield tag, path, index, data[start:start + length]
 
 
 def model_summary(data):
