@@ -6,6 +6,7 @@
 #include "game/geometry_probe.hpp"
 #include "game/twilight.hpp"
 #include "render/renderer.hpp"
+#include "render/material_relighting.hpp"
 #include "services.hpp"
 
 #include <algorithm>
@@ -67,6 +68,7 @@ Toggle contact_shadows{"contact_shadows", false};
 Toggle color_bounce{"color_bounce", false};
 Toggle sunlight_shafts{"sunlight_shafts", false};
 Toggle local_lights{"local_lights", false};
+Toggle material_relighting{"material_relighting", false};
 Toggle water_scene_reflections{"water_scene_reflections", false};
 Toggle movement_camera{"movement_camera", false};
 Toggle motion_clarity{"motion_clarity", false};
@@ -255,7 +257,8 @@ presets::Snapshot capture() {
         (color_bounce.value ? presets::ColorBounce : 0) |
         (water_scene_reflections.value ? presets::WaterSceneReflections : 0) |
         (sunlight_shafts.value ? presets::SunlightShafts : 0) |
-        (local_lights.value ? presets::LocalLights : 0);
+        (local_lights.value ? presets::LocalLights : 0) |
+        (material_relighting.value ? presets::MaterialRelighting : 0);
     value.detail_enabled = detail_toggle.value;
     value.detail_strength = detail_strength_setting.value;
     return value;
@@ -352,6 +355,7 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(color_bounce, presets::ColorBounce);
         apply_toggle(sunlight_shafts, presets::SunlightShafts);
         apply_toggle(local_lights, presets::LocalLights);
+        apply_toggle(material_relighting, presets::MaterialRelighting);
     }
     // A failed config write must not advertise a completely applied profile.
     // Keep the saved Custom snapshot available for explicit recovery.
@@ -424,7 +428,7 @@ void on_toggle_config(ModContext*, ConfigVarHandle, const ConfigVarValue* value,
              user == &anti_aliasing || user == &enhanced_water || user == &atmosphere ||
              user == &adaptive_exposure || user == &bloom || user == &contact_shadows ||
              user == &color_bounce || user == &sunlight_shafts || user == &local_lights || user == &motion_clarity ||
-             user == &water_scene_reflections) &&
+             user == &water_scene_reflections || user == &material_relighting) &&
             !applying_preset) {
             mark_custom();
             update_grade();
@@ -553,7 +557,7 @@ void set_toggle(ModContext*, void* user, const UiControlValue* in) {
         &toggle == &anti_aliasing || &toggle == &enhanced_water || &toggle == &atmosphere ||
         &toggle == &adaptive_exposure || &toggle == &bloom || &toggle == &contact_shadows ||
         &toggle == &color_bounce || &toggle == &sunlight_shafts || &toggle == &local_lights || &toggle == &motion_clarity ||
-        &toggle == &water_scene_reflections) {
+        &toggle == &water_scene_reflections || &toggle == &material_relighting) {
         mark_custom();
         update_grade();
     }
@@ -1032,7 +1036,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     choice.option_count = labels.size();
     check_ui(svc_ui->pane_add_control(mod_ctx, panel, &choice, &preset_control));
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Remaster combines contact shading, contact shadows, screen-space color bounce, local light response, depth atmosphere, sunlight shafts, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera with movement framing, motion clarity, anti-aliasing and enhanced water with scene reflections. "
+        "Remaster combines contact shading, contact shadows, screen-space color bounce, local light response, material relighting, depth atmosphere, sunlight shafts, adaptive exposure, bloom, natural grading, detail, Link shading, modern camera with movement framing, motion clarity, anti-aliasing and enhanced water with scene reflections. "
         "Vanilla restores original presentation. Advanced tuning stays unchanged.", nullptr));
     check_ui(svc_ui->pane_add_section(mod_ctx, panel, "Basic"));
     add_toggle(panel, "Enable grading", master);
@@ -1042,6 +1046,11 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Smooths supported regions of Link's original Ordon and Hero's Clothes. Armor outfits and replacement models stay unchanged.", nullptr));
+    add_toggle(panel, "Material relighting (experimental)", material_relighting);
+    check_ui(svc_ui->pane_add_text(mod_ctx, panel,
+        render::material_relighting::available()
+            ? "Uses each lit material's original lights and normals for per-pixel lighting. Preserves transparency and textures."
+            : "Unavailable on this host. Requires Dusklight with native material relighting support.", nullptr));
     add_toggle(panel, "Modern exploration camera", camera_toggle);
     add_toggle(panel, "Movement camera framing", movement_camera);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
@@ -1318,6 +1327,7 @@ bool initialize() {
     register_toggle(color_bounce);
     register_toggle(sunlight_shafts);
     register_toggle(local_lights);
+    register_toggle(material_relighting);
     register_toggle(atmosphere);
     register_toggle(camera_toggle);
     register_toggle(movement_camera);
@@ -1477,6 +1487,7 @@ float color_bounce_strength() {
 }
 bool sunlight_shafts_enabled() { return sunlight_shafts.value; }
 bool local_lights_enabled() { return local_lights.value; }
+bool material_relighting_enabled() { return material_relighting.value; }
 float local_lights_strength() {
     return static_cast<float>(local_lights_strength_setting.value) / 100.0f;
 }

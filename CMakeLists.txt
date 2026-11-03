@@ -29,6 +29,7 @@ if(MIDNAFX_BUILD_MOD)
         RES_DIR res
     )
     target_sources(midnafx PRIVATE src/render/motion_clarity.cpp)
+    target_sources(midnafx PRIVATE src/render/material_relighting.cpp)
     target_sources(midnafx PRIVATE src/render/ambient_occlusion.cpp src/render/adaptive_exposure.cpp src/render/bloom.cpp)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/bloom_compute.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/bloom_composite.wgsl")
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/shaders/bloom_compute.wgsl" MIDNAFX_BLOOM_COMPUTE_SHADER)

@@ -1,0 +1,133 @@
+diff --git a/src/dusk/mods/svc/gfx.cpp b/src/dusk/mods/svc/gfx.cpp
+index f398e29..cfad9aa 100644
+--- a/src/dusk/mods/svc/gfx.cpp
++++ b/src/dusk/mods/svc/gfx.cpp
+@@ -6,6 +6,7 @@
+ #include "dusk/gfx.hpp"
+ #include "dusk/mods/loader/loader.hpp"
+ #include "mods/svc/gfx.h"
++#include "mods/svc/native_material.hpp"
+ 
+ #include <aurora/gfx.hpp>
+ #include <aurora/webgpu.hpp>
+@@ -33,6 +34,16 @@ namespace {
+ 
+ constexpr borealis::Log Log{"dusk::mods::gfx"};
+ 
++// Game-thread ownership. The worker receives only an ordered mode byte.
++LoadedMod* s_materialOwner = nullptr;
++bool s_materialScope = false;
++
++void record_material_scope(bool enabled) {
++    if (enabled == s_materialScope) return;
++    s_materialScope = enabled;
++    AuroraSetMaterialRelighting(enabled ? 1 : 0);
++}
++
+ enum class GfxSlotKind : uint8_t {
+     DrawType,
+     StageHook,
+@@ -930,6 +941,13 @@ ModResult gfx_push_present(
+ 
+ void gfx_run_stage(
+     GfxStage stage, const view_class* gameView, const view_port_class* gameViewport) {
++    // Record in FIFO order even when no mod stage callbacks are registered.
++    // This native feature does not need the callback path's FIFO drains.
++    if (stage == GFX_STAGE_SCENE_BEGIN) {
++        record_material_scope(s_materialOwner != nullptr && s_materialOwner->active);
++    } else if (stage == GFX_STAGE_FRAME_BEFORE_HUD) {
++        record_material_scope(false);
++    }
+     struct StageEntry {
+         uint64_t handle;
+         GfxStageFn fn;
+@@ -1420,6 +1438,28 @@ constexpr GfxService s_gfxService{
+     .get_scene_target_layout = gfx_get_scene_target_layout,
+ };
+ 
++ModResult set_material_relighting(ModContext* context, uint32_t enabled) {
++    auto* mod = mod_from_context(context);
++    if (mod == nullptr || enabled > 1) return MOD_INVALID_ARGUMENT;
++    if (s_materialOwner != nullptr && s_materialOwner != mod) return MOD_CONFLICT;
++    if (!enabled && s_materialOwner == nullptr) return MOD_OK;
++    s_materialOwner = enabled ? mod : nullptr;
++    if (!enabled) record_material_scope(false);
++    return MOD_OK;
++}
++
++void material_mod_detached(LoadedMod& mod) {
++    if (s_materialOwner != &mod) return;
++    s_materialOwner = nullptr;
++    record_material_scope(false);
++}
++
++constexpr NativeMaterialService s_nativeMaterialService{
++    .header = SERVICE_HEADER(NativeMaterialService, NATIVE_MATERIAL_SERVICE_MAJOR,
++                            NATIVE_MATERIAL_SERVICE_MINOR),
++    .set_relighting = set_material_relighting,
++};
++
+ }  // namespace
+ 
+ constinit const ServiceModule g_gfxModule{
+@@ -1432,4 +1472,12 @@ constinit const ServiceModule g_gfxModule{
+     .frameBegin = gfx_frame_begin,
+ };
+ 
++constinit const ServiceModule g_nativeMaterialModule{
++    .id = NATIVE_MATERIAL_SERVICE_ID,
++    .majorVersion = NATIVE_MATERIAL_SERVICE_MAJOR,
++    .minorVersion = NATIVE_MATERIAL_SERVICE_MINOR,
++    .service = &s_nativeMaterialService,
++    .modDetached = material_mod_detached,
++};
++
+ }  // namespace dusk::mods::svc
+diff --git a/src/dusk/mods/svc/registry.cpp b/src/dusk/mods/svc/registry.cpp
+index 8c2e5af..49b7471 100644
+--- a/src/dusk/mods/svc/registry.cpp
++++ b/src/dusk/mods/svc/registry.cpp
+@@ -284,6 +284,7 @@ void ModLoader::init_services() {
+             &svc::g_cameraModule,
+             &svc::g_windowModule,
+             &svc::g_gfxModule,
++            &svc::g_nativeMaterialModule,
+             &svc::g_audioResModule,
+             &svc::g_saveModule,
+             &svc::g_stageModule,
+diff --git a/src/dusk/mods/svc/registry.hpp b/src/dusk/mods/svc/registry.hpp
+index f2ed6f3..47619e3 100644
+--- a/src/dusk/mods/svc/registry.hpp
++++ b/src/dusk/mods/svc/registry.hpp
+@@ -90,6 +90,7 @@ extern const ServiceModule g_gameModule;
+ extern const ServiceModule g_cameraModule;
+ extern const ServiceModule g_windowModule;
+ extern const ServiceModule g_gfxModule;
++extern const ServiceModule g_nativeMaterialModule;
+ extern const ServiceModule g_audioResModule;
+ extern const ServiceModule g_saveModule;
+ extern const ServiceModule g_stageModule;
+diff --git a/sdk/include/mods/svc/native_material.hpp b/sdk/include/mods/svc/native_material.hpp
+new file mode 100644
+--- /dev/null
++++ b/sdk/include/mods/svc/native_material.hpp
+@@ -0,0 +1,19 @@
++#pragma once
++
++#include <mods/service.hpp>
++
++// Optional host capability. Requests run on the game thread. The host records
++// copied values at native scene boundaries, without retaining mod data pointers.
++#define NATIVE_MATERIAL_SERVICE_ID DUSKLIGHT_SERVICE_ID_PREFIX "native-material"
++#define NATIVE_MATERIAL_SERVICE_MAJOR 1u
++#define NATIVE_MATERIAL_SERVICE_MINOR 0u
++
++struct NativeMaterialService {
++    ServiceHeader header;
++    // Values are 0 (native) or 1 (per-fragment RGB). Only one mod may own
++    // the active scope. Disable or detach releases ownership.
++    ModResult (*set_relighting)(ModContext* context, uint32_t enabled);
++};
++
++MOD_DECLARE_SERVICE(NativeMaterialService, svc_native_material, NATIVE_MATERIAL_SERVICE_ID,
++                    NATIVE_MATERIAL_SERVICE_MAJOR, NATIVE_MATERIAL_SERVICE_MINOR);

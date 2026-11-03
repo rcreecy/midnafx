@@ -1,0 +1,10 @@
+[INFO | aurora::texture] Loaded 1759 texture replacement registrations from C:\dev\midnafx\build\material-relighting\ordon-pack-final\user\texture_replacements
+[INFO | com.midnafx.midnafx] Material relighting: native scene request enabled
+[INFO | aurora::gx::fifo] Material relighting: native lit draw uses per-fragment RGB
+[INFO | aurora::gx] Material relighting: native pipeline drawn while enhanced variant is pending
+[INFO | aurora::gx] Material relighting: enhanced pipeline ready for draw encoding
+[INFO | com.midnafx.midnafx] Material relighting: native scene request disabled
+[INFO | com.midnafx.midnafx] Material relighting: native scene request enabled
+[INFO | com.midnafx.midnafx] reloading from C:\dev\midnafx\build\material-relighting\ordon-pack-final\mods\midnafx.dusk
+[INFO | com.midnafx.midnafx] Material relighting: native scene request enabled
+[INFO | dusk::mods::loader] all mods unloaded

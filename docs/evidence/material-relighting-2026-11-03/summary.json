@@ -1,0 +1,61 @@
+{
+  "aurora_revision": "7f2801cd0133c9333eadb4e2e6b24100c328d328",
+  "backend": "D3D12",
+  "capture_dimensions": [
+    962,
+    752
+  ],
+  "configured_viewport": [
+    960,
+    720
+  ],
+  "focused_tests": "8/8 pass",
+  "host_patch_sha256": {
+    "aurora-material-relighting.patch": "5aa3e3ae5b6fb01f99f88884c0a6d69f2449fc46428c420035cb16877a7403b1",
+    "dusklight-material-relighting.patch": "82229fbd0f56070d2db0d11080db3a2307ad91307adc57814766360751f6d955"
+  },
+  "host_revision": "edf42c6a7202647b56dd2fcdef02d17671bc814b",
+  "platform": "windows-amd64",
+  "trials": {
+    "fishing-original": {
+      "enhanced_pipeline_ready_observed": true,
+      "exit_code": 0,
+      "host_sha256": "aab67de1c783ccae6aec82160e29722ddfec0ab80518ab2ab4d2d3712e71fd92",
+      "native_fallback_encoded": true,
+      "pack_dimension_warnings": 0,
+      "package_sha256": "33d5574bd6183bee753d7131940b8e36b530c99d1f7249ba4be4789cfbe460e1",
+      "replacement_textures": false,
+      "stage": "F_SP127,0,0,0"
+    },
+    "ordon-pack": {
+      "enhanced_pipeline_ready_observed": false,
+      "exit_code": 0,
+      "host_sha256": "48298463930a62b5f0794182708f5139870d7faa69c04035c7f866afdf371e6f",
+      "native_fallback_encoded": false,
+      "pack_dimension_warnings": 95,
+      "package_sha256": "33d5574bd6183bee753d7131940b8e36b530c99d1f7249ba4be4789cfbe460e1",
+      "replacement_textures": true,
+      "stage": "F_SP103,0,27,0"
+    },
+    "ordon-pack-final": {
+      "enhanced_pipeline_ready_observed": true,
+      "exit_code": 0,
+      "host_sha256": "aab67de1c783ccae6aec82160e29722ddfec0ab80518ab2ab4d2d3712e71fd92",
+      "native_fallback_encoded": true,
+      "pack_dimension_warnings": 95,
+      "package_sha256": "33d5574bd6183bee753d7131940b8e36b530c99d1f7249ba4be4789cfbe460e1",
+      "replacement_textures": true,
+      "stage": "F_SP103,0,27,0"
+    },
+    "stock": {
+      "enhanced_pipeline_ready_observed": false,
+      "exit_code": 0,
+      "host_sha256": "444d8ee33ed78ba4a427810e35a62731f4d845cbac7343b37b16a5c20f3c34a4",
+      "native_fallback_encoded": false,
+      "pack_dimension_warnings": 0,
+      "package_sha256": "33d5574bd6183bee753d7131940b8e36b530c99d1f7249ba4be4789cfbe460e1",
+      "replacement_textures": false,
+      "stage": "F_SP103,0,27,0"
+    }
+  }
+}

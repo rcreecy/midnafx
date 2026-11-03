@@ -6,6 +6,8 @@
 #include "render/ambient_occlusion.hpp"
 #include "render/renderer.hpp"
 #include "render/motion_clarity.hpp"
+#include "render/material_relighting.hpp"
+#include "render/native_material_service.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
 #include <mods/svc/gfx.h>
@@ -14,6 +16,7 @@
 
 DEFINE_MOD();
 IMPORT_OPTIONAL_SERVICE_VERSION(GfxService, svc_gfx, 2);
+IMPORT_OPTIONAL_SERVICE(NativeMaterialService, svc_native_material);
 IMPORT_OPTIONAL_SERVICE(ConfigService, svc_config);
 IMPORT_OPTIONAL_SERVICE_VERSION(CameraService, svc_camera, 1);
 IMPORT_OPTIONAL_SERVICE(HookService, svc_hook);
@@ -27,6 +30,7 @@ std::chrono::steady_clock::time_point last_update{};
 extern "C" {
 MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
+    midnafx::render::material_relighting::update();
     midnafx::camera_probe::initialize();
     midnafx::motion_clarity::initialize();
     midnafx::render::ambient_occlusion::initialize();
@@ -46,6 +50,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
     midnafx::settings::update_twilight(midnafx::game_state::sample(), elapsed);
     midnafx::geometry_probe::update();
     midnafx::render::update();
+    midnafx::render::material_relighting::update();
     midnafx::render::dof_blur::update();
     midnafx::water_probe::update();
     midnafx::settings::update_diagnostics();
@@ -53,6 +58,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
 }
 MOD_EXPORT ModResult mod_shutdown(ModError*) {
     // Dusklight deactivates/drains draw callbacks before invoking this export.
+    midnafx::render::material_relighting::shutdown();
     midnafx::motion_clarity::shutdown();
     midnafx::render::ambient_occlusion::shutdown();
     midnafx::render::dof_blur::shutdown();

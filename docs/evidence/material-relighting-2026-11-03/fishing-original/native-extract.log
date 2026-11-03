@@ -1,0 +1,5 @@
+[INFO | com.midnafx.midnafx] Material relighting: native scene request enabled
+[INFO | aurora::gx::fifo] Material relighting: native lit draw uses per-fragment RGB
+[INFO | aurora::gx] Material relighting: native pipeline drawn while enhanced variant is pending
+[INFO | aurora::gx] Material relighting: enhanced pipeline ready for draw encoding
+[INFO | dusk::mods::loader] all mods unloaded

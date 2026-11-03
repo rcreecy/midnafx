@@ -176,6 +176,12 @@ It provides original model/material/texture relationships and explicit metadata
 gaps for subsequent broad content work. Generic runtime draw ownership, authored
 material semantics and remaster-quality qualification remain open.
 
+The next material slice adds [native material relighting](material-relighting.md)
+across structurally supported lit draws. It preserves the original material
+combiner and alpha behavior and uses an optional versioned host service. Baked
+lighting, authored physical material inputs and full-scene quality qualification
+remain separate work.
+
 Maintain an acceptance ledger distinguishing implemented, automatically tested, visually observed, unavailable and failed. A diagnostic screenshot is not a motion-quality pass. A rendered draw is not proof of GPU completion or visible pixels. Record package/host revisions, backend, viewport, settings and pack identity for runtime evidence.
 
 Grow coverage through outdoor foliage/architecture, interiors/dungeons, water, night/Twilight, characters/skinning, transparent effects, combat and cutscenes. Use matched routes or reproducible camera states where possible. Failures must remain recorded; do not select only passing scenes or reruns.

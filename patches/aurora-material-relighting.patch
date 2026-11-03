@@ -1,0 +1,410 @@
+diff --git a/include/dolphin/gx/GXAurora.h b/include/dolphin/gx/GXAurora.h
+index 1a312fb..ec1125c 100644
+--- a/include/dolphin/gx/GXAurora.h
++++ b/include/dolphin/gx/GXAurora.h
+@@ -96,6 +96,9 @@ extern "C" {
+  */
+ #define GX_AURORA_DRAW_INDEXED 0x0041
+ 
++/** Renderer-local material RGB mode, followed by one u8 (0 or 1). */
++#define GX_AURORA_MATERIAL_RELIGHTING 0x0042
++
+ #define GX2_SET_POLYGON_OFFSET 0x1000
+ 
+ 
+@@ -141,6 +144,9 @@ void AuroraGetRenderSize(u32* width, u32* height);
+  */
+ void AuroraGXSync(void);
+ 
++/** Record a material lighting mode change in FIFO order. */
++void AuroraSetMaterialRelighting(u8 enabled);
++
+ /**
+  * Sets the actual render viewport in native framebuffer coordinates.
+  * Overrides the automatically scaled values set by the logical GXSetViewport.
+diff --git a/lib/dolphin/gx/GXAurora.cpp b/lib/dolphin/gx/GXAurora.cpp
+index 85a4285..26cd392 100644
+--- a/lib/dolphin/gx/GXAurora.cpp
++++ b/lib/dolphin/gx/GXAurora.cpp
+@@ -51,6 +51,11 @@ void AuroraGXSync() {
+   aurora::gx::fifo::drain();
+ }
+ 
++void AuroraSetMaterialRelighting(u8 enabled) {
++  GX_WRITE_AURORA(GX_AURORA_MATERIAL_RELIGHTING);
++  GX_WRITE_U8(enabled);
++}
++
+ void GXSetViewportRender(f32 left, f32 top, f32 wd, f32 ht, f32 nearz, f32 farz) {
+   GX_WRITE_AURORA(GX_AURORA_LOAD_VIEWPORT_RENDER);
+   GX_WRITE_F32(left);
+diff --git a/lib/gx/command_processor.cpp b/lib/gx/command_processor.cpp
+index a84fef2..bb29dd9 100644
+--- a/lib/gx/command_processor.cpp
++++ b/lib/gx/command_processor.cpp
+@@ -130,11 +130,13 @@ struct DrawCache {
+   PipelineConfig config{};
+   ShaderInfo shaderInfo{};
+   gfx::PipelineRef pipelineRef{};
++  gfx::PipelineRef fallbackPipelineRef{};
+   GXBindGroups bindGroups{};
+   uint64_t bindGeneration = 0;
+   GXVtxFmt fmt = GX_MAX_VTXFMT;
+   u8 lineMode = 0;
+   bool hasPipeline = false;
++  bool relightingCandidate = false;
+   gfx::Range uniformRange{};
+   gfx::Range fogRange{};
+   FogRangeLutKey fogRangeKey{};
+@@ -396,14 +398,38 @@ static void push_gx_draw(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, gfx::Rang
+   }
+ 
+   const u8 lineMode = line_mode_for_prim(prim);
++  // Inspect the actual final projection, including GXSetProjectionFull.
++  // Keep offscreen auxiliaries, HUD projections and normal-less draws native.
++  const bool relightingCandidate = state.materialRelighting && lineMode == 0 &&
++      state.vtxDesc[GX_VA_NRM] != GX_NONE && state.depthCompare && state.colorUpdate &&
++      state.proj[3][2] == -1.f && state.proj[3][3] == 0.f && !gfx::is_offscreen();
+   const bool pipelineValid = cache.hasPipeline && (state.dirty & DirtyPipeline) == 0 && cache.fmt == fmt &&
+-                             cache.lineMode == lineMode && cache.config.msaaSamples == gfx::get_sample_count();
++                             cache.lineMode == lineMode && cache.relightingCandidate == relightingCandidate &&
++                             cache.config.msaaSamples == gfx::get_sample_count();
+   if (!pipelineValid) {
+     const bool hadPipeline = cache.hasPipeline;
+     const auto prevSampledTextures = cache.shaderInfo.sampledTextures;
+     const auto prevSampledIndTextures = cache.shaderInfo.sampledIndTextures;
+     populate_pipeline_config(cache.config, prim, fmt);
+     cache.shaderInfo = build_shader_info(cache.config.shaderConfig);
++    cache.relightingCandidate = relightingCandidate;
++    cache.fallbackPipelineRef = 0;
++    if (relightingCandidate) {
++      for (unsigned i = 0; i < cache.shaderInfo.sampledColorChannels.size(); ++i) {
++        if (cache.shaderInfo.sampledColorChannels.test(i) && cache.config.shaderConfig.colorChannels[i].lightingEnabled) {
++          // Both variants share uniforms and bindings. Keep the native pipeline
++          // available while the enhanced variant compiles asynchronously.
++          cache.fallbackPipelineRef = gfx::pipeline_ref(cache.config);
++          cache.config.shaderConfig.materialRelighting = 1;
++          static bool reported = false;
++          if (!reported) {
++            reported = true;
++            Log.info("Material relighting: native lit draw uses per-fragment RGB");
++          }
++          break;
++        }
++      }
++    }
+     cache.pipelineRef = gfx::pipeline_ref(cache.config);
+     cache.fmt = fmt;
+     cache.lineMode = lineMode;
+@@ -457,7 +483,7 @@ static void push_gx_draw(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, gfx::Rang
+   cache.lastDrawFmt = fmt;
+   gfx::push_draw_command(DrawData{
+       .pipeline = cache.pipelineRef,
+-      .vertRange = vertRange,
++      .fallbackPipeline = cache.fallbackPipelineRef,
+       .idxRange = idxRange,
+       .uniformRange = cache.uniformRange,
+       .immediateData = immediates,
+@@ -521,15 +547,16 @@ static void draw_prim(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, ByteReader&
+       idxRange = gfx::push_indices(idxBuf.data(), idxBuf.size(), hadIndexRange ? 0 : 4);
+       idxBuf.clear();
+     }
+-    CHECK(lastDraw->vertRange.offset + lastDraw->vertRange.size == vertRange.offset,
+-          "Non-consecutive vertex ranges ({} < {})", lastDraw->vertRange.offset + lastDraw->vertRange.size,
+-          vertRange.offset);
++    // A merged draw uses the same vertex format and state, so the recorded
++    // start and accumulated vertex count already describe its byte range.
++    const u32 previousEnd = lastDraw->immediateData.vtxStart + lastDraw->vtxCount * vtxSize;
++    CHECK(previousEnd == vertRange.offset,
++          "Non-consecutive vertex ranges ({} < {})", previousEnd, vertRange.offset);
+     if (hadIndexRange) {
+       CHECK(lastDraw->idxRange.offset + lastDraw->idxRange.size == idxRange.offset,
+             "Non-consecutive index ranges ({} < {})", lastDraw->idxRange.offset + lastDraw->idxRange.size,
+             idxRange.offset);
+     }
+-    lastDraw->vertRange.size += vertRange.size;
+     if (lastDraw->idxRange.size == 0) {
+       lastDraw->idxRange = idxRange;
+     } else {
+@@ -554,7 +581,13 @@ void handle_aurora(ByteReader& reader) noexcept {
+   ZoneScoped;
+   const u16 subCmd = reader.read<u16>();
+ 
+-  if (subCmd == GX_AURORA_LOAD_VIEWPORT_RENDER) {
++  if (subCmd == GX_AURORA_MATERIAL_RELIGHTING) {
++    const bool enabled = reader.read<u8>() == 1;
++    if (g_gxState.materialRelighting != enabled) {
++      g_gxState.materialRelighting = enabled;
++      g_gxState.dirty |= DirtyPipeline;
++    }
++  } else if (subCmd == GX_AURORA_LOAD_VIEWPORT_RENDER) {
+     const f32 left = reader.read<f32>();
+     const f32 top = reader.read<f32>();
+     const f32 width = reader.read<f32>();
+diff --git a/lib/gx/gx.hpp b/lib/gx/gx.hpp
+index a97b987..2387fc2 100644
+--- a/lib/gx/gx.hpp
++++ b/lib/gx/gx.hpp
+@@ -47,7 +47,6 @@ constexpr float GX_LARGE_NUMBER = -1048576.0f;
+ namespace aurora::gx {
+ constexpr bool EnableNormalVisualization = false;
+ constexpr bool EnableDebugPrints = false;
+-constexpr bool UsePerPixelLighting = false;
+ constexpr bool UseReversedZ = true;
+ 
+ constexpr u32 MaxTextures = GX_MAX_TEXMAP;
+@@ -334,6 +333,7 @@ struct GXState {
+   u32 currentPnMtx;
+   Mat4x4<float> proj;
+   GXProjectionType projType; // for GXGetProjectionv
++  bool materialRelighting = false;
+   FogState fog;
+   GXCullMode cullMode = GX_CULL_BACK;
+   u8 lineWidth = 0;
+@@ -492,7 +492,7 @@ struct ShaderConfig {
+   u8 lineMode : 2 = 0; // 1 = GX_LINES, 2 = GX_LINESTRIP, 3 = GX_POINTS
+   u8 fogRangeEnabled : 1 = false;
+   u8 pad1 : 5 = 0;
+-  u8 pad2 = 0;
++  u8 materialRelighting = 0;
+   std::array<AttrConfig, MaxVtxAttr> attrs;
+   std::array<TevSwap, MaxTevSwap> tevSwapTable;
+   std::array<TevStage, MaxTevStages> tevStages;
+diff --git a/lib/gx/pipeline.cpp b/lib/gx/pipeline.cpp
+index 0c3631c..4160bb8 100644
+--- a/lib/gx/pipeline.cpp
++++ b/lib/gx/pipeline.cpp
+@@ -4,6 +4,7 @@
+ #include "../gfx/resources.hpp"
+ #include "../gfx/pipeline_cache.hpp"
+ #include "../gfx/resource_cache.hpp"
++#include "../internal.hpp"
+ 
+ #include "gx_fmt.hpp"
+ #include "shader_info.hpp"
+@@ -22,8 +23,18 @@ wgpu::RenderPipeline create_pipeline(const PipelineConfig& config) {
+ }
+ 
+ void render(const DrawData& data, const wgpu::RenderPassEncoder& pass) {
++  static bool reportedFallback = false;
++  static bool reportedRelighting = false;
++  constexpr Module Log{"aurora::gx"};
+   if (!gfx::bind_pipeline(data.pipeline, pass)) {
+-    return;
++    if (!data.fallbackPipeline || !gfx::bind_pipeline(data.fallbackPipeline, pass)) return;
++    if (!reportedFallback) {
++      reportedFallback = true;
++      Log.info("Material relighting: native pipeline drawn while enhanced variant is pending");
++    }
++  } else if (data.fallbackPipeline && !reportedRelighting) {
++    reportedRelighting = true;
++    Log.info("Material relighting: enhanced pipeline ready for draw encoding");
+   }
+ 
+   const auto& resources = gfx::detail::resources();
+diff --git a/lib/gx/pipeline.hpp b/lib/gx/pipeline.hpp
+index 1abcbd5..9f4fbd8 100644
+--- a/lib/gx/pipeline.hpp
++++ b/lib/gx/pipeline.hpp
+@@ -6,7 +6,7 @@
+ namespace aurora::gx {
+ struct DrawData {
+   gfx::PipelineRef pipeline;
+-  gfx::Range vertRange;
++  gfx::PipelineRef fallbackPipeline = 0;
+   gfx::Range idxRange;
+   gfx::Range uniformRange;
+   DrawImmediateData immediateData;
+diff --git a/lib/gx/shader.cpp b/lib/gx/shader.cpp
+index 92f358b..d09aec7 100644
+--- a/lib/gx/shader.cpp
++++ b/lib/gx/shader.cpp
+@@ -264,7 +264,9 @@ std::string alpha_arg_reg(GXTevAlphaArg arg, size_t stageIdx, const ShaderConfig
+     }
+     u32 idx = color_channel(stage.channelId);
+     const auto& swap = config.tevSwapTable[stage.tevSwapRas];
+-    return fmt::format("rast{}.{}", idx, chan_comp(swap.alpha));
++    // A TEV raster swap may read native RGB as alpha. Keep that input native
++    // too, so relighting cannot change the coverage of a cutout or blend.
++    return fmt::format("{}{}.{}", config.materialRelighting ? "in.cc" : "rast", idx, chan_comp(swap.alpha));
+   }
+   case GX_CA_KONST: {
+     switch (stage.kaSel) {
+@@ -776,11 +778,11 @@ constexpr std::string_view nbt_slice_local(NbtSlice slice) noexcept {
+ 
+ constexpr bool is_emboss_texgen(GXTexGenType type) noexcept { return type >= GX_TG_BUMP0 && type <= GX_TG_BUMP7; }
+ 
+-auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8 i, bool alpha) -> std::string {
+-  std::string_view swizzle = alpha ? ".a"sv : ""sv;
++auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8 i, bool alpha, bool relighting = false) -> std::string {
++  std::string_view swizzle = relighting ? ".rgb"sv : alpha ? ".a"sv : ""sv;
+   std::string outVar;
+   std::string_view posVar;
+-  if (UsePerPixelLighting) {
++  if (relighting) {
+     outVar = fmt::format("rast{}", i);
+     posVar = "in.mv_pos"sv;
+   } else {
+@@ -789,7 +791,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+   }
+   std::string ambSrc, matSrc;
+   if (cc.ambSrc == GX_SRC_VTX) {
+-    if (UsePerPixelLighting) {
++    if (relighting) {
+       ambSrc = fmt::format("in.clr{}", i);
+     } else {
+       ambSrc = vtx_attr(config, static_cast<GXAttr>(GX_VA_CLR0 + i));
+@@ -798,7 +800,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+     ambSrc = fmt::format("ubuf.cc{0}{1}_amb", i, alpha ? "a"sv : ""sv);
+   }
+   if (cc.matSrc == GX_SRC_VTX) {
+-    if (UsePerPixelLighting) {
++    if (relighting) {
+       matSrc = fmt::format("in.clr{}", i);
+     } else {
+       matSrc = vtx_attr(config, static_cast<GXAttr>(GX_VA_CLR0 + i));
+@@ -820,7 +822,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+           var dist_attn = dot(light.dist_att, vec3f(1.0, dist, dist2));
+           attn = max(0.0, cos_attn / dist_attn);)""");
+   } else if (cc.attnFn == GX_AF_SPEC) {
+-    std::string_view normal = UsePerPixelLighting ? "in.mv_nrm"sv : "mv_nrm"sv;
++    std::string_view normal = relighting ? "relight_normal"sv : "mv_nrm"sv;
+     std::string dist_attn = diffFn != GX_DF_NONE
+                                 ? "max(0.0, dot(normalize(light.dist_att), vec3f(1.0, attn, attn * attn)));"
+                                 : "max(0.0, dot(light.dist_att, vec3f(1.0, attn, attn * attn)));";
+@@ -835,19 +837,38 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+   if (diffFn == GX_DF_NONE) {
+     lightDiffFn = "1.0"sv;
+   } else if (diffFn == GX_DF_SIGN) {
+-    if (UsePerPixelLighting) {
+-      lightDiffFn = "dot(ldir, in.mv_nrm)"sv;
++    if (relighting) {
++      lightDiffFn = "dot(ldir, relight_normal)"sv;
+     } else {
+       lightDiffFn = "dot(ldir, mv_nrm)"sv;
+     }
+   } else if (diffFn == GX_DF_CLAMP) {
+-    if (UsePerPixelLighting) {
+-      lightDiffFn = "max(0.0, dot(ldir, in.mv_nrm))"sv;
++    if (relighting) {
++      lightDiffFn = "max(0.0, dot(ldir, relight_normal))"sv;
+     } else {
+       lightDiffFn = "max(0.0, dot(ldir, mv_nrm))"sv;
+     }
+   }
+-  return fmt::format(R"""(
++  std::string guard;
++  if (relighting) {
++    guard = R"""(
++          if (!(dist2 > 1e-10 && dist2 <= 3.402823e38) ||
++              !all(abs(light.color) <= vec4f(3.402823e38))) { continue; })""";
++    if (cc.attnFn != GX_AF_NONE) {
++      guard += R"""(
++          if (!all(abs(light.dir) <= vec3f(3.402823e38)) ||
++              !all(abs(light.cos_att) <= vec3f(3.402823e38)) ||
++              !all(abs(light.dist_att) <= vec3f(3.402823e38))) { continue; })""";
++      if (cc.attnFn == GX_AF_SPEC && diffFn != GX_DF_NONE) {
++        guard += R"""(
++          let relight_att_length = dot(light.dist_att, light.dist_att);
++          if (!(relight_att_length > 1e-10 && relight_att_length <= 3.402823e38)) { continue; })""";
++      }
++    }
++  }
++  const std::string attenuationGuard = relighting
++      ? "\n          if (!(abs(attn) <= 3.402823e38)) { continue; }" : "";
++  const auto body = fmt::format(R"""(
+     {{
+       var lighting = {5};
+       for (var i = 0u; i < {1}u; i++) {{
+@@ -855,16 +876,34 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+           var light = ubuf.lights[i];
+           var ldir = light.pos - {6};
+           var dist2 = dot(ldir, ldir);
++          {10}
+           var dist = sqrt(dist2);
+           ldir = ldir / dist;
+           var attn: f32;{2}
++          {11}
+           var diff = {3};
+           lighting = lighting + (attn * diff * light.color);
+       }}
+-      {7}{8} = ({4} * clamp(lighting, vec4f(0.0), vec4f(1.0))){8};
++      {12}
++      {14}
++      {13}
+     }})""",
+                      i, GX::MaxLights, lightAttnFn, lightDiffFn, matSrc, ambSrc, posVar, outVar, swizzle,
+-                     alpha ? "a"sv : ""sv);
++                     alpha ? "a"sv : ""sv, guard, attenuationGuard,
++                     relighting ? fmt::format("if (all(abs(lighting) <= vec4f(3.402823e38)) && all(abs({}) <= vec4f(3.402823e38))) {{", matSrc) : "",
++                     relighting ? "}" : "",
++                     relighting ? fmt::format("{0} = vec4f(({1} * clamp(lighting, vec4f(0.0), vec4f(1.0))).rgb, {0}.a);", outVar, matSrc)
++                                : fmt::format("{0}{2} = ({1} * clamp(lighting, vec4f(0.0), vec4f(1.0))){2};", outVar, matSrc, swizzle));
++  if (!relighting) return body;
++  // Retain the native raster RGB when interpolation cannot produce a usable
++  // surface normal. Alpha always comes from the native vertex lighting path.
++  return R"""(
++    {
++      let relight_length = dot(in.mv_nrm, in.mv_nrm);
++      if (relight_length > 1e-10 && relight_length <= 3.402823e38 &&
++          all(abs(in.mv_pos) <= vec3f(3.402823e38))) {
++        let relight_normal = in.mv_nrm * inverseSqrt(relight_length);
++  )""" + body + "\n      }\n    }";
+ }
+ 
+ absl::flat_hash_set<gfx::ShaderRef> s_seenShaders;
+@@ -874,6 +913,12 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+   ZoneScoped;
+   const auto hash = xxh3_hash(config);
+   const auto info = build_shader_info(config);
++  bool materialRelighting = false;
++  if (config.materialRelighting) {
++    for (unsigned i = 0; i < info.sampledColorChannels.size(); ++i) {
++      materialRelighting |= info.sampledColorChannels.test(i) && config.colorChannels[i].lightingEnabled;
++    }
++  }
+   if (EnableDebugPrints && !s_seenShaders.contains(hash)) {
+     s_seenShaders.insert(hash);
+ 
+@@ -1150,7 +1195,7 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+         "    cos_att: vec3f,\n"
+         "    dist_att: vec3f,\n"
+         "};";
+-    if (UsePerPixelLighting) {
++    if (materialRelighting) {
+       vtxOutAttrs += fmt::format("\n    @location({}) mv_pos: vec3f,", vtxOutIdx++);
+       vtxOutAttrs += fmt::format("\n    @location({}) mv_nrm: vec3f,", vtxOutIdx++);
+       vtxXfrAttrs += fmt::format(FMT_STRING(R"""(
+@@ -1179,24 +1224,17 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+       uniBufAttrs += fmt::format("\n    cc{0}a_mat: vec4f,", i);
+     }
+ 
+-    // Output vertex color if necessary
+-    if (UsePerPixelLighting) {
+-      if ((cc.lightingEnabled && cc.ambSrc == GX_SRC_VTX) || cc.matSrc == GX_SRC_VTX ||
+-          (cca.lightingEnabled && cca.ambSrc == GX_SRC_VTX) || cca.matSrc == GX_SRC_VTX) {
++    // Keep the complete native vertex result, including alpha and unlit RGB.
++    vtxOutAttrs += fmt::format("\n    @location({}) cc{}: vec4f,", vtxOutIdx++, i);
++    vtxXfrAttrs += lighting_func(config, cc, i, false);
++    vtxXfrAttrs += lighting_func(config, cca, i, true);
++    fragmentFnPre += fmt::format("\n    var rast{0} = in.cc{0};", i);
++    if (materialRelighting && cc.lightingEnabled) {
++      if (cc.ambSrc == GX_SRC_VTX || cc.matSrc == GX_SRC_VTX) {
+         vtxOutAttrs += fmt::format("\n    @location({}) clr{}: vec4f,", vtxOutIdx++, i);
+         vtxXfrAttrs += fmt::format("\n    out.clr{} = {};", i, vtx_attr(config, static_cast<GXAttr>(GX_VA_CLR0 + i)));
+       }
+-    }
+-
+-    if (UsePerPixelLighting) {
+-      fragmentFnPre += fmt::format("\n    var rast{}: vec4f;", i);
+-      fragmentFnPre += lighting_func(config, cc, i, false);
+-      fragmentFnPre += lighting_func(config, cca, i, true);
+-    } else {
+-      vtxOutAttrs += fmt::format("\n    @location({}) cc{}: vec4f,", vtxOutIdx++, i);
+-      vtxXfrAttrs += lighting_func(config, cc, i, false);
+-      vtxXfrAttrs += lighting_func(config, cca, i, true);
+-      fragmentFnPre += fmt::format("\n    var rast{0} = in.cc{0};", i);
++      fragmentFnPre += lighting_func(config, cc, i, false, true);
+     }
+   }
+   for (int i = 0; i < info.sampledKColors.size(); ++i) {

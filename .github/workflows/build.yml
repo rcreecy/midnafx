@@ -60,6 +60,10 @@ jobs:
         shell: bash
         run: python tools/frame-timing-host-patch.py
 
+      - name: Check native material relighting host extension
+        shell: bash
+        run: python tools/material-relighting-host-patch.py
+
       - name: Apply camera FOV host patch
         shell: bash
         run: python tools/camera-host-patch.py --dusklight-dir upstream/dusklight --apply

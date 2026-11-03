@@ -29,7 +29,8 @@ enum SceneFlag {
     ColorBounce = 128,
     WaterSceneReflections = 256,
     SunlightShafts = 512,
-    LocalLights = 1024
+    LocalLights = 1024,
+    MaterialRelighting = 2048
 };
 struct Snapshot {
     std::array<std::int64_t, grade::Count> values{0, 0, 100, 100, 100, 0, 0, 0};

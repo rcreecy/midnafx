@@ -1,0 +1,4 @@
+[INFO | aurora::texture] Loaded 1759 texture replacement registrations from C:\dev\midnafx\build\material-relighting\ordon-pack\user\texture_replacements
+[INFO | com.midnafx.midnafx] Material relighting: native scene request enabled
+[INFO | aurora::gx::fifo] Material relighting: native lit draw uses per-fragment RGB
+[INFO | dusk::mods::loader] all mods unloaded

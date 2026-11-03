@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add experimental native material relighting through an optional patched
+  Dusklight/Aurora host. Supported lit material RGB is evaluated per fragment
+  using original normals, lights and material sources. Keep native alpha,
+  texture bindings, TEV operations and unsupported draws. Remaster enables the
+  option on compatible hosts; Vanilla disables it. No extra render pass is used.
+
 - Add a schema-2 offline asset census across an extracted resource tree, including
   nested RARC/Yaz0 containers, full member paths and explicit coverage outcomes.
   Share material/texture parsing across BMD2/3, BDL3/4, BMT2/3 and standalone BTI.

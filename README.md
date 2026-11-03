@@ -1,5 +1,9 @@
 # MidnaFX
 
+Experimental [material relighting](docs/material-relighting.md) uses a compatible
+Dusklight host to evaluate original material lighting per pixel. Stock hosts
+retain native rendering and the existing post effects.
+
 Developer tooling now supports a whole resource-tree [asset catalog](docs/asset-awareness.md),
 including nested archives, model/material relationships and indexed replacement
 candidates. This closes offline discovery gaps without adding gameplay scanning.
