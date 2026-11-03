@@ -1,7 +1,7 @@
 {
   "id": "com.midnafx.midnafx",
   "name": "MidnaFX",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "author": "MidnaFX contributors",
-  "description": "Sunlit depth atmosphere driven by native daylight color and direction, alongside Remaster contact lighting, local lights, bloom, water and camera controls"
+  "description": "Remaster scene lighting, atmosphere, bloom and water, with per-pixel material relighting on compatible Dusklight hosts"
 }

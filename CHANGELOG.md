@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.22.0 - 2026-11-03
+
+- Use the Remaster scene effects as defaults for unset controls. Saved
+  settings take priority, and the Vanilla profile provides a quick bypass.
 
 - Add experimental native material relighting through an optional patched
   Dusklight/Aurora host. Supported lit material RGB is evaluated per fragment

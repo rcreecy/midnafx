@@ -8,7 +8,7 @@ combiner stages still determine the final surface color. No asset list or textur
 filename classification is involved.
 
 Enable **Basic / Material relighting (experimental)** or select **Remaster** on a
-compatible host. Vanilla disables it. The independent setting defaults off.
+compatible host. Relighting defaults on when its setting is unset. Vanilla disables it.
 Existing saved scene looks without this feature bit load with relighting off.
 Stock hosts keep native rendering and report that the control is unavailable.
 

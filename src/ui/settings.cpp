@@ -56,20 +56,20 @@ Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
     water_thickness_diagnostic{"water_thickness_diagnostic"},
     enhanced_water{"enhanced_water", true},
     anti_aliasing{"anti_aliasing", true},
-    ambient_occlusion{"ambient_occlusion"},
-    atmosphere{"atmosphere_enabled"},
+    ambient_occlusion{"ambient_occlusion", true},
+    atmosphere{"atmosphere_enabled", true},
     camera_lower_angle{"camera_lower_angle"}, atmosphere_depth_probe{"atmosphere_depth_probe"},
     atmosphere_depth_view{"atmosphere_depth_view"}, dof_coc_view{"dof_coc_view"},
     dof_blur{"dof_blur"},
     dof_autofocus{"dof_autofocus", true};
-Toggle adaptive_exposure{"adaptive_exposure", false};
-Toggle bloom{"bloom", false};
-Toggle contact_shadows{"contact_shadows", false};
-Toggle color_bounce{"color_bounce", false};
-Toggle sunlight_shafts{"sunlight_shafts", false};
-Toggle local_lights{"local_lights", false};
-Toggle material_relighting{"material_relighting", false};
-Toggle water_scene_reflections{"water_scene_reflections", false};
+Toggle adaptive_exposure{"adaptive_exposure", true};
+Toggle bloom{"bloom", true};
+Toggle contact_shadows{"contact_shadows", true};
+Toggle color_bounce{"color_bounce", true};
+Toggle sunlight_shafts{"sunlight_shafts", true};
+Toggle local_lights{"local_lights", true};
+Toggle material_relighting{"material_relighting", true};
+Toggle water_scene_reflections{"water_scene_reflections", true};
 Toggle movement_camera{"movement_camera", false};
 Toggle motion_clarity{"motion_clarity", false};
 NumberSetting smoothing_angle_setting{
