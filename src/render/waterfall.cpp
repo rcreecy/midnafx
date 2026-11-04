@@ -19,6 +19,8 @@ struct Vertex {
 struct Uniforms {
     float projection[16];
     float time, red, green, blue;
+    float light_position[4];
+    float eye[4];
 };
 struct Draw {
     GfxRange vertices, uniforms;
@@ -44,6 +46,8 @@ struct Uniforms {
     red: f32,
     green: f32,
     blue: f32,
+    light_position: vec4f,
+    eye: vec4f,
 }
 @group(0) @binding(0) var<uniform> scene: Uniforms;
 struct Output {
@@ -68,8 +72,8 @@ fn noise(p: vec2f) -> f32 {
 
 fn sheet_flow(across: f32, y: f32, time: f32, footprint: vec2f) -> f32 {
     // Slow lateral meander and long, overlapping packets with the same downward direction.
-    let bend = noise(vec2f(across * 0.007, (y + time * 410.0) * 0.00085));
-    let x = across + (bend - 0.5) * 24.0;
+    let bend = noise(vec2f(across * 0.006, (y + time * 410.0) * 0.0012));
+    let x = across + (bend - 0.5) * 46.0;
     let broad = noise(vec2f(x * 0.0095, (y + time * 510.0) * 0.0021));
     let ribbons = noise(vec2f(x * 0.031 + broad * 0.36, (y + time * 635.0) * 0.0044));
     let filaments = noise(vec2f(x * 0.077, (y + time * 735.0) * 0.0065));
@@ -83,14 +87,22 @@ fn sheet_flow(across: f32, y: f32, time: f32, footprint: vec2f) -> f32 {
     let light = vec3f(scene.red, scene.green, scene.blue);
     let time = scene.time;
     let footprint = fwidth(vec2f(uv.x, in.world.y));
+    let sheet_cross = cross(dpdx(in.world), dpdy(in.world));
     var alpha: f32;
     var tone: f32;
     let backlit = in.data.z > 8.5;
     if (in.data.z < 0.5 || backlit) {
         let streak = sheet_flow(uv.x, in.world.y, time, footprint);
         let entry = smoothstep(0.0, 0.075, 1.0 - uv.y);
-        alpha = select(0.23 + 0.56 * streak, 0.69 - 0.08 * streak, backlit) * entry;
-        tone = select(0.67 + 0.41 * streak, 0.53 + 0.57 * streak, backlit);
+        let normal = sheet_cross / max(length(sheet_cross), 0.0001);
+        let eye = scene.eye.xyz - in.world;
+        let light_ray = scene.light_position.xyz - in.world;
+        let incidence = abs(dot(normal, light_ray / max(length(light_ray), 1.0)));
+        let rim = 1.0 - abs(dot(normal, eye / max(length(eye), 1.0)));
+        let illumination = mix(0.55, incidence, scene.light_position.w);
+        // Preserve some of the authored transmission, especially on lit stream crests.
+        alpha = select(0.23 + 0.56 * streak, 0.61 - 0.30 * streak - 0.07 * rim, backlit) * entry;
+        tone = (0.64 + 0.45 * streak) * (0.87 + 0.20 * illumination + 0.14 * rim);
     } else if (in.data.z < 1.5) {
         let radius = length(uv);
         let turbulence = noise(uv * 13.0 + vec2f(time * 0.9, time * 0.55));
@@ -148,6 +160,19 @@ fn sheet_flow(across: f32, y: f32, time: f32, footprint: vec2f) -> f32 {
 
 Point add(Point a, Point b) { return {a.x + b.x, a.y + b.y, a.z + b.z}; }
 Point scale(Point p, float s) { return {p.x * s, p.y * s, p.z * s}; }
+
+float flow_across(const Fall& fall, Point p) {
+    const auto project = [&](Point v) { return v.x * fall.across.x + v.z * fall.across.z; };
+    if (fall.edges.size() < 2) return project(p);
+    const auto upper = std::lower_bound(fall.edges.begin() + 1, fall.edges.end() - 1, p.y,
+                                        [](const auto& row, float y) { return row[0].y < y; });
+    const auto lower = upper - 1;
+    const float t = std::clamp((p.y - (*lower)[0].y) / std::max((*upper)[0].y - (*lower)[0].y, 0.01f), 0.0f, 1.0f);
+    const float left = std::lerp(project((*lower)[0]), project((*upper)[0]), t);
+    const float right = std::lerp(project((*lower)[1]), project((*upper)[1]), t);
+    const float stretch = std::clamp(fall.width / std::max(16.0f, right - left), 0.65f, 1.5f);
+    return (project(p) - (left + right) * 0.5f) * stretch;
+}
 
 void quad(Point center, Point right, Point up, float kind, float opacity) {
     constexpr float corners[][2] = {{-1,-1}, {1,-1}, {-1,1}, {-1,1}, {1,-1}, {1,1}};
@@ -390,7 +415,7 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
         if ((contact_clip != nullptr) == fall->backlit) {
             for (const auto& tri : fall->sheet)
                 for (auto p : tri)
-                    vertices.push_back({add(p, scale(outward, 1.6f)), p.x*fall->across.x + p.z*fall->across.z,
+                    vertices.push_back({add(p, scale(outward, 1.6f)), flow_across(*fall, p),
                                         (p.y-fall->bottom)/fall->height, fall->backlit ? 9.0f : 0.0f, 0.96f});
         }
         if (contact_clip) {
@@ -399,7 +424,7 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
             for (const auto& tri : fall->sheet) {
                 if (std::min({tri[0].y, tri[1].y, tri[2].y}) > top) continue;
                 for (const auto p : tri) {
-                    vertices.push_back({add(p, scale(outward, 2.4f)), p.x*fall->across.x + p.z*fall->across.z,
+                    vertices.push_back({add(p, scale(outward, 2.4f)), flow_across(*fall, p),
                                         (p.y - fall->foot.y) / blend_height, 8.0f, 1.0f});
                 }
             }
@@ -433,12 +458,12 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                     const float t = row - float(lo);
                     const auto a = fall->edges[lo][edge], b = fall->edges[lo + 1][edge];
                     const Point anchor{std::lerp(a.x, b.x, t), std::lerp(a.y, b.y, t), std::lerp(a.z, b.z, t)};
-                    const float spread = scale_y * (0.13f + age * 0.22f);
+                    const float spread = scale_y * (0.24f + age * 0.28f);
                     const float fade = std::min({1.0f, age * 12.0f, (1.0f - age) * 13.0f});
                     const auto center = add(anchor, add(scale(fall->across, side_sign * spread * (0.33f + 0.22f * std::sin(seed + time))),
                         add(scale(outward, spread * 0.45f), scale(drift_wind, spread * age))));
-                    puffs.push_back({center, spread * 1.04f, std::clamp(fall->height / count * 0.82f, 25.0f, 210.0f),
-                                     fade * std::lerp(0.15f, 0.45f, age), distance2(center), 2.0f});
+                    puffs.push_back({center, spread * 1.22f, std::clamp(fall->height / count * 1.06f, 32.0f, 250.0f),
+                                     fade * std::lerp(0.22f, 0.54f, age), distance2(center), 2.0f});
                 }
                 // Concentrate short-lived spray where the silhouette changes direction.
                 for (size_t row = 3; row + 3 < fall->edges.size(); row += 3) {
@@ -545,6 +570,14 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
     Uniforms uniforms{};
     std::memcpy(uniforms.projection, camera.proj_from_world, sizeof(uniforms.projection));
     uniforms.time = time;
+    std::memcpy(uniforms.eye, camera.eye, 3 * sizeof(float));
+    const auto& source = g_env_light.base_light.mPosition;
+    if (std::isfinite(source.x) && std::isfinite(source.y) && std::isfinite(source.z)) {
+        uniforms.light_position[0] = source.x;
+        uniforms.light_position[1] = source.y;
+        uniforms.light_position[2] = source.z;
+        uniforms.light_position[3] = 1.0f;
+    }
     const auto ambient = g_env_light.bg_amb_col[0];
     const bool twilight = dKy_darkworld_check();
     const auto light = [](float value) { return std::clamp(0.60f + value / 640.0f, 0.60f, 1.0f); };
