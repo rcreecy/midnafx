@@ -28,7 +28,7 @@ namespace {
 using topology::Vec3;
 constexpr unsigned MaxRoots = 720000;
 constexpr unsigned MaxVisible = 18000;
-constexpr unsigned BladesPerClump = 5;
+constexpr unsigned BladesPerClump = 9;
 constexpr unsigned VerticesPerClump = BladesPerClump * 3;
 constexpr float DrawDistance = 3400.0f;
 constexpr float PathMargin = 18.0f;
@@ -67,21 +67,22 @@ struct Output {
     @location(0) color: vec3f,
 }
 @group(0) @binding(0) var<uniform> projection: mat4x4f;
+override blades_per_clump: f32;
 @vertex fn vs_main(@builtin(vertex_index) index: u32,
                    @location(0) root: vec3f, @location(1) shape: vec3f,
                    @location(2) base: vec3f, @location(3) tip: vec3f) -> Output {
     let blade = f32(index / 3u);
     let corner = index % 3u;
-    let angle = shape.z + blade * (6.2831853 / 5.0);
+    let angle = shape.z + blade * (6.2831853 / blades_per_clump);
     let radial = vec2f(cos(angle), sin(angle));
     let spread = shape.y * 0.5;
-    let width = shape.y * 0.16;
+    let width = shape.y * 0.10;
     var offset = radial * spread;
     var height = 0.5;
     var color = base;
     if (corner == 2u) {
         offset += radial * spread;
-        height = shape.x * (1.0 - blade * 0.06);
+        height = shape.x * (1.0 - 0.24 * blade / (blades_per_clump - 1.0));
         color = tip;
     } else {
         let side = select(-width, width, corner == 0u);
@@ -376,6 +377,11 @@ void encode(ModContext*, const GfxDrawContext* context, const void* payload, siz
         desc.label = {"MidnaFX ground grass", WGPU_STRLEN};
         desc.vertex.module = shader;
         desc.vertex.entryPoint = {"vs_main", WGPU_STRLEN};
+        WGPUConstantEntry blade_count = WGPU_CONSTANT_ENTRY_INIT;
+        blade_count.key = {"blades_per_clump", WGPU_STRLEN};
+        blade_count.value = BladesPerClump;
+        desc.vertex.constantCount = 1;
+        desc.vertex.constants = &blade_count;
         desc.vertex.bufferCount = 1;
         desc.vertex.buffers = &buffer;
         desc.primitive.topology = WGPUPrimitiveTopology_TriangleList;
@@ -443,7 +449,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         closest = std::min(closest, distance2);
         if (distance2 >= DrawDistance * DrawDistance) continue;
         const float distance = std::sqrt(distance2);
-        const float height = root.height * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
+        const float height = root.height * 1.25f * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
         if (height < 1.0f) continue;
         const auto* m = camera.proj_from_world;
         const auto p = root.point;
