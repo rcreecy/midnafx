@@ -68,21 +68,29 @@ struct Output {
 }
 @group(0) @binding(0) var<uniform> projection: mat4x4f;
 override blades_per_clump: f32;
+fn blade_variation(seed: u32) -> vec3f {
+    var bits = (seed ^ (seed >> 16u)) * 0x7feb352du;
+    bits = (bits ^ (bits >> 15u)) * 0x846ca68bu;
+    bits ^= bits >> 16u;
+    return vec3f(f32(bits & 255u), f32((bits >> 8u) & 255u),
+                 f32((bits >> 16u) & 255u)) / 255.0;
+}
 @vertex fn vs_main(@builtin(vertex_index) index: u32,
                    @location(0) root: vec3f, @location(1) shape: vec3f,
                    @location(2) base: vec3f, @location(3) tip: vec3f) -> Output {
     let blade = f32(index / 3u);
     let corner = index % 3u;
-    let angle = shape.z + blade * (6.2831853 / blades_per_clump);
+    let variation = blade_variation(bitcast<u32>(shape.z) + index / 3u);
+    let angle = shape.z + (blade + variation.x - 0.5) * (6.2831853 / blades_per_clump);
     let radial = vec2f(cos(angle), sin(angle));
-    let spread = shape.y * 0.5;
+    let spread = shape.y * mix(0.25, 0.5, variation.y);
     let width = shape.y * 0.10;
     var offset = radial * spread;
     var height = 0.5;
     var color = base;
     if (corner == 2u) {
         offset += radial * spread;
-        height = shape.x * (1.0 - 0.24 * blade / (blades_per_clump - 1.0));
+        height = shape.x * mix(0.62, 1.0, variation.z);
         color = tip;
     } else {
         let side = select(-width, width, corner == 0u);
@@ -132,6 +140,23 @@ float carpet_weight(Vec3 color) {
 float random(std::uint32_t& state) {
     state = state * 1664525u + 1013904223u;
     return float(state >> 8) * (1.0f / 16777216.0f);
+}
+
+// Continuous over triangle boundaries and fixed in terrain space.
+float scatter_patch(Vec3 point) {
+    constexpr float PatchSize = 96.0f;
+    const float x = point.x / PatchSize, z = point.z / PatchSize;
+    const auto ix = static_cast<int>(std::floor(x)), iz = static_cast<int>(std::floor(z));
+    const auto smooth = [](float t) { return t * t * (3.0f - 2.0f * t); };
+    const auto sample = [](int gx, int gz) {
+        std::uint32_t bits = std::uint32_t(gx) * 0x9e3779b9u ^ std::uint32_t(gz) * 0x85ebca6bu;
+        bits = (bits ^ (bits >> 16)) * 0x7feb352du;
+        bits = (bits ^ (bits >> 15)) * 0x846ca68bu;
+        return float((bits ^ (bits >> 16)) >> 8) / 16777216.0f;
+    };
+    const float u = smooth(x - ix), v = smooth(z - iz);
+    return std::lerp(std::lerp(sample(ix, iz), sample(ix + 1, iz), u),
+                     std::lerp(sample(ix, iz + 1), sample(ix + 1, iz + 1), u), v);
 }
 
 int path_cell(float p) {
@@ -320,9 +345,13 @@ void scatter(J3DModel& instance) {
                     matrix[2][0]*s.x + matrix[2][1]*s.y + matrix[2][2]*s.z + matrix[2][3]};
                 const auto color = grass_color(image, tex.x, tex.y);
                 const float carpet = carpet_weight(color);
-                if (random(rng) >= std::lerp(0.015f, 1.0f, std::sqrt(carpet))) continue;
+                const float patch = scatter_patch(s);
+                const float coverage = std::lerp(0.015f, 1.0f, std::sqrt(carpet));
+                const float patch_density = std::lerp(0.25f, 1.0f, patch);
+                if (random(rng) >= coverage * std::lerp(patch_density, 1.0f, carpet)) continue;
                 const Root root{world, color,
-                                std::lerp(15.0f, 5.0f, carpet) + 7 * random(rng),
+                                (std::lerp(15.0f, 5.0f, carpet) + 7 * random(rng)) *
+                                    std::lerp(0.85f, 1.2f, patch),
                                 std::lerp(2.0f, 12.0f, carpet) + 2 * random(rng),
                                 6.283185f * random(rng)};
                 ++samples;

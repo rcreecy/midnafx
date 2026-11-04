@@ -5,13 +5,14 @@ grass image for root color. It is enabled for unset settings and the Remaster
 profile. Use **Short grass (Ordon prototype)** or **Vanilla** to disable it.
 
 Greener texture samples grow more clumps with shorter blades. Brown
-and gray samples retain sparse blades. The meadow pass uses the projected
+and gray samples retain sparse blades. Stable terrain-space patches vary
+clump height and break up density in transitions. Each blade varies in
+direction, spread, and height. The meadow pass uses the projected
 footprints of three dirt and path materials to exclude grass, with an 18-unit
-margin for blade spread. The Windows trial rejected 240,508 candidate roots
+margin for blade spread. The Windows trial rejected 240,595 candidate roots
 against 189 path triangles. It retained 720,000 roots across the room and
-counted 16,065 visible clumps in the first sampled frame. Each clump now uses
-nine blades, for 144,585 blades in that frame. Bases are 37.5% narrower and
-blades are 25% taller than in the five-blade preview. The GPU
+counted 16,078 visible clumps in the first sampled frame. Each clump uses
+nine blades, for 144,702 blades in that frame. The GPU
 expands each clump from one 48-byte record. The frame cap is 18,000 clumps.
 
 The Windows D3D12 capture shows thicker patches and a clear main trail at the
@@ -19,7 +20,7 @@ Ordon spawn. Brown ground remains visible in transitions. The trial closed
 with exit code zero. GPU duration and path coverage from other views remain
 unmeasured.
 
-![Ordon short grass with finer, taller blades](evidence/ground-grass-2026-11-03/volume.jpg)
+![Ordon short grass with irregular clumps](evidence/ground-grass-2026-11-03/scatter.jpg)
 
 The first prototype can use the Ordon room 0 terrain model
 `F_SP103/R00_00.arc!bmde/model.bmd`. The local asset catalog identifies
