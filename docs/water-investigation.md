@@ -130,7 +130,8 @@ its flow over the native additive layer so backlighting preserves visible
 motion. The base cloud and settling vapor spread wider with a gradual fade.
 The ribbons follow the sheet's center and width at each sampled elevation.
 Surface angle affects shading, and the cave lets more of the native backlight
-through bright stream crests. Fuller mist follows the height of each drop.
+through bright stream crests. Continuous mist follows each sheet edge, using
+downward flow to drive moving curls that spread away from the sheet.
 
 ![Stacked waterfalls and pool at Faron Spring](evidence/waterfalls-2026-11-04/faron-spring.jpg)
 Supported water now receives sky reflections and animated surface shading

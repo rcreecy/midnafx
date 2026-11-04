@@ -87,10 +87,11 @@ fn sheet_flow(across: f32, y: f32, time: f32, footprint: vec2f) -> f32 {
     let light = vec3f(scene.red, scene.green, scene.blue);
     let time = scene.time;
     let footprint = fwidth(vec2f(uv.x, in.world.y));
+    let plume_footprint = fwidth(vec2f(uv.y, in.world.y));
     let sheet_cross = cross(dpdx(in.world), dpdy(in.world));
     var alpha: f32;
     var tone: f32;
-    let backlit = in.data.z > 8.5;
+    let backlit = in.data.z > 8.5 && in.data.z < 9.5;
     if (in.data.z < 0.5 || backlit) {
         let streak = sheet_flow(uv.x, in.world.y, time, footprint);
         let entry = smoothstep(0.0, 0.075, 1.0 - uv.y);
@@ -109,6 +110,17 @@ fn sheet_flow(across: f32, y: f32, time: f32, footprint: vec2f) -> f32 {
         let rings = 0.5 + 0.5 * sin(22.0 * radius - time * 7.0 + turbulence * 2.5);
         alpha = (1.0 - smoothstep(0.24, 1.0, radius)) * (0.30 + 0.48 * turbulence + 0.22 * rings);
         tone = 0.91 + turbulence * 0.09;
+    } else if (in.data.z > 9.5) {
+        // The same descending flow feeds a turbulent plume that spreads out from the sheet.
+        let outward = max(uv.x, 0.0);
+        let flow_y = in.world.y + time * 540.0 + outward * 180.0;
+        let source = sheet_flow(uv.y, flow_y, time * 0.23, plume_footprint);
+        let curls = noise(vec2f(uv.y * 0.012 + outward * 4.0, flow_y * 0.009));
+        let reach = mix(0.34, 1.02, source * 0.65 + curls * 0.35);
+        let falloff = (1.0 - smoothstep(0.03, reach, outward)) * (1.0 - smoothstep(0.70, 1.0, outward));
+        let attachment = smoothstep(-0.29, -0.04, uv.x);
+        alpha = attachment * falloff * (0.36 + 0.39 * source + 0.25 * curls);
+        tone = 0.88 + curls * 0.15;
     } else if (in.data.z > 7.5) {
         // The lower sheet loses streak contrast as it turns into aerated water.
         let ribbons = sheet_flow(uv.x, in.world.y, time, footprint);
@@ -418,6 +430,33 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                     vertices.push_back({add(p, scale(outward, 1.6f)), flow_across(*fall, p),
                                         (p.y-fall->bottom)/fall->height, fall->backlit ? 9.0f : 0.0f, 0.96f});
         }
+        if ((contact_clip != nullptr) == fall->backlit) {
+            // Build a continuous vapor envelope from the actual silhouette of each drop.
+            for (unsigned edge = 0; edge < 2; ++edge) {
+                const float sign = edge == 0 ? -1.0f : 1.0f;
+                auto vapor_vertex = [&](const std::array<Point, 2>& row, bool outer) {
+                    const Point anchor = row[edge];
+                    const float descent = 1.0f - std::clamp((anchor.y - fall->bottom) / fall->height, 0.0f, 1.0f);
+                    const float spread = scale_y * std::lerp(0.23f, 0.94f, descent);
+                    const float thickness = std::hypot(row[1].x - row[0].x, row[1].z - row[0].z);
+                    const float inset = std::min(spread * 0.31f, thickness * 0.24f);
+                    const auto offset = add(scale(fall->across, sign * (outer ? spread : -inset)),
+                        add(scale(outward, outer ? spread * 0.38f : 5.0f),
+                            scale(drift_wind, outer ? spread * descent * 0.76f : 0.0f)));
+                    const float opacity = std::lerp(0.62f, 0.94f, descent) *
+                        std::clamp(0.23f + descent * 6.0f, 0.0f, 1.0f);
+                    return Vertex{add(anchor, offset), outer ? 1.0f : -0.29f,
+                                  flow_across(*fall, anchor), 10.0f, opacity};
+                };
+                for (size_t j = 1; j < fall->edges.size(); ++j) {
+                    const auto& a = fall->edges[j - 1];
+                    const auto& b = fall->edges[j];
+                    const auto inner_a = vapor_vertex(a, false), outer_a = vapor_vertex(a, true);
+                    const auto inner_b = vapor_vertex(b, false), outer_b = vapor_vertex(b, true);
+                    vertices.insert(vertices.end(), {inner_a, outer_a, inner_b, inner_b, outer_a, outer_b});
+                }
+            }
+        }
         if (contact_clip) {
             const float blend_height = scale_y * 2.25f + contact_gap;
             const float top = fall->foot.y + blend_height * 1.2f;
@@ -447,24 +486,6 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                     vertices.insert(vertices.end(), {inner_a, outer_a, inner_b, inner_b, outer_a, outer_b});
                 }
                 if (fall->edges.size() < 2) continue;
-                // Falling aerosol follows the traced silhouette and thickens on the way down.
-                const unsigned count = std::clamp(unsigned(fall->height / 145.0f) + 3, 5u, 24u);
-                for (unsigned j = 0; j < count && puffs.size() < 2200; ++j) {
-                    const float seed = j * 3.471f + edge * 8.134f + fall->foot.x * 0.0011f;
-                    const float phase = float(j) / count + time * (0.10f + 0.021f * std::sin(seed));
-                    const float age = phase - std::floor(phase);
-                    const float row = (1.0f - age) * (fall->edges.size() - 1);
-                    const size_t lo = std::min(size_t(row), fall->edges.size() - 2);
-                    const float t = row - float(lo);
-                    const auto a = fall->edges[lo][edge], b = fall->edges[lo + 1][edge];
-                    const Point anchor{std::lerp(a.x, b.x, t), std::lerp(a.y, b.y, t), std::lerp(a.z, b.z, t)};
-                    const float spread = scale_y * (0.24f + age * 0.28f);
-                    const float fade = std::min({1.0f, age * 12.0f, (1.0f - age) * 13.0f});
-                    const auto center = add(anchor, add(scale(fall->across, side_sign * spread * (0.33f + 0.22f * std::sin(seed + time))),
-                        add(scale(outward, spread * 0.45f), scale(drift_wind, spread * age))));
-                    puffs.push_back({center, spread * 1.22f, std::clamp(fall->height / count * 1.06f, 32.0f, 250.0f),
-                                     fade * std::lerp(0.22f, 0.54f, age), distance2(center), 2.0f});
-                }
                 // Concentrate short-lived spray where the silhouette changes direction.
                 for (size_t row = 3; row + 3 < fall->edges.size(); row += 3) {
                     const auto a = fall->edges[row - 2][edge], p = fall->edges[row][edge],
