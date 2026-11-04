@@ -28,7 +28,8 @@ namespace {
 using topology::Vec3;
 constexpr unsigned MaxRoots = 720000;
 constexpr unsigned MaxVisible = 18000;
-constexpr unsigned VerticesPerClump = 9;
+constexpr unsigned BladesPerClump = 5;
+constexpr unsigned VerticesPerClump = BladesPerClump * 3;
 constexpr float DrawDistance = 3400.0f;
 constexpr float PathMargin = 18.0f;
 constexpr float PathCell = 128.0f;
@@ -38,12 +39,15 @@ struct Root {
     Vec3 color;
     float height, width, angle;
 };
-struct Vertex {
-    float clip[4];
-    Vec3 color;
+struct Clump {
+    Vec3 point;
+    Vec3 shape; // Height, width, and angle.
+    Vec3 base;
+    Vec3 tip;
 };
 struct Draw {
-    GfxRange vertices;
+    GfxRange instances;
+    GfxRange projection;
     unsigned count;
 };
 
@@ -54,7 +58,7 @@ std::uint64_t pipeline_layout = 0;
 bool pipeline_reversed = false;
 const J3DModelData* cached_model = nullptr;
 std::vector<Root> roots;
-std::vector<Vertex> vertices;
+std::vector<Clump> clumps;
 bool frame_reported = false;
 
 constexpr char Shader[] = R"(
@@ -62,8 +66,28 @@ struct Output {
     @builtin(position) position: vec4f,
     @location(0) color: vec3f,
 }
-@vertex fn vs_main(@location(0) position: vec4f, @location(1) color: vec3f) -> Output {
-    return Output(position, color);
+@group(0) @binding(0) var<uniform> projection: mat4x4f;
+@vertex fn vs_main(@builtin(vertex_index) index: u32,
+                   @location(0) root: vec3f, @location(1) shape: vec3f,
+                   @location(2) base: vec3f, @location(3) tip: vec3f) -> Output {
+    let blade = f32(index / 3u);
+    let corner = index % 3u;
+    let angle = shape.z + blade * (6.2831853 / 5.0);
+    let radial = vec2f(cos(angle), sin(angle));
+    let spread = shape.y * 0.5;
+    let width = shape.y * 0.16;
+    var offset = radial * spread;
+    var height = 0.5;
+    var color = base;
+    if (corner == 2u) {
+        offset += radial * spread;
+        height = shape.x * (1.0 - blade * 0.06);
+        color = tip;
+    } else {
+        let side = select(-width, width, corner == 0u);
+        offset += vec2f(-radial.y, radial.x) * side;
+    }
+    return Output(projection * vec4f(root + vec3f(offset.x, height, offset.y), 1.0), color);
 }
 @fragment fn fs_main(in: Output) -> @location(0) vec4f {
     return vec4f(in.color, 1.0);
@@ -325,15 +349,18 @@ void encode(ModContext*, const GfxDrawContext* context, const void* payload, siz
         WGPUShaderModuleDescriptor shader_desc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
         shader_desc.nextInChain = &source.chain;
         auto shader = wgpuDeviceCreateShaderModule(context->device, &shader_desc);
-        WGPUVertexAttribute attributes[2]{};
-        attributes[0].format = WGPUVertexFormat_Float32x4;
-        attributes[1].format = WGPUVertexFormat_Float32x3;
-        attributes[1].offset = offsetof(Vertex, color);
-        attributes[1].shaderLocation = 1;
+        const size_t offsets[] = {offsetof(Clump, point), offsetof(Clump, shape),
+                                  offsetof(Clump, base), offsetof(Clump, tip)};
+        WGPUVertexAttribute attributes[4]{};
+        for (unsigned i = 0; i < 4; ++i) {
+            attributes[i].format = WGPUVertexFormat_Float32x3;
+            attributes[i].offset = offsets[i];
+            attributes[i].shaderLocation = i;
+        }
         WGPUVertexBufferLayout buffer = WGPU_VERTEX_BUFFER_LAYOUT_INIT;
-        buffer.arrayStride = sizeof(Vertex);
-        buffer.stepMode = WGPUVertexStepMode_Vertex;
-        buffer.attributeCount = 2;
+        buffer.arrayStride = sizeof(Clump);
+        buffer.stepMode = WGPUVertexStepMode_Instance;
+        buffer.attributeCount = 4;
         buffer.attributes = attributes;
         WGPUColorTargetState colors[GFX_MAX_COLOR_ATTACHMENTS];
         WGPUFragmentState fragment = WGPU_FRAGMENT_STATE_INIT;
@@ -363,10 +390,24 @@ void encode(ModContext*, const GfxDrawContext* context, const void* payload, siz
     if (!pipeline) return;
     Draw draw{};
     std::memcpy(&draw, payload, sizeof(draw));
+    auto layout = wgpuRenderPipelineGetBindGroupLayout(pipeline, 0);
+    WGPUBindGroupEntry entry = WGPU_BIND_GROUP_ENTRY_INIT;
+    entry.buffer = context->uniform_buffer;
+    entry.offset = draw.projection.offset;
+    entry.size = draw.projection.size;
+    WGPUBindGroupDescriptor binding = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
+    binding.layout = layout;
+    binding.entryCount = 1;
+    binding.entries = &entry;
+    auto group = wgpuDeviceCreateBindGroup(context->device, &binding);
+    wgpuBindGroupLayoutRelease(layout);
+    if (!group) return;
     wgpuRenderPassEncoderSetPipeline(context->pass, pipeline);
+    wgpuRenderPassEncoderSetBindGroup(context->pass, 0, group, 0, nullptr);
     wgpuRenderPassEncoderSetVertexBuffer(context->pass, 0, context->vertex_buffer,
-                                         draw.vertices.offset, draw.vertices.size);
-    wgpuRenderPassEncoderDraw(context->pass, draw.count, 1, 0, 0);
+                                         draw.instances.offset, draw.instances.size);
+    wgpuRenderPassEncoderDraw(context->pass, VerticesPerClump, draw.count, 0, 0);
+    wgpuBindGroupRelease(group);
 }
 
 void stage(ModContext*, const GfxStageContext* context, void*) {
@@ -390,20 +431,12 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     if (roots.empty()) return;
     CameraInfo camera = CAMERA_INFO_INIT;
     if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) != MOD_OK) return;
-    vertices.clear();
+    clumps.clear();
     float closest = DrawDistance * DrawDistance;
     const Vec3 fog{g_env_light.fog_col.r / 255.0f, g_env_light.fog_col.g / 255.0f,
                    g_env_light.fog_col.b / 255.0f};
-    auto vertex = [&](Vec3 point, Vec3 color) {
-        Vertex result{};
-        const auto* m = camera.proj_from_world;
-        for (unsigned i = 0; i < 4; ++i)
-            result.clip[i] = m[i]*point.x + m[4+i]*point.y + m[8+i]*point.z + m[12+i];
-        result.color = color;
-        return result;
-    };
     for (const auto& root : roots) {
-        if (vertices.size() >= MaxVisible * VerticesPerClump) break;
+        if (clumps.size() >= MaxVisible) break;
         const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
         const float dy = root.point.y - camera.eye[1];
         const float distance2 = dx*dx + dy*dy + dz*dz;
@@ -412,42 +445,36 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         const float distance = std::sqrt(distance2);
         const float height = root.height * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
         if (height < 1.0f) continue;
-        const auto projected = vertex(root.point, root.color);
-        const auto& clip = projected.clip;
+        const auto* m = camera.proj_from_world;
+        const auto p = root.point;
+        float clip[4];
+        for (unsigned i = 0; i < 4; ++i)
+            clip[i] = m[i]*p.x + m[4+i]*p.y + m[8+i]*p.z + m[12+i];
         if (clip[3] <= 0 || std::abs(clip[0]) > clip[3] * 1.1f ||
             std::abs(clip[1]) > clip[3] * 1.1f) continue;
         const float haze = std::clamp((distance - g_env_light.mFogNear) /
                             std::max(1.0f, g_env_light.mFogFar - g_env_light.mFogNear), 0.0f, 1.0f);
         const Vec3 base = mix(scale(root.color, 0.88f), fog, haze);
         const Vec3 tip = mix(root.color, fog, haze);
-        const auto p = root.point;
-        for (unsigned blade = 0; blade < 3; ++blade) {
-            const float angle = root.angle + blade * 2.0943951f;
-            const float x = std::cos(angle), z = std::sin(angle);
-            const float spread = root.width * 0.5f;
-            const float half_width = root.width * 0.28f;
-            const float bx = p.x + x * spread, bz = p.z + z * spread;
-            vertices.push_back(vertex({bx - z * half_width, p.y + 0.5f, bz + x * half_width}, base));
-            vertices.push_back(vertex({bx + z * half_width, p.y + 0.5f, bz - x * half_width}, base));
-            vertices.push_back(vertex({bx + x * spread, p.y + height * (1 - blade * 0.12f), bz + z * spread}, tip));
-        }
+        clumps.push_back({p, {height, root.width, root.angle}, base, tip});
     }
     if (!frame_reported) {
         char message[160];
         std::snprintf(message, sizeof(message), "Ground grass: %zu visible roots, nearest %.1f units",
-                      vertices.size() / VerticesPerClump, std::sqrt(closest));
+                      clumps.size(), std::sqrt(closest));
         svc_log->info(mod_ctx, message);
         frame_reported = true;
     }
-    if (vertices.empty()) return;
-    Draw draw{{}, static_cast<unsigned>(vertices.size())};
-    if (svc_gfx->push_verts(mod_ctx, vertices.data(), vertices.size() * sizeof(Vertex), 4, &draw.vertices) == MOD_OK)
+    if (clumps.empty()) return;
+    Draw draw{{}, {}, static_cast<unsigned>(clumps.size())};
+    if (svc_gfx->push_uniform(mod_ctx, camera.proj_from_world, sizeof(camera.proj_from_world), &draw.projection) == MOD_OK &&
+        svc_gfx->push_verts(mod_ctx, clumps.data(), clumps.size() * sizeof(Clump), 4, &draw.instances) == MOD_OK)
         (void)svc_gfx->push_draw(mod_ctx, draw_type, &draw, sizeof(draw));
 }
 } // namespace
 
 void initialize() {
-    if (!svc_gfx || !svc_camera || !svc_camera->get_camera) {
+    if (!svc_gfx || !svc_gfx->push_uniform || !svc_camera || !svc_camera->get_camera) {
         svc_log->warn(mod_ctx, "Ground grass: graphics or camera service unavailable");
         return;
     }
@@ -488,6 +515,6 @@ void shutdown() {
     cached_model = nullptr;
     frame_reported = false;
     std::vector<Root>().swap(roots);
-    std::vector<Vertex>().swap(vertices);
+    std::vector<Clump>().swap(clumps);
 }
 } // namespace midnafx::render::ground_grass

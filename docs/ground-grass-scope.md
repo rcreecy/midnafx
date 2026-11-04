@@ -4,20 +4,21 @@ The Windows prototype renders short grass in Ordon room 0 using the original
 grass image for root color. It is enabled for unset settings and the Remaster
 profile. Use **Short grass (Ordon prototype)** or **Vanilla** to disable it.
 
-Greener texture samples grow more clumps with shorter, wider blades. Brown
+Greener texture samples grow more clumps with shorter blades. Brown
 and gray samples retain sparse blades. The meadow pass uses the projected
 footprints of three dirt and path materials to exclude grass, with an 18-unit
 margin for blade spread. The Windows trial rejected 240,508 candidate roots
 against 189 path triangles. It retained 720,000 roots across the room and
-counted 15,949 visible clumps in the first sampled frame. Each clump uses
-three blades. The frame cap is 18,000 clumps.
+counted 15,949 visible clumps in the first sampled frame. Each clump now uses
+five blades with 43% narrower bases, for 79,745 blades in that frame. The GPU
+expands each clump from one 48-byte record. The frame cap is 18,000 clumps.
 
 The Windows D3D12 capture shows thicker patches and a clear main trail at the
 Ordon spawn. Brown ground remains visible in transitions. The trial closed
 with exit code zero. GPU duration and path coverage from other views remain
 unmeasured.
 
-![Ordon short grass](evidence/ground-grass-2026-11-03/full-carpet.jpg)
+![Ordon short grass with slimmer blades](evidence/ground-grass-2026-11-03/slim-carpet.jpg)
 
 The first prototype can use the Ordon room 0 terrain model
 `F_SP103/R00_00.arc!bmde/model.bmd`. The local asset catalog identifies
