@@ -77,11 +77,7 @@ fn world_position(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
     return world4.xyz / world4.w;
 }
 
-fn water_surface_normal(coord: vec2i, depth: f32, dimensions: vec2f, distance: f32) -> vec3f {
-    let world = world_position(coord, depth, dimensions);
-    if (any(world != world) || any(abs(world) > vec3f(3.402823e38))) {
-        return vec3f(0.0, 1.0, 0.0);
-    }
+fn water_surface_normal(world: vec3f, dimensions: vec2f, distance: f32) -> vec3f {
     let time = params.animation_time * params.wave_speed;
     let exposure = params.water_motion.w;
     let wind = params.water_motion.xy;
@@ -99,6 +95,25 @@ fn water_surface_normal(coord: vec2i, depth: f32, dimensions: vec2f, distance: f
     let slope = (broad * mix(0.35, 1.0, exposure) + fine * detail * exposure * wind_strength * 0.78) *
                 params.wave_strength * 0.31;
     return normalize(vec3f(-slope.x, 1.0, -slope.y));
+}
+
+fn water_surface_detail(color: vec3f, world: vec3f, normal: vec3f, distance: f32,
+                        dimensions: vec2f, scatter: vec3f) -> vec3f {
+    let wind = params.water_motion.xy;
+    let xy = vec2f(dot(world.xz, wind), dot(world.xz, vec2f(-wind.y, wind.x)));
+    let time = params.animation_time;
+    let broad = sin(dot(xy, vec2f(0.0024, 0.0031)) - time * 0.37 + sin(xy.y * 0.0018));
+    let current = sin(dot(xy, vec2f(0.013, -0.007)) - time * 1.7 + broad * 1.2);
+    let fine = sin(dot(xy, vec2f(0.034, 0.017)) - time * 3.9 + current * 0.6);
+    let footprint = 2.0 * distance / max(abs(params.proj_from_view[1][1]) * dimensions.y, 1.0);
+    let visibility = 1.0 - smoothstep(6.0, 32.0, footprint);
+    let flow = broad * 0.47 + current * 0.37 + fine * 0.16 * visibility;
+    let strength = min(params.wave_strength * 3.6, 0.90) * mix(0.58, 1.0, params.water_motion.w);
+    let directional = clamp(dot(normal.xz, wind) * 8.0, -1.0, 1.0);
+    let light = 1.0 + strength * (flow * 0.32 + directional * 0.16);
+    let tint = mix(scatter, params.horizon.rgb, params.sky.a * 0.34);
+    let crest = smoothstep(-0.10, 0.89, flow) * strength;
+    return color * light + (vec3f(0.033) + tint * 0.26) * crest;
 }
 
 fn refracted_source(coord: vec2i, water_depth: f32, normalized_depth: f32,
@@ -371,13 +386,14 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     }
     let water_depth = textureLoad(surface_depth, coord, 0).r;
     let opaque_depth = textureLoad(scene_depth, coord, 0).r;
-    if (abs(water_depth - params.background_depth) <= 0.000001 ||
-        abs(opaque_depth - params.background_depth) <= 0.000001) {
+    if (abs(water_depth - params.background_depth) <= 0.000001) {
         return source;
     }
     let dimensions = vec2f(textureDimensions(scene_depth));
     let water_distance = view_distance(coord, water_depth, dimensions);
-    let opaque_distance = view_distance(coord, opaque_depth, dimensions);
+    let background = abs(opaque_depth - params.background_depth) <= 0.000001;
+    var opaque_distance = water_distance + params.max_thickness;
+    if (!background) { opaque_distance = view_distance(coord, opaque_depth, dimensions); }
     if (water_distance < 0.0 || opaque_distance <= water_distance) {
         return source;
     }
@@ -385,8 +401,9 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     let transmission = exp(-params.absorption_strength * normalized);
     let scatter = mix(params.shallow_tint.rgb, params.deep_tint.rgb,
                       smoothstep(0.0, 1.0, normalized));
-    let surface_normal = water_surface_normal(coord, water_depth, dimensions, water_distance);
-    let wave_light = 1.0 + dot(surface_normal.xz, normalize(vec2f(0.8, 0.6))) * 0.10;
+    let world = world_position(coord, water_depth, dimensions);
+    if (any(world != world) || any(abs(world) > vec3f(1e20))) { return source; }
+    let surface_normal = water_surface_normal(world, dimensions, water_distance);
     // Some TP water paths have no opaque color behind the surface at the
     // pre-water boundary. Keep those pixels visibly water-colored instead of
     // turning the whole surface black until a submerged-color source exists.
@@ -399,8 +416,9 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     // This limits only absorption/scatter; refraction and the later surface
     // responses retain their independent controls.
     let physical_absorption = transmitted_source * transmission + scatter * (1.0 - transmission);
-    let absorbed = mix(transmitted_source, physical_absorption, 0.15) * wave_light;
-    let shoreline = apply_shoreline_treatment(absorbed, normalized, surface_normal);
+    let absorbed = mix(transmitted_source, physical_absorption, 0.15);
+    let detailed = water_surface_detail(absorbed, world, surface_normal, water_distance, dimensions, scatter);
+    let shoreline = apply_shoreline_treatment(detailed, normalized, surface_normal);
     let reflected = apply_fresnel_reflection(coord, water_depth, dimensions, shoreline, surface_normal);
     return apply_specular(reflected, coord, water_depth, dimensions, surface_normal);
 }

@@ -21,8 +21,12 @@ struct Fall {
     float bottom;
 };
 
-void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls);
+void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls,
+             std::span<const Triangle> basin = {});
 void initialize();
 void shutdown();
-void draw(std::span<const Fall* const> falls, const CameraInfo& camera);
+struct FrameClip {
+    float left, top, right, bottom;
+};
+void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const FrameClip* contact_clip = nullptr);
 }

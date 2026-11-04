@@ -111,6 +111,11 @@ peeling off the edges and more breakup near impact.
 The impact pass layers waterline vapor, rising billows, and arcing droplets
 over the foam. Lake Hylia's cave cascade comes from the separately loaded
 background object and now receives animated flow and impact spray.
+The cave impact uses the receiving pool mesh, which puts the emitter 236
+game units lower than the previous estimate. The dense contact cloud draws
+over the transparent pool and is clipped to the native cutscene frame.
+Supported water now receives sky reflections and animated surface shading
+even where the opaque depth buffer has no underlying geometry.
 
 Material matching covers explicit waterfall names plus the two identified
 Faron cascade materials. The Windows D3D12 preview was checked at Fishing

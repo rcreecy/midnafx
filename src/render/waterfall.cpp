@@ -23,6 +23,7 @@ struct Uniforms {
 struct Draw {
     GfxRange vertices, uniforms;
     unsigned count;
+    FrameClip clip;
 };
 struct Puff {
     Point center;
@@ -100,12 +101,19 @@ fn noise(p: vec2f) -> f32 {
                      smoothstep(reach * 0.7, reach, uv.x) * (1.0 - smoothstep(0.60, 1.0, uv.x));
         alpha = (fringe * 0.76 + thread * 0.47) * (1.0 - smoothstep(0.91, 1.0, uv.x));
         tone = 0.76 + 0.23 * breaks;
-    } else {
+    } else if (in.data.z < 4.5) {
         let radius = length(uv);
         alpha = 1.0 - smoothstep(0.23, 1.0, radius);
         tone = 1.14;
+    } else {
+        // Dense aerated core at the contact line with turbulent, feathered edges.
+        let billow = noise(uv * vec2f(5.0, 3.6) + in.world.xz * 0.006 + vec2f(-time * 0.78, time * 1.45));
+        let radius = length(uv);
+        alpha = 1.0 - smoothstep(0.40, 1.0, radius + (billow - 0.5) * 0.24);
+        tone = 0.84 + billow * 0.19;
     }
-    return vec4f(light * tone, clamp(alpha * in.data.w, 0.0, 0.85));
+    let color = select(light, mix(light, vec3f(0.91, 0.94, 0.95), 0.36), in.data.z > 4.5);
+    return vec4f(color * tone, clamp(alpha * in.data.w, 0.0, 0.99));
 }
 )";
 
@@ -169,6 +177,14 @@ void encode(ModContext*, const GfxDrawContext* ctx, const void* payload, size_t 
     if (!pipeline) return;
     Draw draw{};
     std::memcpy(&draw, payload, sizeof(draw));
+    const auto& target = ctx->layout.color_attachments[GFX_SCENE_COLOR_ATTACHMENT_INDEX];
+    const auto x = static_cast<unsigned>(std::ceil(draw.clip.left * target.width));
+    const auto y = static_cast<unsigned>(std::ceil(draw.clip.top * target.height));
+    const auto right = static_cast<unsigned>(draw.clip.right * target.width);
+    const auto bottom = static_cast<unsigned>(draw.clip.bottom * target.height);
+    if (right <= x || bottom <= y) return;
+    if (draw.clip.left > 0 || draw.clip.top > 0 || draw.clip.right < 1 || draw.clip.bottom < 1)
+        wgpuRenderPassEncoderSetScissorRect(ctx->pass, x, y, right - x, bottom - y);
     auto layout = wgpuRenderPipelineGetBindGroupLayout(pipeline, 0);
     WGPUBindGroupEntry entry = WGPU_BIND_GROUP_ENTRY_INIT;
     entry.buffer = ctx->uniform_buffer;
@@ -189,7 +205,8 @@ void encode(ModContext*, const GfxDrawContext* ctx, const void* payload, size_t 
 }
 } // namespace
 
-static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>& falls) {
+static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>& falls,
+                              std::span<const Triangle> basin) {
     if (sheet.empty() || sheet.size() > 2048 || falls.size() >= 12) return;
     Point low = sheet[0][0], high = low;
     Point horizontal{};
@@ -225,12 +242,27 @@ static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>
     if (!count || width < 16.0f) return;
     foot = scale(foot, 1.0f / count);
     foot = add(foot, scale(across, 0.5f * (min_u + max_u) - foot.x * across.x - foot.z * across.z));
-    foot.y = low.y + std::clamp(height * 0.04f, 3.0f, 30.0f);
+    foot.y = low.y;
     dBgS_WtrChk water;
-    const float reach = std::clamp(height * 0.28f, 90.0f, 240.0f);
+    const float reach = std::clamp(height * 0.28f, 90.0f, 460.0f);
     cXyz probe(foot.x, foot.y - reach, foot.z);
     water.Set(probe, foot.y + reach);
-    if (dComIfG_Bgsp().WaterChk(&water)) foot.y = std::max(foot.y, water.GetHeight() + 4.0f);
+    if (dComIfG_Bgsp().WaterChk(&water)) foot.y = water.GetHeight();
+    float nearest = 2500.0f * 2500.0f;
+    for (const auto& tri : basin) {
+        if (std::abs(tri[0].y - low.y) > 600.0f) continue;
+        const float min_x = std::min({tri[0].x, tri[1].x, tri[2].x});
+        const float max_x = std::max({tri[0].x, tri[1].x, tri[2].x});
+        const float min_z = std::min({tri[0].z, tri[1].z, tri[2].z});
+        const float max_z = std::max({tri[0].z, tri[1].z, tri[2].z});
+        const float dx = foot.x - std::clamp(foot.x, min_x, max_x);
+        const float dz = foot.z - std::clamp(foot.z, min_z, max_z);
+        const float dy = tri[0].y - low.y;
+        const float score = dx*dx + dz*dz + dy*dy;
+        if (score >= nearest) continue;
+        nearest = score;
+        foot.y = (tri[0].y + tri[1].y + tri[2].y) / 3.0f;
+    }
     Fall fall{{sheet.begin(), sheet.end()}, {}, foot, across, width, height, low.y};
     // Trace the actual sides at each height, including bends in the authored sheet.
     constexpr unsigned Samples = 40;
@@ -254,7 +286,8 @@ static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>
     falls.push_back(std::move(fall));
 }
 
-void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls) {
+void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls,
+             std::span<const Triangle> basin) {
     if (sheet.empty() || sheet.size() > 2048) return;
     // Authoring often packs several disconnected tiers into one material.
     // Group coincident edges before estimating each impact line.
@@ -279,7 +312,7 @@ void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls) {
                 used[candidate] = true;
             }
         }
-        collect_component(component, falls);
+        collect_component(component, falls, basin);
     }
 }
 
@@ -301,7 +334,7 @@ void shutdown() {
     std::vector<Puff>().swap(puffs);
 }
 
-void draw(std::span<const Fall* const> falls, const CameraInfo& camera) {
+void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const FrameClip* contact_clip) {
     if (!draw_type || falls.empty() || !settings::enhanced_water_enabled()) return;
     const float time = std::chrono::duration<float>(std::chrono::steady_clock::now() - start).count();
     const Point right{camera.view_from_world[0], camera.view_from_world[4], camera.view_from_world[8]};
@@ -317,25 +350,27 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera) {
         const Point face{-fall->across.z, 0, fall->across.x};
         const float side = (camera.eye[0]-fall->foot.x)*face.x + (camera.eye[2]-fall->foot.z)*face.z;
         const Point outward = scale(face, side >= 0.0f ? 1.0f : -1.0f);
-        for (const auto& tri : fall->sheet)
-            for (auto p : tri)
-                vertices.push_back({add(p, scale(outward, 1.6f)), p.x*fall->across.x + p.z*fall->across.z,
-                                    (p.y-fall->bottom)/fall->height, 0.0f, 0.90f});
-        const float fringe_width = std::clamp(fall->width * 0.26f, 16.0f, 93.0f);
-        for (unsigned edge = 0; edge < 2; ++edge) {
-            const float side_sign = edge == 0 ? -1.0f : 1.0f;
-            auto fringe_vertex = [&](Point p, bool outer) {
-                const float level = std::clamp((p.y - fall->bottom) / fall->height, 0.0f, 1.0f);
-                const float width = fringe_width * std::lerp(1.0f, 0.36f, level);
-                const Point offset = scale(fall->across, side_sign * (outer ? width : -width * 0.25f));
-                return Vertex{add(add(p, offset), scale(outward, 2.2f)), outer ? 1.0f : 0.0f,
-                              float(edge), 3.0f, std::min(1.0f, (1.0f - level) * 8.0f)};
-            };
-            for (size_t j = 1; j < fall->edges.size(); ++j) {
-                const auto a = fall->edges[j - 1][edge], b = fall->edges[j][edge];
-                const auto inner_a = fringe_vertex(a, false), outer_a = fringe_vertex(a, true);
-                const auto inner_b = fringe_vertex(b, false), outer_b = fringe_vertex(b, true);
-                vertices.insert(vertices.end(), {inner_a, outer_a, inner_b, inner_b, outer_a, outer_b});
+        if (!contact_clip) {
+            for (const auto& tri : fall->sheet)
+                for (auto p : tri)
+                    vertices.push_back({add(p, scale(outward, 1.6f)), p.x*fall->across.x + p.z*fall->across.z,
+                                        (p.y-fall->bottom)/fall->height, 0.0f, 0.90f});
+            const float fringe_width = std::clamp(fall->width * 0.26f, 16.0f, 93.0f);
+            for (unsigned edge = 0; edge < 2; ++edge) {
+                const float side_sign = edge == 0 ? -1.0f : 1.0f;
+                auto fringe_vertex = [&](Point p, bool outer) {
+                    const float level = std::clamp((p.y - fall->bottom) / fall->height, 0.0f, 1.0f);
+                    const float width = fringe_width * std::lerp(1.0f, 0.36f, level);
+                    const Point offset = scale(fall->across, side_sign * (outer ? width : -width * 0.25f));
+                    return Vertex{add(add(p, offset), scale(outward, 2.2f)), outer ? 1.0f : 0.0f,
+                                  float(edge), 3.0f, std::min(1.0f, (1.0f - level) * 8.0f)};
+                };
+                for (size_t j = 1; j < fall->edges.size(); ++j) {
+                    const auto a = fall->edges[j - 1][edge], b = fall->edges[j][edge];
+                    const auto inner_a = fringe_vertex(a, false), outer_a = fringe_vertex(a, true);
+                    const auto inner_b = fringe_vertex(b, false), outer_b = fringe_vertex(b, true);
+                    vertices.insert(vertices.end(), {inner_a, outer_a, inner_b, inner_b, outer_a, outer_b});
+                }
             }
         }
         const float scale_y = std::clamp(fall->height * 0.44f, 102.0f, 360.0f);
@@ -344,13 +379,18 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera) {
             const float spacing = fall->width / emitters;
             const Point foot = add(fall->foot, scale(fall->across, (i + 0.5f - emitters * 0.5f) * spacing));
             const Point impact = add(foot, add(scale(outward, scale_y * 0.35f), {0, 7, 0}));
+            if (contact_clip) {
+                const float billow = 0.5f + 0.5f * std::sin(time * 2.4f + i * 2.39f);
+                const auto skirt = add(foot, add(scale(outward, scale_y * 0.93f),
+                                                {0, scale_y * (0.18f + 0.13f * billow), 0}));
+                quad(skirt, scale(right, spacing * 1.08f + scale_y * 0.53f),
+                     scale(up, scale_y * (0.46f + 0.17f * billow)), 5.0f, 1.0f);
+                continue;
+            }
             quad(impact, scale(fall->across, spacing * 1.03f), scale(outward, scale_y * 1.07f), 1.0f, 0.94f);
-            const auto skirt = add(impact, add(scale(outward, scale_y * 0.60f), {0, scale_y * 0.08f, 0}));
-            quad(skirt, scale(right, spacing * 0.98f + scale_y * 0.39f),
-                 scale(up, scale_y * 0.20f), 2.0f, 0.64f);
             const auto veil = add(impact, {0, scale_y * 0.21f, 0});
             quad(veil, scale(right, spacing * 0.85f + scale_y * 0.40f),
-                 scale(up, scale_y * 0.45f), 2.0f, 0.54f);
+                 scale(up, scale_y * 0.53f), 2.0f, 0.72f);
             for (unsigned j = 0; j < 11 && puffs.size() < 2200; ++j) {
                 const float seed = float(i * 17 + j * 7) * 0.613f + fall->foot.x * 0.00073f;
                 const float phase = time * (0.43f + 0.07f * j) + seed;
@@ -390,7 +430,16 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera) {
     uniforms.red = light(ambient.r) * (twilight ? 0.72f : 0.98f);
     uniforms.green = light(ambient.g) * (twilight ? 0.86f : 0.99f);
     uniforms.blue = light(ambient.b);
-    Draw draw{{}, {}, static_cast<unsigned>(vertices.size())};
+    if (contact_clip && !twilight && !g_env_light.hide_vrbox) {
+        const auto sky = g_env_light.vrbox_sky_col;
+        if (sky.r || sky.g || sky.b) {
+            const auto tint = [](float channel) { return std::clamp(channel / 255.0f, 0.0f, 1.0f); };
+            uniforms.red = std::lerp(uniforms.red, tint(sky.r), 0.25f);
+            uniforms.green = std::lerp(uniforms.green, tint(sky.g), 0.25f);
+            uniforms.blue = std::lerp(uniforms.blue, tint(sky.b), 0.25f);
+        }
+    }
+    Draw draw{{}, {}, static_cast<unsigned>(vertices.size()), contact_clip ? *contact_clip : FrameClip{0, 0, 1, 1}};
     if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &draw.uniforms) == MOD_OK &&
         svc_gfx->push_verts(mod_ctx, vertices.data(), vertices.size() * sizeof(Vertex), 4, &draw.vertices) == MOD_OK)
         (void)svc_gfx->push_draw(mod_ctx, draw_type, &draw, sizeof(draw));

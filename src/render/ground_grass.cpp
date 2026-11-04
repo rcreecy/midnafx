@@ -67,6 +67,10 @@ struct Draw {
 
 GfxStageHookHandle stage_hook = 0;
 GfxStageHookHandle waterfall_hook = 0;
+GfxStageHookHandle waterfall_contact_hook = 0;
+CameraInfo waterfall_camera = CAMERA_INFO_INIT;
+waterfall::FrameClip waterfall_clip{};
+bool waterfall_contact_ready = false;
 GfxDrawTypeHandle draw_type = 0;
 WGPURenderPipeline pipeline = nullptr;
 std::uint64_t pipeline_layout = 0;
@@ -465,6 +469,23 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
     };
 
     if (settings::enhanced_water_enabled()) {
+        std::vector<waterfall::Triangle> basin;
+        if (object_archive) {
+            for (u16 i = 0; i < model.getShapeNum(); ++i) {
+                auto* shape = model.getShapeNodePointer(i);
+                auto* material = shape ? shape->getMaterial() : nullptr;
+                if (!material || !shape->getVtxDesc() ||
+                    std::strcmp(names->getName(material->getIndex()), "cc_MA06_NigoriWater_v_x")) continue;
+                const auto decoded = decode_shape(*shape);
+                if (!decoded.ok()) continue;
+                for (const auto& tri : decoded.triangles) {
+                    if (std::abs(tri.face_normal.y) < 0.99f) continue;
+                    const auto& c = tri.corners;
+                    basin.push_back({to_world(positions[c[0].position]), to_world(positions[c[1].position]),
+                                     to_world(positions[c[2].position])});
+                }
+            }
+        }
         for (u16 i = 0; i < model.getShapeNum(); ++i) {
             auto* shape = model.getShapeNodePointer(i);
             auto* material = shape ? shape->getMaterial() : nullptr;
@@ -487,7 +508,8 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
                                  to_world(positions[c[2].position])});
             }
             const auto count = cover.falls.size();
-            waterfall::collect(sheet, cover.falls);
+            waterfall::collect(sheet, cover.falls, cave ? std::span<const waterfall::Triangle>(basin) :
+                                                        std::span<const waterfall::Triangle>{});
             for (size_t j = count; j < cover.falls.size(); ++j) {
                 const auto& fall = cover.falls[j];
                 char message[200];
@@ -871,18 +893,39 @@ void update_object_falls() {
     std::erase_if(object_falls, [](const auto& entry) { return !entry.second.present; });
 }
 
-void draw_waterfalls(ModContext*, const GfxStageContext* context, void*) {
-    if (!context || !context->game_view || !settings::enhanced_water_enabled()) return;
+std::vector<const waterfall::Fall*> loaded_falls() {
     std::vector<const waterfall::Fall*> falls;
     for (const auto& room : room_cover)
         for (const auto& part : room)
             for (const auto& fall : part.falls) falls.push_back(&fall);
     for (const auto& [model, entry] : object_falls)
         for (const auto& fall : entry.cover.falls) falls.push_back(&fall);
+    return falls;
+}
+
+void draw_waterfalls(ModContext*, const GfxStageContext* context, void*) {
+    waterfall_contact_ready = false;
+    if (!context || !context->game_view || !settings::enhanced_water_enabled()) return;
+    const auto falls = loaded_falls();
     if (falls.empty()) return;
-    CameraInfo camera = CAMERA_INFO_INIT;
-    if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) == MOD_OK)
-        waterfall::draw(falls, camera);
+    if (svc_camera->get_camera(mod_ctx, context->game_view, &waterfall_camera) != MOD_OK) return;
+    waterfall::draw(falls, waterfall_camera);
+    const auto* viewport = static_cast<const view_port_class*>(context->game_viewport);
+    if (!viewport || viewport->x_orig != 0 || viewport->y_orig != 0 ||
+        !(viewport->width > 0 && viewport->height > 0)) return;
+    const auto& clip = viewport->scissor;
+    waterfall_clip = {std::clamp(clip.x_orig / viewport->width, 0.0f, 1.0f),
+                      std::clamp(clip.y_orig / viewport->height, 0.0f, 1.0f),
+                      std::clamp((clip.x_orig + clip.width) / viewport->width, 0.0f, 1.0f),
+                      std::clamp((clip.y_orig + clip.height) / viewport->height, 0.0f, 1.0f)};
+    waterfall_contact_ready = waterfall_clip.left < waterfall_clip.right && waterfall_clip.top < waterfall_clip.bottom;
+}
+
+void draw_waterfall_contact(ModContext*, const GfxStageContext*, void*) {
+    if (!waterfall_contact_ready) return;
+    waterfall_contact_ready = false;
+    const auto falls = loaded_falls();
+    waterfall::draw(falls, waterfall_camera, &waterfall_clip);
 }
 
 void stage(ModContext*, const GfxStageContext* context, void*) {
@@ -1048,6 +1091,15 @@ void update() {
         svc_gfx->unregister_stage_hook(mod_ctx, waterfall_hook);
         waterfall_hook = 0;
     }
+    if (water && !waterfall_contact_hook) {
+        GfxStageHookDesc hook = GFX_STAGE_HOOK_DESC_INIT;
+        hook.callback = draw_waterfall_contact;
+        (void)svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_FRAME_BEFORE_HUD, &hook, &waterfall_contact_hook);
+    } else if (!water && waterfall_contact_hook) {
+        svc_gfx->unregister_stage_hook(mod_ctx, waterfall_contact_hook);
+        waterfall_contact_hook = 0;
+        waterfall_contact_ready = false;
+    }
     const bool wanted = ground || water;
     if (wanted == (stage_hook != 0)) return;
     if (!wanted) {
@@ -1067,6 +1119,9 @@ void shutdown() {
     if (stage_hook) svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
     if (draw_type) svc_gfx->unregister_draw_type(mod_ctx, draw_type);
     if (waterfall_hook) svc_gfx->unregister_stage_hook(mod_ctx, waterfall_hook);
+    if (waterfall_contact_hook) svc_gfx->unregister_stage_hook(mod_ctx, waterfall_contact_hook);
+    waterfall_contact_hook = 0;
+    waterfall_contact_ready = false;
     waterfall::shutdown();
     stage_hook = waterfall_hook = draw_type = 0;
     if (pipeline) wgpuRenderPipelineRelease(pipeline);
