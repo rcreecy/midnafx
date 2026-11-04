@@ -20,14 +20,18 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <unordered_map>
 #include <vector>
 
 namespace midnafx::render::ground_grass {
 namespace {
 using topology::Vec3;
-constexpr unsigned MaxRoots = 120000;
-constexpr unsigned MaxVisible = 6500;
+constexpr unsigned MaxRoots = 320000;
+constexpr unsigned MaxVisible = 8000;
+constexpr unsigned VerticesPerClump = 9;
 constexpr float DrawDistance = 3400.0f;
+constexpr float PathMargin = 16.0f;
+constexpr float PathCell = 128.0f;
 
 struct Root {
     Vec3 point;
@@ -105,6 +109,31 @@ float random(std::uint32_t& state) {
     return float(state >> 8) * (1.0f / 16777216.0f);
 }
 
+int path_cell(float p) {
+    return static_cast<int>(std::floor(p / PathCell));
+}
+
+std::uint64_t path_key(int x, int z) {
+    return (std::uint64_t(std::uint32_t(x)) << 32) | std::uint32_t(z);
+}
+
+float side(Vec3 a, Vec3 b, Vec3 p) {
+    return (b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x);
+}
+
+struct PathTriangle {
+    Vec3 a, b, c;
+    float sign, ab, bc, ca;
+
+    bool covers(Vec3 p) const {
+        if (p.y < std::min({a.y, b.y, c.y}) - 60 ||
+            p.y > std::max({a.y, b.y, c.y}) + 60) return false;
+        return sign * side(a, b, p) >= -ab &&
+               sign * side(b, c, p) >= -bc &&
+               sign * side(c, a, p) >= -ca;
+    }
+};
+
 J3DModel* find_model() {
     J3DModel* result = nullptr;
     (void)fopAcIt_Executor([](void* raw, void* output) -> int {
@@ -178,22 +207,61 @@ void scatter(J3DModel& instance) {
         return Vec3{value[0] / 512.0f, value[1] / 512.0f, 0};
     };
     const auto& matrix = instance.getBaseTRMtx();
-    std::uint32_t rng = 0x35ab71u;
-    unsigned samples = 0;
-    for (u16 i = 0; i < model.getShapeNum(); ++i) {
-        auto* shape = model.getShapeNodePointer(i);
-        if (!shape || shape->getMaterial() != material || !shape->getVtxDesc()) continue;
+    auto decode_shape = [&](J3DShape& shape) {
         std::vector<topology::Attribute> attributes;
-        const auto* desc = shape->getVtxDesc();
+        const auto* desc = shape.getVtxDesc();
         for (unsigned a = 0; a < 32 && desc[a].attr != GX_VA_NULL; ++a)
             attributes.push_back({u8(desc[a].attr), u8(desc[a].type)});
         std::vector<topology::Group> groups;
-        for (u16 g = 0; g < shape->getMtxGroupNum(); ++g) {
-            auto* draw = shape->getShapeDraw(g);
+        for (u16 g = 0; g < shape.getMtxGroupNum(); ++g) {
+            auto* draw = shape.getShapeDraw(g);
             if (draw) groups.push_back({draw->getDisplayList(), draw->getDisplayListSize()});
         }
-        const topology::Shape input{attributes, groups, 12, true};
-        const auto decoded = topology::decode({&input, 1}, formats, positions, data.getNrmNum());
+        const topology::Shape input{attributes, groups, shape.getMaterial()->getIndex(), true};
+        return topology::decode({&input, 1}, formats, positions, data.getNrmNum());
+    };
+
+    // The paths are separate translucent meshes laid over the grass terrain.
+    // Use their projected footprint before building any blade geometry.
+    std::vector<PathTriangle> paths;
+    std::unordered_map<std::uint64_t, std::vector<unsigned>> path_cells;
+    for (u16 i = 0; i < model.getShapeNum(); ++i) {
+        auto* shape = model.getShapeNodePointer(i);
+        if (!shape || !shape->getMaterial() || !shape->getVtxDesc()) continue;
+        const auto index = shape->getMaterial()->getIndex();
+        if (index != 23 && index != 30 && index != 31) continue;
+        const auto decoded = decode_shape(*shape);
+        if (!decoded.ok()) {
+            svc_log->warn(mod_ctx, decoded.error);
+            return;
+        }
+        for (const auto& triangle : decoded.triangles) {
+            const auto a = positions[triangle.corners[0].position];
+            const auto b = positions[triangle.corners[1].position];
+            const auto c = positions[triangle.corners[2].position];
+            const float area = side(a, b, c);
+            if (std::abs(area) < 1.0f) continue;
+            auto margin = [](Vec3 p, Vec3 q) {
+                return PathMargin * std::hypot(p.x - q.x, p.z - q.z);
+            };
+            const auto id = static_cast<unsigned>(paths.size());
+            paths.push_back({a, b, c, area > 0 ? 1.0f : -1.0f,
+                             margin(a, b), margin(b, c), margin(c, a)});
+            for (int z = path_cell(std::min({a.z, b.z, c.z}) - PathMargin);
+                 z <= path_cell(std::max({a.z, b.z, c.z}) + PathMargin); ++z)
+                for (int x = path_cell(std::min({a.x, b.x, c.x}) - PathMargin);
+                     x <= path_cell(std::max({a.x, b.x, c.x}) + PathMargin); ++x)
+                    path_cells[path_key(x, z)].push_back(id);
+        }
+    }
+    if (paths.empty()) return;
+
+    std::uint32_t rng = 0x35ab71u;
+    unsigned samples = 0, path_rejected = 0;
+    for (u16 i = 0; i < model.getShapeNum(); ++i) {
+        auto* shape = model.getShapeNodePointer(i);
+        if (!shape || shape->getMaterial() != material || !shape->getVtxDesc()) continue;
+        const auto decoded = decode_shape(*shape);
         if (!decoded.ok()) {
             svc_log->warn(mod_ctx, decoded.error);
             continue;
@@ -204,7 +272,7 @@ void scatter(J3DModel& instance) {
                 std::max({a.texcoord, b.texcoord, c.texcoord}) >= uv_count) continue;
             const auto p = positions[a.position], q = positions[b.position], r = positions[c.position];
             const float area = 0.5f * std::abs((q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x));
-            const unsigned count = unsigned(std::min(512.0f, area / 500.0f + random(rng)));
+            const unsigned count = unsigned(std::min(1600.0f, area / 145.0f + random(rng)));
             for (unsigned j = 0; j < count; ++j) {
                 float u = random(rng), v = random(rng);
                 if (u + v > 1) { u = 1 - u; v = 1 - v; }
@@ -212,6 +280,13 @@ void scatter(J3DModel& instance) {
                 u = 0.025f + u * 0.925f;
                 v = 0.025f + v * 0.925f;
                 const auto s = mix(p, mix(q, r, v / (u + v)), u + v);
+                const auto cell = path_cells.find(path_key(path_cell(s.x), path_cell(s.z)));
+                if (cell != path_cells.end() &&
+                    std::any_of(cell->second.begin(), cell->second.end(),
+                                [&](unsigned id) { return paths[id].covers(s); })) {
+                    ++path_rejected;
+                    continue;
+                }
                 const auto tex = mix(read_uv(a.texcoord),
                                      mix(read_uv(b.texcoord), read_uv(c.texcoord), v / (u + v)), u + v);
                 const Vec3 world{
@@ -223,7 +298,7 @@ void scatter(J3DModel& instance) {
                 if (random(rng) >= std::lerp(0.015f, 1.0f, carpet)) continue;
                 const Root root{world, color,
                                 std::lerp(15.0f, 5.0f, carpet) + 7 * random(rng),
-                                std::lerp(2.0f, 5.0f, carpet) + 2 * random(rng),
+                                std::lerp(2.0f, 9.0f, carpet) + 2 * random(rng),
                                 6.283185f * random(rng)};
                 ++samples;
                 if (roots.size() < MaxRoots) roots.push_back(root);
@@ -235,8 +310,8 @@ void scatter(J3DModel& instance) {
         }
     }
     char message[128];
-    std::snprintf(message, sizeof(message), "Ground grass: Ordon material 12, %zu roots from %u samples",
-                  roots.size(), samples);
+    std::snprintf(message, sizeof(message), "Ground grass: %zu roots, %zu path triangles, %u path rejections",
+                  roots.size(), paths.size(), path_rejected);
     svc_log->info(mod_ctx, message);
 }
 
@@ -328,7 +403,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         return result;
     };
     for (const auto& root : roots) {
-        if (vertices.size() >= MaxVisible * 6) break;
+        if (vertices.size() >= MaxVisible * VerticesPerClump) break;
         const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
         const float dy = root.point.y - camera.eye[1];
         const float distance2 = dx*dx + dy*dy + dz*dz;
@@ -345,18 +420,22 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
                             std::max(1.0f, g_env_light.mFogFar - g_env_light.mFogNear), 0.0f, 1.0f);
         const Vec3 base = mix(scale(root.color, 0.88f), fog, haze);
         const Vec3 tip = mix(root.color, fog, haze);
-        const float x = std::cos(root.angle) * root.width, z = std::sin(root.angle) * root.width;
         const auto p = root.point;
-        for (const auto offset : {Vec3{x, 0, z}, Vec3{-z, 0, x}}) {
-            vertices.push_back(vertex({p.x - offset.x, p.y + 0.5f, p.z - offset.z}, base));
-            vertices.push_back(vertex({p.x + offset.x, p.y + 0.5f, p.z + offset.z}, base));
-            vertices.push_back(vertex({p.x + offset.x * 1.2f, p.y + height, p.z + offset.z * 1.2f}, tip));
+        for (unsigned blade = 0; blade < 3; ++blade) {
+            const float angle = root.angle + blade * 2.0943951f;
+            const float x = std::cos(angle), z = std::sin(angle);
+            const float spread = root.width * 0.5f;
+            const float half_width = root.width * 0.28f;
+            const float bx = p.x + x * spread, bz = p.z + z * spread;
+            vertices.push_back(vertex({bx - z * half_width, p.y + 0.5f, bz + x * half_width}, base));
+            vertices.push_back(vertex({bx + z * half_width, p.y + 0.5f, bz - x * half_width}, base));
+            vertices.push_back(vertex({bx + x * spread, p.y + height * (1 - blade * 0.12f), bz + z * spread}, tip));
         }
     }
     if (!frame_reported) {
         char message[160];
         std::snprintf(message, sizeof(message), "Ground grass: %zu visible roots, nearest %.1f units",
-                      vertices.size() / 6, std::sqrt(closest));
+                      vertices.size() / VerticesPerClump, std::sqrt(closest));
         svc_log->info(mod_ctx, message);
         frame_reported = true;
     }
