@@ -44,9 +44,10 @@ struct Root {
     Vec3 color;
     float height, width, angle;
 };
+enum class DetailStyle { Stone, Leaf, Twig, Plant, Moss, Count };
 struct Pebble {
     Root root;
-    Vec3 slope; // XY hold ground slope, Z selects stone, leaf, or twig.
+    Vec3 slope; // XY hold ground slope, Z holds DetailStyle.
 };
 struct Clump {
     Vec3 point;
@@ -111,18 +112,77 @@ fn pebble_vertex(index: u32, root: vec3f, shape: vec3f, slope: vec2f, color: vec
 fn litter_vertex(index: u32, root: vec3f, shape: vec3f, surface: vec3f, color: vec3f) -> Output {
     let facet = index / 3u;
     let corner = index % 3u;
-    let rim = (facet + corner) % 4u;
-    let corners = array<vec2f, 4>(vec2f(1.0, 0.0), vec2f(0.1, 1.0),
-                                  vec2f(-1.0, 0.0), vec2f(-0.1, -1.0));
-    let ratio = select(0.55, 0.14, surface.z > 1.5);
-    let point = corners[rim] * vec2f(shape.y, shape.y * ratio);
-    let axis = vec2f(cos(shape.z), sin(shape.z));
-    let offset = vec2f(point.x * axis.x - point.y * axis.y, point.x * axis.y + point.y * axis.x);
-    let tip = corner == 2u;
-    let ground_offset = select(offset, vec2f(0.0), tip || facet >= 4u);
-    let height = select(0.5, -shape.x, tip || facet >= 4u);
-    let position = root + vec3f(ground_offset.x, height + dot(surface.xy, ground_offset), ground_offset.y);
-    return Output(projection * vec4f(position, 1.0), color * select(0.76, 1.06, tip));
+    let style = u32(surface.z);
+    let seed = bitcast<u32>(shape.z);
+    let variation = blade_variation(seed);
+    var point = vec2f(0.0);
+    var height = 0.5;
+    var shade = 0.82;
+    var angle = shape.z;
+    if (style == 1u) {
+        // Eight rim segments and a lifted midrib form a curled leaf.
+        let rim = (facet + corner) % 8u;
+        let theta = f32(rim) * 0.78539816;
+        if (facet < 8u && corner < 2u) {
+            point = vec2f(cos(theta), sin(theta) * mix(0.32, 0.65, variation.x));
+            height += -shape.x * (0.20 + 0.55 * max(0.0, point.x));
+            shade = 0.77 + 0.20 * sin(theta);
+        } else {
+            height = -shape.x;
+            shade = 1.06;
+        }
+    } else if (style == 2u) {
+        if (facet == 8u) {
+            return Output(projection * vec4f(root, 1.0), color);
+        }
+        // A tapered bent stem and a short offshoot, each made from a strip.
+        let branch = facet >= 6u;
+        let segment = facet / 2u;
+        let end = select(corner == 2u, corner != 0u, facet % 2u == 1u);
+        let right = select(corner == 1u, corner != 1u, facet % 2u == 1u);
+        var along = min(1.0, f32(segment + u32(end)) / 3.0);
+        var center = vec2f(2.0 * along - 1.0, sin(along * 3.141593) * 0.21);
+        if (branch) {
+            along = f32(end);
+            center = vec2f(-0.34 + along * 0.68, 0.18 + along * 0.47);
+        }
+        let half_width = mix(select(0.095, 0.062, branch), 0.017, along);
+        point = center + vec2f(0.0, select(-half_width, half_width, right));
+        height += -shape.x * mix(0.85, 0.40, along);
+        shade = select(0.70, 1.02, right);
+    } else if (style == 3u) {
+        // Three raised leaflets share a root. Alternate fold shading per facet.
+        let leaflet = facet / 3u;
+        let face = facet % 3u;
+        let verts = array<vec3f, 5>(vec3f(0.0, 0.0, 0.10), vec3f(0.48, -0.28, 0.31),
+                                   vec3f(0.50, 0.0, 0.525), vec3f(0.52, 0.27, 0.34),
+                                   vec3f(1.0, 0.0, 0.95));
+        let faces = array<vec3u, 3>(vec3u(0, 1, 2), vec3u(1, 4, 2), vec3u(0, 4, 3));
+        let vert = verts[faces[face][corner]];
+        point = vert.xy * mix(0.64, 1.0, blade_variation(seed + leaflet).x);
+        height += -shape.x * vert.z;
+        angle += f32(leaflet) * 2.0943951;
+        shade = select(0.76, 1.08, face == 2u);
+    } else {
+        // Overlapping low moss lobes hug the parent slope.
+        let lobe = facet / 3u;
+        let rim = (facet % 3u + corner) % 3u;
+        let theta = f32(rim) * 2.0943951;
+        let jitter = blade_variation(seed + lobe);
+        point = vec2f(0.36, 0.0);
+        if (corner < 2u) {
+            point += vec2f(cos(theta), sin(theta)) * mix(0.47, 0.72, jitter.x);
+            shade = mix(0.62, 0.90, jitter.y);
+        } else {
+            height += -shape.x * mix(0.48, 1.0, jitter.z);
+            shade = 1.05;
+        }
+        angle += f32(lobe) * 2.0943951;
+    }
+    let axis = vec2f(cos(angle), sin(angle));
+    let offset = shape.y * vec2f(point.x * axis.x - point.y * axis.y, point.x * axis.y + point.y * axis.x);
+    let position = root + vec3f(offset.x, height + dot(surface.xy, offset), offset.y);
+    return Output(projection * vec4f(position, 1.0), color * shade);
 }
 @vertex fn vs_main(@builtin(vertex_index) index: u32,
                    @location(0) root: vec3f, @location(1) shape: vec3f,
@@ -259,10 +319,13 @@ Cover classify(std::string_view material, std::string_view texture) {
         return Cover::None;
     if (has_any(material, {"tuchimichi", "tutimiti", "sunamichi", "road_tsuchi", "tuchi_michi"}))
         return Cover::Path;
-    if (has_any(texture, {"groundmoriwood", "tuchiwood", "c_woodsita", "c_a_hm_tuti", "c_hm_tuti"}))
+    if (has_any(texture, {"groundmoriwood", "tuchiwood", "c_a_hm_tuti", "c_hm_tuti", "ochiba"}) ||
+        (texture == "c_woodsita" && has_any(material, {"kiwatuti", "ground", "jimen"})))
         return Cover::Litter;
     if (material.starts_with("aa_") &&
-        has_any(material, {"iwakusa", "iwa_kusa", "kusaiwa", "moss", "kokeground"}) &&
+        (has_any(material, {"iwakusa", "iwa_kusa", "kusaiwa", "moss", "kokeground", "aa_koke"}) ||
+         (material == "aa_siba_v" && texture == "kkoke02")) &&
+        !has_any(material, {"wood", "kikoke", "pole", "kokeita"}) &&
         has_any(texture, {"kusa", "moss", "koke"}))
         return Cover::Moss;
     if (material.starts_with("aa_") && !has_any(material, {"blend", "kusaset", "kiwa"}) &&
@@ -555,43 +618,62 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, RoomCover&
             if (std::abs(area) < 1.0f) continue;
             const float slope_x = ((q.y - p.y) * (r.z - p.z) - (r.y - p.y) * (q.z - p.z)) / area;
             const float slope_z = ((q.x - p.x) * (r.y - p.y) - (r.x - p.x) * (q.y - p.y)) / area;
-            if (slope_x * slope_x + slope_z * slope_z > 0.36f) continue;
+            if (slope_x * slope_x + slope_z * slope_z > (moss ? 0.81f : 0.36f)) continue;
 
-            const float sample_area = path ? 3800.0f : (litter || moss) ? 1650.0f : 900.0f;
+            const float sample_area = path ? 3800.0f : litter ? 1150.0f : moss ? 850.0f : 900.0f;
             const auto count = unsigned(std::min(4096.0f, 0.5f * std::abs(area) / sample_area + random(rng)));
             const auto uv_a = read_uv(a.texcoord), uv_b = read_uv(b.texcoord), uv_c = read_uv(c.texcoord);
             for (unsigned j = 0; j < count; ++j) {
                 float u = random(rng), v = random(rng);
                 if (u + v > 1.0f) { u = 1.0f - u; v = 1.0f - v; }
                 const auto point = mix(p, mix(q, r, v / std::max(u + v, 0.0001f)), u + v);
-                if (random(rng) > std::lerp(0.35f, 1.0f, scatter_patch(point))) continue;
+                const float patch = scatter_patch(point);
+                if (random(rng) > std::lerp(litter || moss ? 0.12f : 0.35f, 1.0f, patch)) continue;
                 const auto tex = mix(uv_a, mix(uv_b, uv_c, v / std::max(u + v, 0.0001f)), u + v);
                 bool opaque;
                 auto color = surface_color(surface.image, surface.width, surface.height, tex.x, tex.y, &opaque);
                 if (!opaque) continue;
                 const float green = carpet_weight(color);
-                if ((moss && green < 0.65f) || (!moss && !litter && green > 0.45f)) continue;
+                if ((moss && green < 0.38f) || (!moss && !litter && green > 0.45f)) continue;
                 if (litter || moss) {
                     const auto local = mix(positions[a.position], mix(positions[b.position], positions[c.position],
                                            v / std::max(u + v, 0.0001f)), u + v);
                     if (on_path(local)) continue;
                 }
-                float style = 0.0f;
-                if (litter) {
-                    const float variant = random(rng);
-                    style = green > 0.55f && variant < 0.08f ? 3.0f : variant < 0.22f ? 2.0f : 1.0f;
-                    const Vec3 tint = style == 3.0f ? Vec3{0.30f, 0.42f, 0.17f} : Vec3{0.48f, 0.29f, 0.12f};
-                    color = mix(color, tint, 0.55f);
-                } else if (!moss) {
-                    color = mix(color, {0.52f, 0.47f, 0.40f}, 0.25f);
-                }
+                auto style = DetailStyle::Stone;
                 const float size_bias = random(rng);
                 const float radius = std::lerp(2.2f, 8.5f, size_bias * size_bias);
-                const float rise = radius * std::lerp(0.35f, 0.64f, random(rng));
-                const float height = style == 3.0f ? radius * 1.3f : (litter || moss) ? 1.15f : rise;
-                const float width = moss ? radius * 2.5f : litter ? radius * 1.45f : radius;
+                float height = radius * std::lerp(0.35f, 0.64f, random(rng));
+                float width = radius;
+                if (litter) {
+                    const float variant = random(rng);
+                    if (green > 0.18f && patch > 0.42f && variant < 0.18f) {
+                        style = DetailStyle::Plant;
+                        height = radius * 2.15f;
+                        width = radius * 2.40f;
+                        color = mix(color, {0.31f, 0.45f, 0.18f}, 0.58f);
+                    } else if (variant < 0.29f) {
+                        style = DetailStyle::Twig;
+                        height = 1.35f;
+                        width = radius * 2.55f;
+                        color = mix(color, {0.32f, 0.22f, 0.12f}, 0.60f);
+                    } else {
+                        style = DetailStyle::Leaf;
+                        height = radius * 0.36f;
+                        width = radius * 1.8f;
+                        const Vec3 dry = mix({0.38f, 0.20f, 0.09f}, {0.67f, 0.44f, 0.16f}, variant);
+                        color = mix(color, dry, 0.56f);
+                    }
+                } else if (moss) {
+                    style = DetailStyle::Moss;
+                    height = radius * 0.28f;
+                    width = radius * 3.2f;
+                    color = mix(color, {0.34f, 0.44f, 0.18f}, 0.32f);
+                } else {
+                    color = mix(color, {0.52f, 0.47f, 0.40f}, 0.25f);
+                }
                 const Pebble pebble{{point, color, height, width, 6.283185f * random(rng)},
-                                    {slope_x, slope_z, style}};
+                                    {slope_x, slope_z, static_cast<float>(style)}};
                 ++pebble_samples;
                 if (pebbles.size() < MaxPebbles) pebbles.push_back(pebble);
                 else {
@@ -729,7 +811,6 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     CameraInfo camera = CAMERA_INFO_INIT;
     if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) != MOD_OK) return;
     clumps.clear();
-    float closest = DrawDistance * DrawDistance;
     const Vec3 fog{g_env_light.fog_col.r / 255.0f, g_env_light.fog_col.g / 255.0f,
                    g_env_light.fog_col.b / 255.0f};
     const auto* m = camera.proj_from_world;
@@ -751,7 +832,6 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
                 const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
                 const float dy = root.point.y - camera.eye[1];
                 const float distance2 = dx*dx + dy*dy + dz*dz;
-                closest = std::min(closest, distance2);
                 if (distance2 >= DrawDistance * DrawDistance) continue;
                 const float distance = std::sqrt(distance2);
                 const float height = root.height * 1.25f * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
@@ -765,6 +845,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         }
     }
     const auto grass_count = clumps.size();
+    std::array<unsigned, static_cast<unsigned>(DetailStyle::Count)> detail_counts{};
     const auto ambient = g_env_light.bg_amb_col[0];
     const auto terrain_light = [](float channel) {
         return std::clamp(0.50f + 0.50f * channel / 255.0f, 0.50f, 1.0f);
@@ -787,14 +868,16 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
                 const Vec3 lit{color.x * light.x, color.y * light.y, color.z * light.z};
                 clumps.push_back({root.point, {-root.height * fade, root.width * fade, root.angle},
                                   pebble.slope, mix(lit, fog, fog_weight(distance))});
+                if (!frame_reported) ++detail_counts[static_cast<unsigned>(pebble.slope.z)];
             }
         }
     }
     if (!frame_reported && !clumps.empty()) {
-        char message[160];
+        char message[200];
         std::snprintf(message, sizeof(message),
-                      "Ground cover: %zu visible grass roots, %zu visible stones/litter, nearest grass %.1f units",
-                      grass_count, clumps.size() - grass_count, std::sqrt(closest));
+                      "Ground cover visible: %zu grass roots, %u stones, %u leaves, %u twigs, %u plants, %u moss patches",
+                      grass_count, detail_counts[0], detail_counts[1], detail_counts[2], detail_counts[3],
+                      detail_counts[4]);
         svc_log->info(mod_ctx, message);
         frame_reported = true;
     }

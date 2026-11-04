@@ -14,10 +14,16 @@ prerendered footage. This is material-based coverage, with no stage allowlist.
 The Windows D3D12 preview showed grass and forest-floor scatter during
 Faron's real-time Midna dialogue and preserved the prior spawn counts in
 Ordon and Eldin. Adjacent loaded rooms also qualified in Faron and Eldin.
-Individual moss and low-plant placements and the full stage inventory remain
-visually unverified.
+The detail pass adds curled leaves, tapered twigs with offshoots, raised
+broadleaf plants, and low, overlapping moss patches. Plants favor greener
+forest-floor samples. Moss follows qualifying rock and moss textures, including
+Forest Temple ground. Grass and forest detail respect recognized path masks.
+The Faron cutscene sample counted 402 leaves, 142 twigs, and 26 plants. The
+Forest Temple room 3 sample counted 927 moss patches. Full-map coverage and
+GPU timing remain unverified.
 
-![Ground cover in Faron dialogue](evidence/ground-grass-2026-11-04/faron-dialogue.jpg)
+![Forest detail in Faron dialogue](evidence/ground-grass-2026-11-04/faron-detail.jpg)
+![Moss in the Forest Temple](evidence/ground-grass-2026-11-04/temple-moss.jpg)
 
 ## Ordon baseline
 
