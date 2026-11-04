@@ -119,6 +119,9 @@ denser toward impact. A separate low layer spreads outward along the pool,
 drifts with scene wind, and dissipates. This adapts the separation of
 whitewater effects described in [ICVR's waterfall tutorial overview](https://forums.unrealengine.com/t/community-tutorial-crafting-cinematic-waterfalls-part-2-foam-splashes-and-export-techniques/2568756)
 using the mod's existing mesh samples and procedural particles.
+The contact mist has a low continuous core under independently timed surges.
+Silhouette bends shed short-lived spray, and separate foam patches drift
+along the pool surface and dissolve.
 Supported water now receives sky reflections and animated surface shading
 even where the opaque depth buffer has no underlying geometry.
 
