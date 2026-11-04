@@ -1,8 +1,25 @@
 # Texture-colored short grass
 
-The Windows prototype renders short grass in Ordon room 0 using the original
-grass image for root color. It is enabled for unset settings and the Remaster
-profile. Use **Ground cover (grass and pebbles)** or **Vanilla** to disable it.
+Ground cover applies material rules across loaded stage backgrounds, including
+real-time cutscenes that render those backgrounds. It is enabled for unset
+settings and the Remaster profile. Use **Ground cover (grass, gravel, and
+litter)** or **Vanilla** to disable it.
+
+Grass, gravel, forest litter, low plants, and moss use separate placement
+rules. The pass checks terrain topology and samples supported original CMPR
+textures, including external textures loaded by the stage. It skips
+unqualified materials, animated secondary backgrounds, actor scenery, and
+prerendered footage. This is material-based coverage, with no stage allowlist.
+
+The Windows D3D12 preview showed grass and forest-floor scatter during
+Faron's real-time Midna dialogue and preserved the prior spawn counts in
+Ordon and Eldin. Adjacent loaded rooms also qualified in Faron and Eldin.
+Individual moss and low-plant placements and the full stage inventory remain
+visually unverified.
+
+![Ground cover in Faron dialogue](evidence/ground-grass-2026-11-04/faron-dialogue.jpg)
+
+## Ordon baseline
 
 Greener texture samples grow more clumps with shorter blades. Brown
 and gray samples retain sparse blades. Stable terrain-space patches vary

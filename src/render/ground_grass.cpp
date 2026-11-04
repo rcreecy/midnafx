@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cctype>
+#include <string>
 #include <cstdio>
 #include <cstring>
 #include <string_view>
@@ -44,7 +46,7 @@ struct Root {
 };
 struct Pebble {
     Root root;
-    Vec3 slope;
+    Vec3 slope; // XY hold ground slope, Z selects stone, leaf, or twig.
 };
 struct Clump {
     Vec3 point;
@@ -63,9 +65,16 @@ GfxDrawTypeHandle draw_type = 0;
 WGPURenderPipeline pipeline = nullptr;
 std::uint64_t pipeline_layout = 0;
 bool pipeline_reversed = false;
-const J3DModelData* cached_model = nullptr;
-std::vector<Root> roots;
-std::vector<Pebble> pebbles;
+struct RoomCover {
+    const J3DModel* instance = nullptr;
+    const J3DModelData* model = nullptr;
+    std::vector<Root> roots;
+    std::vector<Pebble> pebbles;
+};
+constexpr unsigned RoomSlots = 64;
+constexpr unsigned PartsPerRoom = 6;
+std::array<std::array<RoomCover, PartsPerRoom>, RoomSlots> room_cover;
+std::string cached_stage;
 std::vector<Clump> clumps;
 bool frame_reported = false;
 
@@ -99,10 +108,29 @@ fn pebble_vertex(index: u32, root: vec3f, shape: vec3f, slope: vec2f, color: vec
     let point = root + vec3f(offset.x, rise + dot(slope, offset), offset.y);
     return Output(projection * vec4f(point, 1.0), color * (light + select(0.0, 0.17, corner == 2u)));
 }
+fn litter_vertex(index: u32, root: vec3f, shape: vec3f, surface: vec3f, color: vec3f) -> Output {
+    let facet = index / 3u;
+    let corner = index % 3u;
+    let rim = (facet + corner) % 4u;
+    let corners = array<vec2f, 4>(vec2f(1.0, 0.0), vec2f(0.1, 1.0),
+                                  vec2f(-1.0, 0.0), vec2f(-0.1, -1.0));
+    let ratio = select(0.55, 0.14, surface.z > 1.5);
+    let point = corners[rim] * vec2f(shape.y, shape.y * ratio);
+    let axis = vec2f(cos(shape.z), sin(shape.z));
+    let offset = vec2f(point.x * axis.x - point.y * axis.y, point.x * axis.y + point.y * axis.x);
+    let tip = corner == 2u;
+    let ground_offset = select(offset, vec2f(0.0), tip || facet >= 4u);
+    let height = select(0.5, -shape.x, tip || facet >= 4u);
+    let position = root + vec3f(ground_offset.x, height + dot(surface.xy, ground_offset), ground_offset.y);
+    return Output(projection * vec4f(position, 1.0), color * select(0.76, 1.06, tip));
+}
 @vertex fn vs_main(@builtin(vertex_index) index: u32,
                    @location(0) root: vec3f, @location(1) shape: vec3f,
                    @location(2) base: vec3f, @location(3) tip: vec3f) -> Output {
     if (shape.x < 0.0) {
+        if (base.z > 0.5) {
+            return litter_vertex(index, root, shape, base, tip);
+        }
         return pebble_vertex(index, root, shape, base.xy, tip);
     }
     let blade = f32(index / 3u);
@@ -212,20 +240,48 @@ struct PathTriangle {
     }
 };
 
-J3DModel* find_model() {
-    J3DModel* result = nullptr;
-    (void)fopAcIt_Executor([](void* raw, void* output) -> int {
-        if (!raw || fopAcM_GetName(raw) != fpcNm_BG_e) return 0;
-        auto* actor = static_cast<daBg_c*>(raw);
-        if (fopAcM_GetRoomNo(actor) != dComIfGp_roomControl_getStayNo() || !actor->mBgParts[0].model)
-            return 0;
-        *static_cast<J3DModel**>(output) = actor->mBgParts[0].model;
-        return 0;
-    }, &result);
+enum class Cover { None, Grass, Gravel, Path, Litter, Moss };
+
+std::string lowercase(std::string_view name) {
+    std::string result(name);
+    for (auto& c : result) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     return result;
 }
 
-void scatter(J3DModel& instance, bool ordon) {
+bool has_any(std::string_view name, std::initializer_list<std::string_view> words) {
+    return std::any_of(words.begin(), words.end(), [&](auto word) { return name.find(word) != name.npos; });
+}
+
+Cover classify(std::string_view material, std::string_view texture) {
+    if (has_any(material, {"water", "mizusoko", "river", "kabe", "wall", "roof", "yane", "seal",
+                           "shadow", "fog", "nuki", "kusanuki", "saku", "miki", "rockwall"}) &&
+        !has_any(material, {"michi", "tuchimichi"}))
+        return Cover::None;
+    if (has_any(material, {"tuchimichi", "tutimiti", "sunamichi", "road_tsuchi", "tuchi_michi"}))
+        return Cover::Path;
+    if (has_any(texture, {"groundmoriwood", "tuchiwood", "c_woodsita", "c_a_hm_tuti", "c_hm_tuti"}))
+        return Cover::Litter;
+    if (material.starts_with("aa_") &&
+        has_any(material, {"iwakusa", "iwa_kusa", "kusaiwa", "moss", "kokeground"}) &&
+        has_any(texture, {"kusa", "moss", "koke"}))
+        return Cover::Moss;
+    if (material.starts_with("aa_") && !has_any(material, {"blend", "kusaset", "kiwa"}) &&
+        has_any(material, {"kusa", "grass", "siba", "shiba"}) &&
+        has_any(texture, {"kusa", "grass", "siba", "shiba"}) &&
+        !has_any(texture, {"wall", "kabe", "nuki", "kusari", "kusaset"}))
+        return Cover::Grass;
+    if ((material.starts_with("aa_") &&
+         has_any(material, {"jari", "gravel", "rock_ground", "rockground", "tuchi_v", "tuti_v", "tsuchi_v",
+                            "tuchi_a_v", "tuti00_v", "tuti01_v", "tuchi128"})) ||
+        material == "dd_ma00_tuchi_v_x")
+        return Cover::Gravel;
+    return Cover::None;
+}
+
+void scatter(J3DModel& instance, int room, unsigned part, bool ordon, RoomCover& cover) {
+    auto& roots = cover.roots;
+    auto& pebbles = cover.pebbles;
+    const unsigned root_limit = ordon ? MaxRoots : part == 0 ? MaxRoots / 4 : MaxRoots / 16;
     auto& model = *instance.getModelData();
     auto* names = model.getMaterialName();
     auto* textures = model.getTexture();
@@ -247,7 +303,7 @@ void scatter(J3DModel& instance, bool ordon) {
     }
 
     char archive[12];
-    std::snprintf(archive, sizeof(archive), "R%02d_00", dComIfGp_roomControl_getStayNo());
+    std::snprintf(archive, sizeof(archive), "R%02d_00", room);
     const auto* info = dComIfG_getStageResInfo(archive);
     const auto* raw = model.getRawData();
     if (!info || !info->mArchive || !raw) return;
@@ -288,6 +344,9 @@ void scatter(J3DModel& instance, bool ordon) {
         if (float_positions) {
             float p[3];
             std::memcpy(p, packed + i * pos_stride, sizeof(p));
+            if (!std::all_of(std::begin(p), std::end(p), [](float v) {
+                    return std::isfinite(v) && std::abs(v) <= 1.0e7f;
+                })) return;
             positions[i] = {p[0], p[1], p[2]};
             continue;
         }
@@ -322,15 +381,64 @@ void scatter(J3DModel& instance, bool ordon) {
         return topology::decode({&input, 1}, formats, positions, data.getNrmNum());
     };
 
+    struct Surface {
+        Cover kind = Cover::None;
+        const u8* image = nullptr;
+        unsigned width = 0, height = 0;
+    };
+    std::vector<Surface> surfaces(model.getShapeNum());
+    const auto* stage_info = dComIfG_getStageResInfo("Stg_00");
+    for (u16 i = 0; i < model.getShapeNum(); ++i) {
+        auto* shape = model.getShapeNodePointer(i);
+        auto* material = shape ? shape->getMaterial() : nullptr;
+        if (!material || !shape->getVtxDesc()) continue;
+        const auto slot = material->getTexNo(0);
+        if (slot >= textures->getNum()) continue;
+        const auto name = lowercase(names->getName(material->getIndex()));
+        const auto* texture_name = texture_names->getName(slot);
+        auto& surface = surfaces[i];
+        surface.kind = classify(name, lowercase(texture_name));
+        if (ordon && material == grass) surface.kind = Cover::Grass;
+        if (surface.kind == Cover::None) continue;
+        auto* generator = material->getTexCoord(0);
+        if (!generator || generator->getTexGenSrc() != GX_TG_TEX0) continue;
+        const auto* texture = textures->getResTIMG(slot);
+        const auto* image = textures->getImgDataPtr(slot);
+        const unsigned width = texture->width, height = texture->height;
+        if (texture->format != GX_TF_CMPR || !width || !height || width % 8 || height % 8) continue;
+        const auto bytes = std::size_t(width) * height / 2;
+        if (!contains(image, bytes)) {
+            if (!stage_info || !stage_info->mArchive || std::strlen(texture_name) > 58) continue;
+            char resource[64];
+            std::snprintf(resource, sizeof(resource), "%s.bti", texture_name);
+            const auto* bti = static_cast<const ResTIMG*>(dComIfG_getStageRes(resource));
+            if (!bti) continue;
+            const auto length = stage_info->mArchive->getExpandedResSize(bti);
+            if (length > 8u * 1024 * 1024 || length < sizeof(ResTIMG) ||
+                bti->imageOffset < sizeof(ResTIMG) || bti->imageOffset > length ||
+                bytes > length - bti->imageOffset ||
+                reinterpret_cast<const u8*>(bti) + bti->imageOffset != image) continue;
+        }
+        surface.image = image;
+        surface.width = width;
+        surface.height = height;
+    }
+
     // The paths are separate translucent meshes laid over the grass terrain.
     // Use their projected footprint before building any blade geometry.
     std::vector<PathTriangle> paths;
     std::unordered_map<std::uint64_t, std::vector<unsigned>> path_cells;
-    for (u16 i = 0; grass && i < model.getShapeNum(); ++i) {
+    std::vector<unsigned> wide_paths;
+    const bool needs_mask = std::any_of(surfaces.begin(), surfaces.end(), [](const auto& surface) {
+        return surface.image && (surface.kind == Cover::Grass || surface.kind == Cover::Litter ||
+                                 surface.kind == Cover::Moss);
+    });
+    for (u16 i = 0; needs_mask && i < model.getShapeNum(); ++i) {
         auto* shape = model.getShapeNodePointer(i);
         if (!shape || !shape->getMaterial() || !shape->getVtxDesc()) continue;
         const auto index = shape->getMaterial()->getIndex();
-        if (index != 23 && index != 30 && index != 31) continue;
+        if (surfaces[i].kind != Cover::Path &&
+            !(ordon && (index == 23 || index == 30 || index == 31))) continue;
         const auto decoded = decode_shape(*shape);
         if (!decoded.ok()) {
             svc_log->warn(mod_ctx, decoded.error);
@@ -348,20 +456,32 @@ void scatter(J3DModel& instance, bool ordon) {
             const auto id = static_cast<unsigned>(paths.size());
             paths.push_back({a, b, c, area > 0 ? 1.0f : -1.0f,
                              margin(a, b), margin(b, c), margin(c, a)});
-            for (int z = path_cell(std::min({a.z, b.z, c.z}) - PathMargin);
-                 z <= path_cell(std::max({a.z, b.z, c.z}) + PathMargin); ++z)
-                for (int x = path_cell(std::min({a.x, b.x, c.x}) - PathMargin);
-                     x <= path_cell(std::max({a.x, b.x, c.x}) + PathMargin); ++x)
+            const int min_z = path_cell(std::min({a.z, b.z, c.z}) - PathMargin);
+            const int max_z = path_cell(std::max({a.z, b.z, c.z}) + PathMargin);
+            const int min_x = path_cell(std::min({a.x, b.x, c.x}) - PathMargin);
+            const int max_x = path_cell(std::max({a.x, b.x, c.x}) + PathMargin);
+            if (std::int64_t(max_z - min_z + 1) * (max_x - min_x + 1) > 4096) {
+                wide_paths.push_back(id);
+                continue;
+            }
+            for (int z = min_z; z <= max_z; ++z)
+                for (int x = min_x; x <= max_x; ++x)
                     path_cells[path_key(x, z)].push_back(id);
         }
     }
-    if (paths.empty()) grass = nullptr;
+    auto on_path = [&](Vec3 point) {
+        const auto covers = [&](unsigned id) { return paths[id].covers(point); };
+        const auto cell = path_cells.find(path_key(path_cell(point.x), path_cell(point.z)));
+        return (cell != path_cells.end() && std::any_of(cell->second.begin(), cell->second.end(), covers)) ||
+               std::any_of(wide_paths.begin(), wide_paths.end(), covers);
+    };
 
     std::uint32_t rng = 0x35ab71u;
     unsigned samples = 0, path_rejected = 0;
-    for (u16 i = 0; grass && i < model.getShapeNum(); ++i) {
+    for (u16 i = 0; i < model.getShapeNum(); ++i) {
         auto* shape = model.getShapeNodePointer(i);
-        if (!shape || shape->getMaterial() != grass || !shape->getVtxDesc()) continue;
+        const auto& surface = surfaces[i];
+        if (surface.kind != Cover::Grass || !surface.image) continue;
         const auto decoded = decode_shape(*shape);
         if (!decoded.ok()) {
             svc_log->warn(mod_ctx, decoded.error);
@@ -373,7 +493,7 @@ void scatter(J3DModel& instance, bool ordon) {
                 std::max({a.texcoord, b.texcoord, c.texcoord}) >= uv_count) continue;
             const auto p = positions[a.position], q = positions[b.position], r = positions[c.position];
             const float area = 0.5f * std::abs((q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x));
-            const unsigned count = unsigned(std::min(3600.0f, area / 60.0f + random(rng)));
+            const unsigned count = unsigned(std::min(3600.0f, area / (ordon ? 60.0f : 95.0f) + random(rng)));
             for (unsigned j = 0; j < count; ++j) {
                 float u = random(rng), v = random(rng);
                 if (u + v > 1) { u = 1 - u; v = 1 - v; }
@@ -381,17 +501,16 @@ void scatter(J3DModel& instance, bool ordon) {
                 u = 0.025f + u * 0.925f;
                 v = 0.025f + v * 0.925f;
                 const auto s = mix(p, mix(q, r, v / (u + v)), u + v);
-                const auto cell = path_cells.find(path_key(path_cell(s.x), path_cell(s.z)));
-                if (cell != path_cells.end() &&
-                    std::any_of(cell->second.begin(), cell->second.end(),
-                                [&](unsigned id) { return paths[id].covers(s); })) {
+                if (on_path(s)) {
                     ++path_rejected;
                     continue;
                 }
                 const auto tex = mix(read_uv(a.texcoord),
                                      mix(read_uv(b.texcoord), read_uv(c.texcoord), v / (u + v)), u + v);
                 const auto world = to_world(s);
-                const auto color = surface_color(grass_image, 256, 256, tex.x, tex.y);
+                bool opaque;
+                const auto color = surface_color(surface.image, surface.width, surface.height, tex.x, tex.y, &opaque);
+                if (!ordon && !opaque) continue;
                 const float carpet = carpet_weight(color);
                 const float patch = scatter_patch(s);
                 const float coverage = std::lerp(0.015f, 1.0f, std::sqrt(carpet));
@@ -403,10 +522,10 @@ void scatter(J3DModel& instance, bool ordon) {
                                 std::lerp(2.0f, 12.0f, carpet) + 2 * random(rng),
                                 6.283185f * random(rng)};
                 ++samples;
-                if (roots.size() < MaxRoots) roots.push_back(root);
+                if (roots.size() < root_limit) roots.push_back(root);
                 else {
                     const auto slot = unsigned(random(rng) * samples);
-                    if (slot < MaxRoots) roots[slot] = root;
+                    if (slot < root_limit) roots[slot] = root;
                 }
             }
         }
@@ -416,22 +535,11 @@ void scatter(J3DModel& instance, bool ordon) {
     unsigned pebble_samples = 0;
     for (u16 i = 0; i < model.getShapeNum(); ++i) {
         auto* shape = model.getShapeNodePointer(i);
-        auto* material = shape ? shape->getMaterial() : nullptr;
-        if (!material || !shape->getVtxDesc()) continue;
-        const std::string_view name = names->getName(material->getIndex());
-        const bool path = ordon && (name == "bb_MA00_TuchiMichi_v" || name == "dd_MA00_TuchiMichi_v_x");
-        const bool dirt = ordon ? name == "dd_MA00_tuchi_v_x" : name == "aa_MA00_Jari_A_v";
-        if (!dirt && !path) continue;
-        const auto slot = material->getTexNo(0);
-        auto* generator = material->getTexCoord(0);
-        if (slot >= textures->getNum() || !generator || generator->getTexGenSrc() != GX_TG_TEX0 ||
-            std::strcmp(texture_names->getName(slot), path ? "I_TuchiMichi" : ordon ? "I_hatake2" : "I_tuchi128"))
-            continue;
-        const auto* texture = textures->getResTIMG(slot);
-        const auto* image = textures->getImgDataPtr(slot);
-        const unsigned width = texture->width, height = texture->height;
-        if (texture->format != GX_TF_CMPR || !width || !height || width % 8 || height % 8 ||
-            !contains(image, std::size_t(width) * height / 2)) continue;
+        const auto& surface = surfaces[i];
+        const bool path = surface.kind == Cover::Path;
+        const bool litter = surface.kind == Cover::Litter;
+        const bool moss = surface.kind == Cover::Moss;
+        if (!surface.image || (!path && !litter && !moss && surface.kind != Cover::Gravel)) continue;
 
         const auto decoded = decode_shape(*shape);
         if (!decoded.ok()) {
@@ -449,7 +557,7 @@ void scatter(J3DModel& instance, bool ordon) {
             const float slope_z = ((q.x - p.x) * (r.y - p.y) - (r.x - p.x) * (q.y - p.y)) / area;
             if (slope_x * slope_x + slope_z * slope_z > 0.36f) continue;
 
-            const float sample_area = path ? 3800.0f : 900.0f;
+            const float sample_area = path ? 3800.0f : (litter || moss) ? 1650.0f : 900.0f;
             const auto count = unsigned(std::min(4096.0f, 0.5f * std::abs(area) / sample_area + random(rng)));
             const auto uv_a = read_uv(a.texcoord), uv_b = read_uv(b.texcoord), uv_c = read_uv(c.texcoord);
             for (unsigned j = 0; j < count; ++j) {
@@ -459,13 +567,31 @@ void scatter(J3DModel& instance, bool ordon) {
                 if (random(rng) > std::lerp(0.35f, 1.0f, scatter_patch(point))) continue;
                 const auto tex = mix(uv_a, mix(uv_b, uv_c, v / std::max(u + v, 0.0001f)), u + v);
                 bool opaque;
-                auto color = surface_color(image, width, height, tex.x, tex.y, &opaque);
-                if (!opaque || carpet_weight(color) > 0.45f) continue;
-                color = mix(color, {0.52f, 0.47f, 0.40f}, 0.25f);
+                auto color = surface_color(surface.image, surface.width, surface.height, tex.x, tex.y, &opaque);
+                if (!opaque) continue;
+                const float green = carpet_weight(color);
+                if ((moss && green < 0.65f) || (!moss && !litter && green > 0.45f)) continue;
+                if (litter || moss) {
+                    const auto local = mix(positions[a.position], mix(positions[b.position], positions[c.position],
+                                           v / std::max(u + v, 0.0001f)), u + v);
+                    if (on_path(local)) continue;
+                }
+                float style = 0.0f;
+                if (litter) {
+                    const float variant = random(rng);
+                    style = green > 0.55f && variant < 0.08f ? 3.0f : variant < 0.22f ? 2.0f : 1.0f;
+                    const Vec3 tint = style == 3.0f ? Vec3{0.30f, 0.42f, 0.17f} : Vec3{0.48f, 0.29f, 0.12f};
+                    color = mix(color, tint, 0.55f);
+                } else if (!moss) {
+                    color = mix(color, {0.52f, 0.47f, 0.40f}, 0.25f);
+                }
                 const float size_bias = random(rng);
                 const float radius = std::lerp(2.2f, 8.5f, size_bias * size_bias);
-                const Pebble pebble{{point, color, radius * std::lerp(0.35f, 0.64f, random(rng)),
-                                     radius, 6.283185f * random(rng)}, {slope_x, slope_z, 0.0f}};
+                const float rise = radius * std::lerp(0.35f, 0.64f, random(rng));
+                const float height = style == 3.0f ? radius * 1.3f : (litter || moss) ? 1.15f : rise;
+                const float width = moss ? radius * 2.5f : litter ? radius * 1.45f : radius;
+                const Pebble pebble{{point, color, height, width, 6.283185f * random(rng)},
+                                    {slope_x, slope_z, style}};
                 ++pebble_samples;
                 if (pebbles.size() < MaxPebbles) pebbles.push_back(pebble);
                 else {
@@ -476,8 +602,8 @@ void scatter(J3DModel& instance, bool ordon) {
         }
     }
     char message[128];
-    std::snprintf(message, sizeof(message), "Ground cover: %zu grass roots, %zu pebbles, %zu path triangles, %u path rejections",
-                  roots.size(), pebbles.size(), paths.size(), path_rejected);
+    std::snprintf(message, sizeof(message), "Ground cover room %d part %u: %zu grass roots, %zu stones/litter, %zu path triangles, %u path rejections",
+                  room, part, roots.size(), pebbles.size(), paths.size(), path_rejected);
     svc_log->info(mod_ctx, message);
 }
 
@@ -515,7 +641,7 @@ void encode(ModContext*, const GfxDrawContext* context, const void* payload, siz
         depth.depthWriteEnabled = WGPUOptionalBool_True;
         depth.depthCompare = context->uses_reversed_z ? WGPUCompareFunction_GreaterEqual : WGPUCompareFunction_LessEqual;
         WGPURenderPipelineDescriptor desc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
-        desc.label = {"MidnaFX ground grass", WGPU_STRLEN};
+        desc.label = {"MidnaFX ground cover", WGPU_STRLEN};
         desc.vertex.module = shader;
         desc.vertex.entryPoint = {"vs_main", WGPU_STRLEN};
         WGPUConstantEntry blade_count = WGPU_CONSTANT_ENTRY_INIT;
@@ -557,35 +683,49 @@ void encode(ModContext*, const GfxDrawContext* context, const void* payload, siz
     wgpuBindGroupRelease(group);
 }
 
-bool supported_scene(const char* scene) {
-    if (!scene) return false;
-    const int room = dComIfGp_roomControl_getStayNo();
-    return (room == 0 && !std::strcmp(scene, "F_SP103")) ||
-           ((room == 7 || room == 9) && !std::strcmp(scene, "F_SP121"));
+void clear_cover() {
+    for (auto& room : room_cover) room = {};
+    cached_stage.clear();
 }
 
 void stage(ModContext*, const GfxStageContext* context, void*) {
     const auto* scene = dComIfGp_getStartStageName();
-    if (!settings::ground_grass_enabled() || !context || !context->game_view || !supported_scene(scene)) {
-        cached_model = nullptr;
-        roots.clear();
-        pebbles.clear();
-        return;
+    if (!settings::ground_grass_enabled() || !context || !context->game_view || !scene) return;
+    if (cached_stage != scene) {
+        clear_cover();
+        cached_stage = scene;
     }
-    auto* instance = find_model();
-    const auto* model = instance ? instance->getModelData() : nullptr;
-    if (model != cached_model) {
-        cached_model = model;
-        roots.clear();
-        pebbles.clear();
-        if (model) {
+    const int stay = dComIfGp_roomControl_getStayNo();
+    std::array<std::array<J3DModel*, PartsPerRoom>, RoomSlots> models{};
+    (void)fopAcIt_Executor([](void* raw, void* output) -> int {
+        if (!raw || fopAcM_GetName(raw) != fpcNm_BG_e) return 0;
+        auto* actor = static_cast<daBg_c*>(raw);
+        const int room = fopAcM_GetRoomNo(actor);
+        if (room >= 0 && room < int(RoomSlots) && dComIfGp_roomControl_checkStatusFlag(room, 0x10)) {
+            auto& parts = (*static_cast<decltype(models)*>(output))[room];
+            for (unsigned part = 0; part < PartsPerRoom; ++part)
+                if (part == 0 || !actor->mBgParts[part].btk) parts[part] = actor->mBgParts[part].model;
+        }
+        return 0;
+    }, &models);
+    const unsigned first = stay >= 0 && stay < int(RoomSlots) ? unsigned(stay) : 0;
+    bool built = false;
+    for (unsigned offset = 0; offset < RoomSlots; ++offset) {
+        const unsigned id = (first + offset) % RoomSlots;
+        for (unsigned part = 0; part < PartsPerRoom; ++part) {
+            auto& cover = room_cover[id][part];
+            auto* instance = models[id][part];
+            auto* model = instance ? instance->getModelData() : nullptr;
+            if (cover.instance == instance && cover.model == model) continue;
+            cover = {};
+            if (!model || built) continue;
+            cover.instance = instance;
+            cover.model = model;
             frame_reported = false;
-            scatter(*instance, !std::strcmp(scene, "F_SP103"));
-            if (roots.empty() && pebbles.empty())
-                svc_log->warn(mod_ctx, "Ground cover: surface qualification found no instances");
+            scatter(*instance, int(id), part, part == 0 && id == 0 && cached_stage == "F_SP103", cover);
+            built = true;
         }
     }
-    if (roots.empty() && pebbles.empty()) return;
     CameraInfo camera = CAMERA_INFO_INIT;
     if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) != MOD_OK) return;
     clumps.clear();
@@ -604,21 +744,25 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         return std::clamp((distance - g_env_light.mFogNear) /
                           std::max(1.0f, g_env_light.mFogFar - g_env_light.mFogNear), 0.0f, 1.0f);
     };
-    for (const auto& root : roots) {
-        if (clumps.size() >= MaxVisible) break;
-        const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
-        const float dy = root.point.y - camera.eye[1];
-        const float distance2 = dx*dx + dy*dy + dz*dz;
-        closest = std::min(closest, distance2);
-        if (distance2 >= DrawDistance * DrawDistance) continue;
-        const float distance = std::sqrt(distance2);
-        const float height = root.height * 1.25f * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
-        if (height < 1.0f) continue;
-        if (!visible(root.point)) continue;
-        const float haze = fog_weight(distance);
-        const Vec3 base = mix(scale(root.color, 0.88f), fog, haze);
-        const Vec3 tip = mix(root.color, fog, haze);
-        clumps.push_back({root.point, {height, root.width, root.angle}, base, tip});
+    for (unsigned offset = 0; offset < RoomSlots && clumps.size() < MaxVisible; ++offset) {
+        for (const auto& cover : room_cover[(first + offset) % RoomSlots]) {
+            for (const auto& root : cover.roots) {
+                if (clumps.size() >= MaxVisible) break;
+                const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
+                const float dy = root.point.y - camera.eye[1];
+                const float distance2 = dx*dx + dy*dy + dz*dz;
+                closest = std::min(closest, distance2);
+                if (distance2 >= DrawDistance * DrawDistance) continue;
+                const float distance = std::sqrt(distance2);
+                const float height = root.height * 1.25f * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
+                if (height < 1.0f) continue;
+                if (!visible(root.point)) continue;
+                const float haze = fog_weight(distance);
+                const Vec3 base = mix(scale(root.color, 0.88f), fog, haze);
+                const Vec3 tip = mix(root.color, fog, haze);
+                clumps.push_back({root.point, {height, root.width, root.angle}, base, tip});
+            }
+        }
     }
     const auto grass_count = clumps.size();
     const auto ambient = g_env_light.bg_amb_col[0];
@@ -627,24 +771,29 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     };
     const Vec3 light{terrain_light(ambient.r), terrain_light(ambient.g), terrain_light(ambient.b)};
     const bool twilight = dKy_darkworld_check();
-    for (const auto& pebble : pebbles) {
-        const auto& root = pebble.root;
-        const float dx = root.point.x - camera.eye[0], dy = root.point.y - camera.eye[1],
-                    dz = root.point.z - camera.eye[2];
-        const float distance2 = dx*dx + dy*dy + dz*dz;
-        if (distance2 >= PebbleDistance * PebbleDistance || !visible(root.point)) continue;
-        const float distance = std::sqrt(distance2);
-        const float fade = std::clamp((PebbleDistance - distance) / 350.0f, 0.0f, 1.0f);
-        const float luminance = 0.21f * root.color.x + 0.72f * root.color.y + 0.07f * root.color.z;
-        const Vec3 color = twilight ? scale({0.58f, 0.84f, 1.08f}, luminance) : root.color;
-        const Vec3 lit{color.x * light.x, color.y * light.y, color.z * light.z};
-        clumps.push_back({root.point, {-root.height * fade, root.width * fade, root.angle},
-                          pebble.slope, mix(lit, fog, fog_weight(distance))});
+    for (unsigned offset = 0; offset < RoomSlots && clumps.size() - grass_count < MaxPebbles; ++offset) {
+        for (const auto& cover : room_cover[(first + offset) % RoomSlots]) {
+            for (const auto& pebble : cover.pebbles) {
+                if (clumps.size() - grass_count >= MaxPebbles) break;
+                const auto& root = pebble.root;
+                const float dx = root.point.x - camera.eye[0], dy = root.point.y - camera.eye[1],
+                            dz = root.point.z - camera.eye[2];
+                const float distance2 = dx*dx + dy*dy + dz*dz;
+                if (distance2 >= PebbleDistance * PebbleDistance || !visible(root.point)) continue;
+                const float distance = std::sqrt(distance2);
+                const float fade = std::clamp((PebbleDistance - distance) / 350.0f, 0.0f, 1.0f);
+                const float luminance = 0.21f * root.color.x + 0.72f * root.color.y + 0.07f * root.color.z;
+                const Vec3 color = twilight ? scale({0.58f, 0.84f, 1.08f}, luminance) : root.color;
+                const Vec3 lit{color.x * light.x, color.y * light.y, color.z * light.z};
+                clumps.push_back({root.point, {-root.height * fade, root.width * fade, root.angle},
+                                  pebble.slope, mix(lit, fog, fog_weight(distance))});
+            }
+        }
     }
     if (!frame_reported && !clumps.empty()) {
         char message[160];
         std::snprintf(message, sizeof(message),
-                      "Ground cover: %zu visible grass roots, %zu visible pebbles, nearest grass %.1f units",
+                      "Ground cover: %zu visible grass roots, %zu visible stones/litter, nearest grass %.1f units",
                       grass_count, clumps.size() - grass_count, std::sqrt(closest));
         svc_log->info(mod_ctx, message);
         frame_reported = true;
@@ -659,27 +808,24 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
 
 void initialize() {
     if (!svc_gfx || !svc_gfx->push_uniform || !svc_camera || !svc_camera->get_camera) {
-        svc_log->warn(mod_ctx, "Ground grass: graphics or camera service unavailable");
+        svc_log->warn(mod_ctx, "Ground cover: graphics or camera service unavailable");
         return;
     }
     GfxDrawTypeDesc draw = GFX_DRAW_TYPE_DESC_INIT;
-    draw.label = "MidnaFX ground grass";
+    draw.label = "MidnaFX ground cover";
     draw.draw = encode;
     if (svc_gfx->register_draw_type(mod_ctx, &draw, &draw_type) != MOD_OK)
-        svc_log->warn(mod_ctx, "Ground grass: draw registration failed");
+        svc_log->warn(mod_ctx, "Ground cover: draw registration failed");
 }
 
 void update() {
     if (!draw_type) return;
-    const auto* scene = dComIfGp_getStartStageName();
-    const bool wanted = settings::ground_grass_enabled() && supported_scene(scene);
+    const bool wanted = settings::ground_grass_enabled();
     if (wanted == (stage_hook != 0)) return;
     if (!wanted) {
         svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
         stage_hook = 0;
-        cached_model = nullptr;
-        roots.clear();
-        pebbles.clear();
+        clear_cover();
         return;
     }
     GfxStageHookDesc hook = GFX_STAGE_HOOK_DESC_INIT;
@@ -696,10 +842,8 @@ void shutdown() {
     stage_hook = draw_type = 0;
     if (pipeline) wgpuRenderPipelineRelease(pipeline);
     pipeline = nullptr;
-    cached_model = nullptr;
+    clear_cover();
     frame_reported = false;
-    std::vector<Root>().swap(roots);
-    std::vector<Pebble>().swap(pebbles);
     std::vector<Clump>().swap(clumps);
 }
 } // namespace midnafx::render::ground_grass

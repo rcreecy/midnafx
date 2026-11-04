@@ -1050,7 +1050,7 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Smooths supported regions of Link's original Ordon and Hero's Clothes. Armor outfits and replacement models stay unchanged.", nullptr));
     add_toggle(panel, "Material relighting (experimental)", material_relighting);
-    add_toggle(panel, "Ground cover (grass and pebbles)", ground_grass);
+    add_toggle(panel, "Ground cover (grass, gravel, and litter)", ground_grass);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         render::material_relighting::available()
             ? "Uses each lit material's original lights and normals for per-pixel lighting. Preserves transparency and textures."
