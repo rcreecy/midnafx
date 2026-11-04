@@ -25,7 +25,7 @@
 namespace midnafx::render::ground_grass {
 namespace {
 using topology::Vec3;
-constexpr unsigned MaxRoots = 48000;
+constexpr unsigned MaxRoots = 120000;
 constexpr unsigned MaxVisible = 6500;
 constexpr float DrawDistance = 3400.0f;
 
@@ -204,7 +204,7 @@ void scatter(J3DModel& instance) {
                 std::max({a.texcoord, b.texcoord, c.texcoord}) >= uv_count) continue;
             const auto p = positions[a.position], q = positions[b.position], r = positions[c.position];
             const float area = 0.5f * std::abs((q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x));
-            const unsigned count = unsigned(std::min(256.0f, area / 850.0f + random(rng)));
+            const unsigned count = unsigned(std::min(512.0f, area / 500.0f + random(rng)));
             for (unsigned j = 0; j < count; ++j) {
                 float u = random(rng), v = random(rng);
                 if (u + v > 1) { u = 1 - u; v = 1 - v; }
@@ -222,7 +222,7 @@ void scatter(J3DModel& instance) {
                 const float carpet = carpet_weight(color);
                 if (random(rng) >= std::lerp(0.015f, 1.0f, carpet)) continue;
                 const Root root{world, color,
-                                std::lerp(15.0f, 8.0f, carpet) + 7 * random(rng),
+                                std::lerp(15.0f, 5.0f, carpet) + 7 * random(rng),
                                 std::lerp(2.0f, 5.0f, carpet) + 2 * random(rng),
                                 6.283185f * random(rng)};
                 ++samples;
@@ -343,7 +343,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
             std::abs(clip[1]) > clip[3] * 1.1f) continue;
         const float haze = std::clamp((distance - g_env_light.mFogNear) /
                             std::max(1.0f, g_env_light.mFogFar - g_env_light.mFogNear), 0.0f, 1.0f);
-        const Vec3 base = mix(scale(root.color, 0.75f), fog, haze);
+        const Vec3 base = mix(scale(root.color, 0.88f), fog, haze);
         const Vec3 tip = mix(root.color, fog, haze);
         const float x = std::cos(root.angle) * root.width, z = std::sin(root.angle) * root.width;
         const auto p = root.point;
