@@ -86,7 +86,7 @@ fn noise(p: vec2f) -> f32 {
         let rings = 0.5 + 0.5 * sin(22.0 * radius - time * 7.0 + turbulence * 2.5);
         alpha = (1.0 - smoothstep(0.24, 1.0, radius)) * (0.30 + 0.48 * turbulence + 0.22 * rings);
         tone = 0.91 + turbulence * 0.09;
-    } else if (in.data.z < 2.5) {
+    } else if (in.data.z < 2.5 || in.data.z > 5.5) {
         let fine = noise(uv * 5.2 + in.world.xz * 0.011 + vec2f(0.0, time * 0.42));
         let billow = noise(uv * 2.4 + in.world.xz * 0.006);
         let radius = length(uv);
@@ -112,7 +112,8 @@ fn noise(p: vec2f) -> f32 {
         alpha = 1.0 - smoothstep(0.40, 1.0, radius + (billow - 0.5) * 0.24);
         tone = 0.84 + billow * 0.19;
     }
-    let color = select(light, mix(light, vec3f(0.91, 0.94, 0.95), 0.36), in.data.z > 4.5);
+    let color = select(light, mix(light, vec3f(0.91, 0.94, 0.95), 0.36),
+                       in.data.z > 4.5 && in.data.z < 5.5);
     return vec4f(color * tone, clamp(alpha * in.data.w, 0.0, 0.99));
 }
 )";
@@ -339,6 +340,11 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
     const float time = std::chrono::duration<float>(std::chrono::steady_clock::now() - start).count();
     const Point right{camera.view_from_world[0], camera.view_from_world[4], camera.view_from_world[8]};
     const Point up{camera.view_from_world[1], camera.view_from_world[5], camera.view_from_world[9]};
+    const auto& wind = g_env_light.global_wind_influence;
+    const float wind_length = std::hypot(wind.vec.x, wind.vec.z);
+    const Point drift_wind = std::isfinite(wind_length) && wind_length > 0.001f && std::isfinite(wind.pow)
+        ? Point{wind.vec.x / wind_length * std::clamp(wind.pow, 0.0f, 1.0f), 0,
+                wind.vec.z / wind_length * std::clamp(wind.pow, 0.0f, 1.0f)} : Point{};
     const auto distance2 = [&](Point p) {
         const auto d = add(p, {-camera.eye[0], -camera.eye[1], -camera.eye[2]});
         return d.x*d.x + d.y*d.y + d.z*d.z;
@@ -350,6 +356,7 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
         const Point face{-fall->across.z, 0, fall->across.x};
         const float side = (camera.eye[0]-fall->foot.x)*face.x + (camera.eye[2]-fall->foot.z)*face.z;
         const Point outward = scale(face, side >= 0.0f ? 1.0f : -1.0f);
+        const float scale_y = std::clamp(fall->height * 0.44f, 102.0f, 360.0f);
         if (!contact_clip) {
             for (const auto& tri : fall->sheet)
                 for (auto p : tri)
@@ -371,9 +378,27 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                     const auto inner_b = fringe_vertex(b, false), outer_b = fringe_vertex(b, true);
                     vertices.insert(vertices.end(), {inner_a, outer_a, inner_b, inner_b, outer_a, outer_b});
                 }
+                if (fall->edges.size() < 2) continue;
+                // Falling aerosol follows the traced silhouette and thickens on the way down.
+                const unsigned count = std::clamp(unsigned(fall->height / 145.0f) + 3, 5u, 24u);
+                for (unsigned j = 0; j < count && puffs.size() < 2200; ++j) {
+                    const float seed = j * 3.471f + edge * 8.134f + fall->foot.x * 0.0011f;
+                    const float phase = float(j) / count + time * (0.10f + 0.021f * std::sin(seed));
+                    const float age = phase - std::floor(phase);
+                    const float row = (1.0f - age) * (fall->edges.size() - 1);
+                    const size_t lo = std::min(size_t(row), fall->edges.size() - 2);
+                    const float t = row - float(lo);
+                    const auto a = fall->edges[lo][edge], b = fall->edges[lo + 1][edge];
+                    const Point anchor{std::lerp(a.x, b.x, t), std::lerp(a.y, b.y, t), std::lerp(a.z, b.z, t)};
+                    const float spread = scale_y * (0.13f + age * 0.22f);
+                    const float fade = std::min({1.0f, age * 12.0f, (1.0f - age) * 13.0f});
+                    const auto center = add(anchor, add(scale(fall->across, side_sign * spread * (0.33f + 0.22f * std::sin(seed + time))),
+                        add(scale(outward, spread * 0.45f), scale(drift_wind, spread * age))));
+                    puffs.push_back({center, spread * 1.04f, std::clamp(fall->height / count * 0.82f, 25.0f, 210.0f),
+                                     fade * std::lerp(0.15f, 0.45f, age), distance2(center), 2.0f});
+                }
             }
         }
-        const float scale_y = std::clamp(fall->height * 0.44f, 102.0f, 360.0f);
         const unsigned emitters = std::clamp(unsigned(fall->width / 105.0f) + 1, 3u, 15u);
         for (unsigned i = 0; i < emitters; ++i) {
             const float spacing = fall->width / emitters;
@@ -385,6 +410,21 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                                                 {0, scale_y * (0.18f + 0.13f * billow), 0}));
                 quad(skirt, scale(right, spacing * 1.08f + scale_y * 0.53f),
                      scale(up, scale_y * (0.46f + 0.17f * billow)), 5.0f, 1.0f);
+                // Settling vapor travels along the pool, expands, and thins with age.
+                for (unsigned j = 0; j < 7 && puffs.size() < 2200; ++j) {
+                    const float seed = i * 2.793f + j * 1.173f + fall->foot.z * 0.0019f;
+                    const float phase = seed + time * (0.17f + 0.04f * std::sin(seed));
+                    const float age = phase - std::floor(phase);
+                    const float angle = seed + std::floor(phase) * 2.39996f;
+                    const float travel = scale_y * (0.53f + 3.8f * age);
+                    const auto lateral = scale(fall->across, std::sin(angle) * travel * 0.88f);
+                    const auto forward = scale(outward, (0.40f + 0.60f * std::abs(std::cos(angle))) * travel);
+                    const auto center = add(foot, add(add(lateral, forward),
+                        add(scale(drift_wind, travel * 0.88f), {0, scale_y * (0.11f + 0.07f * (1.0f - age)), 0})));
+                    const float fade = std::min(1.0f, age * 8.0f) * (1.0f - age);
+                    puffs.push_back({center, (scale_y * 0.62f + spacing * 0.30f) * (0.56f + age),
+                                     scale_y * (0.13f + age * 0.06f), 0.47f * fade, distance2(center), 6.0f});
+                }
                 continue;
             }
             quad(impact, scale(fall->across, spacing * 1.03f), scale(outward, scale_y * 1.07f), 1.0f, 0.94f);

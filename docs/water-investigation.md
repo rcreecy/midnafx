@@ -114,6 +114,11 @@ background object and now receives animated flow and impact spray.
 The cave impact uses the receiving pool mesh, which puts the emitter 236
 game units lower than the previous estimate. The dense contact cloud draws
 over the transparent pool and is clipped to the native cutscene frame.
+Falling mist follows the sampled sheet edges from top to bottom and grows
+denser toward impact. A separate low layer spreads outward along the pool,
+drifts with scene wind, and dissipates. This adapts the separation of
+whitewater effects described in [ICVR's waterfall tutorial overview](https://forums.unrealengine.com/t/community-tutorial-crafting-cinematic-waterfalls-part-2-foam-splashes-and-export-techniques/2568756)
+using the mod's existing mesh samples and procedural particles.
 Supported water now receives sky reflections and animated surface shading
 even where the opaque depth buffer has no underlying geometry.
 
