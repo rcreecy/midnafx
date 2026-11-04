@@ -26,11 +26,11 @@
 namespace midnafx::render::ground_grass {
 namespace {
 using topology::Vec3;
-constexpr unsigned MaxRoots = 320000;
-constexpr unsigned MaxVisible = 8000;
+constexpr unsigned MaxRoots = 720000;
+constexpr unsigned MaxVisible = 18000;
 constexpr unsigned VerticesPerClump = 9;
 constexpr float DrawDistance = 3400.0f;
-constexpr float PathMargin = 16.0f;
+constexpr float PathMargin = 18.0f;
 constexpr float PathCell = 128.0f;
 
 struct Root {
@@ -272,7 +272,7 @@ void scatter(J3DModel& instance) {
                 std::max({a.texcoord, b.texcoord, c.texcoord}) >= uv_count) continue;
             const auto p = positions[a.position], q = positions[b.position], r = positions[c.position];
             const float area = 0.5f * std::abs((q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x));
-            const unsigned count = unsigned(std::min(1600.0f, area / 145.0f + random(rng)));
+            const unsigned count = unsigned(std::min(3600.0f, area / 60.0f + random(rng)));
             for (unsigned j = 0; j < count; ++j) {
                 float u = random(rng), v = random(rng);
                 if (u + v > 1) { u = 1 - u; v = 1 - v; }
@@ -295,10 +295,10 @@ void scatter(J3DModel& instance) {
                     matrix[2][0]*s.x + matrix[2][1]*s.y + matrix[2][2]*s.z + matrix[2][3]};
                 const auto color = grass_color(image, tex.x, tex.y);
                 const float carpet = carpet_weight(color);
-                if (random(rng) >= std::lerp(0.015f, 1.0f, carpet)) continue;
+                if (random(rng) >= std::lerp(0.015f, 1.0f, std::sqrt(carpet))) continue;
                 const Root root{world, color,
                                 std::lerp(15.0f, 5.0f, carpet) + 7 * random(rng),
-                                std::lerp(2.0f, 9.0f, carpet) + 2 * random(rng),
+                                std::lerp(2.0f, 12.0f, carpet) + 2 * random(rng),
                                 6.283185f * random(rng)};
                 ++samples;
                 if (roots.size() < MaxRoots) roots.push_back(root);
