@@ -39,6 +39,11 @@ struct WaterParameters {
     debug_mode: u32,
     split_x: u32,
     proj_from_view: mat4x4f,
+    sky: vec4f,
+    horizon: vec4f,
+    sun_position: vec4f,
+    sun_color: vec4f,
+    water_motion: vec4f,
 }
 
 @group(0) @binding(0) var scene_color: texture_2d<f32>;
@@ -72,17 +77,27 @@ fn world_position(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
     return world4.xyz / world4.w;
 }
 
-fn water_surface_normal(coord: vec2i, depth: f32, dimensions: vec2f) -> vec3f {
+fn water_surface_normal(coord: vec2i, depth: f32, dimensions: vec2f, distance: f32) -> vec3f {
     let world = world_position(coord, depth, dimensions);
     if (any(world != world) || any(abs(world) > vec3f(3.402823e38))) {
         return vec3f(0.0, 1.0, 0.0);
     }
     let time = params.animation_time * params.wave_speed;
-    let large = world.xz * params.wave_scale + vec2f(time, time * 0.37);
-    let ripple = world.xz * (params.wave_scale * 2.35) + vec2f(-time * 0.71, time * 0.53);
-    let large_slope = vec2f(sin(large.x + cos(large.y)), cos(large.y + sin(large.x)));
-    let ripple_slope = vec2f(cos(ripple.x - sin(ripple.y)), sin(ripple.y + cos(ripple.x)));
-    let slope = (large_slope * 0.65 + ripple_slope * 0.35) * params.wave_strength * 0.28;
+    let exposure = params.water_motion.w;
+    let wind = params.water_motion.xy;
+    let crosswind = vec2f(-wind.y, wind.x);
+    let local = vec2f(dot(world.xz, wind), dot(world.xz, crosswind)) * params.wave_scale;
+    let swell_a = local.x + 0.28 * local.y - time * 0.54;
+    let swell_b = 0.61 * local.x - 0.77 * local.y - time * 0.37;
+    let broad = wind * cos(swell_a) * 0.65 + (wind * 0.61 - crosswind * 0.77) * cos(swell_b) * 0.35;
+    let fine_a = 7.7 * local.x + 2.0 * local.y - time * 3.5 + sin(swell_b);
+    let fine_b = 10.3 * local.x - 3.1 * local.y - time * 4.6 + sin(swell_a);
+    let fine = wind * cos(fine_a) * 0.61 + (wind - crosswind * 0.30) * cos(fine_b) * 0.39;
+    let footprint = 2.0 * distance / max(abs(params.proj_from_view[1][1]) * dimensions.y, 1.0);
+    let detail = 1.0 - smoothstep(0.22, 1.0, footprint * params.wave_scale * 10.3);
+    let wind_strength = mix(0.54, 1.0, params.water_motion.z);
+    let slope = (broad * mix(0.35, 1.0, exposure) + fine * detail * exposure * wind_strength * 0.78) *
+                params.wave_strength * 0.31;
     return normalize(vec3f(-slope.x, 1.0, -slope.y));
 }
 
@@ -217,6 +232,26 @@ fn scene_reflection(water: vec3f, normal: vec3f, dimensions: vec2f) -> vec4f {
     return vec4f(0);
 }
 
+fn sky_reflection(view_position: vec3f, ray: vec3f) -> vec3f {
+    let tint = params.reflection_tint.rgb;
+    if (params.sky.a <= 0.0) { return tint; }
+    let elevation = dot(ray, params.view_from_world[1].xyz);
+    let sky = mix(params.horizon.rgb, params.sky.rgb, smoothstep(0.0, 0.64, elevation));
+    var reflected = mix(tint, sky, 0.83);
+    if (params.sun_color.a > 0.0) {
+        let sun = (params.view_from_world * vec4f(params.sun_position.xyz, 1.0)).xyz - view_position;
+        let length_squared = dot(sun, sun);
+        if (length_squared > 1.0 && length_squared < 1e24) {
+            let facing = dot(ray, sun * inverseSqrt(length_squared));
+            let glow = smoothstep(0.946, 0.999, facing) * 0.33;
+            let core = smoothstep(0.996, 0.99985, facing) * 0.39;
+            reflected = mix(reflected, params.sun_color.rgb,
+                            (glow + core) * params.sun_color.a * smoothstep(-0.05, 0.08, elevation));
+        }
+    }
+    return reflected;
+}
+
 fn apply_fresnel_reflection(coord: vec2i, water_depth: f32, dimensions: vec2f,
                             transmitted: vec3f, normal: vec3f) -> vec3f {
     if (params.reflection_strength <= 0.0) {
@@ -236,7 +271,7 @@ fn apply_fresnel_reflection(coord: vec2i, water_depth: f32, dimensions: vec2f,
     let facing = clamp(dot(view_direction, view_normal), 0.0, 1.0);
     let fresnel = 0.02 + 0.98 * pow(1.0 - facing, 5.0);
     let weight = clamp(fresnel * params.reflection_strength, 0.0, 0.45);
-    var reflection = params.reflection_tint.rgb;
+    var reflection = sky_reflection(view_position, reflect(-view_direction, view_normal));
     if (params.scene_reflections > 0) {
         let hit = scene_reflection(view_position, view_normal, dimensions);
         reflection = mix(reflection, hit.rgb, clamp(hit.a,0,1));
@@ -350,7 +385,7 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     let transmission = exp(-params.absorption_strength * normalized);
     let scatter = mix(params.shallow_tint.rgb, params.deep_tint.rgb,
                       smoothstep(0.0, 1.0, normalized));
-    let surface_normal = water_surface_normal(coord, water_depth, dimensions);
+    let surface_normal = water_surface_normal(coord, water_depth, dimensions, water_distance);
     let wave_light = 1.0 + dot(surface_normal.xz, normalize(vec2f(0.8, 0.6))) * 0.10;
     // Some TP water paths have no opaque color behind the surface at the
     // pre-water boundary. Keep those pixels visibly water-colored instead of

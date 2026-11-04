@@ -22,6 +22,7 @@
 #include <d/actor/d_a_obj_onsen.h>
 #include <d/actor/d_a_obj_rstair.h>
 #include <d/d_kankyo.h>
+#include <d/d_kankyo_wether.h>
 #include <dolphin/gx/GXAurora.h>
 #include <dolphin/gx/GXBump.h>
 #include <dolphin/gx/GXExtra.h>
@@ -765,6 +766,45 @@ bool latest_environment_light(float out_position[3]) {
     out_position[1] = position.y;
     out_position[2] = position.z;
     return true;
+}
+
+Environment environment() {
+    Environment out;
+    const bool outdoor = dKy_Outdoor_check();
+    const auto* stage = dComIfGp_getStartStageName();
+    if (stage && std::strcmp(stage, "F_SP127") == 0) out.motion[3] = 0.31f;
+    else if (stage && std::strcmp(stage, "F_SP115") == 0) out.motion[3] = 1.0f;
+    else if (!outdoor) out.motion[3] = 0.42f;
+    const auto& wind = g_env_light.global_wind_influence;
+    const float length = std::hypot(wind.vec.x, wind.vec.z);
+    if (std::isfinite(length) && length > 0.001f) {
+        out.motion[0] = wind.vec.x / length;
+        out.motion[1] = wind.vec.z / length;
+    }
+    if (outdoor && std::isfinite(wind.pow)) out.motion[2] = std::clamp(wind.pow, 0.0f, 1.0f);
+    if (!outdoor || g_env_light.hide_vrbox || dKy_camera_water_in_status_check()) return out;
+
+    const auto channel = [](float value) { return std::clamp(value / 255.0f, 0.0f, 1.0f); };
+    const auto sky = g_env_light.vrbox_sky_col;
+    const auto horizon = g_env_light.vrbox_kasumi_outer_col;
+    if (sky.r || sky.g || sky.b || horizon.r || horizon.g || horizon.b) {
+        out.sky[0] = channel(sky.r); out.sky[1] = channel(sky.g); out.sky[2] = channel(sky.b);
+        out.sky[3] = 1.0f;
+        const auto edge = (horizon.r || horizon.g || horizon.b) ? horizon : sky;
+        out.horizon[0] = channel(edge.r); out.horizon[1] = channel(edge.g); out.horizon[2] = channel(edge.b);
+    }
+    const auto* sun = g_env_light.mpSunPacket;
+    if (g_env_light.mSunInitialized && sun && std::isfinite(sun->mSunAlpha) &&
+        std::isfinite(sun->mPos[0].x) && std::isfinite(sun->mPos[0].y) && std::isfinite(sun->mPos[0].z)) {
+        out.sun_position[0] = sun->mPos[0].x;
+        out.sun_position[1] = sun->mPos[0].y;
+        out.sun_position[2] = sun->mPos[0].z;
+        out.sun_color[0] = channel(sun->mColor.r);
+        out.sun_color[1] = channel(sun->mColor.g);
+        out.sun_color[2] = channel(sun->mColor.b);
+        out.sun_color[3] = std::clamp(sun->mSunAlpha, 0.0f, 1.0f);
+    }
+    return out;
 }
 
 void shutdown() {

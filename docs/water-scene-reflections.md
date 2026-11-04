@@ -6,7 +6,7 @@ where a short reflected ray finds a qualified source. Select **Profile /
 Remaster**, or enable both **Enhanced water** and **Water scene reflections** in
 Basic. **Vanilla** disables them. Existing saved settings remain intact until
 a profile is selected. The existing advanced reflection strength controls both
-the scenery reflection and its tint fallback.
+scenery and sky reflections.
 
 ## Rendering contract
 
@@ -22,13 +22,15 @@ view space. Four binary refinements locate a candidate depth crossing. The
 candidate must remain within the ray range, close to the ray and sampled depth,
 above the local water plane and on a camera-visible surface facing the reflected
 ray. Background, invalid projection, off-screen and near-plane crossings fall
-back to the original tint. Visible water cannot become a recursive reflection
+back to the environment. Visible water cannot become a recursive reflection
 source. A water-mask fragment hidden behind an opaque bank does not disqualify
 that bank.
 
 Source colors come from the pre-water snapshot, avoiding reflection of this
 effect or the downstream HUD. Source-facing, edge, distance and thickness
-confidence fade uncertain hits toward the original tint. The existing Fresnel
+confidence fade uncertain hits toward a directional gradient built from the
+scene sky and horizon. The native sun adds a soft highlight when visible.
+Interiors and scenes without an active sky use the tint. The existing Fresnel
 weight remains bounded at 45%; source alpha is preserved by the existing water
 composition. Reflections retain their position after shoreline treatment and
 before specular light, grading, exposure, bloom and LUT processing.
@@ -39,8 +41,14 @@ This is a first-layer screen-space reflection, not a complete planar reflection
 or ray-traced scene. Hidden, off-screen, sky and translucent geometry cannot be
 reconstructed from the available opaque snapshot. Fine geometry can fall between
 steps, depth-derived normals can fail at silhouettes and visible sources change
-with camera motion. Misses deliberately retain the existing tint. No temporal
+with camera motion. No temporal
 history or motion reconstruction is provided.
+
+Two slow swells and finer wind ripples drive the shared surface normal. The
+fine detail fades with distance. Fishing Pond uses lower wave exposure than
+Lake Hylia. Windows D3D12 runs confirmed sky fallback active in both scenes,
+including the Lake Hylia Twilight palette. GPU timing and macOS gameplay
+remain unverified.
 
 The effect covers the already supported, qualified horizontal-water surfaces.
 It does not make arbitrary translucent materials reflective or establish support
