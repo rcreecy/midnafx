@@ -84,12 +84,21 @@ fn noise(p: vec2f) -> f32 {
         let rings = 0.5 + 0.5 * sin(22.0 * radius - time * 7.0 + turbulence * 2.5);
         alpha = (1.0 - smoothstep(0.24, 1.0, radius)) * (0.30 + 0.48 * turbulence + 0.22 * rings);
         tone = 0.91 + turbulence * 0.09;
-    } else {
+    } else if (in.data.z < 2.5) {
         let fine = noise(uv * 5.2 + in.world.xz * 0.011 + vec2f(0.0, time * 0.42));
         let billow = noise(uv * 2.4 + in.world.xz * 0.006);
         let radius = length(uv);
         alpha = (1.0 - smoothstep(0.12, 1.0, radius + 0.30 * (0.5 - billow))) * (0.54 + 0.46 * fine);
         tone = 0.86 + fine * 0.14;
+    } else {
+        let flow = in.world.y + time * 390.0;
+        let breaks = noise(vec2f(uv.x * 4.2 + uv.y, flow * 0.026));
+        let reach = 0.22 + 0.48 * noise(vec2f(uv.y * 2.3, flow * 0.013));
+        let fringe = (1.0 - smoothstep(reach * 0.35, reach, uv.x)) * (0.42 + 0.58 * breaks);
+        let thread = smoothstep(0.57, 0.85, breaks) *
+                     smoothstep(reach * 0.7, reach, uv.x) * (1.0 - smoothstep(0.60, 1.0, uv.x));
+        alpha = (fringe * 0.76 + thread * 0.47) * (1.0 - smoothstep(0.91, 1.0, uv.x));
+        tone = 0.76 + 0.23 * breaks;
     }
     return vec4f(light * tone, clamp(alpha * in.data.w, 0.0, 0.85));
 }
@@ -217,7 +226,27 @@ static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>
     cXyz probe(foot.x, foot.y - reach, foot.z);
     water.Set(probe, foot.y + reach);
     if (dComIfG_Bgsp().WaterChk(&water)) foot.y = std::max(foot.y, water.GetHeight() + 4.0f);
-    falls.push_back({{sheet.begin(), sheet.end()}, foot, across, width, height, low.y});
+    Fall fall{{sheet.begin(), sheet.end()}, {}, foot, across, width, height, low.y};
+    // Trace the actual sides at each height, including bends in the authored sheet.
+    constexpr unsigned Samples = 40;
+    for (unsigned i = 0; i <= Samples; ++i) {
+        const float y = std::lerp(low.y, high.y, float(i) / Samples);
+        std::array<Point, 2> edge{};
+        float left = 1.0e9f, right = -left;
+        for (const auto& tri : sheet) {
+            for (unsigned j = 0; j < 3; ++j) {
+                const auto a = tri[j], b = tri[(j + 1) % 3];
+                if (a.y == b.y || y < std::min(a.y, b.y) || y > std::max(a.y, b.y)) continue;
+                const float t = (y - a.y) / (b.y - a.y);
+                const Point p{std::lerp(a.x, b.x, t), y, std::lerp(a.z, b.z, t)};
+                const float u = p.x * across.x + p.z * across.z;
+                if (u < left) { left = u; edge[0] = p; }
+                if (u > right) { right = u; edge[1] = p; }
+            }
+        }
+        if (left <= right) fall.edges.push_back(edge);
+    }
+    falls.push_back(std::move(fall));
 }
 
 void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls) {
@@ -287,6 +316,23 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera) {
             for (auto p : tri)
                 vertices.push_back({add(p, scale(outward, 1.6f)), p.x*fall->across.x + p.z*fall->across.z,
                                     (p.y-fall->bottom)/fall->height, 0.0f, 0.90f});
+        const float fringe_width = std::clamp(fall->width * 0.26f, 16.0f, 93.0f);
+        for (unsigned edge = 0; edge < 2; ++edge) {
+            const float side_sign = edge == 0 ? -1.0f : 1.0f;
+            auto fringe_vertex = [&](Point p, bool outer) {
+                const float level = std::clamp((p.y - fall->bottom) / fall->height, 0.0f, 1.0f);
+                const float width = fringe_width * std::lerp(1.0f, 0.36f, level);
+                const Point offset = scale(fall->across, side_sign * (outer ? width : -width * 0.25f));
+                return Vertex{add(add(p, offset), scale(outward, 2.2f)), outer ? 1.0f : 0.0f,
+                              float(edge), 3.0f, std::min(1.0f, (1.0f - level) * 8.0f)};
+            };
+            for (size_t j = 1; j < fall->edges.size(); ++j) {
+                const auto a = fall->edges[j - 1][edge], b = fall->edges[j][edge];
+                const auto inner_a = fringe_vertex(a, false), outer_a = fringe_vertex(a, true);
+                const auto inner_b = fringe_vertex(b, false), outer_b = fringe_vertex(b, true);
+                vertices.insert(vertices.end(), {inner_a, outer_a, inner_b, inner_b, outer_a, outer_b});
+            }
+        }
         const float scale_y = std::clamp(fall->height * 0.35f, 82.0f, 270.0f);
         const unsigned emitters = std::clamp(unsigned(fall->width / 130.0f) + 1, 2u, 13u);
         for (unsigned i = 0; i < emitters; ++i) {

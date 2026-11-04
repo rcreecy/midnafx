@@ -106,13 +106,15 @@ It follows the authored mesh, groups disconnected drops into separate impact
 zones, and adds downward-moving ribbons, turbulent foam, and rising mist.
 The overlay depth-tests against the opaque scene. Native water, particles,
 and collision still run. The Enhanced water switch controls the preview.
+An animated fringe follows both sides of each sheet, with thinner streaks
+peeling off the edges and more breakup near impact.
 
 Material matching covers explicit waterfall names plus the two identified
 Faron cascade materials. The Windows D3D12 preview was checked at Fishing
 Pond and during Faron's Midna cutscene. Other waterfall materials, GPU cost,
 and macOS gameplay remain unverified.
 
-![Fishing Pond waterfall impact](evidence/waterfalls-2026-11-04/pond.jpg)
+![Fishing Pond waterfall fringe and impact](evidence/waterfalls-2026-11-04/pond-fringe.jpg)
 
 `daObjWaterFall` is gameplay collision and flow logic; its `draw()` does not
 submit a model. Waterfall visuals therefore belong to stage geometry, another

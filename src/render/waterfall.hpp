@@ -13,6 +13,7 @@ using Triangle = std::array<Point, 3>;
 
 struct Fall {
     std::vector<Triangle> sheet;
+    std::vector<std::array<Point, 2>> edges;
     Point foot;
     Point across;
     float width;
