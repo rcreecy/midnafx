@@ -19,10 +19,11 @@ struct Fall {
     float width;
     float height;
     float bottom;
+    bool backlit;
 };
 
 void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls,
-             std::span<const Triangle> basin = {});
+             std::span<const Triangle> basin = {}, bool backlit = false);
 void initialize();
 void shutdown();
 struct FrameClip {

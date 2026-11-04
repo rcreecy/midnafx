@@ -65,21 +65,32 @@ fn noise(p: vec2f) -> f32 {
     return mix(mix(hash(cell), hash(cell + vec2f(1, 0)), u.x),
                mix(hash(cell + vec2f(0, 1)), hash(cell + vec2f(1, 1)), u.x), u.y);
 }
+
+fn sheet_flow(across: f32, y: f32, time: f32, footprint: vec2f) -> f32 {
+    // Slow lateral meander and long, overlapping packets with the same downward direction.
+    let bend = noise(vec2f(across * 0.007, (y + time * 410.0) * 0.00085));
+    let x = across + (bend - 0.5) * 24.0;
+    let broad = noise(vec2f(x * 0.0095, (y + time * 510.0) * 0.0021));
+    let ribbons = noise(vec2f(x * 0.031 + broad * 0.36, (y + time * 635.0) * 0.0044));
+    let filaments = noise(vec2f(x * 0.077, (y + time * 735.0) * 0.0065));
+    let ribbon_detail = 1.0 - smoothstep(0.37, 1.20, max(footprint.x * 0.031, footprint.y * 0.0044));
+    let fine_detail = 1.0 - smoothstep(0.30, 1.00, max(footprint.x * 0.077, footprint.y * 0.0065));
+    return smoothstep(0.16, 0.86, broad * 0.55 + mix(0.5, ribbons, ribbon_detail) * 0.37 +
+                      mix(0.5, filaments, fine_detail) * 0.08);
+}
 @fragment fn fs_main(in: Output) -> @location(0) vec4f {
     let uv = in.data.xy;
     let light = vec3f(scene.red, scene.green, scene.blue);
     let time = scene.time;
+    let footprint = fwidth(vec2f(uv.x, in.world.y));
     var alpha: f32;
     var tone: f32;
-    if (in.data.z < 0.5) {
-        // Positive time on world Y advects the detail downward.
-        let broad = noise(vec2f(uv.x * 0.041, (in.world.y + time * 315.0) * 0.012));
-        let ribbons = noise(vec2f(uv.x * 0.14 + broad * 1.5, (in.world.y + time * 430.0) * 0.026));
-        let droplets = noise(vec2f(uv.x * 0.29, (in.world.y + time * 560.0) * 0.055));
-        let surges = noise(vec2f(uv.x * 0.022, (in.world.y + time * 570.0) * 0.007));
-        let streak = smoothstep(0.24, 0.83, ribbons * 0.53 + droplets * 0.19 + surges * 0.28);
-        alpha = (0.13 + 0.64 * streak + 0.13 * broad) * smoothstep(0.0, 0.07, 1.0 - uv.y);
-        tone = 0.60 + 0.40 * streak;
+    let backlit = in.data.z > 8.5;
+    if (in.data.z < 0.5 || backlit) {
+        let streak = sheet_flow(uv.x, in.world.y, time, footprint);
+        let entry = smoothstep(0.0, 0.075, 1.0 - uv.y);
+        alpha = select(0.23 + 0.56 * streak, 0.69 - 0.08 * streak, backlit) * entry;
+        tone = select(0.67 + 0.41 * streak, 0.53 + 0.57 * streak, backlit);
     } else if (in.data.z < 1.5) {
         let radius = length(uv);
         let turbulence = noise(uv * 13.0 + vec2f(time * 0.9, time * 0.55));
@@ -88,7 +99,7 @@ fn noise(p: vec2f) -> f32 {
         tone = 0.91 + turbulence * 0.09;
     } else if (in.data.z > 7.5) {
         // The lower sheet loses streak contrast as it turns into aerated water.
-        let ribbons = noise(vec2f(uv.x * 0.081, (in.world.y + time * 390.0) * 0.014));
+        let ribbons = sheet_flow(uv.x, in.world.y, time, footprint);
         let churn = noise(in.world.xz * 0.013 + vec2f(0.0, in.world.y * 0.008 + time * 1.8));
         let aeration = 1.0 - smoothstep(0.05, 1.0, uv.y + (churn - 0.5) * 0.27);
         alpha = aeration * (0.53 + 0.27 * churn + 0.13 * ribbons);
@@ -124,11 +135,13 @@ fn noise(p: vec2f) -> f32 {
         let peaks = noise(vec2f(in.world.x * 0.010 + in.world.z * 0.013, time * 1.1));
         let height = uv.y / mix(0.58, 1.0, peaks);
         let radius = length(vec2f(uv.x, mix(uv.y, height, smoothstep(0.0, 0.40, uv.y))));
-        alpha = 1.0 - smoothstep(0.34, 0.97, radius + (billow - 0.5) * 0.36);
-        tone = 0.80 + billow * 0.24;
+        let interior = 1.0 - smoothstep(0.23, 1.0, radius);
+        let breakup = 1.0 + (billow - 0.5) * 0.26 * sin(3.141593 * interior);
+        alpha = interior * interior * (2.0 - interior) * breakup;
+        tone = 0.86 + billow * 0.15;
     }
-    let aerated = (in.data.z > 4.5 && in.data.z < 5.5) || in.data.z > 7.5;
-    let color = select(light, mix(light, vec3f(0.89, 0.95, 0.94), 0.40), aerated);
+    let aerated = (in.data.z > 4.5 && in.data.z < 5.5) || (in.data.z > 7.5 && !backlit);
+    let color = select(light, mix(light, vec3f(0.89, 0.95, 0.94), 0.40), aerated || backlit);
     return vec4f(color * tone, clamp(alpha * in.data.w, 0.0, 0.99));
 }
 )";
@@ -222,7 +235,7 @@ void encode(ModContext*, const GfxDrawContext* ctx, const void* payload, size_t 
 } // namespace
 
 static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>& falls,
-                              std::span<const Triangle> basin) {
+                              std::span<const Triangle> basin, bool backlit) {
     if (sheet.empty() || sheet.size() > 2048 || falls.size() >= 12) return;
     Point low = sheet[0][0], high = low;
     Point horizontal{};
@@ -279,7 +292,7 @@ static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>
         nearest = score;
         foot.y = (tri[0].y + tri[1].y + tri[2].y) / 3.0f;
     }
-    Fall fall{{sheet.begin(), sheet.end()}, {}, foot, across, width, height, low.y};
+    Fall fall{{sheet.begin(), sheet.end()}, {}, foot, across, width, height, low.y, backlit};
     // Trace the actual sides at each height, including bends in the authored sheet.
     constexpr unsigned Samples = 40;
     for (unsigned i = 0; i <= Samples; ++i) {
@@ -303,7 +316,7 @@ static void collect_component(std::span<const Triangle> sheet, std::vector<Fall>
 }
 
 void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls,
-             std::span<const Triangle> basin) {
+             std::span<const Triangle> basin, bool backlit) {
     if (sheet.empty() || sheet.size() > 2048) return;
     // Authoring often packs several disconnected tiers into one material.
     // Group coincident edges before estimating each impact line.
@@ -328,7 +341,7 @@ void collect(std::span<const Triangle> sheet, std::vector<Fall>& falls,
                 used[candidate] = true;
             }
         }
-        collect_component(component, falls, basin);
+        collect_component(component, falls, basin, backlit);
     }
 }
 
@@ -373,6 +386,13 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
         const Point outward = scale(face, side >= 0.0f ? 1.0f : -1.0f);
         const float scale_y = std::clamp(fall->height * 0.44f, 102.0f, 360.0f);
         const float contact_gap = std::clamp(fall->bottom - fall->foot.y, 0.0f, scale_y * 0.9f);
+        // Native additive lighting washes out early shading on the cave sheet.
+        if ((contact_clip != nullptr) == fall->backlit) {
+            for (const auto& tri : fall->sheet)
+                for (auto p : tri)
+                    vertices.push_back({add(p, scale(outward, 1.6f)), p.x*fall->across.x + p.z*fall->across.z,
+                                        (p.y-fall->bottom)/fall->height, fall->backlit ? 9.0f : 0.0f, 0.96f});
+        }
         if (contact_clip) {
             const float blend_height = scale_y * 2.25f + contact_gap;
             const float top = fall->foot.y + blend_height * 1.2f;
@@ -385,10 +405,6 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
             }
         }
         if (!contact_clip) {
-            for (const auto& tri : fall->sheet)
-                for (auto p : tri)
-                    vertices.push_back({add(p, scale(outward, 1.6f)), p.x*fall->across.x + p.z*fall->across.z,
-                                        (p.y-fall->bottom)/fall->height, 0.0f, 0.90f});
             const float fringe_width = std::clamp(fall->width * 0.26f, 16.0f, 93.0f);
             for (unsigned edge = 0; edge < 2; ++edge) {
                 const float side_sign = edge == 0 ? -1.0f : 1.0f;
@@ -468,12 +484,12 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                 }
                 // A low continuous core hides the join, with taller intermittent surges above it.
                 const auto core = add(foot, add(scale(outward, scale_y * 0.93f), {0, scale_y * 0.13f, 0}));
-                quad(core, scale(right, spacing * 0.95f + scale_y * 0.42f),
-                     scale(up, scale_y * 0.33f), 5.0f, 1.0f);
+                quad(core, scale(right, spacing * 1.32f + scale_y * 0.72f),
+                     scale(up, scale_y * 0.41f), 5.0f, 1.0f);
                 const auto skirt = add(foot, add(scale(outward, scale_y * 0.77f),
                                                 {0, scale_y * (0.18f + 0.47f * billow) + contact_gap * 0.48f, 0}));
-                quad(skirt, scale(right, spacing * 0.63f + scale_y * (0.23f + 0.29f * billow)),
-                     scale(up, scale_y * (0.26f + 0.64f * billow) + contact_gap * 0.48f),
+                quad(skirt, scale(right, spacing * 0.96f + scale_y * (0.31f + 0.39f * billow)),
+                     scale(up, scale_y * (0.33f + 0.73f * billow) + contact_gap * 0.48f),
                      5.0f, 0.37f + 0.49f * billow);
                 // Settling vapor travels along the pool, expands, and thins with age.
                 for (unsigned j = 0; j < 7 && puffs.size() < 2200; ++j) {
@@ -481,14 +497,14 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                     const float phase = vapor_seed + time * (0.17f + 0.04f * std::sin(vapor_seed));
                     const float age = phase - std::floor(phase);
                     const float angle = vapor_seed + std::floor(phase) * 2.39996f;
-                    const float travel = scale_y * (0.53f + 3.8f * age);
-                    const auto lateral = scale(fall->across, std::sin(angle) * travel * 0.88f);
+                    const float travel = scale_y * (0.53f + 4.7f * age);
+                    const auto lateral = scale(fall->across, std::sin(angle) * travel * 1.12f);
                     const auto forward = scale(outward, (0.40f + 0.60f * std::abs(std::cos(angle))) * travel);
                     const auto center = add(foot, add(add(lateral, forward),
                         add(scale(drift_wind, travel * 0.88f), {0, scale_y * (0.11f + 0.07f * (1.0f - age)), 0})));
                     const float fade = std::min(1.0f, age * 8.0f) * (1.0f - age);
-                    puffs.push_back({center, (scale_y * 0.62f + spacing * 0.30f) * (0.56f + age),
-                                     scale_y * (0.13f + age * 0.06f), 0.47f * fade, distance2(center), 6.0f});
+                    puffs.push_back({center, (scale_y * 0.87f + spacing * 0.34f) * (0.56f + age),
+                                     scale_y * (0.14f + age * 0.07f), 0.46f * fade, distance2(center), 6.0f});
                 }
                 continue;
             }

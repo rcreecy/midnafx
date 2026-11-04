@@ -124,6 +124,10 @@ Silhouette bends shed short-lived spray, and separate foam patches drift
 along the pool surface and dissolve.
 The lower falling sheet gradually takes on the contact mist's tint and
 turbulence, bridging the gap between the streaks and the impact cloud.
+Long downward-moving ribbons define the falling sheet. Fine streaks fade
+when their scale falls below the pixel footprint. The Lake Hylia cave draws
+its flow over the native additive layer so backlighting preserves visible
+motion. The base cloud and settling vapor spread wider with a gradual fade.
 Supported water now receives sky reflections and animated surface shading
 even where the opaque depth buffer has no underlying geometry.
 

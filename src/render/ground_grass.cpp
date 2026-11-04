@@ -509,7 +509,7 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
             }
             const auto count = cover.falls.size();
             waterfall::collect(sheet, cover.falls, cave ? std::span<const waterfall::Triangle>(basin) :
-                                                        std::span<const waterfall::Triangle>{});
+                                                        std::span<const waterfall::Triangle>{}, cave);
             for (size_t j = count; j < cover.falls.size(); ++j) {
                 const auto& fall = cover.falls[j];
                 char message[200];
