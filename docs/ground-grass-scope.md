@@ -2,7 +2,7 @@
 
 The Windows prototype renders short grass in Ordon room 0 using the original
 grass image for root color. It is enabled for unset settings and the Remaster
-profile. Use **Short grass (Ordon prototype)** or **Vanilla** to disable it.
+profile. Use **Ground cover (grass and pebbles)** or **Vanilla** to disable it.
 
 Greener texture samples grow more clumps with shorter blades. Brown
 and gray samples retain sparse blades. Stable terrain-space patches vary
@@ -21,6 +21,23 @@ with exit code zero. GPU duration and path coverage from other views remain
 unmeasured.
 
 ![Ordon short grass with irregular clumps](evidence/ground-grass-2026-11-03/scatter.jpg)
+
+## Gravel and pebbles
+
+The same ground cover pass adds small stones to Ordon room 0 dirt and path
+materials and Eldin Field rooms 7 and 9 gravel material. The mesh follows
+the terrain slope, samples color from the original material texture, and
+uses ambient light, Twilight tint, and fog. Path material gets a lower
+scatter rate than dirt or gravel. Steep triangles and transparent or green
+texture samples are excluded. The stones are decorative and add no collision.
+
+Windows D3D12 startup captures counted 44 visible pebbles in Ordon and 735
+and 892 in Eldin rooms 7 and 9 respectively. All three trials closed cleanly.
+Room transitions and GPU timing were outside this check.
+
+![Pebbles in Eldin Field](evidence/ground-grass-2026-11-03/eldin-gravel.jpg)
+
+## Grass prototype qualification
 
 The first prototype can use the Ordon room 0 terrain model
 `F_SP103/R00_00.arc!bmde/model.bmd`. The local asset catalog identifies
