@@ -26,7 +26,7 @@ struct Draw {
 };
 struct Puff {
     Point center;
-    float width, height, opacity, distance;
+    float width, height, opacity, distance, kind;
 };
 GfxDrawTypeHandle draw_type = 0;
 WGPURenderPipeline pipeline = nullptr;
@@ -75,9 +75,10 @@ fn noise(p: vec2f) -> f32 {
         let broad = noise(vec2f(uv.x * 0.041, (in.world.y + time * 315.0) * 0.012));
         let ribbons = noise(vec2f(uv.x * 0.14 + broad * 1.5, (in.world.y + time * 430.0) * 0.026));
         let droplets = noise(vec2f(uv.x * 0.29, (in.world.y + time * 560.0) * 0.055));
-        let streak = smoothstep(0.29, 0.87, ribbons * 0.70 + droplets * 0.30);
-        alpha = (0.10 + 0.49 * streak + 0.11 * broad) * smoothstep(0.0, 0.07, 1.0 - uv.y);
-        tone = 0.69 + 0.29 * streak;
+        let surges = noise(vec2f(uv.x * 0.022, (in.world.y + time * 570.0) * 0.007));
+        let streak = smoothstep(0.24, 0.83, ribbons * 0.53 + droplets * 0.19 + surges * 0.28);
+        alpha = (0.13 + 0.64 * streak + 0.13 * broad) * smoothstep(0.0, 0.07, 1.0 - uv.y);
+        tone = 0.60 + 0.40 * streak;
     } else if (in.data.z < 1.5) {
         let radius = length(uv);
         let turbulence = noise(uv * 13.0 + vec2f(time * 0.9, time * 0.55));
@@ -90,7 +91,7 @@ fn noise(p: vec2f) -> f32 {
         let radius = length(uv);
         alpha = (1.0 - smoothstep(0.12, 1.0, radius + 0.30 * (0.5 - billow))) * (0.54 + 0.46 * fine);
         tone = 0.86 + fine * 0.14;
-    } else {
+    } else if (in.data.z < 3.5) {
         let flow = in.world.y + time * 390.0;
         let breaks = noise(vec2f(uv.x * 4.2 + uv.y, flow * 0.026));
         let reach = 0.22 + 0.48 * noise(vec2f(uv.y * 2.3, flow * 0.013));
@@ -99,6 +100,10 @@ fn noise(p: vec2f) -> f32 {
                      smoothstep(reach * 0.7, reach, uv.x) * (1.0 - smoothstep(0.60, 1.0, uv.x));
         alpha = (fringe * 0.76 + thread * 0.47) * (1.0 - smoothstep(0.91, 1.0, uv.x));
         tone = 0.76 + 0.23 * breaks;
+    } else {
+        let radius = length(uv);
+        alpha = 1.0 - smoothstep(0.23, 1.0, radius);
+        tone = 1.14;
     }
     return vec4f(light * tone, clamp(alpha * in.data.w, 0.0, 0.85));
 }
@@ -333,29 +338,48 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera) {
                 vertices.insert(vertices.end(), {inner_a, outer_a, inner_b, inner_b, outer_a, outer_b});
             }
         }
-        const float scale_y = std::clamp(fall->height * 0.35f, 82.0f, 270.0f);
-        const unsigned emitters = std::clamp(unsigned(fall->width / 130.0f) + 1, 2u, 13u);
+        const float scale_y = std::clamp(fall->height * 0.44f, 102.0f, 360.0f);
+        const unsigned emitters = std::clamp(unsigned(fall->width / 105.0f) + 1, 3u, 15u);
         for (unsigned i = 0; i < emitters; ++i) {
             const float spacing = fall->width / emitters;
             const Point foot = add(fall->foot, scale(fall->across, (i + 0.5f - emitters * 0.5f) * spacing));
-            const Point impact = add(foot, add(scale(outward, scale_y * 0.67f), {0, 4, 0}));
-            quad(impact, scale(fall->across, spacing * 0.80f), scale(outward, scale_y * 0.92f), 1.0f, 0.79f);
-            for (unsigned j = 0; j < 7; ++j) {
+            const Point impact = add(foot, add(scale(outward, scale_y * 0.35f), {0, 7, 0}));
+            quad(impact, scale(fall->across, spacing * 1.03f), scale(outward, scale_y * 1.07f), 1.0f, 0.94f);
+            const auto skirt = add(impact, add(scale(outward, scale_y * 0.60f), {0, scale_y * 0.08f, 0}));
+            quad(skirt, scale(right, spacing * 0.98f + scale_y * 0.39f),
+                 scale(up, scale_y * 0.20f), 2.0f, 0.64f);
+            const auto veil = add(impact, {0, scale_y * 0.21f, 0});
+            quad(veil, scale(right, spacing * 0.85f + scale_y * 0.40f),
+                 scale(up, scale_y * 0.45f), 2.0f, 0.54f);
+            for (unsigned j = 0; j < 11 && puffs.size() < 2200; ++j) {
                 const float seed = float(i * 17 + j * 7) * 0.613f + fall->foot.x * 0.00073f;
                 const float phase = time * (0.43f + 0.07f * j) + seed;
                 const float age = phase - std::floor(phase);
-                const float fade = std::min(1.0f, age * 10.0f) * (1.0f-age);
+                const float fade = std::min(1.0f, age * 14.0f) * (1.0f-age*age);
                 const float drift = std::sin(seed + std::floor(phase) * 2.8f);
                 const auto center = add(impact, add(scale(fall->across, drift * spacing * (0.20f + age * 0.48f)),
-                    add(scale(outward, scale_y * age * 0.68f), {0, scale_y * (0.15f + age * 1.25f), 0})));
-                puffs.push_back({center, (spacing * 0.58f + scale_y * 0.29f) * (0.58f + age),
-                                 scale_y * (0.24f + age * 0.45f), fade * 0.77f, distance2(center)});
+                    add(scale(outward, scale_y * age * 0.85f), {0, scale_y * (0.08f + age * 1.18f), 0})));
+                puffs.push_back({center, (spacing * 0.61f + scale_y * 0.36f) * (0.63f + age),
+                                 scale_y * (0.28f + age * 0.49f), fade * 0.68f, distance2(center), 2.0f});
+            }
+            for (unsigned j = 0; j < 17 && puffs.size() < 2200; ++j) {
+                const float seed = i * 11.13f + j * 3.731f + fall->foot.z * 0.0017f;
+                const float phase = time * (1.2f + 0.29f * std::sin(seed)) + seed;
+                const float age = phase - std::floor(phase);
+                const float angle = seed + std::floor(phase) * 2.39996f;
+                const float flight = scale_y * age * (0.35f + 0.64f * std::abs(std::sin(angle)));
+                const float rise = scale_y * age * (1.15f - age) * (0.8f + 1.18f * std::abs(std::cos(angle)));
+                const auto center = add(impact, add(scale(fall->across, std::cos(angle) * flight),
+                    add(scale(outward, flight * (0.35f + 0.65f * std::abs(std::sin(angle)))), {0, rise + 9.0f, 0})));
+                const float radius = std::clamp(scale_y * (0.010f + 0.012f * std::abs(std::sin(seed))), 1.5f, 8.0f);
+                puffs.push_back({center, radius, radius * (1.5f + std::abs(1.0f-2.0f*age)),
+                                 0.93f * (1.0f - age*age), distance2(center), 4.0f});
             }
         }
     }
     std::sort(puffs.begin(), puffs.end(), [](const auto& a, const auto& b) { return a.distance > b.distance; });
     for (const auto& puff : puffs)
-        quad(puff.center, scale(right, puff.width), scale(up, puff.height), 2.0f, puff.opacity);
+        quad(puff.center, scale(right, puff.width), scale(up, puff.height), puff.kind, puff.opacity);
     if (vertices.empty()) return;
     Uniforms uniforms{};
     std::memcpy(uniforms.projection, camera.proj_from_world, sizeof(uniforms.projection));

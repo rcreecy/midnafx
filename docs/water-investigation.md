@@ -108,6 +108,9 @@ The overlay depth-tests against the opaque scene. Native water, particles,
 and collision still run. The Enhanced water switch controls the preview.
 An animated fringe follows both sides of each sheet, with thinner streaks
 peeling off the edges and more breakup near impact.
+The impact pass layers waterline vapor, rising billows, and arcing droplets
+over the foam. Lake Hylia's cave cascade comes from the separately loaded
+background object and now receives animated flow and impact spray.
 
 Material matching covers explicit waterfall names plus the two identified
 Faron cascade materials. The Windows D3D12 preview was checked at Fishing
@@ -115,6 +118,8 @@ Pond and during Faron's Midna cutscene. Other waterfall materials, GPU cost,
 and macOS gameplay remain unverified.
 
 ![Fishing Pond waterfall fringe and impact](evidence/waterfalls-2026-11-04/pond-fringe.jpg)
+![Fishing Pond waterfall with denser impact mist](evidence/waterfalls-2026-11-04/pond-impact.jpg)
+![Lake Hylia cave cascade](evidence/waterfalls-2026-11-04/cave-impact.jpg)
 
 `daObjWaterFall` is gameplay collision and flow logic; its `draw()` does not
 submit a model. Waterfall visuals therefore belong to stage geometry, another

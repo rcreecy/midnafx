@@ -27,6 +27,14 @@ GPU timing remain unverified.
 
 ## Ordon baseline
 
+The denser carpet pass raises the visible budget to 28,000 clumps and keeps
+greener terrain denser and wider than brown transitions. Narrower triangle
+insets reduce gaps between faces. Grass is grouped into tiles so distant
+roots can be skipped together. The Ordon Windows preview reached the
+28,000-clump budget at spawn and kept the main trail clear of grass.
+
+![Denser Ordon grass](evidence/ground-grass-2026-11-04/ordon-carpet.jpg)
+
 Greener texture samples grow more clumps with shorter blades. Brown
 and gray samples retain sparse blades. Stable terrain-space patches vary
 clump height and break up density in transitions. Each blade varies in

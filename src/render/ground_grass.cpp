@@ -11,6 +11,8 @@
 #include <JSystem/JUtility/JUTNameTab.h>
 #include <m_Do/m_Do_ext.h>
 #include <d/actor/d_a_bg.h>
+#include <d/actor/d_a_bg_obj.h>
+#include <d/actor/d_a_set_bgobj.h>
 #include <d/d_com_inf_game.h>
 #include <d/d_resorce.h>
 #include <f_op/f_op_actor_iter.h>
@@ -30,8 +32,8 @@
 namespace midnafx::render::ground_grass {
 namespace {
 using topology::Vec3;
-constexpr unsigned MaxRoots = 720000;
-constexpr unsigned MaxVisible = 18000;
+constexpr unsigned MaxRoots = 1100000;
+constexpr unsigned MaxVisible = 28000;
 constexpr unsigned MaxPebbles = 24000;
 constexpr float PebbleDistance = 1800.0f;
 constexpr unsigned BladesPerClump = 9;
@@ -39,6 +41,7 @@ constexpr unsigned VerticesPerClump = BladesPerClump * 3;
 constexpr float DrawDistance = 3400.0f;
 constexpr float PathMargin = 18.0f;
 constexpr float PathCell = 128.0f;
+constexpr float GrassTileSize = 512.0f;
 
 struct Root {
     Vec3 point;
@@ -68,10 +71,14 @@ GfxDrawTypeHandle draw_type = 0;
 WGPURenderPipeline pipeline = nullptr;
 std::uint64_t pipeline_layout = 0;
 bool pipeline_reversed = false;
+struct GrassTile {
+    float x, z;
+    std::vector<Root> roots;
+};
 struct RoomCover {
     const J3DModel* instance = nullptr;
     const J3DModelData* model = nullptr;
-    std::vector<Root> roots;
+    std::vector<GrassTile> grass_tiles;
     std::vector<Pebble> pebbles;
     std::vector<waterfall::Fall> falls;
 };
@@ -79,6 +86,12 @@ constexpr unsigned RoomSlots = 64;
 constexpr unsigned PartsPerRoom = 6;
 std::array<std::array<RoomCover, PartsPerRoom>, RoomSlots> room_cover;
 std::string cached_stage;
+struct ObjectFall {
+    RoomCover cover;
+    float transform[12]{};
+    bool present = false;
+};
+std::unordered_map<const J3DModel*, ObjectFall> object_falls;
 std::vector<Clump> clumps;
 bool frame_reported = false;
 
@@ -201,7 +214,7 @@ fn litter_vertex(index: u32, root: vec3f, shape: vec3f, surface: vec3f, color: v
     let variation = blade_variation(bitcast<u32>(shape.z) + index / 3u);
     let angle = shape.z + (blade + variation.x - 0.5) * (6.2831853 / blades_per_clump);
     let radial = vec2f(cos(angle), sin(angle));
-    let spread = shape.y * mix(0.25, 0.5, variation.y);
+    let spread = min(8.5, shape.y * mix(0.32, 0.66, variation.y));
     let width = shape.y * 0.10;
     var offset = radial * spread;
     var height = 0.5;
@@ -344,8 +357,9 @@ Cover classify(std::string_view material, std::string_view texture) {
     return Cover::None;
 }
 
-void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool animated, RoomCover& cover) {
-    auto& roots = cover.roots;
+void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool animated, RoomCover& cover,
+             const dRes_info_c* object_archive = nullptr) {
+    std::vector<Root> roots;
     auto& pebbles = cover.pebbles;
     const unsigned root_limit = ordon ? MaxRoots : part == 0 ? MaxRoots / 4 : MaxRoots / 16;
     auto& model = *instance.getModelData();
@@ -370,7 +384,7 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
 
     char archive[12];
     std::snprintf(archive, sizeof(archive), "R%02d_00", room);
-    const auto* info = dComIfG_getStageResInfo(archive);
+    const auto* info = object_archive ? object_archive : dComIfG_getStageResInfo(archive);
     const auto* raw = model.getRawData();
     if (!info || !info->mArchive || !raw) return;
     const auto size = info->mArchive->getExpandedResSize(raw);
@@ -386,7 +400,7 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
     const bool float_positions = data.getVtxPosType() == GX_F32;
     const unsigned pos_stride = float_positions ? 12 : 6;
     if (pos_count > 65536 || uv_count > 65536 || (!float_positions && data.getVtxPosType() != GX_S16) ||
-        data.getVtxArrStride(GX_VA_POS) != pos_stride || data.getVtxArrStride(GX_VA_TEX0) != 4 ||
+        data.getVtxArrStride(GX_VA_POS) != pos_stride ||
         !contains(data.getVtxPosArray(), pos_count * pos_stride))
         return;
 
@@ -409,9 +423,6 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
         if (float_positions) {
             float p[3];
             std::memcpy(p, packed + i * pos_stride, sizeof(p));
-            if (!std::all_of(std::begin(p), std::end(p), [](float v) {
-                    return std::isfinite(v) && std::abs(v) <= 1.0e7f;
-                })) return;
             positions[i] = {p[0], p[1], p[2]};
             continue;
         }
@@ -419,6 +430,13 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
         std::memcpy(p, packed + i * 6, sizeof(p));
         positions[i] = {p[0] * factor, p[1] * factor, p[2] * factor};
     }
+    // The native array count can include an alignment record at the end.
+    const auto valid_position = [](Vec3 p) {
+        const auto valid = [](float v) { return std::isfinite(v) && std::abs(v) <= 1.0e7f; };
+        return valid(p.x) && valid(p.y) && valid(p.z);
+    };
+    while (!positions.empty() && !valid_position(positions.back())) positions.pop_back();
+    if (positions.empty() || !std::all_of(positions.begin(), positions.end(), valid_position)) return;
     const auto* uv = static_cast<const std::byte*>(data.getVtxTexCoordArray(0));
     const float uv_scale = std::ldexp(1.0f, -uv_fraction);
     auto read_uv = [&](unsigned i) {
@@ -454,12 +472,16 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
             const auto name = lowercase(names->getName(material->getIndex()));
             const bool faron = cached_stage == "F_SP108" && room == 1 && part == 0 &&
                                (name == "cf_ma03_water02_v" || name == "cf_ma03_water02_v_x");
-            if (!faron && !has_any(name, {"_taki_", "_takikasan_", "_waterfall_", "_cascade_"})) continue;
+            const bool cave = object_archive && cached_stage == "F_SP115" && name == "ce_ma03_waterkasan_v_x";
+            if (!faron && !cave && !has_any(name, {"_taki_", "_takikasan_", "_waterfall_", "_cascade_"})) continue;
             const auto decoded = decode_shape(*shape);
-            if (!decoded.ok()) continue;
+            if (!decoded.ok()) {
+                if (cave) svc_log->warn(mod_ctx, decoded.error);
+                continue;
+            }
             std::vector<waterfall::Triangle> sheet;
             for (const auto& tri : decoded.triangles) {
-                if (std::abs(tri.face_normal.y) >= 0.83f) continue;
+                if (std::abs(tri.face_normal.y) >= (cave ? 0.94f : 0.83f)) continue;
                 const auto& c = tri.corners;
                 sheet.push_back({to_world(positions[c[0].position]), to_world(positions[c[1].position]),
                                  to_world(positions[c[2].position])});
@@ -592,13 +614,13 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
                 std::max({a.texcoord, b.texcoord, c.texcoord}) >= uv_count) continue;
             const auto p = positions[a.position], q = positions[b.position], r = positions[c.position];
             const float area = 0.5f * std::abs((q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x));
-            const unsigned count = unsigned(std::min(3600.0f, area / (ordon ? 60.0f : 95.0f) + random(rng)));
+            const unsigned count = unsigned(std::min(5200.0f, area / (ordon ? 32.0f : 52.0f) + random(rng)));
             for (unsigned j = 0; j < count; ++j) {
                 float u = random(rng), v = random(rng);
                 if (u + v > 1) { u = 1 - u; v = 1 - v; }
                 // Keep roots just inside the qualified surface.
-                u = 0.025f + u * 0.925f;
-                v = 0.025f + v * 0.925f;
+                u = 0.002f + u * 0.994f;
+                v = 0.002f + v * 0.994f;
                 const auto s = mix(p, mix(q, r, v / (u + v)), u + v);
                 if (on_path(s)) {
                     ++path_rejected;
@@ -612,13 +634,13 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
                 if (!ordon && !opaque) continue;
                 const float carpet = carpet_weight(color);
                 const float patch = scatter_patch(s);
-                const float coverage = std::lerp(0.015f, 1.0f, std::sqrt(carpet));
-                const float patch_density = std::lerp(0.25f, 1.0f, patch);
+                const float coverage = std::lerp(0.07f, 1.0f, std::sqrt(carpet));
+                const float patch_density = std::lerp(0.62f, 1.0f, patch);
                 if (random(rng) >= coverage * std::lerp(patch_density, 1.0f, carpet)) continue;
                 const Root root{world, color,
                                 (std::lerp(15.0f, 5.0f, carpet) + 7 * random(rng)) *
                                     std::lerp(0.85f, 1.2f, patch),
-                                std::lerp(2.0f, 12.0f, carpet) + 2 * random(rng),
+                                std::lerp(2.4f, 13.2f, carpet) + 2 * random(rng),
                                 6.283185f * random(rng)};
                 ++samples;
                 if (roots.size() < root_limit) roots.push_back(root);
@@ -628,6 +650,15 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool anima
                 }
             }
         }
+    }
+    // Keep distant tiles out of the per-frame root scan.
+    std::unordered_map<std::uint64_t, size_t> tile_indices;
+    for (const auto& root : roots) {
+        const int x = static_cast<int>(std::floor(root.point.x / GrassTileSize));
+        const int z = static_cast<int>(std::floor(root.point.z / GrassTileSize));
+        const auto [tile, inserted] = tile_indices.try_emplace(path_key(x, z), cover.grass_tiles.size());
+        if (inserted) cover.grass_tiles.push_back({x * GrassTileSize, z * GrassTileSize, {}});
+        cover.grass_tiles[tile->second].roots.push_back(root);
     }
     // Match authored ground materials. Overlay dirt gets fewer pebbles than base gravel.
     rng = 0x5f27b6u;
@@ -803,7 +834,41 @@ void encode(ModContext*, const GfxDrawContext* context, const void* payload, siz
 
 void clear_cover() {
     for (auto& room : room_cover) room = {};
+    object_falls.clear();
     cached_stage.clear();
+}
+
+void update_object_falls() {
+    if (cached_stage != "F_SP115" || !settings::enhanced_water_enabled()) return;
+    for (auto& [model, entry] : object_falls) entry.present = false;
+    (void)fopAcIt_Executor([](void* raw, void*) -> int {
+        if (!raw || fopAcM_GetName(raw) != fpcNm_BG_OBJ_e) return 0;
+        auto* actor = static_cast<daBgObj_c*>(raw);
+        if (actor->field_0xcc8 >= 2) return 0;
+        const int room = fopAcM_GetRoomNo(actor);
+        for (auto* instance : actor->field_0x5a8[actor->field_0xcc8]) {
+            auto* model = instance ? instance->getModelData() : nullptr;
+            if (!model) continue;
+            auto& entry = object_falls[instance];
+            entry.present = true;
+            const auto matrix = instance->getBaseTRMtx();
+            if (entry.cover.model == model && !std::memcmp(entry.transform, matrix, sizeof(entry.transform)))
+                continue;
+            entry.cover = {};
+            entry.cover.model = model;
+            std::memcpy(entry.transform, matrix, sizeof(entry.transform));
+            const auto* names = model->getMaterialName();
+            if (!names) continue;
+            bool cave = false;
+            for (u16 i = 0; i < model->getMaterialNum(); ++i)
+                if (!std::strcmp(names->getName(i), "ce_MA03_WaterKasan_v_x")) { cave = true; break; }
+            if (!cave) continue;
+            const auto* archive = dComIfG_getObjectResInfo(daSetBgObj_c::getArcName(actor));
+            if (archive) scatter(*instance, room, 0, false, true, entry.cover, archive);
+        }
+        return 0;
+    }, nullptr);
+    std::erase_if(object_falls, [](const auto& entry) { return !entry.second.present; });
 }
 
 void draw_waterfalls(ModContext*, const GfxStageContext* context, void*) {
@@ -812,6 +877,8 @@ void draw_waterfalls(ModContext*, const GfxStageContext* context, void*) {
     for (const auto& room : room_cover)
         for (const auto& part : room)
             for (const auto& fall : part.falls) falls.push_back(&fall);
+    for (const auto& [model, entry] : object_falls)
+        for (const auto& fall : entry.cover.falls) falls.push_back(&fall);
     if (falls.empty()) return;
     CameraInfo camera = CAMERA_INFO_INIT;
     if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) == MOD_OK)
@@ -861,6 +928,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
             built = true;
         }
     }
+    update_object_falls();
     if (!settings::ground_grass_enabled()) return;
     CameraInfo camera = CAMERA_INFO_INIT;
     if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) != MOD_OK) return;
@@ -881,20 +949,26 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
     };
     for (unsigned offset = 0; offset < RoomSlots && clumps.size() < MaxVisible; ++offset) {
         for (const auto& cover : room_cover[(first + offset) % RoomSlots]) {
-            for (const auto& root : cover.roots) {
+            for (const auto& tile : cover.grass_tiles) {
                 if (clumps.size() >= MaxVisible) break;
-                const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
-                const float dy = root.point.y - camera.eye[1];
-                const float distance2 = dx*dx + dy*dy + dz*dz;
-                if (distance2 >= DrawDistance * DrawDistance) continue;
-                const float distance = std::sqrt(distance2);
-                const float height = root.height * 1.25f * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
-                if (height < 1.0f) continue;
-                if (!visible(root.point)) continue;
-                const float haze = fog_weight(distance);
-                const Vec3 base = mix(scale(root.color, 0.88f), fog, haze);
-                const Vec3 tip = mix(root.color, fog, haze);
-                clumps.push_back({root.point, {height, root.width, root.angle}, base, tip});
+                const float x = std::clamp(camera.eye[0], tile.x, tile.x + GrassTileSize) - camera.eye[0];
+                const float z = std::clamp(camera.eye[2], tile.z, tile.z + GrassTileSize) - camera.eye[2];
+                if (x*x + z*z >= DrawDistance * DrawDistance) continue;
+                for (const auto& root : tile.roots) {
+                    if (clumps.size() >= MaxVisible) break;
+                    const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
+                    const float dy = root.point.y - camera.eye[1];
+                    const float distance2 = dx*dx + dy*dy + dz*dz;
+                    if (distance2 >= DrawDistance * DrawDistance) continue;
+                    const float distance = std::sqrt(distance2);
+                    const float height = root.height * 1.25f * std::clamp((DrawDistance - distance) / 450.0f, 0.0f, 1.0f);
+                    if (height < 1.0f) continue;
+                    if (!visible(root.point)) continue;
+                    const float haze = fog_weight(distance);
+                    const Vec3 base = mix(scale(root.color, 0.88f), fog, haze);
+                    const Vec3 tip = mix(root.color, fog, haze);
+                    clumps.push_back({root.point, {height, root.width, root.angle}, base, tip});
+                }
             }
         }
     }
