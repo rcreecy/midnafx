@@ -25,8 +25,8 @@
 namespace midnafx::render::ground_grass {
 namespace {
 using topology::Vec3;
-constexpr unsigned MaxRoots = 16000;
-constexpr unsigned MaxVisible = 4500;
+constexpr unsigned MaxRoots = 48000;
+constexpr unsigned MaxVisible = 6500;
 constexpr float DrawDistance = 3400.0f;
 
 struct Root {
@@ -90,6 +90,14 @@ Vec3 grass_color(const u8* image, float u, float v) {
     if (code < 2) return rgb565(code == 0 ? a : b);
     if (a <= b) return mix(rgb565(a), rgb565(b), 0.5f);
     return mix(rgb565(a), rgb565(b), float(code - 1) / 3);
+}
+
+float carpet_weight(Vec3 color) {
+    // Olive grass can have more red than green. Penalize red and blue
+    // together so brown and gray ground stays sparse.
+    const float green = color.y - 0.65f * color.x - 0.35f * color.z;
+    const float t = std::clamp((green + 0.035f) / 0.15f, 0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
 }
 
 float random(std::uint32_t& state) {
@@ -210,8 +218,13 @@ void scatter(J3DModel& instance) {
                     matrix[0][0]*s.x + matrix[0][1]*s.y + matrix[0][2]*s.z + matrix[0][3],
                     matrix[1][0]*s.x + matrix[1][1]*s.y + matrix[1][2]*s.z + matrix[1][3],
                     matrix[2][0]*s.x + matrix[2][1]*s.y + matrix[2][2]*s.z + matrix[2][3]};
-                const Root root{world, grass_color(image, tex.x, tex.y),
-                                10 + 16 * random(rng), 2 + 2 * random(rng), 6.283185f * random(rng)};
+                const auto color = grass_color(image, tex.x, tex.y);
+                const float carpet = carpet_weight(color);
+                if (random(rng) >= std::lerp(0.015f, 1.0f, carpet)) continue;
+                const Root root{world, color,
+                                std::lerp(15.0f, 8.0f, carpet) + 7 * random(rng),
+                                std::lerp(2.0f, 5.0f, carpet) + 2 * random(rng),
+                                6.283185f * random(rng)};
                 ++samples;
                 if (roots.size() < MaxRoots) roots.push_back(root);
                 else {
