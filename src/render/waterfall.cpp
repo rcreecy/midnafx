@@ -86,6 +86,13 @@ fn noise(p: vec2f) -> f32 {
         let rings = 0.5 + 0.5 * sin(22.0 * radius - time * 7.0 + turbulence * 2.5);
         alpha = (1.0 - smoothstep(0.24, 1.0, radius)) * (0.30 + 0.48 * turbulence + 0.22 * rings);
         tone = 0.91 + turbulence * 0.09;
+    } else if (in.data.z > 7.5) {
+        // The lower sheet loses streak contrast as it turns into aerated water.
+        let ribbons = noise(vec2f(uv.x * 0.081, (in.world.y + time * 390.0) * 0.014));
+        let churn = noise(in.world.xz * 0.013 + vec2f(0.0, in.world.y * 0.008 + time * 1.8));
+        let aeration = 1.0 - smoothstep(0.05, 1.0, uv.y + (churn - 0.5) * 0.27);
+        alpha = aeration * (0.53 + 0.27 * churn + 0.13 * ribbons);
+        tone = mix(0.78 + 0.29 * ribbons, 0.83 + 0.22 * churn, aeration);
     } else if (in.data.z > 6.5) {
         let patches = noise(uv * vec2f(4.3, 5.7) + in.world.xz * 0.009 + vec2f(time * 0.28, -time * 0.37));
         let lace = noise(uv * 12.0 + in.world.xz * 0.018);
@@ -120,8 +127,8 @@ fn noise(p: vec2f) -> f32 {
         alpha = 1.0 - smoothstep(0.34, 0.97, radius + (billow - 0.5) * 0.36);
         tone = 0.80 + billow * 0.24;
     }
-    let color = select(light, mix(light, vec3f(0.91, 0.94, 0.95), 0.36),
-                       in.data.z > 4.5 && in.data.z < 5.5);
+    let aerated = (in.data.z > 4.5 && in.data.z < 5.5) || in.data.z > 7.5;
+    let color = select(light, mix(light, vec3f(0.89, 0.95, 0.94), 0.40), aerated);
     return vec4f(color * tone, clamp(alpha * in.data.w, 0.0, 0.99));
 }
 )";
@@ -365,6 +372,18 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
         const float side = (camera.eye[0]-fall->foot.x)*face.x + (camera.eye[2]-fall->foot.z)*face.z;
         const Point outward = scale(face, side >= 0.0f ? 1.0f : -1.0f);
         const float scale_y = std::clamp(fall->height * 0.44f, 102.0f, 360.0f);
+        const float contact_gap = std::clamp(fall->bottom - fall->foot.y, 0.0f, scale_y * 0.9f);
+        if (contact_clip) {
+            const float blend_height = scale_y * 2.25f + contact_gap;
+            const float top = fall->foot.y + blend_height * 1.2f;
+            for (const auto& tri : fall->sheet) {
+                if (std::min({tri[0].y, tri[1].y, tri[2].y}) > top) continue;
+                for (const auto p : tri) {
+                    vertices.push_back({add(p, scale(outward, 2.4f)), p.x*fall->across.x + p.z*fall->across.z,
+                                        (p.y - fall->foot.y) / blend_height, 8.0f, 1.0f});
+                }
+            }
+        }
         if (!contact_clip) {
             for (const auto& tri : fall->sheet)
                 for (auto p : tri)
@@ -451,10 +470,11 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
                 const auto core = add(foot, add(scale(outward, scale_y * 0.93f), {0, scale_y * 0.13f, 0}));
                 quad(core, scale(right, spacing * 0.95f + scale_y * 0.42f),
                      scale(up, scale_y * 0.33f), 5.0f, 1.0f);
-                const auto skirt = add(foot, add(scale(outward, scale_y * 0.93f),
-                                                {0, scale_y * (0.18f + 0.47f * billow), 0}));
+                const auto skirt = add(foot, add(scale(outward, scale_y * 0.77f),
+                                                {0, scale_y * (0.18f + 0.47f * billow) + contact_gap * 0.48f, 0}));
                 quad(skirt, scale(right, spacing * 0.63f + scale_y * (0.23f + 0.29f * billow)),
-                     scale(up, scale_y * (0.26f + 0.64f * billow)), 5.0f, 0.37f + 0.49f * billow);
+                     scale(up, scale_y * (0.26f + 0.64f * billow) + contact_gap * 0.48f),
+                     5.0f, 0.37f + 0.49f * billow);
                 // Settling vapor travels along the pool, expands, and thins with age.
                 for (unsigned j = 0; j < 7 && puffs.size() < 2200; ++j) {
                     const float vapor_seed = i * 2.793f + j * 1.173f + fall->foot.z * 0.0019f;

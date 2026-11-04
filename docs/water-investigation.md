@@ -122,6 +122,8 @@ using the mod's existing mesh samples and procedural particles.
 The contact mist has a low continuous core under independently timed surges.
 Silhouette bends shed short-lived spray, and separate foam patches drift
 along the pool surface and dissolve.
+The lower falling sheet gradually takes on the contact mist's tint and
+turbulence, bridging the gap between the streaks and the impact cloud.
 Supported water now receives sky reflections and animated surface shading
 even where the opaque depth buffer has no underlying geometry.
 
