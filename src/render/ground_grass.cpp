@@ -1,4 +1,5 @@
 #include "ground_grass.hpp"
+#include "waterfall.hpp"
 #include "game/topology.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -62,6 +63,7 @@ struct Draw {
 };
 
 GfxStageHookHandle stage_hook = 0;
+GfxStageHookHandle waterfall_hook = 0;
 GfxDrawTypeHandle draw_type = 0;
 WGPURenderPipeline pipeline = nullptr;
 std::uint64_t pipeline_layout = 0;
@@ -71,6 +73,7 @@ struct RoomCover {
     const J3DModelData* model = nullptr;
     std::vector<Root> roots;
     std::vector<Pebble> pebbles;
+    std::vector<waterfall::Fall> falls;
 };
 constexpr unsigned RoomSlots = 64;
 constexpr unsigned PartsPerRoom = 6;
@@ -341,7 +344,7 @@ Cover classify(std::string_view material, std::string_view texture) {
     return Cover::None;
 }
 
-void scatter(J3DModel& instance, int room, unsigned part, bool ordon, RoomCover& cover) {
+void scatter(J3DModel& instance, int room, unsigned part, bool ordon, bool animated, RoomCover& cover) {
     auto& roots = cover.roots;
     auto& pebbles = cover.pebbles;
     const unsigned root_limit = ordon ? MaxRoots : part == 0 ? MaxRoots / 4 : MaxRoots / 16;
@@ -384,8 +387,7 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, RoomCover&
     const unsigned pos_stride = float_positions ? 12 : 6;
     if (pos_count > 65536 || uv_count > 65536 || (!float_positions && data.getVtxPosType() != GX_S16) ||
         data.getVtxArrStride(GX_VA_POS) != pos_stride || data.getVtxArrStride(GX_VA_TEX0) != 4 ||
-        !contains(data.getVtxPosArray(), pos_count * pos_stride) ||
-        !contains(data.getVtxTexCoordArray(0), uv_count * 4))
+        !contains(data.getVtxPosArray(), pos_count * pos_stride))
         return;
 
     std::vector<topology::Format> formats;
@@ -398,7 +400,7 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, RoomCover&
             if (fmt[i].cnt == GX_TEX_ST && fmt[i].type == GX_S16 && fmt[i].frac <= 15)
                 uv_fraction = fmt[i].frac;
     }
-    if (uv_fraction < 0) return;
+
     if (uv_fraction != 9 || !contains(grass_image, 32768)) grass = nullptr;
     std::vector<Vec3> positions(pos_count);
     const float factor = std::ldexp(1.0f, -int(data.getVtxPosFrac()));
@@ -443,6 +445,40 @@ void scatter(J3DModel& instance, int room, unsigned part, bool ordon, RoomCover&
         const topology::Shape input{attributes, groups, shape.getMaterial()->getIndex(), true};
         return topology::decode({&input, 1}, formats, positions, data.getNrmNum());
     };
+
+    if (settings::enhanced_water_enabled()) {
+        for (u16 i = 0; i < model.getShapeNum(); ++i) {
+            auto* shape = model.getShapeNodePointer(i);
+            auto* material = shape ? shape->getMaterial() : nullptr;
+            if (!material || !shape->getVtxDesc()) continue;
+            const auto name = lowercase(names->getName(material->getIndex()));
+            const bool faron = cached_stage == "F_SP108" && room == 1 && part == 0 &&
+                               (name == "cf_ma03_water02_v" || name == "cf_ma03_water02_v_x");
+            if (!faron && !has_any(name, {"_taki_", "_takikasan_", "_waterfall_", "_cascade_"})) continue;
+            const auto decoded = decode_shape(*shape);
+            if (!decoded.ok()) continue;
+            std::vector<waterfall::Triangle> sheet;
+            for (const auto& tri : decoded.triangles) {
+                if (std::abs(tri.face_normal.y) >= 0.83f) continue;
+                const auto& c = tri.corners;
+                sheet.push_back({to_world(positions[c[0].position]), to_world(positions[c[1].position]),
+                                 to_world(positions[c[2].position])});
+            }
+            const auto count = cover.falls.size();
+            waterfall::collect(sheet, cover.falls);
+            for (size_t j = count; j < cover.falls.size(); ++j) {
+                const auto& fall = cover.falls[j];
+                char message[200];
+                std::snprintf(message, sizeof(message),
+                              "Waterfall: %s room %d part %u %s, %zu faces, %.0f x %.0f, foot %.0f %.0f %.0f",
+                              cached_stage.c_str(), room, part, name.c_str(), fall.sheet.size(), fall.width, fall.height,
+                              fall.foot.x, fall.foot.y, fall.foot.z);
+                svc_log->info(mod_ctx, message);
+            }
+        }
+    }
+    if (!settings::ground_grass_enabled() || animated || uv_fraction < 0 ||
+        data.getVtxArrStride(GX_VA_TEX0) != 4 || !contains(uv, uv_count * 4)) return;
 
     struct Surface {
         Cover kind = Cover::None;
@@ -770,15 +806,31 @@ void clear_cover() {
     cached_stage.clear();
 }
 
+void draw_waterfalls(ModContext*, const GfxStageContext* context, void*) {
+    if (!context || !context->game_view || !settings::enhanced_water_enabled()) return;
+    std::vector<const waterfall::Fall*> falls;
+    for (const auto& room : room_cover)
+        for (const auto& part : room)
+            for (const auto& fall : part.falls) falls.push_back(&fall);
+    if (falls.empty()) return;
+    CameraInfo camera = CAMERA_INFO_INIT;
+    if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) == MOD_OK)
+        waterfall::draw(falls, camera);
+}
+
 void stage(ModContext*, const GfxStageContext* context, void*) {
     const auto* scene = dComIfGp_getStartStageName();
-    if (!settings::ground_grass_enabled() || !context || !context->game_view || !scene) return;
+    if (!context || !context->game_view || !scene) return;
     if (cached_stage != scene) {
         clear_cover();
         cached_stage = scene;
     }
     const int stay = dComIfGp_roomControl_getStayNo();
-    std::array<std::array<J3DModel*, PartsPerRoom>, RoomSlots> models{};
+    struct BackgroundPart {
+        J3DModel* model = nullptr;
+        bool animated = false;
+    };
+    std::array<std::array<BackgroundPart, PartsPerRoom>, RoomSlots> models{};
     (void)fopAcIt_Executor([](void* raw, void* output) -> int {
         if (!raw || fopAcM_GetName(raw) != fpcNm_BG_e) return 0;
         auto* actor = static_cast<daBg_c*>(raw);
@@ -786,7 +838,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         if (room >= 0 && room < int(RoomSlots) && dComIfGp_roomControl_checkStatusFlag(room, 0x10)) {
             auto& parts = (*static_cast<decltype(models)*>(output))[room];
             for (unsigned part = 0; part < PartsPerRoom; ++part)
-                if (part == 0 || !actor->mBgParts[part].btk) parts[part] = actor->mBgParts[part].model;
+                parts[part] = {actor->mBgParts[part].model, part != 0 && actor->mBgParts[part].btk};
         }
         return 0;
     }, &models);
@@ -796,7 +848,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         const unsigned id = (first + offset) % RoomSlots;
         for (unsigned part = 0; part < PartsPerRoom; ++part) {
             auto& cover = room_cover[id][part];
-            auto* instance = models[id][part];
+            auto* instance = models[id][part].model;
             auto* model = instance ? instance->getModelData() : nullptr;
             if (cover.instance == instance && cover.model == model) continue;
             cover = {};
@@ -804,10 +856,12 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
             cover.instance = instance;
             cover.model = model;
             frame_reported = false;
-            scatter(*instance, int(id), part, part == 0 && id == 0 && cached_stage == "F_SP103", cover);
+            scatter(*instance, int(id), part, part == 0 && id == 0 && cached_stage == "F_SP103",
+                    models[id][part].animated, cover);
             built = true;
         }
     }
+    if (!settings::ground_grass_enabled()) return;
     CameraInfo camera = CAMERA_INFO_INIT;
     if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) != MOD_OK) return;
     clumps.clear();
@@ -894,6 +948,7 @@ void initialize() {
         svc_log->warn(mod_ctx, "Ground cover: graphics or camera service unavailable");
         return;
     }
+    waterfall::initialize();
     GfxDrawTypeDesc draw = GFX_DRAW_TYPE_DESC_INIT;
     draw.label = "MidnaFX ground cover";
     draw.draw = encode;
@@ -903,12 +958,27 @@ void initialize() {
 
 void update() {
     if (!draw_type) return;
-    const bool wanted = settings::ground_grass_enabled();
+    static bool was_ground = false, was_water = false;
+    const bool ground = settings::ground_grass_enabled();
+    const bool water = settings::enhanced_water_enabled();
+    if (ground != was_ground || water != was_water) {
+        clear_cover();
+        was_ground = ground;
+        was_water = water;
+    }
+    if (water && !waterfall_hook) {
+        GfxStageHookDesc hook = GFX_STAGE_HOOK_DESC_INIT;
+        hook.callback = draw_waterfalls;
+        (void)svc_gfx->register_stage_hook(mod_ctx, GFX_STAGE_SCENE_AFTER_OPAQUE, &hook, &waterfall_hook);
+    } else if (!water && waterfall_hook) {
+        svc_gfx->unregister_stage_hook(mod_ctx, waterfall_hook);
+        waterfall_hook = 0;
+    }
+    const bool wanted = ground || water;
     if (wanted == (stage_hook != 0)) return;
     if (!wanted) {
         svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
         stage_hook = 0;
-        clear_cover();
         return;
     }
     GfxStageHookDesc hook = GFX_STAGE_HOOK_DESC_INIT;
@@ -922,7 +992,9 @@ void update() {
 void shutdown() {
     if (stage_hook) svc_gfx->unregister_stage_hook(mod_ctx, stage_hook);
     if (draw_type) svc_gfx->unregister_draw_type(mod_ctx, draw_type);
-    stage_hook = draw_type = 0;
+    if (waterfall_hook) svc_gfx->unregister_stage_hook(mod_ctx, waterfall_hook);
+    waterfall::shutdown();
+    stage_hook = waterfall_hook = draw_type = 0;
     if (pipeline) wgpuRenderPipelineRelease(pipeline);
     pipeline = nullptr;
     clear_cover();

@@ -101,6 +101,19 @@ shallow-water candidates.
 
 ### Waterfalls, particles, and underwater presentation
 
+The waterfall preview adds a separate world-space overlay for falling water.
+It follows the authored mesh, groups disconnected drops into separate impact
+zones, and adds downward-moving ribbons, turbulent foam, and rising mist.
+The overlay depth-tests against the opaque scene. Native water, particles,
+and collision still run. The Enhanced water switch controls the preview.
+
+Material matching covers explicit waterfall names plus the two identified
+Faron cascade materials. The Windows D3D12 preview was checked at Fishing
+Pond and during Faron's Midna cutscene. Other waterfall materials, GPU cost,
+and macOS gameplay remain unverified.
+
+![Fishing Pond waterfall impact](evidence/waterfalls-2026-11-04/pond.jpg)
+
 `daObjWaterFall` is gameplay collision and flow logic; its `draw()` does not
 submit a model. Waterfall visuals therefore belong to stage geometry, another
 actor, or particles and cannot be classified from this actor alone.
