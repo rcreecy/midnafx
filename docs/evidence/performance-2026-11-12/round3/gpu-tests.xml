@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Win32-MSBuild"
+	tests="2"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="cmdcntr"
+	time="0"
+	timestamp="2026-11-12T12:40:38"
+	>
+	<testcase name="grass_assembly" classname="grass_assembly" time="0.0285025" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="immutable_instances" classname="immutable_instances" time="0.326107" status="run">
+		<properties/>
+		<system-out>Adapter: Intel(R) UHD Graphics 630 backend=4
+Immutable GPU bytes and post-encoding retirement: PASS
+Warmup, changing frames, backpressure, unsupported data, reload and shutdown: PASS
+</system-out>
+	</testcase>
+</testsuite>

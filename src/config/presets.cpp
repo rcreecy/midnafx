@@ -186,13 +186,14 @@ Snapshot vanilla_plus() {
 }
 Snapshot enhanced() {
     auto result = vivid_realism();
-    // Geometry and DOF remain explicit opt-ins until broad art validation.
+    // Enhanced keeps its lightweight feature set; Remaster adds model shading.
     result.product_flags = Grading | Camera;
     return result;
 }
 Snapshot remaster() {
     auto result = enhanced();
-    result.product_flags |= SkinnedGeometry | MovementCamera | MotionClarity;
+    result.values = {10, 0, 102, 105, 112, 25, 8, -2};
+    result.product_flags |= Geometry | SkinnedGeometry | MovementCamera | MotionClarity;
     result.scene_flags = AmbientOcclusion | AntiAliasing | Water | Atmosphere | AdaptiveExposure | Bloom | ContactShadows | ColorBounce | WaterSceneReflections | SunlightShafts | LocalLights | MaterialRelighting | GroundGrass;
     return result;
 }

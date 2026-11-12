@@ -65,7 +65,7 @@ struct Qualification {
 const char* label(Class classification);
 Qualification qualify(const topology::Result& mesh, std::span<const topology::Vec3> positions,
                       std::span<const topology::Vec3> originals, Representation representation,
-                      Options options = {});
+                      Options options = {}, std::span<const std::uint16_t> protected_indices = {});
 topology::Vec3 decode_s16_xyz(const std::int16_t values[3], unsigned fraction_bits);
 bool encode_s16_xyz(topology::Vec3 normal, unsigned fraction_bits, std::int16_t values[3]);
 

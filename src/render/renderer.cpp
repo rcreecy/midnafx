@@ -6,6 +6,7 @@
 #include "config/visual.hpp"
 #include "game/camera_probe.hpp"
 #include "game/water_probe.hpp"
+#include "game/wind.hpp"
 #include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -78,7 +79,8 @@ struct WaterUniforms {
     float reflection_strength;
     float scene_reflections, reflection_range, reflection_padding;
     float shoreline_strength;
-    float shoreline_padding[3];
+    float caustic_strength;
+    float shoreline_padding[2];
     float light_position[4];
     float specular_strength;
     float specular_padding[3];
@@ -162,7 +164,6 @@ std::uint32_t depth_view_warned_kind = PipelineCount;
 std::uint32_t depth_view_logged_kind = PipelineCount;
 std::chrono::steady_clock::time_point next_init_retry{};
 std::chrono::steady_clock::time_point next_layout_retry{};
-std::chrono::steady_clock::time_point water_animation_start{};
 
 struct ScopeResult {
     bool complete = false;
@@ -632,10 +633,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
                                                   : settings::atmosphere_depth_distance();
         uniforms.background_depth = device.uses_reversed_z ? 0.0f : 1.0f;
         uniforms.absorption_strength = settings::water_absorption_strength();
-        uniforms.animation_time = std::fmod(
-            std::chrono::duration<float>(std::chrono::steady_clock::now() - water_animation_start)
-                .count(),
-            4096.0f);
+        uniforms.animation_time = wind::sample()[3];
         const float shallow[4]{0.26f, 0.34f, 0.30f, 1.0f};
         const float deep[4]{0.07f, 0.14f, 0.16f, 1.0f};
         std::memcpy(uniforms.shallow_tint, shallow, sizeof(shallow));
@@ -661,6 +659,7 @@ void stage(ModContext*, const GfxStageContext* stage_ctx, void*) {
         uniforms.reflection_range = 1500.0f;
         uniforms.shoreline_strength =
             water_absorption ? settings::water_shoreline_strength() : 0.0f;
+        uniforms.caustic_strength = std::min(1.0f, uniforms.shoreline_strength * 3.0f);
         float light_position[3]{};
         water_environment_light =
             water_absorption && water_probe::latest_environment_light(light_position);
@@ -966,7 +965,6 @@ void initialize() {
     pre_water_capture_logged = false;
     water_thickness_logged = false;
     water_absorption_logged = false;
-    water_animation_start = std::chrono::steady_clock::now();
     depth_view_warned_kind = PipelineCount;
     depth_view_logged_kind = PipelineCount;
     next_init_retry = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);

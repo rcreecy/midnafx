@@ -1,4 +1,5 @@
 #include "ambient_occlusion.hpp"
+#include "ground_grass.hpp"
 #include "gpu_validation.hpp"
 #include "sunlight_shafts_state.hpp"
 #include "atmosphere_light_state.hpp"
@@ -7,6 +8,10 @@
 #include "services.hpp"
 #include "ui/settings.hpp"
 #include "game/water_probe.hpp"
+#include "game/wind.hpp"
+#include "game/terrain_interaction.hpp"
+#include <d/d_bg_s_gnd_chk.h>
+#include <d/d_bg_s_wtr_chk.h>
 #include <f_op/f_op_view.h>
 #include <helpers/gx_helper.h>
 #include <m_Do/m_Do_graphic.h>
@@ -20,10 +25,15 @@
 #include <cstring>
 #include <memory>
 #include <iterator>
+#include <string>
+#include <string_view>
 #include <vector>
 
 namespace midnafx::render::ambient_occlusion {
 namespace {
+constexpr int FogGridSide = 12;
+constexpr float FogCellSize = 320.0f;
+using FogCell = std::array<float, 4>; // Surface height, water proximity, shelter, validity.
 struct Uniforms {
     float view_from_proj[16];
     float radius, strength, projection_y, background_depth;
@@ -41,8 +51,95 @@ struct Uniforms {
     float local_distance[4][4];
     float fog_light_direction[4];
     float fog_light_color[4];
+    float fog_world_from_view[16];
+    float fog_grid[4];
+    float fog_wind[4];
+    std::array<FogCell, FogGridSide * FogGridSide> fog_cells;
+    std::array<FogCell, 6> wet_spray;
+    float wet_light[4];
+    terrain_interaction::Sources fog_actors;
 };
-static_assert(sizeof(Uniforms) == 496);
+static_assert(sizeof(Uniforms) == 3040);
+
+void prepare_ground_fog(Uniforms& uniforms, const CameraInfo& camera) {
+    if (!std::all_of(std::begin(camera.world_from_view), std::end(camera.world_from_view),
+                     [](float v) { return std::isfinite(v); }) ||
+        !std::all_of(std::begin(camera.eye), std::end(camera.eye),
+                     [](float v) { return std::isfinite(v) && std::abs(v) < 1e7f; })) return;
+    const auto snap = [](float value) {
+        return std::floor(value / (2 * FogCellSize)) * (2 * FogCellSize);
+    };
+    const float x0 = snap(camera.eye[0]) - (FogGridSide / 2 - 1) * FogCellSize;
+    const float z0 = snap(camera.eye[2]) - (FogGridSide / 2 - 1) * FogCellSize;
+    const float top = snap(camera.eye[1]) + 2 * FogCellSize;
+    const int room = dComIfGp_roomControl_getStayNo();
+    const auto* stage_name = dComIfGp_getStartStageName();
+    if (!stage_name || !*stage_name || room < 0) return;
+    const std::string_view stage = stage_name;
+    struct Cache {
+        std::string stage;
+        int room = -1;
+        float x = 0, z = 0, top = 0;
+        std::array<FogCell, FogGridSide * FogGridSide> cells{};
+    };
+    static Cache cache;
+    if (cache.stage != stage || cache.room != room || cache.x != x0 || cache.z != z0 || cache.top != top) {
+        const bool new_room = cache.stage != stage || cache.room != room;
+        cache = {std::string(stage), room, x0, z0, top};
+        auto& background = dComIfG_Bgsp();
+        for (int z = 0; z < FogGridSide; ++z) {
+            for (int x = 0; x < FogGridSide; ++x) {
+                cXyz probe(x0 + x * FogCellSize, top, z0 + z * FogCellSize);
+                dBgS_ObjGndChk ground;
+                ground.SetPos(&probe);
+                const float floor = background.GroundCross(&ground);
+                const bool dry_floor = std::isfinite(floor) && floor > top - 4200.0f;
+                probe.y = dry_floor ? floor - 8.0f : top - 4200.0f;
+                dBgS_WtrChk water;
+                water.Set(probe, top);
+                auto& cell = cache.cells[z * FogGridSide + x];
+                if (background.WaterChk(&water) && std::isfinite(water.GetHeight()) &&
+                    water.GetHeight() >= probe.y && water.GetHeight() <= top) {
+                    cell = {water.GetHeight(), 1, 0, 1};
+                } else if (dry_floor) {
+                    cell = {floor, 0, 0, 1};
+                }
+            }
+        }
+        for (int z = 1; z < FogGridSide - 1; ++z) {
+            for (int x = 1; x < FogGridSide - 1; ++x) {
+                const int i = z * FogGridSide + x;
+                auto& cell = cache.cells[i];
+                if (!cell[3] || cell[1]) continue;
+                float enclosing = 0;
+                for (int offset : {-1, 1, -FogGridSide, FogGridSide}) {
+                    const auto& neighbor = cache.cells[i + offset];
+                    if (neighbor[3]) enclosing += std::clamp(neighbor[0] - cell[0], 0.0f, 240.0f);
+                }
+                cell[2] = std::clamp(enclosing / 460.0f, 0.0f, 1.0f);
+            }
+        }
+        if (new_room && svc_log) {
+            const auto wet = std::count_if(cache.cells.begin(), cache.cells.end(),
+                                           [](const FogCell& cell) { return cell[1] > 0; });
+            const auto sheltered = std::count_if(cache.cells.begin(), cache.cells.end(),
+                                                 [](const FogCell& cell) { return cell[2] > 0.25f; });
+            char message[128];
+            std::snprintf(message, sizeof(message), "Terrain fog %s room %d: %d water cells, %d sheltered cells",
+                          stage_name, room, static_cast<int>(wet), static_cast<int>(sheltered));
+            svc_log->info(mod_ctx, message);
+        }
+    }
+    std::memcpy(uniforms.fog_world_from_view, camera.world_from_view, sizeof(uniforms.fog_world_from_view));
+    uniforms.fog_grid[0] = x0;
+    uniforms.fog_grid[1] = z0;
+    uniforms.fog_grid[2] = 1.0f / FogCellSize;
+    uniforms.fog_grid[3] = 1.0f;
+    const auto breeze = wind::sample();
+    std::copy(breeze.begin(), breeze.end(), uniforms.fog_wind);
+    uniforms.fog_cells = cache.cells;
+    uniforms.fog_actors = terrain_interaction::sample();
+}
 struct Pipeline {
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     WGPURenderPipeline pipeline = nullptr;
@@ -97,6 +194,7 @@ bool local_logged = false;
 bool lantern_logged = false;
 bool atmosphere_logged = false;
 bool sunlit_logged = false;
+bool canopy_logged = false;
 bool sunlight_logged = false;
 bool submitted = false;
 
@@ -300,13 +398,16 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         !dKy_darkworld_check() && !g_env_light.hide_vrbox && g_env_light.mSunInitialized &&
         sun && dKy_Outdoor_check() ? settings::sunlight_shafts_strength() : 0.0f;
     const float fog_near = std::max(g_env_light.mFogNear, 0.0f);
-    const bool atmosphere_available = settings::atmosphere_enabled() &&
-        settings::atmosphere_strength() > 0 && dComIfGp_getPlayer(0) && !dComIfGp_isPauseFlag() &&
-        !dKy_camera_water_in_status_check() && std::isfinite(g_env_light.mFogNear) &&
-        std::isfinite(g_env_light.mFogFar) && g_env_light.mFogFar > fog_near + 1;
-    const float haze = settings::atmosphere_enabled() && atmosphere_available
-                           ? settings::atmosphere_strength() : 0.0f;
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && haze <= 0 && shafts <= 0) return;
+    const float mist = settings::atmosphere_enabled() && dComIfGp_getPlayer(0) &&
+        !dComIfGp_isPauseFlag() && !dKy_camera_water_in_status_check()
+        ? settings::atmosphere_strength() : 0.0f;
+    const float haze = std::isfinite(g_env_light.mFogNear) && std::isfinite(g_env_light.mFogFar) &&
+        g_env_light.mFogFar > fog_near + 1 ? mist : 0.0f;
+    const float wetness = settings::enhanced_water_enabled() && dComIfGp_getPlayer(0) &&
+        !dComIfGp_isPauseFlag() && !dKy_camera_water_in_status_check()
+        ? std::min(1.0f, 3.0f * settings::water_shoreline_strength()) : 0.0f;
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && mist <= 0 && shafts <= 0 &&
+        wetness <= 0) return;
     // Camera reconstruction currently supports one full native world viewport.
     const auto* viewport = static_cast<const view_port_class*>(context->game_viewport);
     if (!viewport || viewport->x_orig != 0 || viewport->y_orig != 0 ||
@@ -379,10 +480,10 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         shafts = sunlight.screen[2];
     }
     atmosphere_light::Source atmosphere_sun;
-    if (haze > 0 && !dKy_darkworld_check() && !g_env_light.hide_vrbox &&
+    if ((haze > 0 || shadows > 0) && !dKy_darkworld_check() && (!g_env_light.hide_vrbox || shadows > 0) &&
         g_env_light.mSunInitialized && sun && dKy_Outdoor_check() &&
         g_env_light.mColpatWeather == 0 && g_env_light.mSnowCount <= 10 &&
-        !dComIfGp_event_runCheck()) {
+        (!dComIfGp_event_runCheck() || shadows > 0)) {
         const float world[]{sun->mPos[0].x, sun->mPos[0].y, sun->mPos[0].z};
         const float color[]{sun->mColor.r / 255.0f, sun->mColor.g / 255.0f, sun->mColor.b / 255.0f};
         // Sprite visibility is a lens/depth-probe result, not daylight
@@ -390,7 +491,8 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         atmosphere_sun = atmosphere_light::prepare(camera.view_from_world, camera.proj_from_view,
             world, color, sun->mSunAlpha);
     }
-    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && haze <= 0 && shafts <= 0) return;
+    if (occlusion <= 0 && shadows <= 0 && bounce <= 0 && local <= 0 && mist <= 0 && shafts <= 0 &&
+        wetness <= 0) return;
     GfxRenderTargetLayout layout = GFX_RENDER_TARGET_LAYOUT_INIT;
     if (svc_gfx->get_scene_target_layout(mod_ctx, &layout) != MOD_OK || !supported(layout)) return;
     auto* pipeline = get_pipeline(layout);
@@ -431,14 +533,27 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         std::copy(std::begin(light_view), std::end(light_view), uniforms.light_position);
         uniforms.light_position[3] = shadows;
         uniforms.shadow_range[0] = 120.0f;
+        if (atmosphere_sun.direction[3] > 0) {
+            uniforms.shadow_range[1] = 1600.0f;
+            uniforms.shadow_range[2] = shadows * atmosphere_sun.direction[3] * 1.4f;
+        }
     }
-    if (haze > 0) {
+    if (mist > 0) {
         uniforms.fog_color[0] = std::clamp(float(g_env_light.fog_col.r) / 255.0f, 0.0f, 1.0f);
         uniforms.fog_color[1] = std::clamp(float(g_env_light.fog_col.g) / 255.0f, 0.0f, 1.0f);
         uniforms.fog_color[2] = std::clamp(float(g_env_light.fog_col.b) / 255.0f, 0.0f, 1.0f);
         uniforms.fog_color[3] = haze;
-        uniforms.fog_range[0] = fog_near;
-        uniforms.fog_range[1] = g_env_light.mFogFar;
+        if (haze > 0) {
+            uniforms.fog_range[0] = fog_near;
+            uniforms.fog_range[1] = g_env_light.mFogFar;
+        }
+        uniforms.fog_range[2] = mist;
+    }
+    if (mist > 0 || wetness > 0) prepare_ground_fog(uniforms, camera);
+    if (wetness > 0 && uniforms.fog_grid[3] > 0) {
+        ground_grass::nearby_spray(camera.eye, uniforms.wet_spray);
+        water_probe::latest_environment_light(uniforms.wet_light);
+        uniforms.wet_light[3] = wetness;
     }
     GfxRange range{};
     if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &range) != MOD_OK) return;
@@ -448,7 +563,7 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         if (svc_gfx->push_compute(mod_ctx, compute_type, &work, sizeof(work)) != MOD_OK) {
             targets->pending.fetch_sub(1);
             targets = nullptr;
-            if (haze <= 0 && shafts <= 0) return;
+            if (mist <= 0 && shafts <= 0 && wetness <= 0) return;
         }
     }
     const Payload payload{pipeline, snapshot.color, snapshot.depth, range.offset, range.size, targets};
@@ -501,6 +616,14 @@ void stage(ModContext*, const GfxStageContext* context, void*) {
         svc_log->info(mod_ctx, message);
         shadows_logged = true;
     }
+    if (!canopy_logged && uniforms.shadow_range[2] > 0 && svc_log) {
+        char message[128];
+        std::snprintf(message, sizeof(message),
+                      "Canopy sunlight active: visible-geometry rays range=%.0f strength=%.2f steps=20",
+                      uniforms.shadow_range[1], uniforms.shadow_range[2]);
+        svc_log->info(mod_ctx, message);
+        canopy_logged = true;
+    }
     if (!bounce_logged && bounce > 0 && svc_log) {
         svc_log->info(mod_ctx, "Color bounce active: 16 visible surface samples, range=180, linear-light bounded blend, HUD excluded");
         bounce_logged = true;
@@ -529,6 +652,7 @@ void initialize() {
     lantern_logged = false;
     atmosphere_logged = false;
     sunlit_logged = false;
+    canopy_logged = false;
     submitted = false;
     compute_failed.store(false); encoded_compute.store(0); encoded_draw.store(0);
     if (!svc_gfx || svc_gfx->get_device_info(mod_ctx, &device) != MOD_OK || !device.device || !device.instance) return;

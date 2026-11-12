@@ -1,0 +1,18 @@
+{
+  "head": "2cd2858b02bcb97937803f9ece13f9b66b9c4c3e",
+  "package_sha256": "58dc2bdf8b06871696e152746508e74e26f8b21f458f03956bb674da74678ab1",
+  "matches_native_candidate_package": true,
+  "source_sha256": {
+    "src/render/ground_grass.cpp": "2781135f8ef62ae39f44459ed66983e198e12661dd9da3a5d7dc55106d5cba3c",
+    "src/render/grass_assembly.hpp": "107d7cfccefcf7362e89393f04274bd315056503b28110c6e2a37f9ef4abecc7",
+    "src/render/immutable_instances.hpp": "0cc18577dfca9d4cf8a7c654fbcf45055f64ba675c3d7ea9bb45a7b56fa66f50",
+    "tests/immutable_instances.cpp": "3b07d10245933422335ee0249f919405151a5760d0cc28be3db71d52f2302091",
+    "tests/grass_assembly.cpp": "db3570d4932864532322cc4457597909a101f5647ddfd3ba8c5bf652431e3aa1",
+    "tests/grass_cpu.py": "2160b20c2cba1e43cdf7069cc82284725e3b2e70a02eff9f15196c07f79bc793",
+    "tests/CMakeLists.txt": "9b366acee29014d2f4472fd01d76964a0aed9f6f2805083ade31619c29b7845c",
+    "tools/grass-cpu.py": "dd50ed9d7c69329848c1a2ffe107b286ee2531d1c54726b8b8a3a0eedcad93a8",
+    "tools/grass-native-bench.ps1": "cb87758701357c0191a55a7c71dafeb9e1368523a64afff2db1002475eb17eea"
+  },
+  "host_modified": false,
+  "published": false
+}

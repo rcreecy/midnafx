@@ -19,8 +19,9 @@
 
 namespace {
 using Pixel = std::array<unsigned char, 4>;
+constexpr size_t WaterParameterCount = 132;
 struct WaterTestInput {
-    std::array<float, 112> parameters{};
+    std::array<float, WaterParameterCount> parameters{};
     std::vector<float> scene_depth, surface_depth;
     std::vector<Pixel> mask, behind_water;
 };
@@ -131,7 +132,7 @@ std::vector<Pixel> render(WGPUInstance instance, WGPUDevice device, const char* 
     // Production Grading layout, with neutral tone controls and selectable detail.
     const bool water = std::strncmp(entry, "fs_absorption", 13) == 0;
     const std::array<float, 12> neutral{gain, gain, gain, 0, 1, 1, 1, 0, detail_strength, 1, 0, 0};
-    std::vector<float> parameters(water ? 112 : 12);
+    std::vector<float> parameters(water ? WaterParameterCount : 12);
     std::copy(neutral.begin(), neutral.end(), parameters.begin() + (water ? 84 : 0));
     std::array<WGPUTexture, 3> water_textures{};
     std::array<WGPUTextureView, 3> water_views{};
@@ -857,6 +858,10 @@ double coverage_error(unsigned width, unsigned height, const std::vector<Pixel>&
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc > 2 || (argc == 2 && std::strcmp(argv[1], "--exposure-only") != 0)) {
+        std::fprintf(stderr, "Unsupported option; expected no arguments or --exposure-only\n");
+        return 2;
+    }
     auto instance = wgpuCreateInstance(nullptr);
     if (!instance) return 77;
     WGPUAdapter adapter = nullptr;
@@ -1290,6 +1295,41 @@ int main(int argc, char** argv) {
             return render(instance, device, "fs_absorption", width, height, scene.pixels,
                 0, -1, 1, 0, 0, WGPUTextureFormat_RGBA8Unorm, 0, 0, true, &scene.input);
         };
+        {
+            constexpr unsigned width = 96, height = 80;
+            auto shallows = reflection_scene(width, height, Pixel{154, 140, 124, 255}, false, 12, 35);
+            auto& input = shallows.input;
+            input.parameters[68] = 0; // Isolate transmitted caustics from reflections.
+            input.parameters[73] = 1;
+            input.parameters[121] = 3000;
+            for (unsigned channel = 124; channel <= 127; ++channel) input.parameters[channel] = 1;
+            for (size_t i = 0; i < input.mask.size(); ++i) {
+                const float floor = shallows.water_distance[i] * 3;
+                const bool water = floor >= 1 && floor < 100 && i % width < width * 3 / 4;
+                input.mask[i][3] = water ? 255 : 0;
+                input.scene_depth[i] = water ? reflection_depth(floor) : input.parameters[49];
+            }
+            auto dark = shallows; dark.input.parameters[127] = 0;
+            auto later = shallows; later.input.parameters[51] = 2;
+            const auto baseline = draw_water(width, height, dark);
+            const auto lit = draw_water(width, height, shallows);
+            const auto moving = draw_water(width, height, later);
+            bool valid = reflection_alpha(shallows, lit) && reflection_alpha(shallows, baseline) &&
+                         reflection_alpha(shallows, moving);
+            unsigned illuminated = 0, animated = 0;
+            if (valid) for (size_t i = 0; i < lit.size(); ++i) {
+                if (input.mask[i][3]) {
+                    illuminated += lit[i][0] > baseline[i][0] + 2;
+                    animated += std::abs(int(lit[i][0]) - int(moving[i][0])) > 2;
+                } else {
+                    valid &= lit[i] == baseline[i] && moving[i] == baseline[i];
+                }
+            }
+            valid &= illuminated > 25 && animated > 25;
+            std::printf("Caustics move on sunlit submerged ground and preserve dry pixels: %s (%u lit, %u moving)\n",
+                        valid ? "PASS" : "FAIL", illuminated, animated);
+            ok &= valid;
+        }
         for (auto size : {std::array<unsigned,2>{96,80}, {65,49}}) {
             const auto [width, height] = size;
             auto red = reflection_scene(width, height, Pixel{230,25,25,255});

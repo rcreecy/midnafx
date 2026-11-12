@@ -1,0 +1,222 @@
+{
+  "schema": 1,
+  "scope": "native grass producer CPU spans, excludes discovery and GPU execution",
+  "gpu_us": null,
+  "whole_frame_us": null,
+  "metadata": {
+    "schema": 1,
+    "scene": "F_SP121,6,2,4",
+    "backend": "d3d12",
+    "seconds": 55,
+    "warmup_samples": 128,
+    "host_sha256": "7FA566C403024F5F5C62CBAAD28A96EE7BD0D23529A3B6FD27B8CD81F3D2D779",
+    "config_sha256": "61FBA73F7713C514EEC90DD679F2707B2C41034E2F69BD60BECEE70A692BD028",
+    "reference_sha256": "8126506348EA54F9F4DC8A35E93BC63E633ABF14D1E8E85444BC91AE0D3ECDF2",
+    "candidate_sha256": "6467DEC6EC005D0353AF48102E37FD2E2E455A0954203E3C75E3FD1980FC965F",
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": [
+      {
+        "Name": "Intel(R) UHD Graphics 630",
+        "DriverVersion": "31.0.101.2140"
+      },
+      {
+        "Name": "Microsoft Remote Display Adapter",
+        "DriverVersion": "10.0.26100.9818"
+      }
+    ],
+    "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+    "runs": [
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\proof\\00-A",
+        "pid": 2784,
+        "started_utc": "2026-11-12T19:45:10.0849779Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.664994,
+        "profile_samples": 384
+      },
+      {
+        "variant": "B",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\proof\\01-B",
+        "pid": 3472,
+        "started_utc": "2026-11-12T19:46:05.7856660Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6064228,
+        "profile_samples": 384
+      }
+    ]
+  },
+  "runs": [
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\proof\\00-A",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.1,
+          "max": 1.0,
+          "p50": 0.4,
+          "p95": 0.8,
+          "p99": 0.9,
+          "mean": 0.40703125
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.2,
+          "max": 1.5,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.4,
+          "mean": 0.38828125
+        },
+        "tiles": {
+          "count": 256,
+          "min": 20.0,
+          "max": 40.800000000000004,
+          "p50": 22.599999999999998,
+          "p95": 28.95,
+          "p99": 37.125,
+          "mean": 23.400390625
+        },
+        "assembly": {
+          "count": 256,
+          "min": 2397.2000000000003,
+          "max": 3478.1,
+          "p50": 2476.3,
+          "p95": 2615.65,
+          "p99": 2667.975,
+          "mean": 2494.10390625
+        },
+        "submission": {
+          "count": 256,
+          "min": 175.2,
+          "max": 310.5,
+          "p50": 189.25,
+          "p95": 228.05,
+          "p99": 264.4449999999999,
+          "mean": 194.98359375
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 2606.2999999999997,
+        "max": 3728.0,
+        "p50": 2703.2999999999997,
+        "p95": 2841.3500000000004,
+        "p99": 2908.4450000000006,
+        "mean": 2713.283203125
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": 0
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\proof\\01-B",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.2,
+          "max": 1.7,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.4,
+          "mean": 0.40546875
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.2,
+          "max": 1.6,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.144999999999999,
+          "mean": 0.38359375
+        },
+        "tiles": {
+          "count": 256,
+          "min": 21.2,
+          "max": 100.8,
+          "p50": 24.15,
+          "p95": 33.825,
+          "p99": 44.49499999999998,
+          "mean": 25.708203125
+        },
+        "assembly": {
+          "count": 256,
+          "min": 126.2,
+          "max": 4449.8,
+          "p50": 2230.8500000000004,
+          "p95": 2845.325,
+          "p99": 3204.2149999999997,
+          "mean": 1356.862109375
+        },
+        "submission": {
+          "count": 256,
+          "min": 162.20000000000002,
+          "max": 440.40000000000003,
+          "p50": 198.65,
+          "p95": 288.125,
+          "p99": 379.16499999999974,
+          "mean": 210.16875
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 313.3,
+        "max": 4957.400000000001,
+        "p50": 2447.55,
+        "p95": 3102.5,
+        "p99": 3467.035,
+        "mean": 1593.528125
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": 121
+    }
+  ],
+  "paired_phase_p50_ratios": [
+    {
+      "reach": 0.7499999999999999,
+      "requests": 1.0,
+      "tiles": 1.0685840707964602,
+      "assembly": 0.9008803456770182,
+      "submission": 1.049669749009247
+    }
+  ],
+  "paired_reach_ratio_median": 0.7499999999999999,
+  "paired_reach_input_checks": [
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    }
+  ],
+  "paired_geometry_checks": [
+    {
+      "matched_input_hash_count": 2,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 0
+    }
+  ],
+  "paired_assembly_ratio_median": 0.9008803456770182,
+  "paired_selected_stage_p50_ratios": [
+    0.9053934080568196
+  ],
+  "paired_assembly_mean_ratios": [
+    0.5440278995493435
+  ],
+  "paired_selected_stage_mean_ratios": [
+    0.5873062285443216
+  ]
+}

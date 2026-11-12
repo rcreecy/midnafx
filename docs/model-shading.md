@@ -1,7 +1,8 @@
 # Guarded automatic model shading
 
 MidnaFX 1.15 upgrades the existing **Enhanced model shading** Basic control.
-It remains an independent opt-in; Remaster does not enable it automatically.
+The November 11 update enables it on new settings and in Remaster. Explicit saved
+switches still apply, and Vanilla disables it. Earlier versions leave it opt-in.
 The generic path qualifies rigid model classes from native structure rather than
 adding archive/file allowlists. It does not add geometry or change silhouettes.
 The separate Enhanced Link shading control retains its existing supported-outfit
@@ -11,7 +12,7 @@ contract.
 
 Automatic candidates require a bounded original BMD, zero envelope matrices, one
 joint, one rigid draw matrix referencing joint zero, non-billboard/non-bump state,
-supported opaque materials and single rigid shape-matrix groups. Original source
+at least one supported opaque material and single rigid shape-matrix groups. Original source
 descriptors and draw records are read together; mutable optimized draw copies are
 not used as topology authority. Every referenced position-matrix index must be
 zero. Position/normal storage must remain inside the owned resource, and shared
@@ -26,6 +27,13 @@ at those uncertain vertices. Preservation applies to all uses of an index,
 including uses in other regions. Conflicting proposals and uncertain face
 orientations also keep their original normals. Remaining independently safe
 regions can improve.
+
+Mixed-material rigid models no longer fail solely because they include blended
+or alpha-tested regions. Every normal index used by an unsupported material is
+protected globally, including uses in opaque regions. The existing planner then
+qualifies the remaining normals. Entirely transparent models remain excluded,
+and ambiguous topology can still reject an entire mixed model. No material is
+reclassified as opaque and no alpha, blend state or draw data is changed.
 
 Malformed data, unsupported normal encoding, excessive adjacency, nonmanifold
 edges, inconsistent winding, disconnected vertex fans and other structural
@@ -71,6 +79,10 @@ added; qualification and backups do add bounded CPU work and memory.
 
 See [the evidence ledger](evidence/rigid-shading-2026-10-29/README.md) for synthetic
 policy/ownership tests, native coverage and remaining visual limitations.
+The [November 11 follow-up](evidence/mixed-shading-2026-11-11/README.md) records
+default activation, mixed-material protection, and exact shutdown restoration in
+Ordon and Forest Temple. These loaded-resource counts do not establish how many
+changed models are visible in a scene.
 Whole-game art, motion and performance quality remain unqualified. macOS remains
 best effort through native builds and portable checks; gameplay/Metal execution
 is unverified.

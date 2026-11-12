@@ -1,0 +1,52 @@
+CMake is re-running because C:/dev/midnafx/build/windows-release/tests/CMakeFiles/generate.stamp is out-of-date.
+  the file 'C:/dev/midnafx/tests/CMakeLists.txt'
+  is newer than 'C:/dev/midnafx/build/windows-release/tests/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- aurora: Fetching prebuilt Dawn package from https://github.com/encounter/dawn/releases/download/v20260807.225922/dawn-windows-amd64.tar.gz
+-- Configuring done (1.5s)
+-- Generating done (0.4s)
+-- Build files have been written to: C:/dev/midnafx/build/windows-release
+MSBuild version 18.5.4+cb4e32d21 for .NET Framework
+
+  Checking File Globs
+  midnafx.vcxproj -> C:\dev\midnafx\build\windows-release\Release\midnafx.dll
+  airborne_source_cache.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\airborne_source_cache.exe
+  asset_identity.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\asset_identity.exe
+  aa_pixels.cpp
+  atmosphere_light.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\atmosphere_light.exe
+  airborne_motion.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\airborne_motion.exe
+  bloom_pixels.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\bloom_pixels.exe
+  bloom_plan.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\bloom_plan.exe
+  bmd_rebuild.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\bmd_rebuild.exe
+  camera_fov.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\camera_fov.exe
+  character_identity.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\character_identity.exe
+  dof_quality.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\dof_quality.exe
+  grade_math.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\grade_math.exe
+  ambient_pixels.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\ambient_pixels.exe
+  grass_assembly.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\grass_assembly.exe
+  grass_view.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\grass_view.exe
+  grass_reach.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\grass_reach.exe
+  immutable_instances.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\immutable_instances.exe
+  local_lights.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\local_lights.exe
+  lut_palette.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\lut_palette.exe
+  material_scope.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\material_scope.exe
+  motion_clarity.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\motion_clarity.exe
+  native_material_compat.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\native_material_compat.exe
+  presets_roundtrip.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\presets_roundtrip.exe
+  qualification_corpus.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\qualification_corpus.exe
+  realism_grade.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\realism_grade.exe
+  qualification.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\qualification.exe
+  shader_compile.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\shader_compile.exe
+  rigid_shading.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\rigid_shading.exe
+  sunlight_shafts.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\sunlight_shafts.exe
+  smoothing.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\smoothing.exe
+  surface_class.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\surface_class.exe
+  terrain_index.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\terrain_index.exe
+  surface_map_cache.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\surface_map_cache.exe
+  terrain_trails.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\terrain_trails.exe
+  topology.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\topology.exe
+  twilight_profile.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\twilight_profile.exe
+  visual_parameters.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\visual_parameters.exe
+  water_identity.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\water_identity.exe
+  aa_pixels.vcxproj -> C:\dev\midnafx\build\windows-release\tests\Release\aa_pixels.exe

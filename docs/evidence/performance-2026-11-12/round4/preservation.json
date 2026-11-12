@@ -1,0 +1,14 @@
+{
+  "preexisting_files_changed": [
+    "docs/evidence/performance-2026-11-12/README.md",
+    "docs/performance-program.md",
+    "tests/grass_cpu.py",
+    "tests/surface_map_contract.py",
+    "tools/grass-cpu.py",
+    "src/render/ground_grass.cpp",
+    "tests/CMakeLists.txt",
+    "tests/aa_pixels.cpp"
+  ],
+  "all_other_preexisting_edits_unchanged": true,
+  "host_patch_contents_unchanged": true
+}

@@ -1,6 +1,7 @@
 #include "game/camera_probe.hpp"
 #include "game/game_state.hpp"
 #include "game/geometry_probe.hpp"
+#include "game/surface_profiles.hpp"
 #include "game/water_probe.hpp"
 #include "render/dof_blur.hpp"
 #include "render/ambient_occlusion.hpp"
@@ -8,6 +9,7 @@
 #include "render/motion_clarity.hpp"
 #include "render/material_relighting.hpp"
 #include "render/ground_grass.hpp"
+#include "render/ambient_particles.hpp"
 #include "render/native_material_service.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
@@ -17,7 +19,7 @@
 
 DEFINE_MOD();
 IMPORT_OPTIONAL_SERVICE_VERSION(GfxService, svc_gfx, 2);
-IMPORT_OPTIONAL_SERVICE(NativeMaterialService, svc_native_material);
+IMPORT_OPTIONAL_SERVICE_VERSION(NativeMaterialService, svc_native_material, 0);
 IMPORT_OPTIONAL_SERVICE(ConfigService, svc_config);
 IMPORT_OPTIONAL_SERVICE_VERSION(CameraService, svc_camera, 1);
 IMPORT_OPTIONAL_SERVICE(HookService, svc_hook);
@@ -33,6 +35,7 @@ MOD_EXPORT ModResult mod_initialize(ModError*) {
     midnafx::settings::initialize();
     midnafx::render::material_relighting::update();
     midnafx::render::ground_grass::initialize();
+    midnafx::render::ambient_particles::initialize();
     midnafx::camera_probe::initialize();
     midnafx::motion_clarity::initialize();
     midnafx::render::ambient_occlusion::initialize();
@@ -51,8 +54,10 @@ MOD_EXPORT ModResult mod_update(ModError*) {
     last_update = now;
     midnafx::settings::update_twilight(midnafx::game_state::sample(), elapsed);
     midnafx::geometry_probe::update();
+    midnafx::surface_profiles::update();
     midnafx::render::update();
-    midnafx::render::ground_grass::update();
+    midnafx::render::ground_grass::update(elapsed);
+    midnafx::render::ambient_particles::update();
     midnafx::render::material_relighting::update();
     midnafx::render::dof_blur::update();
     midnafx::water_probe::update();
@@ -61,6 +66,7 @@ MOD_EXPORT ModResult mod_update(ModError*) {
 }
 MOD_EXPORT ModResult mod_shutdown(ModError*) {
     // Dusklight deactivates/drains draw callbacks before invoking this export.
+    midnafx::render::ambient_particles::shutdown();
     midnafx::render::ground_grass::shutdown();
     midnafx::render::material_relighting::shutdown();
     midnafx::motion_clarity::shutdown();

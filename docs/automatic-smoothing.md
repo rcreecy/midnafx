@@ -1,5 +1,10 @@
 # Automatic model shading qualification
 
+November 11 follow-up: qualified rigid shading now defaults on for new settings
+and Remaster. Mixed models protect transparent-region normal indices globally
+instead of rejecting all opaque regions. The current scope is documented in
+[model shading](model-shading.md); the audit and opt-in decisions below are historical.
+
 Version 1.15 adds guarded resident activation and partial preservation for
 automatic rigid models. The historical whole-model duplicate-position and
 overlapping-group vetoes below remain the strict default; the new explicit

@@ -2,6 +2,7 @@
 
 using midnafx::game::water::classify_stage_material;
 using midnafx::game::water::has_stage_water;
+using midnafx::game::water::is_water_surface_family;
 
 int main() {
     bool ok = true;
@@ -29,5 +30,13 @@ int main() {
     ok &= has_stage_water("F_SP103");
     ok &= has_stage_water("D_MN01");
     ok &= !has_stage_water("F_SP112");
+    ok &= is_water_surface_family("cc_MA02_IndirectWater_v");
+    ok &= is_water_surface_family("cc_MA06_NigoriWater1_v_x");
+    ok &= is_water_surface_family("cc_MA02_mizu_v");
+    ok &= is_water_surface_family("cc_MA03_water_v_x");
+    ok &= !is_water_surface_family("ce_MA03_WaterKasan_v_x");
+    ok &= !is_water_surface_family("cc_MA09_Oil_Suimen_meramera_v");
+    ok &= !is_water_surface_family("cc_MA06_nami_v_x");
+    ok &= !is_water_surface_family("cc_MA02_WaterFoam_v");
     return ok ? 0 : 1;
 }

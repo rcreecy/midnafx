@@ -2,7 +2,154 @@
 
 The user authorizes continued implementation and iteration toward a coherent Twilight Princess remaster capability, with visual quality and completeness approaching a studio remaster. This is a product program rather than another diagnostic-only milestone. Each completed slice must produce a working capability, preserve the original game's behavior, and carry explicit evidence and limitations. Build success and asset identification alone do not establish remaster quality.
 
-On 2026-10-22 the user confirmed [Nintendo's Ocarina of Time for Switch 2](https://www.nintendo.com/us/store/products/the-legend-of-zelda-ocarina-of-time-switch-2/) as the reference. Nintendo describes a ground-up rebuild and publishes an [overview trailer](https://www.nintendo.com/us/whatsnew/you-have-been-summoned-to-watch-the-new-legend-of-zelda-ocarina-of-time-overview-trailer/). Its page lists November 5, 2026, so the current comparison is published promotional material, not hands-on evaluation. The page advertises revised visuals, camera/controls, voiced cutscenes and orchestral music; it does not disclose the rendering implementation. Do not infer a particular PBR, lighting or shadow technique from that description.
+On 2026-10-22 the user confirmed [Nintendo's Ocarina of Time for Switch 2](https://www.nintendo.com/us/store/products/the-legend-of-zelda-ocarina-of-time-switch-2/) as the reference. Nintendo describes a ground-up rebuild and publishes an [overview trailer](https://www.nintendo.com/us/whatsnew/you-have-been-summoned-to-watch-the-new-legend-of-zelda-ocarina-of-time-overview-trailer/). Nintendo confirms a November 5, 2026 release. The November 9 reference review includes official images and launch reviews. The page advertises revised visuals, camera/controls, voiced cutscenes and orchestral music. Rendering techniques require separate evidence.
+
+## November 9 visual direction
+
+The following priorities are art-direction inferences from reviewed images.
+Nintendo's official [forest scene](https://www.nintendo.com/ph/games/switch2/aa9ja/img/slide01.jpg)
+shows moss following roots, asymmetric vegetation layers, and distinct cloth,
+leather, and wood surfaces. Its [town scene](https://www.nintendo.com/ph/games/switch2/aa9ja/img/slide04.jpg)
+uses broad sunlight, cool shade, and distant haze to organize a detailed scene.
+The [Temple of Time image](https://cdn.mos.cms.futurecdn.net/aT8EJmfQXTeDB7UdoZin8C.jpg)
+published in a [launch review](https://www.tomsguide.com/gaming/nintendo/the-legend-of-zelda-ocarina-of-time-review)
+shows localized shafts and suspended particles. These images establish visible
+targets, with no claim about Nintendo's rendering implementation.
+
+Prioritize receiver-aware sun and canopy shadows, material definition across
+rock/bark/cloth/metal, and vegetation composition across heights and patch sizes.
+Retain the requested dense green grass carpet. Add variation through larger
+groupings, species silhouettes, root moss, and transitions at banks and paths.
+Character and Epona movement should disturb nearby grass and low mist.
+Concentrate particles where light, wind, water, or movement motivates them.
+The user requests Ocarina's warmer light, cooler shade, and richer greens as
+the palette target. Preserve Twilight Princess's readable silhouettes.
+
+Begin the next implementation slice with patterned canopy light and coherent
+sun/shade separation. Compare Faron woods, Hyrule Field, and Forest Temple.
+Continue with material response and vegetation layering, then interaction.
+Major silhouette upgrades and character surface detail also require an asset
+pipeline and authored content.
+
+The November 11 material-class slice adds cached broad finishes for rock, wood,
+cloth, leather, metal and explicit wet labels. Host service 1.2 carries bounded
+per-draw parameters through the existing lighting pass, with scoped restoration
+and no material-specific shader permutations. Original-texture Ordon/Temple and
+4K-pack Faron previews close normally; Faron requests all five main classes.
+Temple resumes wood/metal requests after reload. Unknown bindings keep the
+shared response. Separate generated/authored material maps and opaque scenery
+reflections remain future work. See [distinct finishes](material-relighting.md#distinct-material-finishes).
+
+The following November 11 grass slice prioritizes the user's camera-distance
+carpet request. A third adaptive layer extends coverage beyond 10,000 units
+toward the camera's far view and loaded eligible terrain. View-aware tile
+selection and shared far-tile quotas reduce nearest-first starvation. Hyrule
+Field reports a 149,043-unit range and 3,327 outer clumps in addition to near
+and middle grass. Native detached-camera rendering and normal shutdown pass.
+This uses distant geometric approximations, not full close-up density everywhere.
+Movement-memory trails follow as the interaction slice below. See
+[camera-view grass](ground-grass-scope.md#november-11-coverage-across-the-camera-view).
+
+The next interaction slice adds recovering movement trails to near grass and
+low plants, with bounded histories for Link and Epona. Existing live displacement
+blends into the retained bend, then gradually recovers. Motion tests cover
+recovery, teleport rejection, vertical separation and bounded storage. A native
+controlled position probe activates 276 clumps and closes normally; continuous
+walking/riding visual quality remains open because native keyboard capture
+misses automated taps. See [movement trails](ground-grass-scope.md#recovering-movement-trails).
+
+The next November 11 slice enables qualified rigid-model smoothing in new
+settings and Remaster. Mixed opaque/transparent models now preserve every normal
+index used by transparent regions while qualifying the remaining solid regions.
+The generic structure-based path gains coverage without asset allowlists.
+Native Ordon and Forest Temple trials apply 22 and 15 loaded normal arrays and
+restore all bytes exactly on shutdown. This improves shading continuity, not
+silhouettes; loaded-array counts do not establish visible scene coverage. See
+[model shading](model-shading.md).
+
+The November 11 color follow-up strengthens the default Natural lattice with
+midtone vibrance, richer green separation and a restrained luminance curve.
+Warm colors and already saturated regions receive a smaller boost. Gamut
+compression limits channel clipping. The existing look controls apply across
+the shared grading and water paths, without an additional rendering pass.
+See [color direction](color-direction.md) for scope and validation.
+
+The November 11 slice adds broad native-light highlights to opaque lit scenery
+and characters. The view-dependent response targets the requested smooth,
+satin-like finish while retaining native textures, alpha and fog. It shares the
+existing relighting control and requires the updated host. Ordon and Forest
+Temple native previews activate the shader and close normally. This does not
+replace authored material maps or improve mesh silhouettes. See
+[soft surface highlights](material-relighting.md#soft-surface-highlights).
+
+The November 10 airborne slice adds vegetation-anchored daylight pollen and
+forest fireflies at night, using shared wind and the existing atmosphere control.
+It applies through terrain qualification across eligible outdoor scenes rather
+than stage-specific placement. Faron Spring's dialogue camera shows the day/night
+transition with 152 pollen motes and 13 fireflies in the activation receipts.
+The native preview exits normally and four focused checks pass. This establishes
+one scene's appearance and portable motion bounds, not measured performance or
+whole-game visual coverage. See [vegetation particles](depth-atmosphere.md#vegetation-particles).
+
+The first implementation enables a revised Natural look on new settings,
+updates Remaster grading toward brighter midtones, and adds longer sun rays to
+the contact-shadow pass. Warm receiver light and cool shade follow native
+daylight. Sparse broadleaf and fern-like clumps now accompany qualified green
+grass. Link and Epona displace low vegetation and thin low mist locally.
+The added sun shadows use visible depth, so off-screen casters require further
+work. Broader authored material and silhouette upgrades remain in the sequence.
+The November 9 open-field check identifies sparse grass as a remaining coverage
+quality issue. Address bounded grass distribution on large terrain surfaces
+before claiming the requested continuous carpet across Hyrule Field.
+The November 10 implementation now streams dense grass in bounded tiles near
+the camera instead of thinning roots across the entire room. Windows D3D12
+views show a dense foreground carpet at the prior Hyrule Field comparison
+camera, retained local cover after camera displacement, and mostly bare dirt
+on the sampled trail. The final trial exits normally. Riding, streaming at
+travel speed, GPU timing, and whole-map visual coverage remain unverified.
+See [grass scope and evidence](ground-grass-scope.md).
+
+The next November 10 slice gives generated ground cover a shared scene-lighting
+path. Actual deformed normals drive foliage diffuse response and stone facets;
+native sun and sky state drive outdoor lighting, with Twilight tint and fog
+applied consistently. Hyrule Field noon/midnight and Eldin Twilight gravel
+previews pass normal close. This improves generated terrain detail across
+qualified backgrounds; original rock/bark/cloth/metal material inputs still
+need their own implementation. See [cover lighting](ground-grass-scope.md#scene-lighting-for-generated-cover).
+
+The following distance slice separates close grass from lower-density distant
+grass, extending the latter to 10,000 world units with independent cache and draw
+budgets. Native field evidence now includes 20,916 distant clumps and shows
+coverage beyond the former near-camera boundary. Texture/material qualification
+still limits eligible surfaces, and plants/litter retain a shorter range.
+See [distant grass coverage](ground-grass-scope.md#distant-grass-coverage).
+
+The next plant slice extends low plants to 5,200 units and separates their
+retention and draw budgets from gravel and litter. Native field and Faron
+dialogue previews log 18 and 105 plants respectively and exit normally.
+Faron's visible horizontal band was tracked as a separate quality defect.
+See [low plant coverage](ground-grass-scope.md#low-plant-range-and-retention).
+
+The subsequent water replay fix resolves that band by retaining each native
+surface packet's original perspective projection across the late 2D setup.
+Mask clipping also preserves native cutscene bars. Final Faron and Lake Hylia
+cave dialogue previews retain water/mist effects and close normally, with zero
+capture failures. See [the replay correction](water-scene-reflections.md#november-10-water-replay-correction).
+
+The next material slice adds texture-derived relief to qualified lit opaque
+scenery through optional native material service 1.1. Native texture contrast
+perturbs the lighting normal within a bounded range, without new asset lists,
+texture reads, geometry displacement, or changes to alpha. The scope ends before
+regular character draws. Ordon and Forest Temple previews exercise the shader
+and close normally; the older host retains ordinary relighting. This adds broad
+surface definition where native inputs support it, while authored physical
+material maps and motion/performance qualification remain open. See
+[texture relief](material-relighting.md#texture-relief-on-solid-scenery).
+
+The [92-image area gallery](https://z64central.com/switch-2/screenshots/) explicitly
+uses prerelease Direct/trailer imagery. The [November 4 Nintendo Life review](https://www.nintendolife.com/reviews/nintendo-switch-2/the-legend-of-zelda-ocarina-of-time)
+includes captures labeled docked or handheld and describes motion artifacts.
+Use those distinctions when selecting future comparison images.
 
 Use that reference as a quality and completeness target while preserving Twilight Princess's art direction. Evaluate consistent materials, silhouettes, animation, lighting, image stability, camera, readable presentation and coherent scene coverage. Additional authored models, animation, sound/music and interface assets need content pipelines and suitable source assets alongside rendering code. Record those content dependencies instead of claiming that shader effects alone deliver the reference's complete remake scope. Ship of Harkinian and Zelda 64: Recompiled remain native-port engineering references, not the user's visual target.
 

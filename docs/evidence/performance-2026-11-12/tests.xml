@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Win32-MSBuild"
+	tests="42"
+	failures="2"
+	disabled="0"
+	skipped="0"
+	hostname="cmdcntr"
+	time="200"
+	timestamp="2026-11-12T11:04:23"
+	>
+	<testcase name="terrain_index" classname="terrain_index" time="0.0420209" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="atmosphere_light" classname="atmosphere_light" time="0.0150528" status="run">
+		<properties/>
+		<system-out>Atmosphere light: full-sphere direction, rigid view, projection guards, fade and color: PASS
+</system-out>
+	</testcase>
+	<testcase name="bloom_plan" classname="bloom_plan" time="0.0153694" status="run">
+		<properties/>
+		<system-out>Bloom plan: bounded pyramid, stopping boundaries, odd dimensions, and area overhead: PASS
+</system-out>
+	</testcase>
+	<testcase name="local_lights" classname="local_lights" time="0.0161548" status="run">
+		<properties/>
+		<system-out>Local lights: native color, rigid transforms, bounded selection, and lantern attenuation: PASS
+</system-out>
+	</testcase>
+	<testcase name="rigid_shading" classname="rigid_shading" time="0.0168894" status="run">
+		<properties/>
+		<system-out>Rigid shading layout policy, source aliases, exact normal restoration, conflicts, and bounds: PASS
+</system-out>
+	</testcase>
+	<testcase name="sunlight_shafts" classname="sunlight_shafts" time="0.0150784" status="run">
+		<properties/>
+		<system-out>Sunlight source projection, transforms, visibility, bounds, and invalid inputs: PASS
+</system-out>
+	</testcase>
+	<testcase name="motion_clarity" classname="motion_clarity" time="0.0156993" status="run">
+		<properties/>
+		<system-out>Motion clarity gameplay gates, rate bounds, rounding, monotonicity, and write ownership: PASS
+</system-out>
+	</testcase>
+	<testcase name="character_identity" classname="character_identity" time="0.0168993" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="topology" classname="topology" time="0.0178724" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="asset_identity" classname="asset_identity" time="0.015146" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="material_scope" classname="material_scope" time="0.294332" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="asset_intelligence" classname="asset_intelligence" time="0.550806" status="run">
+		<properties/>
+		<system-out>................
+----------------------------------------------------------------------
+Ran 16 tests in 0.233s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="archive_inventory" classname="archive_inventory" time="0.247212" status="run">
+		<properties/>
+		<system-out>............
+----------------------------------------------------------------------
+Ran 12 tests in 0.046s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="asset_census" classname="asset_census" time="1.15977" status="run">
+		<properties/>
+		<system-out>...................
+----------------------------------------------------------------------
+Ran 19 tests in 0.910s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="asset_overhead" classname="asset_overhead" time="1.79059" status="run">
+		<properties/>
+		<system-out>..............
+----------------------------------------------------------------------
+Ran 14 tests in 1.560s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="frame_timing" classname="frame_timing" time="0.600083" status="run">
+		<properties/>
+		<system-out>............
+----------------------------------------------------------------------
+Ran 12 tests in 0.397s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="smoothing" classname="smoothing" time="0.0165335" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="qualification" classname="qualification" time="0.0162869" status="run">
+		<properties/>
+		<system-out>qualification: connected patch accepted; adversarial safety cases passed
+</system-out>
+	</testcase>
+	<testcase name="bmd_rebuild" classname="bmd_rebuild" time="0.0151628" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="grade_math" classname="grade_math" time="0.0142165" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="presets_roundtrip" classname="presets_roundtrip" time="0.0330183" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="realism_grade" classname="realism_grade" time="0.0148894" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="surface_map_cache" classname="surface_map_cache" time="0.0150263" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="surface_map_contract" classname="surface_map_contract" time="0.138178" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Traceback (most recent call last):
+  File "C:\dev\midnafx\tests\surface_map_contract.py", line 8, in &lt;module&gt;
+    chunk=next(part for part in patch.split('diff --git ') if part.startswith('a/'+target+' b/'+target+'\n'))
+StopIteration
+</system-out>
+	</testcase>
+	<testcase name="surface_class" classname="surface_class" time="0.016049" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="terrain_trails" classname="terrain_trails" time="0.0181387" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="grass_view" classname="grass_view" time="0.0154319" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="airborne_motion" classname="airborne_motion" time="0.0201735" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="visual_parameters" classname="visual_parameters" time="0.0145554" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="twilight_profile" classname="twilight_profile" time="0.014497" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="camera_fov" classname="camera_fov" time="0.0144857" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="dof_quality" classname="dof_quality" time="0.0152814" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="water_identity" classname="water_identity" time="0.0151187" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="camera_patch_contract" classname="camera_patch_contract" time="0.0953244" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="lut_palette" classname="lut_palette" time="0.022046" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="native_material_compat" classname="native_material_compat" time="0.0177147" status="run">
+		<properties/>
+		<system-out>Native material legacy and extended capability checks pass
+</system-out>
+	</testcase>
+	<testcase name="shader_compile" classname="shader_compile" time="0.0818266" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="aa_pixels" classname="aa_pixels" time="128.654" status="run">
+		<properties/>
+		<system-out>Adapter: Intel(R) UHD Graphics 630; backend=4; type=2
+1x1 pattern=0 changed=0: PASS
+1x1 pattern=1 changed=0: PASS
+1x1 pattern=2 changed=0: PASS
+1x1 pattern=3 changed=0: PASS
+1x1 pattern=4 changed=0: PASS
+1x17 pattern=0 changed=0: PASS
+1x17 pattern=1 changed=0: PASS
+1x17 pattern=2 changed=0: PASS
+1x17 pattern=3 changed=0: PASS
+1x17 pattern=4 changed=0: PASS
+19x1 pattern=0 changed=0: PASS
+19x1 pattern=1 changed=0: PASS
+19x1 pattern=2 changed=0: PASS
+19x1 pattern=3 changed=0: PASS
+19x1 pattern=4 changed=0: PASS
+17x13 pattern=0 changed=0: PASS
+17x13 pattern=1 changed=0: PASS
+17x13 pattern=2 changed=22: PASS
+17x13 pattern=3 changed=22: PASS
+17x13 pattern=4 changed=0: PASS
+65x31 pattern=0 changed=0: PASS
+65x31 pattern=1 changed=0: PASS
+65x31 pattern=2 changed=58: PASS
+65x31 pattern=3 changed=58: PASS
+65x31 pattern=4 changed=0: PASS
+25 pixel cases: PASS
+Axis-aligned vertical step exact identity: PASS
+Axis-aligned horizontal step exact identity: PASS
+Shallow monotonic edge exact transpose, including borders and alpha...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="surface_maps_pixels" classname="surface_maps_pixels" time="60.0276" status="fail">
+		<failure message="Timeout"/>
+		<properties/>
+		<system-out>Adapter: Intel(R) UHD Graphics 630; backend=4; type=2
+1x1 pattern=0 changed=0: PASS
+1x1 pattern=1 changed=0: PASS
+1x1 pattern=2 changed=0: PASS
+1x1 pattern=3 changed=0: PASS
+1x1 pattern=4 changed=0: PASS
+1x17 pattern=0 changed=0: PASS
+1x17 pattern=1 changed=0: PASS
+1x17 pattern=2 changed=0: PASS
+1x17 pattern=3 changed=0: PASS
+1x17 pattern=4 changed=0: PASS
+19x1 pattern=0 changed=0: PASS
+19x1 pattern=1 changed=0: PASS
+19x1 pattern=2 changed=0: PASS
+19x1 pattern=3 changed=0: PASS
+19x1 pattern=4 changed=0: PASS
+17x13 pattern=0 changed=0: PASS
+17x13 pattern=1 changed=0: PASS
+17x13 pattern=2 changed=22: PASS
+17x13 pattern=3 changed=22: PASS
+17x13 pattern=4 changed=0: PASS
+65x31 pattern=0 changed=0: PASS
+65x31 pattern=1 changed=0: PASS
+65x31 pattern=2 changed=58: PASS
+65x31 pattern=3 changed=58: PASS
+65x31 pattern=4 changed=0: PASS
+25 pixel cases: PASS
+Axis-aligned vertical step exact identity: PASS
+Axis-aligned horizontal step exact identity: PASS
+Shallow monotonic edge exact transpose, including borders and alpha: PASS
+Binary edge brightness complement symmetry within one code: PASS
+Half-plane slope=1 transpose=0 MSE source=396.493902 old=214.191701 new=208.976948: PASS
+Half-plane slope=-1 transpose=0 MSE source=396.493902 old=214.191701 new=208.976948: PASS
+Half-plane slope=0.25 transpose=0 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Inactive water and ordinary AA exact parity: PASS
+Half-plane slope=0.25 transpose=1 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Half-plane slope=-0.25 transpose=0 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Half-plane slope=-0.25 transpose=1 MSE source=155.484842 old=102.380291 new=30.536076: PASS
+Diagonals coverage improvement &gt;=2% over source and retired kernel: PASS
+Shallow slopes coverage improvement &gt;=2% over source and retired kernel: PASS
+Saturated edge retains channel bounds, hue and alpha: PASS
+Preserve vertical one-pixel ridge exactly: PASS
+Preserve horizontal one-pixel ridge exactly: PASS
+Preserve checkerboard exactly: PASS
+Preserve isolated pixel exactly: PASS
+Preserve descending diagonal one-pixel ridge exactly: PASS
+Preserve ascending diagonal one-pixel ridge exactly: PASS
+Preserve descending diagonal one-pixel valley exactly: PASS
+Preserve ascending diagonal one-pixel valley exactly: PASS
+Identity LUT 1x1 fs_main intensity=0.0: PASS
+Identity LUT 1x1 fs_main intensity=0.5: PASS
+Identity LUT 1x1 fs_main intensity=1.0: PASS
+Identity LUT 1x1 fs_main intensity=0.0: PASS
+Identity LUT 1x1 fs_main intensity=0.5: PASS
+Identity LUT 1x1 fs_main intensity=1.0: PASS
+Identity LUT 1x1 fs_main intensity=0.0: PASS
+Identity LUT 1x1 fs_main intensity=0.5: PASS
+Identity LUT 1x1 fs_main intensity=1.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x1 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_main intensity=0.0: PASS
+Identity LUT 1x257 fs_main intensity=0.5: PASS
+Identity LUT 1x257 fs_main intensity=1.0: PASS
+Identity LUT 1x257 fs_main intensity=0.0: PASS
+Identity LUT 1x257 fs_main intensity=0.5: PASS
+Identity LUT 1x257 fs_main intensity=1.0: PASS
+Identity LUT 1x257 fs_main intensity=0.0: PASS
+Identity LUT 1x257 fs_main intensity=0.5: PASS
+Identity LUT 1x257 fs_main intensity=1.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.0: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=0.5: PASS
+Identity LUT 1x257 fs_absorption_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_main intensity=0.0: PASS
+Identity LUT 257x1 fs_main intensity=0.5: PASS
+Identity LUT 257x1 fs_main intensity=1.0: PASS
+Identity LUT 257x1 fs_main intensity=0.0: PASS
+Identity LUT 257x1 fs_main intensity=0.5: PASS
+Identity LUT 257x1 fs_main intensity=1.0: PASS
+Identity LUT 257x1 fs_main intensity=0.0: PASS
+Identity LUT 257x1 fs_main intensity=0.5: PASS
+Identity LUT 257x1 fs_main intensity=1.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.0: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=0.5: PASS
+Identity LUT 257x1 fs_fxaa_detail intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.0: PASS
+Identity LUT 257x1 fs_absorption intensity=0.5: PASS
+Identity LUT 257x1 fs_absorption intensity=1.0: PASS
+Identity LUT 257x1 fs_absorption_detail intensity=0.0: PASS
+</system-out>
+	</testcase>
+	<testcase name="ambient_pixels" classname="ambient_pixels" time="5.77481" status="run">
+		<properties/>
+		<system-out>Adapter: Intel(R) UHD Graphics 630; backend=4
+Flat perspective plane 96x80 identity: PASS
+Flat perspective plane 65x49 identity: PASS
+Flat perspective plane 1x1 identity: PASS
+Steep plane edge normal 96x96 transpose=0 reversed=0 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=0 reversed=0 visibility=1.000000: PASS
+Steep plane edge normal 96x96 transpose=0 reversed=1 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=0 reversed=1 visibility=1.000000: PASS
+Steep plane edge normal 96x96 transpose=1 reversed=0 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=1 reversed=0 visibility=1.000000: PASS
+Steep plane edge normal 96x96 transpose=1 reversed=1 dot=1.000000: PASS
+Steep plane edge rejects false AO 96x96 transpose=1 reversed=1 visibility=1.000000: PASS
+Steep plane edge normal 39x27 transpose=0 reversed=0 dot=1.000000: PASS
+Steep plane edge rejects false AO 39x27 transpose=0 reversed=0 visibility=1.000000: PASS
+Steep plane edge normal 39x27 transpose=0 r...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="bloom_pixels" classname="bloom_pixels" time="0.753301" status="run">
+		<properties/>
+		<system-out>Adapter: Intel(R) UHD Graphics 630; backend=4
+Black and dim scenes remain exact: PASS
+White endpoint and alpha survive active bloom: PASS
+Small bright feature spreads locally without wrapping: PASS
+Colored glow retains its source RGB channel: PASS
+Zero strength is exact identity: PASS
+Odd tiles and one pixel have finite, unduplicated edge energy: PASS
+Soft threshold opens continuously above dark-scene cutoff: PASS
+Fresh black draw after bright inputs remains exact: PASS
+Multi-scale uniform fields retain strength, color, alpha and dark/white endpoints: PASS
+Halo comparison: core_energy=71.61295509 multi_energy=71.38690197 core_outer=0.00000000 multi_outer=1.25543702 visible_outer=1184
+Default strength gains a wider visible halo while retaining core and total interior energy: PASS
+Moving highlight: shift=0 energy=0.17468089 centroid=(253.97833,189.97936)
+Moving highlight: shift=1 energy=0.17468637 centroid=(254.98928,189.97890)
+Moving highlight: shift=2 energy=0.17462945 centroid=(256.00000,189.97858)
+Moving hi...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="package_contract" classname="package_contract" time="0.136488" status="run">
+		<properties/>
+		<system-out>Valid windows-amd64 native package: C:\dev\midnafx\build\windows-release\mods\midnafx.dusk
+</system-out>
+	</testcase>
+</testsuite>

@@ -6,10 +6,10 @@
 @group(0) @binding(5) var bounce_input: texture_2d<f32>;
 @group(0) @binding(6) var bounce_output: texture_storage_2d<rgba16float, write>;
 
-fn contact_shadow(pixel: vec2i, center: vec3f, normal: vec3f) -> f32 {
-    let distance_limit = params.shadow_range.x;
-    if (params.light_position.w <= 0 || distance_limit <= 0) { return 0; }
-    let light_delta = params.light_position.xyz - center;
+fn trace_shadow(pixel: vec2i, center: vec3f, normal: vec3f, light: vec3f,
+                distance_limit: f32, strength: f32, canopy: bool) -> f32 {
+    if (strength <= 0 || distance_limit <= 0) { return 0; }
+    let light_delta = light - center;
     let light_distance = length(light_delta);
     if (light_distance < 0.0001 || light_distance > 1e20 || light_distance != light_distance) { return 0; }
     let direction = light_delta / light_distance;
@@ -17,21 +17,23 @@ fn contact_shadow(pixel: vec2i, center: vec3f, normal: vec3f) -> f32 {
     if (facing <= 0) { return 0; }
     let full_size = vec2i(textureDimensions(scene_depth));
     let footprint = 2 * abs(center.z) / (params.projection_y * f32(full_size.y));
-    let bias = max(distance_limit * 0.01, footprint * 1.25);
+    let bias = max(select(distance_limit, min(distance_limit, 120.0), canopy) * 0.01, footprint * 1.25);
     // Distant subpixel contacts are unreliable; preserve native shading there.
     if (bias > distance_limit * 0.15) { return 0; }
     if (dot(light_delta, normal) <= bias) { return 0; }
     let start = center + normal * bias;
     // Offset the origin without extending the ray beyond a nearby point light.
-    let march_delta = params.light_position.xyz - start;
+    let march_delta = light - start;
     let march_distance = length(march_delta);
     if (march_distance < 0.0001) { return 0; }
     let march_direction = march_delta / march_distance;
     let ray_length = min(distance_limit, march_distance);
-    let thickness = max(bias * 2, distance_limit * 0.08);
+    let thickness = max(bias * 2, select(distance_limit * 0.08, min(distance_limit * 0.025, 32.0), canopy));
+    let steps = select(12u, 20u, canopy);
     var amount = 0.0;
-    for (var step = 0u; step < 12u; step++) {
-        let fraction = (f32(step) + 0.5) / 12;
+    for (var step = 0u; step < steps; step++) {
+        let progress = (f32(step) + 0.5) / f32(steps);
+        let fraction = select(progress, progress * progress, canopy);
         let point = start + march_direction * (fraction * ray_length);
         let projected = params.proj_from_view * vec4f(point, 1);
         if (projected.w <= 0.0001 || any(projected != projected) || any(abs(projected) > vec4f(1e30))) { break; }
@@ -53,7 +55,17 @@ fn contact_shadow(pixel: vec2i, center: vec3f, normal: vec3f) -> f32 {
             amount = max(amount, confidence * (1 - pow(fraction, 4)) * edge_fade);
         }
     }
-    return params.light_position.w * facing * amount;
+    return strength * facing * amount;
+}
+
+fn contact_shadow(pixel: vec2i, center: vec3f, normal: vec3f) -> f32 {
+    let contact = trace_shadow(pixel, center, normal, params.light_position.xyz,
+                               params.shadow_range.x, params.light_position.w, false);
+    if (params.shadow_range.z <= 0.0) { return contact; }
+    let sun = center + params.fog_light_direction.xyz * 100000.0;
+    let canopy = trace_shadow(pixel, center, normal, sun, params.shadow_range.y,
+                              params.shadow_range.z, true);
+    return min(0.5, contact + canopy * (1.0 - contact));
 }
 
 @compute @workgroup_size(8,8)

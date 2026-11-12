@@ -1,4 +1,6 @@
 #include "waterfall.hpp"
+#include "game/wind.hpp"
+#include "midnafx_shader.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
 
@@ -9,6 +11,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <string>
 
 namespace midnafx::render::waterfall {
 namespace {
@@ -21,6 +24,7 @@ struct Uniforms {
     float time, red, green, blue;
     float light_position[4];
     float eye[4];
+    std::array<float, 4> wind;
 };
 struct Draw {
     GfxRange vertices, uniforms;
@@ -48,6 +52,7 @@ struct Uniforms {
     blue: f32,
     light_position: vec4f,
     eye: vec4f,
+    wind: vec4f,
 }
 @group(0) @binding(0) var<uniform> scene: Uniforms;
 struct Output {
@@ -56,7 +61,14 @@ struct Output {
     @location(1) data: vec4f,
 }
 @vertex fn vs_main(@location(0) point: vec3f, @location(1) data: vec4f) -> Output {
-    return Output(scene.projection * vec4f(point, 1.0), point, data);
+    var position = point;
+    if (data.z > 9.5 || (data.z > 1.5 && data.z < 2.5) || (data.z > 5.5 && data.z < 6.5)) {
+        // Keep the inner edge anchored; only loose vapor bends with the gust.
+        let free = select(1.0, max(data.x, 0.0), data.z > 9.5);
+        let displacement = scene.wind.xy * wind_gust(point.xz, scene.wind) * free * 150.0;
+        position += vec3f(displacement.x, 0.0, displacement.y);
+    }
+    return Output(scene.projection * vec4f(position, 1.0), position, data);
 }
 fn hash(p: vec2f) -> f32 {
     let q = fract(p * vec2f(0.1031, 0.11369));
@@ -199,7 +211,8 @@ void encode(ModContext*, const GfxDrawContext* ctx, const void* payload, size_t 
     if (!pipeline || layout_key != ctx->layout.key || reversed != ctx->uses_reversed_z) {
         if (pipeline) wgpuRenderPipelineRelease(pipeline);
         WGPUShaderSourceWGSL source = WGPU_SHADER_SOURCE_WGSL_INIT;
-        source.code = {Shader, WGPU_STRLEN};
+        const std::string shader_source = std::string(wind_shader) + Shader;
+        source.code = {shader_source.data(), shader_source.size()};
         WGPUShaderModuleDescriptor sd = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
         sd.nextInChain = &source.chain;
         const auto shader = wgpuDeviceCreateShaderModule(ctx->device, &sd);
@@ -405,11 +418,8 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
     const float time = std::chrono::duration<float>(std::chrono::steady_clock::now() - start).count();
     const Point right{camera.view_from_world[0], camera.view_from_world[4], camera.view_from_world[8]};
     const Point up{camera.view_from_world[1], camera.view_from_world[5], camera.view_from_world[9]};
-    const auto& wind = g_env_light.global_wind_influence;
-    const float wind_length = std::hypot(wind.vec.x, wind.vec.z);
-    const Point drift_wind = std::isfinite(wind_length) && wind_length > 0.001f && std::isfinite(wind.pow)
-        ? Point{wind.vec.x / wind_length * std::clamp(wind.pow, 0.0f, 1.0f), 0,
-                wind.vec.z / wind_length * std::clamp(wind.pow, 0.0f, 1.0f)} : Point{};
+    const auto wind_state = wind::sample();
+    const Point drift_wind{wind_state[0] * wind_state[2], 0, wind_state[1] * wind_state[2]};
     const auto distance2 = [&](Point p) {
         const auto d = add(p, {-camera.eye[0], -camera.eye[1], -camera.eye[2]});
         return d.x*d.x + d.y*d.y + d.z*d.z;
@@ -591,6 +601,7 @@ void draw(std::span<const Fall* const> falls, const CameraInfo& camera, const Fr
     Uniforms uniforms{};
     std::memcpy(uniforms.projection, camera.proj_from_world, sizeof(uniforms.projection));
     uniforms.time = time;
+    uniforms.wind = wind_state;
     std::memcpy(uniforms.eye, camera.eye, 3 * sizeof(float));
     const auto& source = g_env_light.base_light.mPosition;
     if (std::isfinite(source.x) && std::isfinite(source.y) && std::isfinite(source.z)) {

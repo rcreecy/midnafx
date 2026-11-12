@@ -1,0 +1,401 @@
+--- round2-baseline/src/render/ground_grass.cpp
++++ optimized/src/render/ground_grass.cpp
+@@ -1,5 +1,7 @@
+ #include "ground_grass.hpp"
+ #include "grass_view.hpp"
++#include "grass_reach.hpp"
++#include "grass_assembly.hpp"
+ #include "terrain_index.hpp"
+ #include "waterfall.hpp"
+ #include "game/topology.hpp"
+@@ -29,6 +31,7 @@
+ #include <bit>
+ #include <cmath>
+ #include <cctype>
++#include <chrono>
+ #include <string>
+ #include <cstdio>
+ #include <cstring>
+@@ -120,6 +123,7 @@
+     const J3DModelData* model = nullptr;
+     std::vector<GrassSurface> grass_surfaces;
+     TerrainIndex grass_index;
++    grass_reach::Points reach_points;
+     std::vector<std::array<Vec3, 3>> grass_paths;
+     std::array<std::unordered_map<std::uint64_t, GrassTile>, 3> grass_tiles;
+     std::vector<Pebble> pebbles;
+@@ -131,6 +135,8 @@
+ std::array<std::array<RoomCover, PartsPerRoom>, RoomSlots> room_cover;
+ std::string cached_stage;
+ unsigned grass_revision = 0;
++grass_reach::Cache reach_cache;
++grass_assembly::Cache assembly_cache;
+ struct ObjectFall {
+     RoomCover cover;
+     float transform[12]{};
+@@ -143,6 +149,72 @@
+ bool frame_reported = false;
+ terrain_trails::History trail_history;
+ bool trail_reported = false;
++// Same diagnostics toggle as the final renderer. Capture bounded CPU spans only;
++// serialization happens in mod_update, never in the timed stage callback.
++struct GrassCpuProfile {
++    using Clock = std::chrono::steady_clock;
++    struct Sample {
++        std::array<double, 5> us{};
++        std::array<float, 2> eye{};
++        float furthest = 2200;
++        unsigned roots = 0;
++        bool ready = false, assembly_reused = false, proof_recorded = false;
++        std::uint64_t geometry_hash = 0, input_hash = 0;
++    };
++    std::array<Sample, 384> samples{};
++    Sample current{};
++    Clock::time_point previous{};
++    unsigned count = 0;
++    bool active = false, reported = false;
++    void reset() { count = 0; active = reported = false; }
++    void begin(bool enabled, const float* eye) {
++        if (!enabled) { reset(); return; }
++        active = count < samples.size();
++        if (active) { current = {}; current.eye = {eye[0], eye[2]}; previous = Clock::now(); }
++    }
++    void mark(unsigned phase) {
++        if (!active) return;
++        const auto now = Clock::now();
++        current.us[phase] = std::chrono::duration<double, std::micro>(now - previous).count();
++        previous = now;
++    }
++    void finish(unsigned roots, bool ready) {
++        if (!active) return;
++        mark(4); current.roots = roots; current.ready = ready;
++        samples[count++] = current; active = false;
++    }
++    void proof(const CameraInfo& camera, float reach, unsigned first, const std::vector<Clump>& instances) {
++        // Transition and settled-camera proofs, outside all captured CPU spans. Hash immutable
++        // instance fields only; trails deliberately remain a live per-frame input.
++        if ((count != 129 && count != 130 && count != samples.size()) || !samples[count-1].ready) return;
++        auto& sample = samples[count-1];
++        if (sample.proof_recorded) return;
++        sample.proof_recorded = true;
++        const auto append = [](std::uint64_t& hash, std::uint32_t word) { hash = (hash ^ word) * 1099511628211ull; };
++        sample.geometry_hash = sample.input_hash = 14695981039346656037ull;
++        for (auto word : grass_assembly::key(camera, reach, 0, first).camera) append(sample.input_hash, word);
++        append(sample.input_hash, first);
++        for (const auto& instance : instances) {
++            for (const auto& value : {instance.point, instance.shape, instance.base, instance.tip})
++                for (auto word : std::bit_cast<std::array<std::uint32_t, 3>>(value)) append(sample.geometry_hash, word);
++        }
++    }
++    void report() {
++        if (reported || count != samples.size() || !svc_log) return;
++        reported = true;
++        for (unsigned i = 0; i < count; ++i) {
++            const auto& sample = samples[i];
++            char message[512];
++            std::snprintf(message, sizeof(message),
++                "Grass CPU: {\"schema\":1,\"sample\":%u,\"us\":[%.3f,%.3f,%.3f,%.3f,%.3f],\"roots\":%u,\"ready\":%s,\"eye_xz\":[%.9g,%.9g],\"furthest\":%.9g,\"input_hash\":\"%016llx\",\"geometry_hash\":\"%016llx\",\"assembly_reused\":%s}",
++                i, sample.us[0], sample.us[1], sample.us[2], sample.us[3], sample.us[4],
++                sample.roots, sample.ready ? "true" : "false", sample.eye[0], sample.eye[1], sample.furthest,
++                static_cast<unsigned long long>(sample.input_hash), static_cast<unsigned long long>(sample.geometry_hash),
++                sample.assembly_reused ? "true" : "false");
++            svc_log->info(mod_ctx, message);
++        }
++    }
++} cpu_profile;
+ Vec3 trail_bend(Vec3 point) {
+     const auto effect=trail_history.sample({point.x,point.y,point.z});
+     return {effect[0],effect[1],effect[2]};
+@@ -838,6 +910,16 @@
+             const auto& surface = cover.grass_surfaces[i];
+             return TerrainIndex::Bounds{surface.min_x, surface.max_x, surface.min_z, surface.max_z};
+         });
++        cover.reach_points.rebuild(cover.grass_surfaces.size() * 3, [&](std::size_t i) {
++            const auto& point = cover.grass_surfaces[i / 3].points[i % 3];
++            return grass_reach::Point{point.x, point.z};
++        });
++        if (settings::diagnostics_enabled() && svc_log && !cover.grass_surfaces.empty()) {
++            char message[160];
++            std::snprintf(message, sizeof(message), "Grass reach points: corners=%zu unique=%zu bytes=%zu",
++                cover.grass_surfaces.size() * 3, cover.reach_points.size(), cover.reach_points.bytes());
++            svc_log->info(mod_ctx, message);
++        }
+     }
+     // Match authored ground materials. Overlay dirt gets fewer pebbles than base gravel.
+     std::uint32_t rng = 0x5f27b6u;
+@@ -1047,10 +1129,14 @@
+     static int previous_x = 0, previous_z = 0;
+     const int camera_x = int(std::floor(camera.eye[0] / GrassTileSize));
+     const int camera_z = int(std::floor(camera.eye[2] / GrassTileSize));
+-    float furthest = 2200;
+-    for (const auto& room : room_cover) for (const auto& cover : room) for (const auto& surface : cover.grass_surfaces)
+-        for (const auto& p : surface.points)
+-            furthest = std::max(furthest, std::hypot(p.x-camera.eye[0], p.z-camera.eye[2]) + 512);
++    const float furthest = reach_cache.get(camera.eye[0], camera.eye[2], grass_revision, [&] {
++        float result = 2200;
++        for (const auto& room : room_cover) for (const auto& cover : room)
++            result = std::max(result, cover.reach_points.furthest(camera.eye[0], camera.eye[2]));
++        return result;
++    });
++    cpu_profile.mark(0);
++    if (cpu_profile.active) cpu_profile.current.furthest = furthest;
+     const float next_reach = grass_view::reach(camera.far_plane, furthest, camera.fovy, camera.aspect);
+     const float next_size = grass_view::tile_size(next_reach);
+     if (next_size != canopy_tile_size) {
+@@ -1107,6 +1193,7 @@
+         previous_direction = {camera.view_from_world[2],camera.view_from_world[6],camera.view_from_world[10]};
+         previous_fov=camera.fovy; previous_aspect=camera.aspect;
+     }
++    cpu_profile.mark(1);
+     static unsigned epoch = 0;
+     ++epoch;
+     auto& tiles = visible_tiles;
+@@ -1133,6 +1220,7 @@
+                 std::erase_if(cover.grass_tiles[layer], [&](const auto& tile) { return tile.second.used != epoch; });
+         ready &= tiles[layer].size() == requests[layer].size();
+     }
++    cpu_profile.mark(2);
+     return tiles;
+ }
+ 
+@@ -1214,6 +1302,9 @@
+ }
+ 
+ void clear_cover() {
++    reach_cache.reset();
++    assembly_cache.reset();
++    cpu_profile.reset();
+     for (auto& tiles : visible_tiles) tiles.clear();
+     trail_history.clear(); trail_reported=false;
+     for (auto& room : room_cover) room = {};
+@@ -1343,7 +1434,6 @@
+     if (svc_camera->get_camera(mod_ctx, context->game_view, &camera) != MOD_OK) return;
+     if (!std::all_of(std::begin(camera.eye), std::end(camera.eye),
+                      [](float v) { return std::isfinite(v) && std::abs(v) < 1e7f; })) return;
+-    clumps.clear();
+     const auto* m = camera.proj_from_world;
+     auto visible = [&](Vec3 point) {
+         float clip[4];
+@@ -1353,101 +1443,113 @@
+                std::abs(clip[1]) <= clip[3] * 1.1f;
+     };
+     bool grass_ready = false;
++    cpu_profile.begin(settings::diagnostics_enabled(), camera.eye);
+     const auto& tiles = prepare_grass_tiles(camera, grass_ready);
+     struct ClearTilePointers {
+         ~ClearTilePointers() { for (auto& list : visible_tiles) list.clear(); }
+     } clear_tile_pointers;
+     unsigned near_count = 0;
+     unsigned distant_count = 0, canopy_count = 0, trampled = 0;
+-    for (unsigned layer = 0; layer < 3; ++layer) {
+-        const auto start = clumps.size();
+-        const unsigned limit = layer == 2 ? MaxCanopyVisible : layer ? MaxFarGrassVisible : MaxVisible;
+-        const float reach = layer == 2 ? canopy_reach : layer ? FarGrassDistance : DrawDistance;
+-        const unsigned quota = layer ? std::max(1u, limit / std::max(1u, unsigned(tiles[layer].size()))) : limit;
+-        for (const auto* tile : tiles[layer]) {
+-            if (clumps.size() - start >= limit) break;
+-            unsigned tile_count = 0;
+-            for (const auto& root : tile->roots) {
++    std::size_t grass_count = 0, plant_start = 0;
++    std::array<unsigned, static_cast<unsigned>(DetailStyle::Count)> detail_counts{};
++    const auto assembly_key = grass_assembly::key(camera, canopy_reach, grass_revision, first);
++    const bool reuse_assembly = frame_reported && assembly_cache.reusable(assembly_key, grass_ready);
++    if (cpu_profile.active) cpu_profile.current.assembly_reused = reuse_assembly;
++    if (reuse_assembly) {
++        trampled = assembly_cache.refresh(clumps, trail_bend);
++    } else {
++        clumps.clear();
++        for (unsigned layer = 0; layer < 3; ++layer) {
++            const auto start = clumps.size();
++            const unsigned limit = layer == 2 ? MaxCanopyVisible : layer ? MaxFarGrassVisible : MaxVisible;
++            const float reach = layer == 2 ? canopy_reach : layer ? FarGrassDistance : DrawDistance;
++            const unsigned quota = layer ? std::max(1u, limit / std::max(1u, unsigned(tiles[layer].size()))) : limit;
++            for (const auto* tile : tiles[layer]) {
+                 if (clumps.size() - start >= limit) break;
+-                if (tile_count >= quota) break;
+-                const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
+-                const float dy = root.point.y - camera.eye[1];
+-                const float distance2 = dx*dx + dy*dy + dz*dz;
+-                if (distance2 >= reach * reach || !visible(root.point)) continue;
+-                const float distance = std::sqrt(distance2);
+-                const float density_radius = layer ? 6500.0f : 650.0f;
+-                float density = std::min(1.0f, density_radius * density_radius / std::max(distance2, 1.0f));
+-                if (layer == 2) {
+-                    const float blend = std::clamp((distance-6000.0f)/2200.0f, 0.0f, 1.0f);
+-                    density = blend * blend * (3-2*blend);
+-                } else if (layer) {
+-                    const float blend = std::clamp((distance - 1200.0f) / 800.0f, 0.0f, 1.0f);
+-                    density *= blend * blend * (3.0f - 2.0f * blend);
++                unsigned tile_count = 0;
++                for (const auto& root : tile->roots) {
++                    if (clumps.size() - start >= limit) break;
++                    if (tile_count >= quota) break;
++                    const float dx = root.point.x - camera.eye[0], dz = root.point.z - camera.eye[2];
++                    const float dy = root.point.y - camera.eye[1];
++                    const float distance2 = dx*dx + dy*dy + dz*dz;
++                    if (distance2 >= reach * reach || !visible(root.point)) continue;
++                    const float distance = std::sqrt(distance2);
++                    const float density_radius = layer ? 6500.0f : 650.0f;
++                    float density = std::min(1.0f, density_radius * density_radius / std::max(distance2, 1.0f));
++                    if (layer == 2) {
++                        const float blend = std::clamp((distance-6000.0f)/2200.0f, 0.0f, 1.0f);
++                        density = blend * blend * (3-2*blend);
++                    } else if (layer) {
++                        const float blend = std::clamp((distance - 1200.0f) / 800.0f, 0.0f, 1.0f);
++                        density *= blend * blend * (3.0f - 2.0f * blend);
++                    }
++                    std::uint32_t seed = std::bit_cast<std::uint32_t>(root.point.x) * 0x9e3779b9u ^
++                                         std::bit_cast<std::uint32_t>(root.point.z) * 0x85ebca6bu;
++                    const float weight = std::clamp((density - random(seed)) * 16.0f, 0.0f, 1.0f);
++                    const float height = (layer == 2 ? std::max(root.height*1.6f, distance*0.0009f) : root.height * (layer ? 1.6f : 1.25f)) * weight *
++                                         std::clamp((reach - distance) / (layer == 2 ? 512.0f : layer ? 1400.0f : 450.0f), 0.0f, 1.0f);
++                    if (height < 1.0f) continue;
++                    const Vec3 base = scale(root.color, 0.88f);
++                    const Vec3 tip = root.color;
++                    const float footprint = layer ? std::clamp(std::sqrt(float(tile->roots.size())/quota), 1.0f, 2.0f) : 1;
++                    const float width = (layer == 2 ? std::max(root.width*1.8f, canopy_tile_size/24*0.65f) : root.width*(layer ? 1.8f : 1.0f)) * footprint;
++                    const auto trail=layer==0 ? trail_bend(root.point) : Vec3{};
++                    trampled+=trail.z>0.05f;
++                    clumps.push_back({root.point, {height, width, layer == 2 ? -root.angle-8.0f : layer ? -root.angle - 0.01f : root.angle}, base, tip, trail});
++                    ++tile_count;
+                 }
+-                std::uint32_t seed = std::bit_cast<std::uint32_t>(root.point.x) * 0x9e3779b9u ^
+-                                     std::bit_cast<std::uint32_t>(root.point.z) * 0x85ebca6bu;
+-                const float weight = std::clamp((density - random(seed)) * 16.0f, 0.0f, 1.0f);
+-                const float height = (layer == 2 ? std::max(root.height*1.6f, distance*0.0009f) : root.height * (layer ? 1.6f : 1.25f)) * weight *
+-                                     std::clamp((reach - distance) / (layer == 2 ? 512.0f : layer ? 1400.0f : 450.0f), 0.0f, 1.0f);
+-                if (height < 1.0f) continue;
+-                const Vec3 base = scale(root.color, 0.88f);
+-                const Vec3 tip = root.color;
+-                const float footprint = layer ? std::clamp(std::sqrt(float(tile->roots.size())/quota), 1.0f, 2.0f) : 1;
+-                const float width = (layer == 2 ? std::max(root.width*1.8f, canopy_tile_size/24*0.65f) : root.width*(layer ? 1.8f : 1.0f)) * footprint;
+-                const auto trail=layer==0 ? trail_bend(root.point) : Vec3{};
+-                trampled+=trail.z>0.05f;
+-                clumps.push_back({root.point, {height, width, layer == 2 ? -root.angle-8.0f : layer ? -root.angle - 0.01f : root.angle}, base, tip, trail});
+-                ++tile_count;
+             }
+-        }
+-        if (!layer) near_count = static_cast<unsigned>(clumps.size());
+-        if (layer == 1) distant_count = unsigned(clumps.size()-start);
+-        if (layer == 2) canopy_count = unsigned(clumps.size()-start);
+-    }
+-    const auto grass_count = clumps.size();
+-    std::array<unsigned, static_cast<unsigned>(DetailStyle::Count)> detail_counts{};
+-    for (unsigned offset = 0; offset < RoomSlots && clumps.size() - grass_count < MaxPebbles; ++offset) {
+-        for (const auto& cover : room_cover[(first + offset) % RoomSlots]) {
+-            for (const auto& pebble : cover.pebbles) {
+-                if (clumps.size() - grass_count >= MaxPebbles) break;
+-                const auto& root = pebble.root;
+-                const float dx = root.point.x - camera.eye[0], dy = root.point.y - camera.eye[1],
+-                            dz = root.point.z - camera.eye[2];
+-                const float distance2 = dx*dx + dy*dy + dz*dz;
+-                if (distance2 >= PebbleDistance * PebbleDistance || !visible(root.point)) continue;
+-                const float distance = std::sqrt(distance2);
+-                const float fade = std::clamp((PebbleDistance - distance) / 350.0f, 0.0f, 1.0f);
+-                clumps.push_back({root.point, {-root.height * fade, root.width * fade, root.angle},
+-                                  pebble.slope, root.color});
+-                if (!frame_reported) ++detail_counts[static_cast<unsigned>(pebble.slope.z)];
++            if (!layer) near_count = static_cast<unsigned>(clumps.size());
++            if (layer == 1) distant_count = unsigned(clumps.size()-start);
++            if (layer == 2) canopy_count = unsigned(clumps.size()-start);
++        }
++        grass_count = clumps.size();
++        for (unsigned offset = 0; offset < RoomSlots && clumps.size() - grass_count < MaxPebbles; ++offset) {
++            for (const auto& cover : room_cover[(first + offset) % RoomSlots]) {
++                for (const auto& pebble : cover.pebbles) {
++                    if (clumps.size() - grass_count >= MaxPebbles) break;
++                    const auto& root = pebble.root;
++                    const float dx = root.point.x - camera.eye[0], dy = root.point.y - camera.eye[1],
++                                dz = root.point.z - camera.eye[2];
++                    const float distance2 = dx*dx + dy*dy + dz*dz;
++                    if (distance2 >= PebbleDistance * PebbleDistance || !visible(root.point)) continue;
++                    const float distance = std::sqrt(distance2);
++                    const float fade = std::clamp((PebbleDistance - distance) / 350.0f, 0.0f, 1.0f);
++                    clumps.push_back({root.point, {-root.height * fade, root.width * fade, root.angle},
++                                      pebble.slope, root.color});
++                    if (!frame_reported) ++detail_counts[static_cast<unsigned>(pebble.slope.z)];
++                }
+             }
+         }
+-    }
+-    const auto plant_start = clumps.size();
+-    for (unsigned offset = 0; offset < RoomSlots && clumps.size() - plant_start < MaxVisiblePlants; ++offset) {
+-        for (const auto& cover : room_cover[(first + offset) % RoomSlots]) {
+-            for (const auto& plant : cover.plants) {
+-                if (clumps.size() - plant_start >= MaxVisiblePlants) break;
+-                const auto& root = plant.root;
+-                const float dx = root.point.x - camera.eye[0], dy = root.point.y - camera.eye[1],
+-                            dz = root.point.z - camera.eye[2];
+-                const float distance2 = dx*dx + dy*dy + dz*dz;
+-                if (distance2 >= PlantDistance * PlantDistance || !visible(root.point)) continue;
+-                const float distance = std::sqrt(distance2);
+-                const float density = std::min(1.0f, 2000.0f * 2000.0f / std::max(distance2, 1.0f));
+-                std::uint32_t seed = std::bit_cast<std::uint32_t>(root.point.x) * 0x9e3779b9u ^
+-                                     std::bit_cast<std::uint32_t>(root.point.z) * 0x85ebca6bu;
+-                const float fade = std::clamp((PlantDistance - distance) / 1200.0f, 0.0f, 1.0f) *
+-                                   std::clamp((density - random(seed)) * 16.0f, 0.0f, 1.0f);
+-                if (root.height * fade < 0.5f) continue;
+-                const auto trail=trail_bend(root.point);
+-                trampled+=trail.z>0.05f;
+-                clumps.push_back({root.point, {-root.height * fade, root.width * fade, root.angle},
+-                                  plant.slope, root.color, trail});
+-                if (!frame_reported) ++detail_counts[static_cast<unsigned>(DetailStyle::Plant)];
++        plant_start = clumps.size();
++        for (unsigned offset = 0; offset < RoomSlots && clumps.size() - plant_start < MaxVisiblePlants; ++offset) {
++            for (const auto& cover : room_cover[(first + offset) % RoomSlots]) {
++                for (const auto& plant : cover.plants) {
++                    if (clumps.size() - plant_start >= MaxVisiblePlants) break;
++                    const auto& root = plant.root;
++                    const float dx = root.point.x - camera.eye[0], dy = root.point.y - camera.eye[1],
++                                dz = root.point.z - camera.eye[2];
++                    const float distance2 = dx*dx + dy*dy + dz*dz;
++                    if (distance2 >= PlantDistance * PlantDistance || !visible(root.point)) continue;
++                    const float distance = std::sqrt(distance2);
++                    const float density = std::min(1.0f, 2000.0f * 2000.0f / std::max(distance2, 1.0f));
++                    std::uint32_t seed = std::bit_cast<std::uint32_t>(root.point.x) * 0x9e3779b9u ^
++                                         std::bit_cast<std::uint32_t>(root.point.z) * 0x85ebca6bu;
++                    const float fade = std::clamp((PlantDistance - distance) / 1200.0f, 0.0f, 1.0f) *
++                                       std::clamp((density - random(seed)) * 16.0f, 0.0f, 1.0f);
++                    if (root.height * fade < 0.5f) continue;
++                    const auto trail=trail_bend(root.point);
++                    trampled+=trail.z>0.05f;
++                    clumps.push_back({root.point, {-root.height * fade, root.width * fade, root.angle},
++                                      plant.slope, root.color, trail});
++                    if (!frame_reported) ++detail_counts[static_cast<unsigned>(DetailStyle::Plant)];
++                }
+             }
+         }
+-    }
++        assembly_cache.remember(assembly_key, grass_ready, near_count, plant_start);
++    }
++    cpu_profile.mark(3);
+     if (trampled && !trail_reported) {
+         char message[160];
+         std::snprintf(message,sizeof(message),"Ground movement trails active: %u nearby clumps, %u retained segments; gradual recovery",trampled,trail_history.active());
+@@ -1466,7 +1568,7 @@
+         svc_log->info(mod_ctx, message);
+         frame_reported = true;
+     }
+-    if (clumps.empty()) return;
++    if (clumps.empty()) { cpu_profile.finish(0, grass_ready); return; }
+     Draw draw{{}, {}, static_cast<unsigned>(clumps.size())};
+     CoverUniforms uniforms{};
+     uniforms.wind = wind::sample();
+@@ -1513,6 +1615,8 @@
+     if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &draw.projection) == MOD_OK &&
+         svc_gfx->push_verts(mod_ctx, clumps.data(), clumps.size() * sizeof(Clump), 4, &draw.instances) == MOD_OK)
+         (void)svc_gfx->push_draw(mod_ctx, draw_type, &draw, sizeof(draw));
++    cpu_profile.finish(static_cast<unsigned>(clumps.size()), grass_ready);
++    cpu_profile.proof(camera, canopy_reach, first, clumps);
+ }
+ } // namespace
+ 
+@@ -1577,6 +1681,8 @@
+ 
+ void update(float elapsed) {
+     if (!draw_type) return;
++    if (settings::diagnostics_enabled()) cpu_profile.report();
++    else cpu_profile.reset();
+     static bool was_ground = false, was_water = false, was_atmosphere = false;
+     const bool ground = settings::ground_grass_enabled();
+     const bool water = settings::enhanced_water_enabled();

@@ -1,0 +1,171 @@
+--- round3-baseline/src/render/ground_grass.cpp
++++ optimized/src/render/ground_grass.cpp
+@@ -2,6 +2,7 @@
+ #include "grass_view.hpp"
+ #include "grass_reach.hpp"
+ #include "grass_assembly.hpp"
++#include "immutable_instances.hpp"
+ #include "terrain_index.hpp"
+ #include "waterfall.hpp"
+ #include "game/topology.hpp"
+@@ -94,7 +95,11 @@
+     GfxRange instances;
+     GfxRange projection;
+     unsigned count;
++    immutable_instances::Resource* immutable = nullptr;
+ };
++static_assert(sizeof(Draw) <= GFX_INLINE_DRAW_PAYLOAD_SIZE);
++GfxDeviceInfo grass_device = GFX_DEVICE_INFO_INIT;
++immutable_instances::Pool instance_pool;
+ 
+ GfxStageHookHandle stage_hook = 0;
+ GfxStageHookHandle waterfall_hook = 0;
+@@ -160,6 +165,8 @@
+         unsigned roots = 0;
+         bool ready = false, assembly_reused = false, proof_recorded = false;
+         std::uint64_t geometry_hash = 0, input_hash = 0;
++        std::uint64_t instance_hash = 0, uploaded_bytes = 0, resident_bytes = 0;
++        bool immutable_upload = false;
+     };
+     std::array<Sample, 384> samples{};
+     Sample current{};
+@@ -191,12 +198,15 @@
+         if (sample.proof_recorded) return;
+         sample.proof_recorded = true;
+         const auto append = [](std::uint64_t& hash, std::uint32_t word) { hash = (hash ^ word) * 1099511628211ull; };
+-        sample.geometry_hash = sample.input_hash = 14695981039346656037ull;
++        sample.geometry_hash = sample.input_hash = sample.instance_hash = 14695981039346656037ull;
+         for (auto word : grass_assembly::key(camera, reach, 0, first).camera) append(sample.input_hash, word);
+         append(sample.input_hash, first);
+         for (const auto& instance : instances) {
+             for (const auto& value : {instance.point, instance.shape, instance.base, instance.tip})
+-                for (auto word : std::bit_cast<std::array<std::uint32_t, 3>>(value)) append(sample.geometry_hash, word);
++                for (auto word : std::bit_cast<std::array<std::uint32_t, 3>>(value)) {
++                    append(sample.geometry_hash, word); append(sample.instance_hash, word);
++                }
++            for (auto word : std::bit_cast<std::array<std::uint32_t, 3>>(instance.trail)) append(sample.instance_hash, word);
+         }
+     }
+     void report() {
+@@ -204,13 +214,15 @@
+         reported = true;
+         for (unsigned i = 0; i < count; ++i) {
+             const auto& sample = samples[i];
+-            char message[512];
++            char message[768];
+             std::snprintf(message, sizeof(message),
+-                "Grass CPU: {\"schema\":1,\"sample\":%u,\"us\":[%.3f,%.3f,%.3f,%.3f,%.3f],\"roots\":%u,\"ready\":%s,\"eye_xz\":[%.9g,%.9g],\"furthest\":%.9g,\"input_hash\":\"%016llx\",\"geometry_hash\":\"%016llx\",\"assembly_reused\":%s}",
++                "Grass CPU: {\"schema\":1,\"sample\":%u,\"us\":[%.3f,%.3f,%.3f,%.3f,%.3f],\"roots\":%u,\"ready\":%s,\"eye_xz\":[%.9g,%.9g],\"furthest\":%.9g,\"input_hash\":\"%016llx\",\"geometry_hash\":\"%016llx\",\"assembly_reused\":%s,\"instance_hash\":\"%016llx\",\"uploaded_bytes\":%llu,\"resident_bytes\":%llu,\"immutable_upload\":%s}",
+                 i, sample.us[0], sample.us[1], sample.us[2], sample.us[3], sample.us[4],
+                 sample.roots, sample.ready ? "true" : "false", sample.eye[0], sample.eye[1], sample.furthest,
+                 static_cast<unsigned long long>(sample.input_hash), static_cast<unsigned long long>(sample.geometry_hash),
+-                sample.assembly_reused ? "true" : "false");
++                sample.assembly_reused ? "true" : "false", static_cast<unsigned long long>(sample.instance_hash),
++                static_cast<unsigned long long>(sample.uploaded_bytes), static_cast<unsigned long long>(sample.resident_bytes),
++                sample.immutable_upload ? "true" : "false");
+             svc_log->info(mod_ctx, message);
+         }
+     }
+@@ -1225,8 +1237,11 @@
+ }
+ 
+ void encode(ModContext*, const GfxDrawContext* context, const void* payload, size_t size, void*) {
+-    if (!context || size != sizeof(Draw) ||
+-        context->layout.depth_stencil_format == WGPUTextureFormat_Undefined) return;
++    if (size != sizeof(Draw)) return;
++    Draw draw{};
++    std::memcpy(&draw, payload, sizeof(draw));
++    immutable_instances::Pending pending{draw.immutable};
++    if (!context || context->layout.depth_stencil_format == WGPUTextureFormat_Undefined) return;
+     if (!pipeline || pipeline_layout != context->layout.key || pipeline_reversed != context->uses_reversed_z) {
+         if (pipeline) wgpuRenderPipelineRelease(pipeline);
+         WGPUShaderSourceWGSL source = WGPU_SHADER_SOURCE_WGSL_INIT;
+@@ -1279,8 +1294,6 @@
+         pipeline_reversed = context->uses_reversed_z;
+     }
+     if (!pipeline) return;
+-    Draw draw{};
+-    std::memcpy(&draw, payload, sizeof(draw));
+     auto layout = wgpuRenderPipelineGetBindGroupLayout(pipeline, 0);
+     WGPUBindGroupEntry entry = WGPU_BIND_GROUP_ENTRY_INIT;
+     entry.buffer = context->uniform_buffer;
+@@ -1295,13 +1308,16 @@
+     if (!group) return;
+     wgpuRenderPassEncoderSetPipeline(context->pass, pipeline);
+     wgpuRenderPassEncoderSetBindGroup(context->pass, 0, group, 0, nullptr);
+-    wgpuRenderPassEncoderSetVertexBuffer(context->pass, 0, context->vertex_buffer,
+-                                         draw.instances.offset, draw.instances.size);
++    wgpuRenderPassEncoderSetVertexBuffer(context->pass, 0,
++        draw.immutable ? draw.immutable->buffer : context->vertex_buffer,
++        draw.immutable ? 0 : draw.instances.offset,
++        draw.immutable ? draw.immutable->bytes : draw.instances.size);
+     wgpuRenderPassEncoderDraw(context->pass, VerticesPerClump, draw.count, 0, 0);
+     wgpuBindGroupRelease(group);
+ }
+ 
+ void clear_cover() {
++    instance_pool.invalidate();
+     reach_cache.reset();
+     assembly_cache.reset();
+     cpu_profile.reset();
+@@ -1454,9 +1470,10 @@
+     std::array<unsigned, static_cast<unsigned>(DetailStyle::Count)> detail_counts{};
+     const auto assembly_key = grass_assembly::key(camera, canopy_reach, grass_revision, first);
+     const bool reuse_assembly = frame_reported && assembly_cache.reusable(assembly_key, grass_ready);
++    bool trails_changed = false;
+     if (cpu_profile.active) cpu_profile.current.assembly_reused = reuse_assembly;
+     if (reuse_assembly) {
+-        trampled = assembly_cache.refresh(clumps, trail_bend);
++        trampled = assembly_cache.refresh(clumps, trail_bend, &trails_changed);
+     } else {
+         clumps.clear();
+         for (unsigned layer = 0; layer < 3; ++layer) {
+@@ -1568,8 +1585,10 @@
+         svc_log->info(mod_ctx, message);
+         frame_reported = true;
+     }
+-    if (clumps.empty()) { cpu_profile.finish(0, grass_ready); return; }
++    if (clumps.empty()) { instance_pool.invalidate(); cpu_profile.finish(0, grass_ready); return; }
+     Draw draw{{}, {}, static_cast<unsigned>(clumps.size())};
++    draw.immutable = instance_pool.prepare(grass_device.device, std::as_bytes(std::span(clumps)),
++        reuse_assembly && !trails_changed);
+     CoverUniforms uniforms{};
+     uniforms.wind = wind::sample();
+     uniforms.actors = terrain_interaction::sample();
+@@ -1612,9 +1631,17 @@
+                           channel(g_env_light.fog_col.b), 0};
+     uniforms.fog_range = {g_env_light.mFogNear, std::max(1.0f, g_env_light.mFogFar - g_env_light.mFogNear), 0, 0};
+     std::memcpy(uniforms.projection, camera.proj_from_world, sizeof(uniforms.projection));
++    if (cpu_profile.active) {
++        cpu_profile.current.uploaded_bytes = draw.immutable ? 0 : clumps.size() * sizeof(Clump);
++        cpu_profile.current.resident_bytes = instance_pool.bytes();
++        cpu_profile.current.immutable_upload = draw.immutable != nullptr;
++    }
+     if (svc_gfx->push_uniform(mod_ctx, &uniforms, sizeof(uniforms), &draw.projection) == MOD_OK &&
+-        svc_gfx->push_verts(mod_ctx, clumps.data(), clumps.size() * sizeof(Clump), 4, &draw.instances) == MOD_OK)
+-        (void)svc_gfx->push_draw(mod_ctx, draw_type, &draw, sizeof(draw));
++        (draw.immutable || svc_gfx->push_verts(mod_ctx, clumps.data(), clumps.size() * sizeof(Clump), 4, &draw.instances) == MOD_OK)) {
++        immutable_instances::pin(draw.immutable);
++        if (svc_gfx->push_draw(mod_ctx, draw_type, &draw, sizeof(draw)) != MOD_OK)
++            immutable_instances::release(draw.immutable);
++    }
+     cpu_profile.finish(static_cast<unsigned>(clumps.size()), grass_ready);
+     cpu_profile.proof(camera, canopy_reach, first, clumps);
+ }
+@@ -1672,6 +1699,7 @@
+         return;
+     }
+     waterfall::initialize();
++    (void)svc_gfx->get_device_info(mod_ctx, &grass_device);
+     GfxDrawTypeDesc draw = GFX_DRAW_TYPE_DESC_INIT;
+     draw.label = "MidnaFX ground cover";
+     draw.draw = encode;
+@@ -1739,6 +1767,8 @@
+     if (pipeline) wgpuRenderPipelineRelease(pipeline);
+     pipeline = nullptr;
+     clear_cover();
++    instance_pool.clear_after_drain();
++    grass_device = GFX_DEVICE_INFO_INIT;
+     frame_reported = false;
+     visible_tiles = {};
+     std::vector<Clump>().swap(clumps);

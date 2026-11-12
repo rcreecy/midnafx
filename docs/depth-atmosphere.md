@@ -11,6 +11,57 @@ The shader reads the current palette every scene, so room, weather and time-of-d
 palette changes flow through without a separate color schedule. This adds to
 native fog; it does not replace the game's original fog or add volumetric lights.
 
+## Terrain mist
+
+Depth atmosphere also adds a low layer near the camera. A cached collision grid
+samples ground and water heights in the loaded area. Water raises and thickens
+the layer, surrounding higher ground collects it in hollows, and exposed dry
+surfaces get a thin veil. The grid blends across banks and low ledges, while
+the native wind drifts the density variation. Route thinning uses terrain
+exposure as a proxy. It has no stage-specific tuning or separate toggle, and
+works in eligible scenes without an authored distance-fog interval.
+The low layer thins around Link and Epona as their positions move through it.
+
+## Vegetation particles
+
+Outdoor vegetation now emits drifting pollen in daylight. Qualified forest-floor
+vegetation and leaf litter support pulsing fireflies at night. Both use stable
+world-space anchors from the existing terrain classifier, shared wind direction
+and strength, soft depth-tested sprites, and native fog attenuation. There is no
+stage whitelist. Bare paths do not supply anchors; particles can drift across them.
+
+The existing Depth atmosphere switch controls particles. Atmosphere strength zero
+also suppresses them. Ground cover can be disabled independently while vegetation
+qualification remains available for particles. Underwater, indoor, paused and
+Twilight views bypass this pass. Scenes without qualified vegetation emit none.
+Fireflies follow the native clock rather than a separate schedule.
+
+The pass selects at most 64 nearby vegetation anchors within 2,200 world units,
+draws at most 192 sprites including at most 32 fireflies, and preserves scene
+alpha and depth. This is local airborne detail, not simulated insect ecology or
+volumetric scattering. Dense terrain reservoirs still require a CPU scan to
+select nearby anchors; GPU cost has not been measured.
+
+Windows D3D12 Faron Spring checks show daylight pollen and nighttime fireflies
+in the same dialogue camera, with normal close exit 0. Motion tests cover clock
+gating, finite bounded trajectories, continuous insect motion and invisible
+pollen lifetime resets. See the [particle receipt](evidence/airborne-2026-11-10/README.md).
+Whole-game artistic coverage and macOS gameplay remain unverified.
+
+## Canopy sunlight and palette
+
+The contact-shadow control also traces a longer, filtered ray toward native
+sunlight through visible scene geometry. Daylit receivers get a warmer response,
+and shaded receivers get a cooler response. Sun availability, native weather,
+and the outdoor scene determine activation. The ray reaches 1,600 world units
+with twenty samples, sharing the existing half-resolution contact field.
+Geometry outside the captured view cannot cast these added shadows.
+
+New settings enable the revised Natural color look and restrained texture detail.
+Remaster also selects that look and uses brighter midtones and richer saturation.
+Saved switches still apply, and the existing color intensity and bypass controls
+govern the palette.
+
 ## Sunlit atmosphere
 
 Version 1.21 adds a directional daylight tint to the existing fog target color.

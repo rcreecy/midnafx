@@ -1,0 +1,10 @@
+{
+  "preexisting_files_changed": [
+    "docs/evidence/performance-2026-11-12/README.md",
+    "docs/performance-program.md",
+    "src/render/ground_grass.cpp",
+    "tests/CMakeLists.txt"
+  ],
+  "all_other_preexisting_edits_unchanged": true,
+  "assembly_cache_miss_body_exact_after_declaration_lift_and_indentation": true
+}

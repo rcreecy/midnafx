@@ -145,4 +145,25 @@ bool has_stage_water(std::string_view stage) {
     return false;
 }
 
+bool is_water_surface_family(std::string_view material) {
+    if (material == "cc_MA03_water_v" || material == "cc_MA03_water_v_x") return true;
+    if (!material.starts_with("cc_MA02_") && !material.starts_with("cc_MA06_")) return false;
+    material.remove_prefix(8);
+    if (material.ends_with("_v_x")) material.remove_suffix(4);
+    else if (material.ends_with("_v")) material.remove_suffix(2);
+    else return false;
+    constexpr std::array families{"water", "suimen", "mizu", "indirectwater", "indirectwater1",
+                                  "nigoriwater", "nigoriwater1", "nigori_water"};
+    for (const std::string_view family : families) {
+        if (family.size() != material.size()) continue;
+        bool match = true;
+        for (std::size_t i = 0; i < family.size(); ++i) {
+            const auto c = material[i];
+            match &= family[i] == (c >= 'A' && c <= 'Z' ? c + ('a' - 'A') : c);
+        }
+        if (match) return true;
+    }
+    return false;
+}
+
 } // namespace midnafx::game::water

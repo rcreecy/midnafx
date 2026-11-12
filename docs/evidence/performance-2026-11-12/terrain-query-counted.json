@@ -1,0 +1,403 @@
+{
+  "schema": 1,
+  "measured_at_utc": "2026-11-12T19:10:12.339140+00:00",
+  "scope": "synthetic mod-local CPU query batches, not game frame times",
+  "head": "2cd2858b02bcb97937803f9ece13f9b66b9c4c3e",
+  "status": "M CMakeLists.txt\n M docs/automatic-smoothing.md\n M docs/depth-atmosphere.md\n M docs/ground-grass-scope.md\n M docs/material-relighting.md\n M docs/model-shading.md\n M docs/performance.md\n M docs/remaster-program.md\n M docs/water-scene-reflections.md\n M patches/aurora-material-relighting.patch\n M patches/dusklight-material-relighting.patch\n M shaders/ambient_common.wgsl\n M shaders/ambient_occlusion.wgsl\n M shaders/ambient_occlusion_compute.wgsl\n M shaders/water_thickness.wgsl\n M src/config/presets.cpp\n M src/game/asset_probe.cpp\n M src/game/geometry_probe.cpp\n M src/game/smoothing.cpp\n M src/game/smoothing.hpp\n M src/game/water_identity.cpp\n M src/game/water_identity.h\n M src/game/water_probe.cpp\n M src/mod.cpp\n M src/render/ambient_occlusion.cpp\n M src/render/ground_grass.cpp\n M src/render/ground_grass.hpp\n M src/render/lut.hpp\n M src/render/material_relighting.cpp\n M src/render/material_relighting.hpp\n M src/render/native_material_service.hpp\n M src/render/renderer.cpp\n M src/render/shader.hpp.in\n M src/render/waterfall.cpp\n M src/ui/settings.cpp\n M tests/CMakeLists.txt\n M tests/aa_pixels.cpp\n M tests/ambient_pixels.cpp\n M tests/presets_roundtrip.cpp\n M tests/qualification.cpp\n M tests/shader_compile.cpp\n M tests/water_identity.cpp\n?? docs/color-direction.md\n?? docs/evidence/airborne-2026-11-10/\n?? docs/evidence/grass-trails-2026-11-11/\n?? docs/evidence/material-finishes-2026-11-11/\n?? docs/evidence/material-sheen-2026-11-11/\n?? docs/evidence/mixed-shading-2026-11-11/\n?? docs/evidence/performance-2026-11-12/\n?? docs/evidence/view-grass-2026-11-11/\n?? docs/evidence/vivid-palette-2026-11-11/\n?? docs/performance-program.md\n?? shaders/wind.wgsl\n?? src/game/surface_class.hpp\n?? src/game/surface_profiles.cpp\n?? src/game/surface_profiles.hpp\n?? src/game/terrain_interaction.hpp\n?? src/game/terrain_trails.hpp\n?? src/game/wind.hpp\n?? src/render/airborne_motion.hpp\n?? src/render/ambient_particles.cpp\n?? src/render/ambient_particles.hpp\n?? src/render/grass_view.hpp\n?? src/render/surface_map_cache.hpp\n?? src/render/surface_map_shader.hpp\n?? src/render/terrain_index.hpp\n?? tests/airborne_motion.cpp\n?? tests/grass_view.cpp\n?? tests/lut_palette.cpp\n?? tests/native_material_compat.cpp\n?? tests/performance_bench.py\n?? tests/surface_class.cpp\n?? tests/surface_map_cache.cpp\n?? tests/surface_map_contract.py\n?? tests/terrain_index.cpp\n?? tests/terrain_trails.cpp\n?? tools/performance-bench.py",
+  "tracked_diff_sha256": "1f80c007b4deba94a9f1304e2f76b195077a0ba258a71e514616ec95744320c7",
+  "source_sha256": {
+    "src\\render\\terrain_index.hpp": "58c43fd03c348b1114e7f9467396317567b483fef6f74bff6dfd71872c5fcf79",
+    "src\\render\\ground_grass.cpp": "0b11df87fe6e599f5113910296450bb49c038050657f4055177b9f41b4d79459",
+    "tests\\terrain_index.cpp": "b663d48173bdb41a564f22c8a85d1d3cc4ff6a5939384895c5463df0186b2c8a"
+  },
+  "executable_sha256": "0627d9b30fee97e426285143589d8277a7df742a4707a66511c0bb5c1b1e1662",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+  "analysis_input_sha256": null,
+  "metadata_scope": "capture environment",
+  "hardware": {
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": [
+      {
+        "Name": "Intel(R) UHD Graphics 630",
+        "DriverVersion": "31.0.101.2140"
+      },
+      {
+        "Name": "Microsoft Remote Display Adapter",
+        "DriverVersion": "10.0.26100.9818"
+      }
+    ],
+    "compiler": "MSVC 19.50.35730.0 /O2 Release x64 (CMake compiler metadata)",
+    "sdk_head": "edf42c6a7202647b56dd2fcdef02d17671bc814b",
+    "aurora_head": "7f2801cd0133c9333eadb4e2e6b24100c328d328",
+    "backend": "none (CPU benchmark)",
+    "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)"
+  },
+  "gpu_time": null,
+  "whole_frame_percentiles": null,
+  "summary": [
+    {
+      "scenario": "tiny",
+      "baseline_ms": {
+        "count": 12,
+        "min": 0.2932,
+        "max": 0.4433,
+        "p50": 0.40090000000000003,
+        "p95": 0.442915,
+        "p99": 0.44322300000000003
+      },
+      "optimized_ms": {
+        "count": 12,
+        "min": 0.2432,
+        "max": 0.3618,
+        "p50": 0.3411,
+        "p95": 0.35817,
+        "p99": 0.361074
+      },
+      "paired_ratio_median": 0.8311626845325926,
+      "paired_ratio_min": 0.7619047619047619,
+      "paired_ratio_max": 1.0557238037552998,
+      "index_bytes": 188,
+      "build_us": 1.8
+    },
+    {
+      "scenario": "spread",
+      "baseline_ms": {
+        "count": 12,
+        "min": 132.24329999999998,
+        "max": 137.3206,
+        "p50": 133.27134999999998,
+        "p95": 136.83759,
+        "p99": 137.22399800000002
+      },
+      "optimized_ms": {
+        "count": 12,
+        "min": 4.7213,
+        "max": 4.8462,
+        "p50": 4.802849999999999,
+        "p95": 4.8304149999999995,
+        "p99": 4.843043
+      },
+      "paired_ratio_median": 0.03599002777016079,
+      "paired_ratio_min": 0.03473407093396188,
+      "paired_ratio_max": 0.03645639781120187,
+      "index_bytes": 230984,
+      "build_us": 2735.1
+    },
+    {
+      "scenario": "overlapping",
+      "baseline_ms": {
+        "count": 12,
+        "min": 2427.3809,
+        "max": 2445.146,
+        "p50": 2438.1095,
+        "p95": 2444.94239,
+        "p99": 2445.105278
+      },
+      "optimized_ms": {
+        "count": 12,
+        "min": 2437.7786,
+        "max": 2589.8723,
+        "p50": 2447.5796,
+        "p95": 2527.946535,
+        "p99": 2577.4871470000003
+      },
+      "paired_ratio_median": 1.0043116963448235,
+      "paired_ratio_min": 0.9999309652675138,
+      "paired_ratio_max": 1.0603884128142507,
+      "index_bytes": 230984,
+      "build_us": 370.4
+    }
+  ],
+  "raw": {
+    "schema": 1,
+    "units": "cpu_microseconds_per_24300_queries",
+    "tile_list_allocation_model": {
+      "frames": 1000,
+      "baseline_allocations": 3000,
+      "baseline_frees": 3000,
+      "optimized_allocations": 3,
+      "optimized_frees_after_shutdown": 3,
+      "retained_bytes": 6656,
+      "checksum": 1664000
+    },
+    "workloads": [
+      {
+        "scenario": "tiny",
+        "surfaces": 8,
+        "index_bytes": 188,
+        "build_us": 1.8,
+        "trials": [
+          {
+            "order": "AB",
+            "baseline_us": 300.7,
+            "optimized_us": 248.2,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "BA",
+            "baseline_us": 310.0,
+            "optimized_us": 262.7,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "AB",
+            "baseline_us": 319.2,
+            "optimized_us": 243.2,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "BA",
+            "baseline_us": 293.2,
+            "optimized_us": 253.0,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "AB",
+            "baseline_us": 330.2,
+            "optimized_us": 348.6,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "BA",
+            "baseline_us": 443.3,
+            "optimized_us": 355.2,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "AB",
+            "baseline_us": 379.3,
+            "optimized_us": 339.0,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "BA",
+            "baseline_us": 422.5,
+            "optimized_us": 343.2,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "AB",
+            "baseline_us": 442.6,
+            "optimized_us": 353.0,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "BA",
+            "baseline_us": 433.6,
+            "optimized_us": 338.5,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "AB",
+            "baseline_us": 424.2,
+            "optimized_us": 361.8,
+            "hits": 4,
+            "linear_tests": 194372
+          },
+          {
+            "order": "BA",
+            "baseline_us": 423.1,
+            "optimized_us": 354.1,
+            "hits": 4,
+            "linear_tests": 194372
+          }
+        ]
+      },
+      {
+        "scenario": "spread",
+        "surfaces": 8192,
+        "index_bytes": 230984,
+        "build_us": 2735.1,
+        "trials": [
+          {
+            "order": "AB",
+            "baseline_us": 132931.4,
+            "optimized_us": 4846.2,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "BA",
+            "baseline_us": 133803.5,
+            "optimized_us": 4790.7,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "AB",
+            "baseline_us": 137320.6,
+            "optimized_us": 4813.6,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "BA",
+            "baseline_us": 133570.2,
+            "optimized_us": 4803.0,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "AB",
+            "baseline_us": 133345.6,
+            "optimized_us": 4803.3,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "BA",
+            "baseline_us": 136442.4,
+            "optimized_us": 4739.2,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "AB",
+            "baseline_us": 132647.6,
+            "optimized_us": 4788.2,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "BA",
+            "baseline_us": 133083.2,
+            "optimized_us": 4721.3,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "AB",
+            "baseline_us": 132243.3,
+            "optimized_us": 4802.7,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "BA",
+            "baseline_us": 134510.1,
+            "optimized_us": 4772.2,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "AB",
+            "baseline_us": 133197.1,
+            "optimized_us": 4817.5,
+            "hits": 2204,
+            "linear_tests": 183784104
+          },
+          {
+            "order": "BA",
+            "baseline_us": 132982.8,
+            "optimized_us": 4809.1,
+            "hits": 2204,
+            "linear_tests": 183784104
+          }
+        ]
+      },
+      {
+        "scenario": "overlapping",
+        "surfaces": 8192,
+        "index_bytes": 230984,
+        "build_us": 370.4,
+        "trials": [
+          {
+            "order": "AB",
+            "baseline_us": 2438208.6,
+            "optimized_us": 2449021.1,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2427380.9,
+            "optimized_us": 2446936.5,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2431747.2,
+            "optimized_us": 2443851.7,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2437893.7,
+            "optimized_us": 2450752.2,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2445146.0,
+            "optimized_us": 2444977.2,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2438010.4,
+            "optimized_us": 2448222.7,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2429420.7,
+            "optimized_us": 2437778.6,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2439055.4,
+            "optimized_us": 2444341.8,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2444775.8,
+            "optimized_us": 2450195.1,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2434536.6,
+            "optimized_us": 2443745.5,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2442380.8,
+            "optimized_us": 2589872.3,
+            "hits": 3172,
+            "linear_tests": 173083748
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2443626.2,
+            "optimized_us": 2477280.0,
+            "hits": 3172,
+            "linear_tests": 173083748
+          }
+        ]
+      }
+    ]
+  }
+}

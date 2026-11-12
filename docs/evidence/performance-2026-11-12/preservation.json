@@ -1,0 +1,8 @@
+{
+  "preexisting_files_changed": [
+    "src/render/ground_grass.cpp",
+    "tests/CMakeLists.txt"
+  ],
+  "reconstructed_preimage_sha256_matches": true,
+  "all_other_preexisting_edits_unchanged": true
+}

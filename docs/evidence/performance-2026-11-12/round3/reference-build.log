@@ -1,0 +1,618 @@
+MSBuild version 18.5.4+cb4e32d21 for .NET Framework
+
+  Checking File Globs
+  ground_grass.cpp
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JMath\JMath.h(59,25): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JMath\JMath.h(76,31): warning C4244: 'return': conversion from 'double' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JMath\JMath.h(115,11): warning C4244: 'initializing': conversion from 'double' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JMath\JMath.h(116,11): warning C4244: 'initializing': conversion from 'double' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JMath\JMath.h(117,11): warning C4244: 'initializing': conversion from 'double' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JMath\JMath.h(122,50): warning C4244: 'return': conversion from 'double' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JSupport\JSUIosBase.h(28,47): warning C4805: '&=': unsafe mix of type 'bool' and type 'int' in operation [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JSupport\JSUIosBase.h(28,47): warning C4805: '&': unsafe mix of type 'bool' and type 'int' in operation [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JSupport\JSUIosBase.h(29,47): warning C4805: '|=': unsafe mix of type 'bool' and type 'JSUIosBase::EIoState' in operation [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JSupport\JSUIosBase.h(29,47): warning C4805: '|': unsafe mix of type 'bool' and type 'JSUIosBase::EIoState' in operation [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(242,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(243,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(250,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(251,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(252,5): warning C4244: 'argument': conversion from 'f32' to 's32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(252,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(253,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(255,5): warning C4244: 'argument': conversion from 'f64' to 's32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(258,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(259,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(260,5): warning C4244: 'argument': conversion from 'f32' to 's32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(260,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(261,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(263,5): warning C4244: 'argument': conversion from 'f64' to 's32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(269,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(270,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(271,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(275,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(276,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(289,46): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(293,46): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(299,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(300,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(301,5): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(319,44): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORMContext.h(327,44): warning C4244: 'argument': conversion from 'uintptr_t' to 'u32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JGadget\linklist.h(34,35): warning C4996: 'std::iterator<std::bidirectional_iterator_tag,JGadget::TLinkListNode,s32,JGadget::TLinkListNode *,JGadget::TLinkListNode &>': warning STL4015: The std::iterator class template (used as a base class to provide typedefs) is deprecated in C++17. (The <iterator> header is NOT deprecated.) The C++ Standard has never required user-defined iterators to derive from std::iterator. To fix this warning, stop deriving from std::iterator and start providing publicly accessible typedefs named iterator_category, value_type, difference_type, pointer, and reference. Note that value_type is required to be non-const, even for constant iterators. You can define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to suppress this warning. [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Tools\MSVC\14.50.35717\include\xutility(7698,45):
+      see declaration of 'std::iterator'
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DTevs.h(107,26): warning C4244: '=': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DTevs.h(108,26): warning C4244: '=': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DTevs.h(114,19): warning C4100: 'param_1': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\helpers\gx_helper.h(74,45): warning C4100: 'text': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JUtility\JUTTexture.h(79,48): warning C4806: '|': unsafe operation: no value of type 'bool' promoted to type 'int' can equal the given constant [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DMatBlock.h(82,12): warning C4244: 'return': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DMatBlock.h(110,44): warning C4244: 'argument': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DMatBlock.h(127,44): warning C4244: 'argument': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DMatBlock.h(138,70): warning C4244: 'return': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DMatBlock.h(443,49): warning C4100: 'scale': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DMatBlock.h(861,43): warning C4100: 'num': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphBase\J3DMatBlock.h(862,36): warning C4100: 'num': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J3DGraphAnimator\J3DModelData.h(76,51): warning C4244: '=': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(63,41): warning C4244: '=': conversion from 'unsigned int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(64,39): warning C4244: '=': conversion from 'unsigned int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(65,27): warning C4244: 'argument': conversion from 'unsigned int' to 'const T', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(65,27): warning C4244:         with [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(65,27): warning C4244:         [ [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(65,27): warning C4244:             T=u16 [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(65,27): warning C4244:         ] [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(71,44): warning C4245: 'argument': conversion from 'int' to 'const T', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(71,44): warning C4245:         with [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(71,44): warning C4245:         [ [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(71,44): warning C4245:             T=u32 [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAISound.h(71,44): warning C4245:         ] [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\Z2AudioLib\Z2SeqMgr.h(158,18): warning C4245: '=': conversion from 'int' to 'u32', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\Z2AudioLib\Z2SeqMgr.h(169,18): warning C4245: '=': conversion from 'int' to 'u32', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\Z2AudioLib\Z2SeqMgr.h(180,18): warning C4245: '=': conversion from 'int' to 'u32', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\Z2AudioLib\Z2StatusMgr.h(26,38): warning C4244: '=': conversion from 's32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\Z2AudioLib\Z2StatusMgr.h(27,41): warning C4244: '=': conversion from 's32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\Z2AudioLib\Z2StatusMgr.h(28,43): warning C4244: '=': conversion from 's32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(253,13): warning C4200: nonstandard extension used: zero-sized array in struct/union [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(253,13):
+      This member will be ignored by a defaulted constructor or copy/move assignment operator
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(272,13): warning C4200: nonstandard extension used: zero-sized array in struct/union [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(272,13):
+      This member will be ignored by a defaulted constructor or copy/move assignment operator
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(265,19): warning C4018: '>=': signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(302,8): warning C4200: nonstandard extension used: zero-sized array in struct/union [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(302,8):
+      This member will be ignored by a defaulted constructor or copy/move assignment operator
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(284,19): warning C4018: '>=': signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(294,19): warning C4018: '>=': signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(345,13): warning C4200: nonstandard extension used: zero-sized array in struct/union [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSoundTable.h(345,13):
+      This member will be ignored by a defaulted constructor or copy/move assignment operator
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JASChannel.h(139,39): warning C4244: '=': conversion from 's32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JASChannel.h(140,49): warning C4244: '=': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JASSeqCtrl.h(58,22): warning C4244: '=': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JASTrack.h(170,49): warning C4244: '=': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JASTrack.h(172,51): warning C4244: '=': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JASTrack.h(183,51): warning C4244: '=': conversion from 's32' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAIStreamMgr.h(8,7): warning C4099: 'JAIStreamAramMgr': type name first seen using 'struct' now seen using 'class' [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAIStreamDataMgr.h(21,8):
+      see declaration of 'JAIStreamAramMgr'
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSeqCollection.h(18,13): warning C4200: nonstandard extension used: zero-sized array in struct/union [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAudio2\JAUSeqCollection.h(18,13):
+      This member will be ignored by a defaulted constructor or copy/move assignment operator
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(205,59): warning C4245: 'argument': conversion from 'int' to 'u16', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(205,55): warning C4245: 'argument': conversion from 'int' to 'u16', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DTevs.h(423,36): warning C4244: '=': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DTevs.h(424,36): warning C4244: '=': conversion from 'u32' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DMatBlock.h(180,36): warning C4100: 'num': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(103,54): warning C4100: 'connected': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(113,55): warning C4100: 'arg2': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(113,45): warning C4100: 'arg1': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(114,66): warning C4100: 'mtx': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(114,55): warning C4100: 'arg2': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(114,45): warning C4100: 'arg1': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(127,58): warning C4100: 'anm': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(128,63): warning C4100: 'anm': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(129,66): warning C4100: 'anm': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(130,62): warning C4100: 'anm': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(131,67): warning C4100: 'anm': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPane.h(132,61): warning C4100: 'anm': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAWExtSystem\JAWWindow.h(43,30): warning C4244: 'argument': conversion from 'int' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAWExtSystem\JAWWindow.h(43,27): warning C4244: 'argument': conversion from 'int' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(40,53): warning C4244: 'argument': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(42,60): warning C4244: 'argument': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(43,57): warning C4244: 'argument': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(200,72): warning C4244: 'argument': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(314,13): warning C4189: 'var_f31': local variable is initialized but not referenced [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(365,58): warning C4244: 'argument': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(369,57): warning C4244: 'argument': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(371,53): warning C4244: 'argument': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_ext.h(373,55): warning C4244: 'argument': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\SSystem\SComponent\c_angle.h(85,55): warning C4244: 'return': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\m_Do\m_Do_hostIO.h(17,40): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\SSystem\SComponent\c_cc_d.h(235,9): warning C4068: unknown pragma 'push' [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\SSystem\SComponent\c_cc_d.h(251,35): warning C4244: '=': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\SSystem\SComponent\c_cc_d.h(261,9): warning C4068: unknown pragma 'pop' [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_bg_s_acch.h(167,49): warning C4244: '=': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_cc_d.h(172,43): warning C4244: '=': conversion from 'dCcG_At_Spl' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_cc_d.h(202,55): warning C4244: '=': conversion from 'CcG_Tg_HitMark' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_cc_d.h(206,46): warning C4244: '=': conversion from 'dCcG_Tg_Spl' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_cc_d.h(248,40): warning C4244: '=': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_cc_d.h(254,44): warning C4244: '=': conversion from 'dCcG_At_Spl' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_cc_d.h(256,44): warning C4244: '=': conversion from 'dCcG_Tg_Spl' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_bg_w_base.h(109,72): warning C4100: 'param_1': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_bg_w_base.h(109,48): warning C4100: 'param_0': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_bg_w_base.h(119,41): warning C4244: '=': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_bg_w_base.h(121,56): warning C4244: '=': conversion from 'dBgW_Base::PRIORITY' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\f_op\f_op_actor_mng.h(163,38): warning C4245: 'argument': conversion from 'fopAc_Status_e' to 'u32', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\f_op\f_op_actor_mng.h(287,28): warning C4245: 'argument': conversion from 'fopAc_Status_e' to 'u32', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\f_op\f_op_actor_mng.h(291,29): warning C4245: 'argument': conversion from 'fopAc_Status_e' to 'u32', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\f_op\f_op_actor_mng.h(387,25): warning C4244: '=': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\f_op\f_op_actor_mng.h(805,26): warning C4244: '=': conversion from 'fopAcM_FOOD' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JParticle\JPAEmitter.h(156,31): warning C4244: 'argument': conversion from 'float' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JParticle\JPAEmitter.h(155,60): warning C4244: 'argument': conversion from 'float' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JParticle\JPAEmitter.h(155,31): warning C4244: 'argument': conversion from 'float' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPicture.h(114,95): warning C4244: 'argument': conversion from 's32' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\J2DGraph\J2DPicture.h(114,63): warning C4244: 'argument': conversion from 's32' to 'f32', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_drawlist.h(70,47): warning C4100: 'param_3': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_drawlist.h(70,34): warning C4100: 'param_2': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_drawlist.h(70,21): warning C4100: 'param_1': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_drawlist.h(328,44): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_drawlist.h(330,38): warning C4244: '=': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\SSystem\SComponent\c_math.h(46,12): warning C4244: 'return': conversion from 'f32' to 's16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(408,9): warning C4068: unknown pragma 'push' [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(439,9): warning C4068: unknown pragma 'pop' [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(1008,48): warning C4100: 'i_MapPath': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(1145,61): warning C4244: '=': conversion from 'int' to 'u8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(1185,40): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(1189,37): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(1197,41): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_stage.h(1223,31): warning C4100: 'i_roomNo': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_item_data.h(45,30): warning C4100: 'index': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_item_data.h(49,30): warning C4100: 'index': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_item_data.h(67,34): warning C4100: 'index': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_item_data.h(69,34): warning C4100: 'index': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_item_data.h(73,34): warning C4100: 'index': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_item_data.h(77,34): warning C4100: 'index': unreferenced parameter [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_com_inf_game.h(559,41): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_com_inf_game.h(560,41): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_com_inf_game.h(561,41): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_com_inf_game.h(590,36): warning C4244: '=': conversion from 'int' to 's8', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_com_inf_game.h(816,54): warning C4245: '=': conversion from 'int' to 'u8', signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_com_inf_game.h(886,9): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\d\d_bg_plc.h(10,21): warning C4200: nonstandard extension used: zero-sized array in struct/union [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\include\d\d_bg_plc.h(10,21):
+      This member will be ignored by a defaulted constructor or copy/move assignment operator
+  
+C:\dev\midnafx\src\render\ground_grass.cpp(826,72): warning C4018: '>': signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(96,83): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(96,83):
+      the template instantiation context (the oldest one first) is
+          C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(176,22):
+          see reference to function template instantiation 'void JAHContTemplate::makeSlider<s32>(JAHControl *,const char *,T *,T,T,u32)' being compiled
+          with
+          [
+              T=s32
+          ]
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(103,55): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(102,60): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(112,86): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(112,86):
+      the template instantiation context (the oldest one first) is
+          C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(210,22):
+          see reference to function template instantiation 'void JAHContTemplate::startRadioButton<u8>(JAHControl *,const char *,T *,T,u32)' being compiled
+          with
+          [
+              T=u8
+          ]
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(118,54): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(117,86): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(133,76): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(133,76):
+      the template instantiation context (the oldest one first) is
+          C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(215,22):
+          see reference to function template instantiation 'void JAHContTemplate::makeCheckBox<u8>(JAHControl *,const char *,T *,T,bool,u32)' being compiled
+          with
+          [
+              T=u8
+          ]
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(144,86): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(144,86):
+      the template instantiation context (the oldest one first) is
+          C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(227,22):
+          see reference to function template instantiation 'void JAHContTemplate::startComboBox<u8>(JAHControl *,const char *,T *,T,u32)' being compiled
+          with
+          [
+              T=u8
+          ]
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JAHostIO\JAHioMessage.h(150,81): warning C4244: 'argument': conversion from 'u32' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+  
+C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(181,1): warning C4244: '+=': conversion from 'TB' to 'u16', possible loss of data [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(181,1): warning C4244:         with [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(181,1): warning C4244:         [ [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(181,1): warning C4244:             TB=int [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(181,1): warning C4244:         ] [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(181,1):
+      the template instantiation context (the oldest one first) is
+          C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(189,24):
+          see reference to class template instantiation 'BE<u16>' being compiled
+          C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(152,17):
+          while compiling class template member function 'T BE<T>::operator ++(int)'
+          with
+          [
+              T=u16
+          ]
+              C:\dev\midnafx\upstream\dusklight\include\d\d_save.h(489,24):
+              see the first reference to 'BE<u16>::operator ++' in 'dSv_player_info_c::addDeathCount'
+          C:\dev\midnafx\upstream\dusklight\include\helpers\endian.h(154,15):
+          see reference to function template instantiation 'BE<u16> &operator +=<u16,int>(BE<u16> &,TB)' being compiled
+          with
+          [
+              TB=int
+          ]
+  
+C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JOREntry.h(46,27): warning C4018: '<': signed/unsigned mismatch [C:\dev\midnafx\build\windows-release\midnafx.vcxproj]
+  (compiling source file '../../src/render/ground_grass.cpp')
+      C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JOREntry.h(46,27):
+      the template instantiation context (the oldest one first) is
+          C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORServer.h(141,35):
+          see reference to class template instantiation 'JHIComPortManager<T>' being compiled
+          with
+          [
+              T=JHICmnMem
+          ]
+          C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JOREntry.h(45,16):
+          while compiling class template member function 'JHITag<JHICmnMem> *JHIComPortManager<T>::find(u32)'
+          with
+          [
+              T=JHICmnMem
+          ]
+              C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JOREntry.h(67,32):
+              see the first reference to 'JHIComPortManager<T>::find' in 'JHIComPortManager<T>::dispatchMessage'
+          with
+          [
+              T=JHICmnMem
+          ]
+              C:\dev\midnafx\upstream\dusklight\libs\JSystem\include\JSystem\JHostIO\JORServer.h(141,65):
+              see the first reference to 'JHIComPortManager<T>::dispatchMessage' in 'JOR_MESSAGELOOP'
+          with
+          [
+              T=JHICmnMem
+          ]
+  
+     Creating library C:/dev/midnafx/build/windows-release/Release/midnafx.lib and object C:/dev/midnafx/build/windows-release/Release/midnafx.exp
+  midnafx.vcxproj -> C:\dev\midnafx\build\windows-release\Release\midnafx.dll
+  Packaging midnafx -> C:/dev/midnafx/build/windows-release/mods/midnafx.dusk
+  mod.json
+  lib
+  lib/windows-amd64
+  lib/windows-amd64/mod.dll
+  res

@@ -1,0 +1,604 @@
+{
+  "schema": 1,
+  "scope": "native grass producer CPU spans, excludes discovery and GPU execution",
+  "gpu_us": null,
+  "whole_frame_us": null,
+  "metadata": {
+    "schema": 1,
+    "scene": "F_SP121,6,2,4",
+    "backend": "d3d12",
+    "seconds": 55,
+    "warmup_samples": 288,
+    "host_sha256": "7FA566C403024F5F5C62CBAAD28A96EE7BD0D23529A3B6FD27B8CD81F3D2D779",
+    "config_sha256": "61FBA73F7713C514EEC90DD679F2707B2C41034E2F69BD60BECEE70A692BD028",
+    "reference_sha256": "E787BF5E6AF582EDCF51EAC8D598C0B125BFA68E350744C4F714FBA75773910D",
+    "candidate_sha256": "58DC2BDF8B06871696E152746508E74E26F8B21F458F03956BB674DA74678AB1",
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": [
+      {
+        "Name": "Intel(R) UHD Graphics 630",
+        "DriverVersion": "31.0.101.2140"
+      },
+      {
+        "Name": "Microsoft Remote Display Adapter",
+        "DriverVersion": "10.0.26100.9818"
+      }
+    ],
+    "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+    "runs": [
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\00-A",
+        "pid": 768,
+        "started_utc": "2026-11-12T20:41:40.5505327Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6886123,
+        "profile_samples": 384
+      },
+      {
+        "variant": "B",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\01-B",
+        "pid": 24260,
+        "started_utc": "2026-11-12T20:42:36.2777101Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6490166,
+        "profile_samples": 384
+      },
+      {
+        "variant": "B",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\02-B",
+        "pid": 23840,
+        "started_utc": "2026-11-12T20:43:31.9336622Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6314859,
+        "profile_samples": 384
+      },
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\03-A",
+        "pid": 22024,
+        "started_utc": "2026-11-12T20:44:27.5735361Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.5959779,
+        "profile_samples": 384
+      },
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\04-A",
+        "pid": 16628,
+        "started_utc": "2026-11-12T20:45:23.1766608Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6003676,
+        "profile_samples": 384
+      },
+      {
+        "variant": "B",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\05-B",
+        "pid": 25292,
+        "started_utc": "2026-11-12T20:46:18.7847077Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6435846,
+        "profile_samples": 384
+      }
+    ]
+  },
+  "runs": [
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\00-A",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 12.7,
+          "p50": 0.4,
+          "p95": 0.9,
+          "p99": 2.1549999999999687,
+          "mean": 0.6072916666666667
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.0,
+          "p50": 0.35,
+          "p95": 0.8,
+          "p99": 1.0,
+          "mean": 0.3833333333333333
+        },
+        "tiles": {
+          "count": 96,
+          "min": 21.5,
+          "max": 66.19999999999999,
+          "p50": 23.7,
+          "p95": 35.525,
+          "p99": 47.959999999999944,
+          "mean": 25.462500000000002
+        },
+        "assembly": {
+          "count": 96,
+          "min": 127.0,
+          "max": 310.3,
+          "p50": 134.1,
+          "p95": 174.475,
+          "p99": 228.02999999999977,
+          "mean": 140.63958333333332
+        },
+        "submission": {
+          "count": 96,
+          "min": 163.1,
+          "max": 310.09999999999997,
+          "p50": 191.8,
+          "p95": 287.5,
+          "p99": 301.74,
+          "mean": 203.97916666666666
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 318.5,
+        "max": 624.9,
+        "p50": 353.95,
+        "p95": 478.24999999999994,
+        "p99": 581.1999999999998,
+        "mean": 371.07187500000003
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96,
+      "immutable_samples": 0,
+      "streamed_instance_bytes": 229173120,
+      "max_owned_instance_bytes": 0
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\01-B",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.1,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.005,
+          "mean": 0.4145833333333333
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.0,
+          "p50": 0.3,
+          "p95": 0.7,
+          "p99": 0.8099999999999995,
+          "mean": 0.35312499999999997
+        },
+        "tiles": {
+          "count": 96,
+          "min": 19.7,
+          "max": 45.8,
+          "p50": 22.9,
+          "p95": 28.7,
+          "p99": 32.119999999999955,
+          "mean": 23.766666666666666
+        },
+        "assembly": {
+          "count": 96,
+          "min": 136.7,
+          "max": 184.29999999999998,
+          "p50": 144.9,
+          "p95": 160.225,
+          "p99": 172.23499999999999,
+          "mean": 145.99479166666666
+        },
+        "submission": {
+          "count": 96,
+          "min": 3.6,
+          "max": 6.3,
+          "p50": 4.4,
+          "p95": 5.425,
+          "p99": 5.634999999999998,
+          "mean": 4.544791666666667
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 162.89999999999995,
+        "max": 216.29999999999998,
+        "p50": 173.15,
+        "p95": 194.4,
+        "p99": 204.89999999999995,
+        "mean": 175.0739583333333
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96,
+      "immutable_samples": 96,
+      "streamed_instance_bytes": 0,
+      "max_owned_instance_bytes": 2387220
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\02-B",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.1,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.9099999999999995,
+          "mean": 0.3979166666666667
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 0.9,
+          "p50": 0.4,
+          "p95": 0.8,
+          "p99": 0.9,
+          "mean": 0.38645833333333335
+        },
+        "tiles": {
+          "count": 96,
+          "min": 20.9,
+          "max": 35.3,
+          "p50": 24.0,
+          "p95": 27.85,
+          "p99": 31.68999999999999,
+          "mean": 24.5125
+        },
+        "assembly": {
+          "count": 96,
+          "min": 136.6,
+          "max": 189.6,
+          "p50": 143.75,
+          "p95": 164.275,
+          "p99": 172.02499999999995,
+          "mean": 144.61249999999998
+        },
+        "submission": {
+          "count": 96,
+          "min": 3.6,
+          "max": 12.0,
+          "p50": 4.5,
+          "p95": 5.3,
+          "p99": 6.204999999999982,
+          "mean": 4.592708333333333
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 163.20000000000002,
+        "max": 231.6,
+        "p50": 173.15,
+        "p95": 194.24999999999997,
+        "p99": 205.6649999999999,
+        "mean": 174.50208333333333
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96,
+      "immutable_samples": 96,
+      "streamed_instance_bytes": 0,
+      "max_owned_instance_bytes": 2387220
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\03-A",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.1,
+          "max": 0.9,
+          "p50": 0.3,
+          "p95": 0.7,
+          "p99": 0.9,
+          "mean": 0.34270833333333334
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 0.9,
+          "p50": 0.3,
+          "p95": 0.7,
+          "p99": 0.8049999999999997,
+          "mean": 0.3729166666666666
+        },
+        "tiles": {
+          "count": 96,
+          "min": 19.8,
+          "max": 42.4,
+          "p50": 22.4,
+          "p95": 27.799999999999997,
+          "p99": 34.41999999999998,
+          "mean": 23.160416666666666
+        },
+        "assembly": {
+          "count": 96,
+          "min": 127.0,
+          "max": 192.0,
+          "p50": 132.55,
+          "p95": 152.45,
+          "p99": 175.37499999999994,
+          "mean": 135.97291666666666
+        },
+        "submission": {
+          "count": 96,
+          "min": 163.3,
+          "max": 303.09999999999997,
+          "p50": 189.14999999999998,
+          "p95": 256.2,
+          "p99": 291.89,
+          "mean": 194.990625
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 315.2,
+        "max": 484.90000000000003,
+        "p50": 345.2,
+        "p95": 432.725,
+        "p99": 470.65000000000003,
+        "mean": 354.83958333333334
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96,
+      "immutable_samples": 0,
+      "streamed_instance_bytes": 229173120,
+      "max_owned_instance_bytes": 0
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\04-A",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.1,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.9099999999999995,
+          "mean": 0.40729166666666666
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.4,
+          "p50": 0.3,
+          "p95": 0.7,
+          "p99": 0.8299999999999984,
+          "mean": 0.36354166666666665
+        },
+        "tiles": {
+          "count": 96,
+          "min": 19.400000000000002,
+          "max": 40.800000000000004,
+          "p50": 21.55,
+          "p95": 27.375,
+          "p99": 30.63499999999997,
+          "mean": 22.402083333333334
+        },
+        "assembly": {
+          "count": 96,
+          "min": 127.90000000000002,
+          "max": 308.2,
+          "p50": 134.35,
+          "p95": 155.025,
+          "p99": 205.21999999999971,
+          "mean": 138.803125
+        },
+        "submission": {
+          "count": 96,
+          "min": 179.5,
+          "max": 373.0,
+          "p50": 202.3,
+          "p95": 277.95,
+          "p99": 321.41499999999985,
+          "mean": 211.24479166666666
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 333.2,
+        "max": 655.1,
+        "p50": 360.55,
+        "p95": 433.32499999999993,
+        "p99": 617.5749999999998,
+        "mean": 373.2208333333333
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96,
+      "immutable_samples": 0,
+      "streamed_instance_bytes": 229173120,
+      "max_owned_instance_bytes": 0
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round3\\paired\\05-B",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.0,
+          "max": 1.0,
+          "p50": 0.4,
+          "p95": 0.9,
+          "p99": 1.0,
+          "mean": 0.4614583333333333
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.1,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.8149999999999992,
+          "mean": 0.33749999999999997
+        },
+        "tiles": {
+          "count": 96,
+          "min": 19.5,
+          "max": 32.5,
+          "p50": 21.8,
+          "p95": 26.825000000000003,
+          "p99": 32.12,
+          "mean": 22.366666666666664
+        },
+        "assembly": {
+          "count": 96,
+          "min": 135.6,
+          "max": 245.7,
+          "p50": 142.85,
+          "p95": 164.25,
+          "p99": 182.6199999999998,
+          "mean": 145.33958333333334
+        },
+        "submission": {
+          "count": 96,
+          "min": 3.7,
+          "max": 16.7,
+          "p50": 4.6,
+          "p95": 5.45,
+          "p99": 7.199999999999972,
+          "mean": 4.785416666666666
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 160.1,
+        "max": 283.8,
+        "p50": 169.95,
+        "p95": 194.975,
+        "p99": 212.54999999999978,
+        "mean": 173.290625
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96,
+      "immutable_samples": 96,
+      "streamed_instance_bytes": 0,
+      "max_owned_instance_bytes": 2387220
+    }
+  ],
+  "paired_phase_p50_ratios": [
+    {
+      "reach": 0.7499999999999999,
+      "requests": 0.8571428571428572,
+      "tiles": 0.9662447257383966,
+      "assembly": 1.080536912751678,
+      "submission": 0.022940563086548488
+    },
+    {
+      "reach": 1.0,
+      "requests": 1.3333333333333335,
+      "tiles": 1.0714285714285714,
+      "assembly": 1.0844964164466238,
+      "submission": 0.02379064234734338
+    },
+    {
+      "reach": 1.3333333333333335,
+      "requests": 1.0,
+      "tiles": 1.011600928074246,
+      "assembly": 1.0632675846669148,
+      "submission": 0.02273850716757291
+    }
+  ],
+  "paired_reach_ratio_median": 1.0,
+  "paired_reach_input_checks": [
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    },
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    },
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    }
+  ],
+  "paired_geometry_checks": [
+    {
+      "matched_input_hash_count": 3,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 1
+    },
+    {
+      "matched_input_hash_count": 3,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 1
+    },
+    {
+      "matched_input_hash_count": 3,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 1
+    }
+  ],
+  "paired_immutable_instance_checks": [
+    {
+      "immutable_proofs_checked": 1,
+      "instance_hash_mismatched_inputs": []
+    },
+    {
+      "immutable_proofs_checked": 1,
+      "instance_hash_mismatched_inputs": []
+    },
+    {
+      "immutable_proofs_checked": 1,
+      "instance_hash_mismatched_inputs": []
+    }
+  ],
+  "paired_assembly_ratio_median": 1.080536912751678,
+  "paired_selected_stage_p50_ratios": [
+    0.48919338889673686,
+    0.5015932792584009,
+    0.47136319511856883
+  ],
+  "paired_assembly_mean_ratios": [
+    1.0380775327003127,
+    1.063539001332986,
+    1.0470915790500634
+  ],
+  "paired_selected_stage_mean_ratios": [
+    0.47180605733952025,
+    0.4917773876693107,
+    0.4643112321793398
+  ]
+}

@@ -1,0 +1,126 @@
+--- round4-baseline/src/render/ground_grass.cpp
++++ optimized/src/render/ground_grass.cpp
+@@ -2,6 +2,7 @@
+ #include "grass_view.hpp"
+ #include "grass_reach.hpp"
+ #include "grass_assembly.hpp"
++#include "airborne_source_cache.hpp"
+ #include "immutable_instances.hpp"
+ #include "terrain_index.hpp"
+ #include "waterfall.hpp"
+@@ -142,6 +143,7 @@
+ unsigned grass_revision = 0;
+ grass_reach::Cache reach_cache;
+ grass_assembly::Cache assembly_cache;
++airborne_sources::Cache<AirborneSource> airborne_cache;
+ struct ObjectFall {
+     RoomCover cover;
+     float transform[12]{};
+@@ -167,6 +169,10 @@
+         std::uint64_t geometry_hash = 0, input_hash = 0;
+         std::uint64_t instance_hash = 0, uploaded_bytes = 0, resident_bytes = 0;
+         bool immutable_upload = false;
++        double discovery_us = 0, airborne_us = 0;
++        unsigned airborne_count = 0;
++        bool airborne_sampled = false, airborne_reused = false;
++        std::uint64_t airborne_hash = 0;
+     };
+     std::array<Sample, 384> samples{};
+     Sample current{};
+@@ -189,6 +195,26 @@
+         if (!active) return;
+         mark(4); current.roots = roots; current.ready = ready;
+         samples[count++] = current; active = false;
++    }
++    Sample* airborne_target() {
++        if (reported || count == 0 || samples[count-1].airborne_sampled) return nullptr;
++        return &samples[count-1];
++    }
++    void finish_airborne(Sample* sample, Clock::time_point start, std::span<const AirborneSource> sources, bool reused) {
++        if (!sample) return;
++        sample->airborne_us = std::chrono::duration<double, std::micro>(Clock::now()-start).count();
++        sample->airborne_count = static_cast<unsigned>(sources.size());
++        sample->airborne_sampled = true; sample->airborne_reused = reused;
++        // Ordered source proofs outside the measured interval, at the same
++        // transition/settled indices as the instance geometry proofs.
++        const auto index = static_cast<unsigned>(sample - samples.data());
++        if (index != 128 && index != 129 && index != samples.size()-1) return;
++        sample->airborne_hash = 14695981039346656037ull;
++        const auto append = [&](std::uint32_t value) { sample->airborne_hash = (sample->airborne_hash ^ value)*1099511628211ull; };
++        for (const auto& source : sources) {
++            for (float value : source.point) append(std::bit_cast<std::uint32_t>(value));
++            append(source.forest ? 1u : 0u);
++        }
+     }
+     void proof(const CameraInfo& camera, float reach, unsigned first, const std::vector<Clump>& instances) {
+         // Transition and settled-camera proofs, outside all captured CPU spans. Hash immutable
+@@ -214,15 +240,17 @@
+         reported = true;
+         for (unsigned i = 0; i < count; ++i) {
+             const auto& sample = samples[i];
+-            char message[768];
++            char message[1024];
+             std::snprintf(message, sizeof(message),
+-                "Grass CPU: {\"schema\":1,\"sample\":%u,\"us\":[%.3f,%.3f,%.3f,%.3f,%.3f],\"roots\":%u,\"ready\":%s,\"eye_xz\":[%.9g,%.9g],\"furthest\":%.9g,\"input_hash\":\"%016llx\",\"geometry_hash\":\"%016llx\",\"assembly_reused\":%s,\"instance_hash\":\"%016llx\",\"uploaded_bytes\":%llu,\"resident_bytes\":%llu,\"immutable_upload\":%s}",
++                "Grass CPU: {\"schema\":1,\"sample\":%u,\"us\":[%.3f,%.3f,%.3f,%.3f,%.3f],\"roots\":%u,\"ready\":%s,\"eye_xz\":[%.9g,%.9g],\"furthest\":%.9g,\"input_hash\":\"%016llx\",\"geometry_hash\":\"%016llx\",\"assembly_reused\":%s,\"instance_hash\":\"%016llx\",\"uploaded_bytes\":%llu,\"resident_bytes\":%llu,\"immutable_upload\":%s,\"discovery_us\":%.3f,\"airborne_us\":%.3f,\"airborne_count\":%u,\"airborne_sampled\":%s,\"airborne_reused\":%s,\"airborne_hash\":\"%016llx\"}",
+                 i, sample.us[0], sample.us[1], sample.us[2], sample.us[3], sample.us[4],
+                 sample.roots, sample.ready ? "true" : "false", sample.eye[0], sample.eye[1], sample.furthest,
+                 static_cast<unsigned long long>(sample.input_hash), static_cast<unsigned long long>(sample.geometry_hash),
+                 sample.assembly_reused ? "true" : "false", static_cast<unsigned long long>(sample.instance_hash),
+                 static_cast<unsigned long long>(sample.uploaded_bytes), static_cast<unsigned long long>(sample.resident_bytes),
+-                sample.immutable_upload ? "true" : "false");
++                sample.immutable_upload ? "true" : "false", sample.discovery_us, sample.airborne_us,
++                sample.airborne_count, sample.airborne_sampled ? "true" : "false", sample.airborne_reused ? "true" : "false",
++                static_cast<unsigned long long>(sample.airborne_hash));
+             svc_log->info(mod_ctx, message);
+         }
+     }
+@@ -1317,6 +1345,7 @@
+ }
+ 
+ void clear_cover() {
++    airborne_cache.reset();
+     instance_pool.invalidate();
+     reach_cache.reset();
+     assembly_cache.reset();
+@@ -1408,6 +1437,8 @@
+         clear_cover();
+         cached_stage = scene;
+     }
++    const bool profile_discovery = settings::diagnostics_enabled() && cpu_profile.count < cpu_profile.samples.size();
++    const auto discovery_start = profile_discovery ? GrassCpuProfile::Clock::now() : GrassCpuProfile::Clock::time_point{};
+     const int stay = dComIfGp_roomControl_getStayNo();
+     struct BackgroundPart {
+         J3DModel* model = nullptr;
+@@ -1460,6 +1491,8 @@
+     };
+     bool grass_ready = false;
+     cpu_profile.begin(settings::diagnostics_enabled(), camera.eye);
++    if (cpu_profile.active) cpu_profile.current.discovery_us =
++        std::chrono::duration<double, std::micro>(cpu_profile.previous-discovery_start).count();
+     const auto& tiles = prepare_grass_tiles(camera, grass_ready);
+     struct ClearTilePointers {
+         ~ClearTilePointers() { for (auto& list : visible_tiles) list.clear(); }
+@@ -1648,6 +1681,13 @@
+ } // namespace
+ 
+ unsigned airborne_sources(const CameraInfo& camera, std::span<AirborneSource> output) {
++    auto* sample = settings::diagnostics_enabled() ? cpu_profile.airborne_target() : nullptr;
++    const auto start = sample ? GrassCpuProfile::Clock::now() : GrassCpuProfile::Clock::time_point{};
++    unsigned cached_count = 0;
++    if (airborne_cache.load(camera, grass_revision, output, cached_count)) {
++        cpu_profile.finish_airborne(sample, start, output.first(cached_count), true);
++        return cached_count;
++    }
+     struct Candidate { AirborneSource source; float distance; };
+     std::vector<Candidate> candidates;
+     auto offer = [&](const Pebble& detail) {
+@@ -1673,6 +1713,8 @@
+     std::partial_sort(candidates.begin(), candidates.begin() + count, candidates.end(),
+                       [](const auto& a, const auto& b) { return a.distance < b.distance; });
+     for (std::size_t i = 0; i < count; ++i) output[i] = candidates[i].source;
++    airborne_cache.store(camera, grass_revision, output.size(), output.first(count));
++    cpu_profile.finish_airborne(sample, start, output.first(count), false);
+     return static_cast<unsigned>(count);
+ }
+ 

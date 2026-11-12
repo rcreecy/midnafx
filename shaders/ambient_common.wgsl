@@ -18,6 +18,13 @@ struct AmbientParams {
     local_distance: array<vec4f,4>,
     fog_light_direction: vec4f,
     fog_light_color: vec4f,
+    fog_world_from_view: mat4x4f,
+    fog_grid: vec4f,
+    fog_wind: vec4f,
+    fog_cells: array<vec4f, 144>,
+    wet_spray: array<vec4f, 6>,
+    wet_light: vec4f,
+    fog_actors: array<vec4f, 2>,
 }
 fn lighting_strength() -> f32 { return max(params.bounce.x, params.local.x); }
 // Native scene color is an LDR, display-encoded signal, not material albedo.

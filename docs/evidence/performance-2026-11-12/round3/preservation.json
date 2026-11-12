@@ -1,0 +1,15 @@
+{
+  "preexisting_files_changed": [
+    "docs/evidence/performance-2026-11-12/README.md",
+    "docs/performance-program.md",
+    "src/render/grass_assembly.hpp",
+    "tests/grass_assembly.cpp",
+    "tests/grass_cpu.py",
+    "tools/grass-cpu.py",
+    "src/render/ground_grass.cpp",
+    "tests/CMakeLists.txt"
+  ],
+  "all_other_preexisting_edits_unchanged": true,
+  "ground_shader_bytes_unchanged": true,
+  "vertex_format_and_single_buffer_layout_unchanged": true
+}

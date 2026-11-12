@@ -1,5 +1,10 @@
 # M4 performance instrumentation and measurement
 
+The [November 2026 local architecture audit and optimization ledger](performance-program.md)
+supersedes the original execution/cost assumptions below where newer grass,
+shared lighting, water, exposure, bloom and LUT systems are involved. Historical
+results below remain historical measurements, not current whole-remaster budgets.
+
 ## M13 LUT addition
 
 The opt-in LUT adds a 16-byte uniform and one trilinear 3D lookup for Natural,

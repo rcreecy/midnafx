@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "scene": "F_SP121,6,2,4",
+  "backend": "d3d12",
+  "seconds": 55,
+  "warmup_samples": 288,
+  "host_sha256": "7FA566C403024F5F5C62CBAAD28A96EE7BD0D23529A3B6FD27B8CD81F3D2D779",
+  "config_sha256": "61FBA73F7713C514EEC90DD679F2707B2C41034E2F69BD60BECEE70A692BD028",
+  "reference_sha256": "E09B6EC01D0776EB71A2EB5FCBD2EE0445C9491E6CAABA0E7A5E1687E2E43016",
+  "candidate_sha256": "CDF146287C6A68FB371DBFE3FA8042068EB12A2D987CEEA5253968879C85F0F2",
+  "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+  "gpu": [
+    {
+      "Name": "Intel(R) UHD Graphics 630",
+      "DriverVersion": "31.0.101.2140"
+    },
+    {
+      "Name": "Microsoft Remote Display Adapter",
+      "DriverVersion": "10.0.26100.9818"
+    }
+  ],
+  "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+  "runs": [
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round4\\paired\\00-A",
+      "pid": 12352,
+      "started_utc": "2026-11-12T21:05:41.1552043Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.6297454,
+      "profile_samples": 384
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round4\\paired\\01-B",
+      "pid": 3668,
+      "started_utc": "2026-11-12T21:06:36.8841781Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.6493017,
+      "profile_samples": 384
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round4\\paired\\02-B",
+      "pid": 14748,
+      "started_utc": "2026-11-12T21:07:32.5399847Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.6493246,
+      "profile_samples": 384
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round4\\paired\\03-A",
+      "pid": 18668,
+      "started_utc": "2026-11-12T21:08:28.1965205Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.8508983,
+      "profile_samples": 384
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round4\\paired\\04-A",
+      "pid": 23808,
+      "started_utc": "2026-11-12T21:09:24.0822022Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.7136139,
+      "profile_samples": 384
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round4\\paired\\05-B",
+      "pid": 8816,
+      "started_utc": "2026-11-12T21:10:19.8196341Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.4942244,
+      "profile_samples": 384
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 diff --git a/src/dusk/mods/svc/gfx.cpp b/src/dusk/mods/svc/gfx.cpp
-index f398e29..cfad9aa 100644
+index f398e29..7501d5f 100644
 --- a/src/dusk/mods/svc/gfx.cpp
 +++ b/src/dusk/mods/svc/gfx.cpp
 @@ -6,6 +6,7 @@
@@ -10,38 +10,45 @@ index f398e29..cfad9aa 100644
  
  #include <aurora/gfx.hpp>
  #include <aurora/webgpu.hpp>
-@@ -33,6 +34,16 @@ namespace {
+@@ -33,6 +34,20 @@ namespace {
  
  constexpr borealis::Log Log{"dusk::mods::gfx"};
  
 +// Game-thread ownership. The worker receives only an ordered mode byte.
 +LoadedMod* s_materialOwner = nullptr;
-+bool s_materialScope = false;
++uint8_t s_materialScope = 0;
++bool s_materialRelief = false;
++uint8_t s_surfaceProfile = 0;
 +
-+void record_material_scope(bool enabled) {
-+    if (enabled == s_materialScope) return;
-+    s_materialScope = enabled;
-+    AuroraSetMaterialRelighting(enabled ? 1 : 0);
++void record_material_scope(uint8_t mode) {
++    if (mode == s_materialScope) return;
++    s_materialScope = mode;
++    AuroraSetSurfaceProfile(0);
++    s_surfaceProfile = 0;
++    AuroraSetMaterialRelighting(mode);
 +}
 +
  enum class GfxSlotKind : uint8_t {
      DrawType,
      StageHook,
-@@ -930,6 +941,13 @@ ModResult gfx_push_present(
+@@ -930,6 +945,16 @@ ModResult gfx_push_present(
  
  void gfx_run_stage(
      GfxStage stage, const view_class* gameView, const view_port_class* gameViewport) {
 +    // Record in FIFO order even when no mod stage callbacks are registered.
 +    // This native feature does not need the callback path's FIFO drains.
 +    if (stage == GFX_STAGE_SCENE_BEGIN) {
-+        record_material_scope(s_materialOwner != nullptr && s_materialOwner->active);
++        record_material_scope(s_materialOwner != nullptr && s_materialOwner->active ? (s_materialRelief ? 3 : 1) : 0);
++    } else if (stage == GFX_STAGE_SCENE_AFTER_TERRAIN) {
++        // Characters and later translucent draws retain ordinary relighting.
++        record_material_scope(s_materialScope & 1u);
 +    } else if (stage == GFX_STAGE_FRAME_BEFORE_HUD) {
 +        record_material_scope(false);
 +    }
      struct StageEntry {
          uint64_t handle;
          GfxStageFn fn;
-@@ -1420,6 +1438,28 @@ constexpr GfxService s_gfxService{
+@@ -1420,6 +1445,53 @@ constexpr GfxService s_gfxService{
      .get_scene_target_layout = gfx_get_scene_target_layout,
  };
  
@@ -51,26 +58,51 @@ index f398e29..cfad9aa 100644
 +    if (s_materialOwner != nullptr && s_materialOwner != mod) return MOD_CONFLICT;
 +    if (!enabled && s_materialOwner == nullptr) return MOD_OK;
 +    s_materialOwner = enabled ? mod : nullptr;
-+    if (!enabled) record_material_scope(false);
++    if (!enabled) {
++        s_materialRelief = false;
++        record_material_scope(0);
++    }
++    return MOD_OK;
++}
++
++ModResult set_material_surface_relief(ModContext* context, uint32_t enabled) {
++    auto* mod = mod_from_context(context);
++    if (mod == nullptr || enabled > 1) return MOD_INVALID_ARGUMENT;
++    if (s_materialOwner != mod) return MOD_CONFLICT;
++    s_materialRelief = enabled != 0;
++    if (!enabled) record_material_scope(s_materialScope & 1u);
++    return MOD_OK;
++}
++ModResult set_material_surface_profile(ModContext* context, uint32_t profile) {
++    auto* mod = mod_from_context(context);
++    if (mod == nullptr || profile > 6) return MOD_INVALID_ARGUMENT;
++    if (s_materialOwner != mod) return MOD_CONFLICT;
++    if (s_materialScope && profile != s_surfaceProfile) {
++        s_surfaceProfile = static_cast<u8>(profile);
++        AuroraSetSurfaceProfile(s_surfaceProfile);
++    }
 +    return MOD_OK;
 +}
 +
 +void material_mod_detached(LoadedMod& mod) {
 +    if (s_materialOwner != &mod) return;
 +    s_materialOwner = nullptr;
-+    record_material_scope(false);
++    s_materialRelief = false;
++    record_material_scope(0);
 +}
 +
 +constexpr NativeMaterialService s_nativeMaterialService{
 +    .header = SERVICE_HEADER(NativeMaterialService, NATIVE_MATERIAL_SERVICE_MAJOR,
 +                            NATIVE_MATERIAL_SERVICE_MINOR),
 +    .set_relighting = set_material_relighting,
++    .set_surface_relief = set_material_surface_relief,
++    .set_surface_profile = set_material_surface_profile,
 +};
 +
  }  // namespace
  
  constinit const ServiceModule g_gfxModule{
-@@ -1432,4 +1472,12 @@ constinit const ServiceModule g_gfxModule{
+@@ -1432,4 +1504,12 @@ constinit const ServiceModule g_gfxModule{
      .frameBegin = gfx_frame_begin,
  };
  
@@ -111,7 +143,7 @@ diff --git a/sdk/include/mods/svc/native_material.hpp b/sdk/include/mods/svc/nat
 new file mode 100644
 --- /dev/null
 +++ b/sdk/include/mods/svc/native_material.hpp
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,24 @@
 +#pragma once
 +
 +#include <mods/service.hpp>
@@ -120,13 +152,18 @@ new file mode 100644
 +// copied values at native scene boundaries, without retaining mod data pointers.
 +#define NATIVE_MATERIAL_SERVICE_ID DUSKLIGHT_SERVICE_ID_PREFIX "native-material"
 +#define NATIVE_MATERIAL_SERVICE_MAJOR 1u
-+#define NATIVE_MATERIAL_SERVICE_MINOR 0u
++#define NATIVE_MATERIAL_SERVICE_MINOR 2u
 +
 +struct NativeMaterialService {
 +    ServiceHeader header;
 +    // Values are 0 (native) or 1 (per-fragment RGB). Only one mod may own
 +    // the active scope. Disable or detach releases ownership.
 +    ModResult (*set_relighting)(ModContext* context, uint32_t enabled);
++    // Since 1.1: bounded texture-derived relief during opaque scenery only.
++    // Requires ownership through set_relighting(1); disable/detach clears it.
++    ModResult (*set_surface_relief)(ModContext* context, uint32_t enabled);
++    // Since 1.2: copied per-draw finish, profiles 0..6; restore 0 after draw.
++    ModResult (*set_surface_profile)(ModContext* context, uint32_t profile);
 +};
 +
 +MOD_DECLARE_SERVICE(NativeMaterialService, svc_native_material, NATIVE_MATERIAL_SERVICE_ID,

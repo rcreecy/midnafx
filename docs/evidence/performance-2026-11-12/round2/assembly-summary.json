@@ -1,0 +1,599 @@
+{
+  "schema": 1,
+  "scope": "native grass producer CPU spans, excludes discovery and GPU execution",
+  "gpu_us": null,
+  "whole_frame_us": null,
+  "metadata": {
+    "schema": 1,
+    "scene": "F_SP121,6,2,4",
+    "backend": "d3d12",
+    "seconds": null,
+    "warmup_samples": 128,
+    "host_sha256": "7FA566C403024F5F5C62CBAAD28A96EE7BD0D23529A3B6FD27B8CD81F3D2D779",
+    "config_sha256": "61FBA73F7713C514EEC90DD679F2707B2C41034E2F69BD60BECEE70A692BD028",
+    "reference_sha256": "49A8955DABBC9450A09A4CC6630D03A776D463997BB44BD37037C92E03639B12",
+    "candidate_sha256": "AFD95F92224C5BCCF5903C90752066438827D1234B118FA427BC267FAD1BE6D6",
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": [
+      {
+        "Name": "Intel(R) UHD Graphics 630",
+        "DriverVersion": "31.0.101.2140"
+      },
+      {
+        "Name": "Microsoft Remote Display Adapter",
+        "DriverVersion": "10.0.26100.9818"
+      }
+    ],
+    "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+    "runs": [
+      {
+        "variant": "A",
+        "directory": "assembly-original/04-A",
+        "pid": 13268,
+        "started_utc": "2026-11-12T19:36:02.3162948Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 40.6245711,
+        "requested_seconds": 40
+      },
+      {
+        "variant": "B",
+        "directory": "assembly-original/05-B",
+        "pid": 9000,
+        "started_utc": "2026-11-12T19:36:42.9488138Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 40.4821524,
+        "requested_seconds": 40
+      },
+      {
+        "variant": "A",
+        "directory": "assembly-makeup/00-A",
+        "pid": 16304,
+        "started_utc": "2026-11-12T19:39:39.5550702Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6525229,
+        "profile_samples": 384,
+        "requested_seconds": 55
+      },
+      {
+        "variant": "B",
+        "directory": "assembly-makeup/01-B",
+        "pid": 23376,
+        "started_utc": "2026-11-12T19:40:35.2569974Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6641727,
+        "profile_samples": 384,
+        "requested_seconds": 55
+      },
+      {
+        "variant": "B",
+        "directory": "assembly-makeup/02-B",
+        "pid": 12304,
+        "started_utc": "2026-11-12T19:41:30.9297663Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6561051,
+        "profile_samples": 384,
+        "requested_seconds": 55
+      },
+      {
+        "variant": "A",
+        "directory": "assembly-makeup/03-A",
+        "pid": 24668,
+        "started_utc": "2026-11-12T19:42:26.5939862Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.640899,
+        "profile_samples": 384,
+        "requested_seconds": 55
+      }
+    ],
+    "run_windows_seconds": [
+      40,
+      55
+    ],
+    "sampling_policy": "first 384 stage samples per run; omit first 128, require ready; longer wall window only ensures buffer emitted",
+    "excluded_from_paired_acceptance": [
+      {
+        "run": "assembly-original/00-A",
+        "reason": "normal exit, fewer than 384 sampled stages; buffer not emitted"
+      },
+      {
+        "run": "assembly-original/01-B",
+        "reason": "valid capture, paired reference incomplete"
+      },
+      {
+        "run": "assembly-original/02-B",
+        "reason": "valid capture, paired reference incomplete"
+      },
+      {
+        "run": "assembly-original/03-A",
+        "reason": "normal exit, fewer than 384 sampled stages; buffer not emitted"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\docs\\evidence\\performance-2026-11-12\\round2\\assembly-original\\04-A",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.2,
+          "max": 1.2,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.0449999999999988,
+          "mean": 0.40390625
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.2,
+          "max": 0.9,
+          "p50": 0.4,
+          "p95": 0.725,
+          "p99": 0.9,
+          "mean": 0.3921875
+        },
+        "tiles": {
+          "count": 256,
+          "min": 21.0,
+          "max": 55.1,
+          "p50": 23.85,
+          "p95": 32.849999999999994,
+          "p99": 39.08,
+          "mean": 24.980859375
+        },
+        "assembly": {
+          "count": 256,
+          "min": 2373.7,
+          "max": 3625.7000000000003,
+          "p50": 2436.85,
+          "p95": 2583.075,
+          "p99": 3007.455,
+          "mean": 2462.19921875
+        },
+        "submission": {
+          "count": 256,
+          "min": 175.2,
+          "max": 333.4,
+          "p50": 193.64999999999998,
+          "p95": 238.02499999999998,
+          "p99": 297.81999999999977,
+          "mean": 201.4765625
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 2577.6,
+        "max": 3870.6,
+        "p50": 2659.5,
+        "p95": 2869.15,
+        "p99": 3321.8399999999997,
+        "mean": 2689.452734375
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": null
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\docs\\evidence\\performance-2026-11-12\\round2\\assembly-original\\05-B",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.2,
+          "max": 19.0,
+          "p50": 0.4,
+          "p95": 0.9,
+          "p99": 1.2449999999999988,
+          "mean": 0.548828125
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.2,
+          "max": 1.4,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.2,
+          "mean": 0.40078125
+        },
+        "tiles": {
+          "count": 256,
+          "min": 20.8,
+          "max": 118.4,
+          "p50": 25.6,
+          "p95": 46.025,
+          "p99": 74.2549999999998,
+          "mean": 28.53828125
+        },
+        "assembly": {
+          "count": 256,
+          "min": 126.4,
+          "max": 5119.2,
+          "p50": 2426.8,
+          "p95": 3314.9249999999997,
+          "p99": 4090.2399999999925,
+          "mean": 1574.65703125
+        },
+        "submission": {
+          "count": 256,
+          "min": 178.2,
+          "max": 899.8000000000001,
+          "p50": 253.1,
+          "p95": 658.225,
+          "p99": 811.0599999999998,
+          "mean": 321.2078125
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 330.29999999999995,
+        "max": 5807.299999999999,
+        "p50": 2673.3499999999995,
+        "p95": 3737.7999999999997,
+        "p99": 4604.584999999995,
+        "mean": 1925.352734375
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": null
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\docs\\evidence\\performance-2026-11-12\\round2\\assembly-makeup\\00-A",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.0,
+          "max": 1.1,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.8449999999999989,
+          "mean": 0.345703125
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.2,
+          "max": 1.0,
+          "p50": 0.3,
+          "p95": 0.7,
+          "p99": 0.944999999999999,
+          "mean": 0.35703125
+        },
+        "tiles": {
+          "count": 256,
+          "min": 19.900000000000002,
+          "max": 50.2,
+          "p50": 22.8,
+          "p95": 31.35,
+          "p99": 43.72999999999998,
+          "mean": 24.141015625
+        },
+        "assembly": {
+          "count": 256,
+          "min": 2381.2000000000003,
+          "max": 4162.6,
+          "p50": 2448.95,
+          "p95": 2624.15,
+          "p99": 3232.6349999999984,
+          "mean": 2482.790234375
+        },
+        "submission": {
+          "count": 256,
+          "min": 172.6,
+          "max": 378.5,
+          "p50": 195.14999999999998,
+          "p95": 272.52500000000003,
+          "p99": 328.72,
+          "mean": 204.8328125
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 2587.1000000000004,
+        "max": 4533.900000000001,
+        "p50": 2672.3999999999996,
+        "p95": 2896.8250000000007,
+        "p99": 3599.9499999999975,
+        "mean": 2712.466796875
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": null
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\docs\\evidence\\performance-2026-11-12\\round2\\assembly-makeup\\01-B",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.0,
+          "max": 1.0,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.9,
+          "mean": 0.408203125
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.1,
+          "max": 0.8,
+          "p50": 0.3,
+          "p95": 0.6,
+          "p99": 0.7,
+          "mean": 0.309765625
+        },
+        "tiles": {
+          "count": 256,
+          "min": 18.700000000000003,
+          "max": 58.3,
+          "p50": 21.949999999999996,
+          "p95": 30.475,
+          "p99": 37.18499999999999,
+          "mean": 23.07578125
+        },
+        "assembly": {
+          "count": 256,
+          "min": 126.6,
+          "max": 2829.7,
+          "p50": 2389.9999999999995,
+          "p95": 2509.1,
+          "p99": 2653.6399999999994,
+          "mean": 1357.8796875
+        },
+        "submission": {
+          "count": 256,
+          "min": 166.7,
+          "max": 390.5,
+          "p50": 189.3,
+          "p95": 238.79999999999998,
+          "p99": 298.52499999999964,
+          "mean": 198.716796875
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 316.0,
+        "max": 3067.2999999999993,
+        "p50": 2600.9,
+        "p95": 2745.2000000000003,
+        "p99": 2995.6699999999996,
+        "mean": 1580.390234375
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": null
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\docs\\evidence\\performance-2026-11-12\\round2\\assembly-makeup\\02-B",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.2,
+          "max": 1.5,
+          "p50": 0.4,
+          "p95": 0.8,
+          "p99": 1.144999999999999,
+          "mean": 0.45234375
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.1,
+          "max": 1.0,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.9,
+          "mean": 0.375
+        },
+        "tiles": {
+          "count": 256,
+          "min": 19.400000000000002,
+          "max": 89.2,
+          "p50": 23.3,
+          "p95": 38.375,
+          "p99": 52.984999999999935,
+          "mean": 25.5015625
+        },
+        "assembly": {
+          "count": 256,
+          "min": 126.7,
+          "max": 4192.8,
+          "p50": 2412.25,
+          "p95": 3152.5000000000005,
+          "p99": 3648.344999999997,
+          "mean": 1491.06875
+        },
+        "submission": {
+          "count": 256,
+          "min": 158.20000000000002,
+          "max": 734.9,
+          "p50": 215.60000000000002,
+          "p95": 437.59999999999997,
+          "p99": 601.9099999999994,
+          "mean": 245.1671875
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 310.7,
+        "max": 4622.7,
+        "p50": 2617.6,
+        "p95": 3513.95,
+        "p99": 4129.159999999998,
+        "mean": 1762.56484375
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": null
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\docs\\evidence\\performance-2026-11-12\\round2\\assembly-makeup\\03-A",
+      "samples": 384,
+      "warmup_samples": 128,
+      "ready_samples": 256,
+      "phases_us": {
+        "reach": {
+          "count": 256,
+          "min": 0.1,
+          "max": 1.6,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.0,
+          "mean": 0.41015625
+        },
+        "requests": {
+          "count": 256,
+          "min": 0.1,
+          "max": 1.1,
+          "p50": 0.3,
+          "p95": 0.7,
+          "p99": 0.8449999999999989,
+          "mean": 0.362109375
+        },
+        "tiles": {
+          "count": 256,
+          "min": 19.7,
+          "max": 46.5,
+          "p50": 22.4,
+          "p95": 30.4,
+          "p99": 34.73999999999997,
+          "mean": 23.2796875
+        },
+        "assembly": {
+          "count": 256,
+          "min": 2374.2000000000003,
+          "max": 2897.0,
+          "p50": 2442.25,
+          "p95": 2604.875,
+          "p99": 2743.2199999999993,
+          "mean": 2464.401171875
+        },
+        "submission": {
+          "count": 256,
+          "min": 172.7,
+          "max": 325.29999999999995,
+          "p50": 191.8,
+          "p95": 240.02499999999998,
+          "p99": 302.8799999999999,
+          "mean": 199.019921875
+        }
+      },
+      "selected_stage_us": {
+        "count": 256,
+        "min": 2577.2000000000003,
+        "max": 3214.1000000000004,
+        "p50": 2667.0,
+        "p95": 2839.875,
+        "p99": 3031.6200000000003,
+        "mean": 2687.473046875
+      },
+      "roots_min": 39787,
+      "roots_max": 39810,
+      "assembly_reused_samples": null
+    }
+  ],
+  "paired_phase_p50_ratios": [
+    {
+      "reach": 1.3333333333333335,
+      "requests": 0.7499999999999999,
+      "tiles": 1.0733752620545074,
+      "assembly": 0.995875823296469,
+      "submission": 1.3069971598244257
+    },
+    {
+      "reach": 1.0,
+      "requests": 1.0,
+      "tiles": 0.9627192982456139,
+      "assembly": 0.9759284591355478,
+      "submission": 0.9700230591852423
+    },
+    {
+      "reach": 1.3333333333333335,
+      "requests": 1.0,
+      "tiles": 1.0401785714285716,
+      "assembly": 0.9877162452656362,
+      "submission": 1.1240875912408759
+    }
+  ],
+  "paired_reach_ratio_median": 1.3333333333333335,
+  "paired_reach_input_checks": [
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    },
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    },
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    }
+  ],
+  "paired_geometry_checks": [
+    {
+      "matched_input_hash_count": 1,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 0
+    },
+    {
+      "matched_input_hash_count": 1,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 0
+    },
+    {
+      "matched_input_hash_count": 1,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 0
+    }
+  ],
+  "paired_assembly_ratio_median": 0.9877162452656362,
+  "paired_selected_stage_p50_ratios": [
+    1.0052077458168827,
+    0.97324502320012,
+    0.981477315335583
+  ],
+  "paired_assembly_mean_ratios": [
+    0.639532747496125,
+    0.5469167989706641,
+    0.6050430291207597
+  ],
+  "paired_selected_stage_mean_ratios": [
+    0.7158901548133848,
+    0.5826394764336833,
+    0.6558446589071896
+  ]
+}

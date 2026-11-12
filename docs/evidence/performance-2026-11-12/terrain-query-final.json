@@ -1,0 +1,367 @@
+{
+  "schema": 1,
+  "measured_at_utc": "2026-11-12T19:11:58.139658+00:00",
+  "scope": "synthetic mod-local CPU query batches, not game frame times",
+  "head": "2cd2858b02bcb97937803f9ece13f9b66b9c4c3e",
+  "status": "M CMakeLists.txt\n M docs/automatic-smoothing.md\n M docs/depth-atmosphere.md\n M docs/ground-grass-scope.md\n M docs/material-relighting.md\n M docs/model-shading.md\n M docs/performance.md\n M docs/remaster-program.md\n M docs/water-scene-reflections.md\n M patches/aurora-material-relighting.patch\n M patches/dusklight-material-relighting.patch\n M shaders/ambient_common.wgsl\n M shaders/ambient_occlusion.wgsl\n M shaders/ambient_occlusion_compute.wgsl\n M shaders/water_thickness.wgsl\n M src/config/presets.cpp\n M src/game/asset_probe.cpp\n M src/game/geometry_probe.cpp\n M src/game/smoothing.cpp\n M src/game/smoothing.hpp\n M src/game/water_identity.cpp\n M src/game/water_identity.h\n M src/game/water_probe.cpp\n M src/mod.cpp\n M src/render/ambient_occlusion.cpp\n M src/render/ground_grass.cpp\n M src/render/ground_grass.hpp\n M src/render/lut.hpp\n M src/render/material_relighting.cpp\n M src/render/material_relighting.hpp\n M src/render/native_material_service.hpp\n M src/render/renderer.cpp\n M src/render/shader.hpp.in\n M src/render/waterfall.cpp\n M src/ui/settings.cpp\n M tests/CMakeLists.txt\n M tests/aa_pixels.cpp\n M tests/ambient_pixels.cpp\n M tests/presets_roundtrip.cpp\n M tests/qualification.cpp\n M tests/shader_compile.cpp\n M tests/water_identity.cpp\n?? docs/color-direction.md\n?? docs/evidence/airborne-2026-11-10/\n?? docs/evidence/grass-trails-2026-11-11/\n?? docs/evidence/material-finishes-2026-11-11/\n?? docs/evidence/material-sheen-2026-11-11/\n?? docs/evidence/mixed-shading-2026-11-11/\n?? docs/evidence/performance-2026-11-12/\n?? docs/evidence/view-grass-2026-11-11/\n?? docs/evidence/vivid-palette-2026-11-11/\n?? docs/performance-program.md\n?? shaders/wind.wgsl\n?? src/game/surface_class.hpp\n?? src/game/surface_profiles.cpp\n?? src/game/surface_profiles.hpp\n?? src/game/terrain_interaction.hpp\n?? src/game/terrain_trails.hpp\n?? src/game/wind.hpp\n?? src/render/airborne_motion.hpp\n?? src/render/ambient_particles.cpp\n?? src/render/ambient_particles.hpp\n?? src/render/grass_view.hpp\n?? src/render/surface_map_cache.hpp\n?? src/render/surface_map_shader.hpp\n?? src/render/terrain_index.hpp\n?? tests/airborne_motion.cpp\n?? tests/grass_view.cpp\n?? tests/lut_palette.cpp\n?? tests/native_material_compat.cpp\n?? tests/performance_bench.py\n?? tests/surface_class.cpp\n?? tests/surface_map_cache.cpp\n?? tests/surface_map_contract.py\n?? tests/terrain_index.cpp\n?? tests/terrain_trails.cpp\n?? tools/performance-bench.py",
+  "tracked_diff_sha256": "1f80c007b4deba94a9f1304e2f76b195077a0ba258a71e514616ec95744320c7",
+  "source_sha256": {
+    "src\\render\\terrain_index.hpp": "58c43fd03c348b1114e7f9467396317567b483fef6f74bff6dfd71872c5fcf79",
+    "src\\render\\ground_grass.cpp": "0b11df87fe6e599f5113910296450bb49c038050657f4055177b9f41b4d79459",
+    "tests\\terrain_index.cpp": "b3b20e7f48db3ab0c4312339f58ec406db427385b741df8b6b1b36db7c51a923"
+  },
+  "executable_sha256": "738b6c765ee79441fa8025f92f45ce1cce11caba95939dab51c4a1ade41f4415",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 165 Stepping 5, GenuineIntel",
+  "analysis_input_sha256": null,
+  "metadata_scope": "capture environment",
+  "hardware": {
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": [
+      {
+        "Name": "Intel(R) UHD Graphics 630",
+        "DriverVersion": "31.0.101.2140"
+      },
+      {
+        "Name": "Microsoft Remote Display Adapter",
+        "DriverVersion": "10.0.26100.9818"
+      }
+    ],
+    "compiler": "MSVC 19.50.35730.0 /O2 Release x64 (CMake compiler metadata)",
+    "sdk_head": "edf42c6a7202647b56dd2fcdef02d17671bc814b",
+    "aurora_head": "7f2801cd0133c9333eadb4e2e6b24100c328d328",
+    "backend": "none (CPU benchmark)",
+    "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)"
+  },
+  "gpu_time": null,
+  "whole_frame_percentiles": null,
+  "summary": [
+    {
+      "scenario": "tiny",
+      "baseline_ms": {
+        "count": 12,
+        "min": 0.2153,
+        "max": 0.2719,
+        "p50": 0.2168,
+        "p95": 0.24346499999999996,
+        "p99": 0.26621300000000003
+      },
+      "optimized_ms": {
+        "count": 12,
+        "min": 0.1835,
+        "max": 0.1921,
+        "p50": 0.1836,
+        "p95": 0.187755,
+        "p99": 0.19123099999999998
+      },
+      "paired_ratio_median": 0.8474148763043383,
+      "paired_ratio_min": 0.6774549466715705,
+      "paired_ratio_max": 0.8723887375113534,
+      "index_bytes": 188,
+      "build_us": 0.6
+    },
+    {
+      "scenario": "spread",
+      "baseline_ms": {
+        "count": 12,
+        "min": 131.97070000000002,
+        "max": 136.1047,
+        "p50": 132.30630000000002,
+        "p95": 135.066795,
+        "p99": 135.897119
+      },
+      "optimized_ms": {
+        "count": 12,
+        "min": 4.7898,
+        "max": 4.952,
+        "p50": 4.827,
+        "p95": 4.94804,
+        "p99": 4.951208
+      },
+      "paired_ratio_median": 0.036349767203786985,
+      "paired_ratio_min": 0.03615808461345092,
+      "paired_ratio_max": 0.03740155693586792,
+      "index_bytes": 230984,
+      "build_us": 1312.8
+    },
+    {
+      "scenario": "overlapping",
+      "baseline_ms": {
+        "count": 12,
+        "min": 2401.1346,
+        "max": 2545.2076,
+        "p50": 2426.6484499999997,
+        "p95": 2520.26136,
+        "p99": 2540.2183520000003
+      },
+      "optimized_ms": {
+        "count": 12,
+        "min": 2436.9502,
+        "max": 2576.439,
+        "p50": 2465.6484499999997,
+        "p95": 2550.06243,
+        "p99": 2571.163686
+      },
+      "paired_ratio_median": 1.0226486015466572,
+      "paired_ratio_min": 0.9587997458439146,
+      "paired_ratio_max": 1.045538850164912,
+      "index_bytes": 230984,
+      "build_us": 399.1
+    }
+  ],
+  "raw": {
+    "schema": 1,
+    "units": "cpu_microseconds_per_24300_queries",
+    "tile_list_allocation_model": {
+      "frames": 1000,
+      "baseline_allocations": 3000,
+      "baseline_frees": 3000,
+      "optimized_allocations": 3,
+      "optimized_frees_after_shutdown": 3,
+      "retained_bytes": 6656,
+      "checksum": 1664000
+    },
+    "workloads": [
+      {
+        "scenario": "tiny",
+        "surfaces": 8,
+        "index_bytes": 188,
+        "build_us": 0.6,
+        "trials": [
+          {
+            "order": "AB",
+            "baseline_us": 271.9,
+            "optimized_us": 184.2,
+            "hits": 4
+          },
+          {
+            "order": "BA",
+            "baseline_us": 217.9,
+            "optimized_us": 183.7,
+            "hits": 4
+          },
+          {
+            "order": "AB",
+            "baseline_us": 218.1,
+            "optimized_us": 183.6,
+            "hits": 4
+          },
+          {
+            "order": "BA",
+            "baseline_us": 216.9,
+            "optimized_us": 183.6,
+            "hits": 4
+          },
+          {
+            "order": "AB",
+            "baseline_us": 220.2,
+            "optimized_us": 192.1,
+            "hits": 4
+          },
+          {
+            "order": "BA",
+            "baseline_us": 216.5,
+            "optimized_us": 183.6,
+            "hits": 4
+          },
+          {
+            "order": "AB",
+            "baseline_us": 215.3,
+            "optimized_us": 183.7,
+            "hits": 4
+          },
+          {
+            "order": "BA",
+            "baseline_us": 216.1,
+            "optimized_us": 183.8,
+            "hits": 4
+          },
+          {
+            "order": "AB",
+            "baseline_us": 215.5,
+            "optimized_us": 183.6,
+            "hits": 4
+          },
+          {
+            "order": "BA",
+            "baseline_us": 219.7,
+            "optimized_us": 183.5,
+            "hits": 4
+          },
+          {
+            "order": "AB",
+            "baseline_us": 216.3,
+            "optimized_us": 183.6,
+            "hits": 4
+          },
+          {
+            "order": "BA",
+            "baseline_us": 216.7,
+            "optimized_us": 183.5,
+            "hits": 4
+          }
+        ]
+      },
+      {
+        "scenario": "spread",
+        "surfaces": 8192,
+        "index_bytes": 230984,
+        "build_us": 1312.8,
+        "trials": [
+          {
+            "order": "AB",
+            "baseline_us": 136104.7,
+            "optimized_us": 4952.0,
+            "hits": 2204
+          },
+          {
+            "order": "BA",
+            "baseline_us": 133743.0,
+            "optimized_us": 4841.3,
+            "hits": 2204
+          },
+          {
+            "order": "AB",
+            "baseline_us": 132208.4,
+            "optimized_us": 4944.8,
+            "hits": 2204
+          },
+          {
+            "order": "BA",
+            "baseline_us": 132353.0,
+            "optimized_us": 4811.9,
+            "hits": 2204
+          },
+          {
+            "order": "AB",
+            "baseline_us": 132424.5,
+            "optimized_us": 4812.7,
+            "hits": 2204
+          },
+          {
+            "order": "BA",
+            "baseline_us": 132468.3,
+            "optimized_us": 4789.8,
+            "hits": 2204
+          },
+          {
+            "order": "AB",
+            "baseline_us": 132176.4,
+            "optimized_us": 4896.0,
+            "hits": 2204
+          },
+          {
+            "order": "BA",
+            "baseline_us": 132157.6,
+            "optimized_us": 4805.6,
+            "hits": 2204
+          },
+          {
+            "order": "AB",
+            "baseline_us": 134217.6,
+            "optimized_us": 4866.8,
+            "hits": 2204
+          },
+          {
+            "order": "BA",
+            "baseline_us": 132259.6,
+            "optimized_us": 4887.9,
+            "hits": 2204
+          },
+          {
+            "order": "AB",
+            "baseline_us": 132194.6,
+            "optimized_us": 4801.2,
+            "hits": 2204
+          },
+          {
+            "order": "BA",
+            "baseline_us": 131970.7,
+            "optimized_us": 4791.3,
+            "hits": 2204
+          }
+        ]
+      },
+      {
+        "scenario": "overlapping",
+        "surfaces": 8192,
+        "index_bytes": 230984,
+        "build_us": 399.1,
+        "trials": [
+          {
+            "order": "AB",
+            "baseline_us": 2424279.2,
+            "optimized_us": 2447369.4,
+            "hits": 3172
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2545207.6,
+            "optimized_us": 2440344.4,
+            "hits": 3172
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2499850.8,
+            "optimized_us": 2454796.5,
+            "hits": 3172
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2401134.6,
+            "optimized_us": 2470552.3,
+            "hits": 3172
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2436714.8,
+            "optimized_us": 2528481.6,
+            "hits": 3172
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2423503.6,
+            "optimized_us": 2510945.0,
+            "hits": 3172
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2408519.7,
+            "optimized_us": 2447987.7,
+            "hits": 3172
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2431142.3,
+            "optimized_us": 2460744.6,
+            "hits": 3172
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2421190.9,
+            "optimized_us": 2436950.2,
+            "hits": 3172
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2464221.2,
+            "optimized_us": 2576439.0,
+            "hits": 3172
+          },
+          {
+            "order": "AB",
+            "baseline_us": 2429017.7,
+            "optimized_us": 2500152.2,
+            "hits": 3172
+          },
+          {
+            "order": "BA",
+            "baseline_us": 2418246.1,
+            "optimized_us": 2488722.6,
+            "hits": 3172
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,32 +1,34 @@
 diff --git a/include/dolphin/gx/GXAurora.h b/include/dolphin/gx/GXAurora.h
-index 1a312fb..ec1125c 100644
+index 1a312fb..4b5b124 100644
 --- a/include/dolphin/gx/GXAurora.h
 +++ b/include/dolphin/gx/GXAurora.h
-@@ -96,6 +96,9 @@ extern "C" {
+@@ -96,6 +96,10 @@ extern "C" {
   */
  #define GX_AURORA_DRAW_INDEXED 0x0041
  
-+/** Renderer-local material RGB mode, followed by one u8 (0 or 1). */
++/** Renderer-local material mode: 0 native, 1 RGB lighting, 3 scenery relief. */
 +#define GX_AURORA_MATERIAL_RELIGHTING 0x0042
++#define GX_AURORA_SURFACE_PROFILE 0x0043
 +
  #define GX2_SET_POLYGON_OFFSET 0x1000
  
  
-@@ -141,6 +144,9 @@ void AuroraGetRenderSize(u32* width, u32* height);
+@@ -141,6 +145,10 @@ void AuroraGetRenderSize(u32* width, u32* height);
   */
  void AuroraGXSync(void);
  
 +/** Record a material lighting mode change in FIFO order. */
 +void AuroraSetMaterialRelighting(u8 enabled);
++void AuroraSetSurfaceProfile(u8 profile);
 +
  /**
   * Sets the actual render viewport in native framebuffer coordinates.
   * Overrides the automatically scaled values set by the logical GXSetViewport.
 diff --git a/lib/dolphin/gx/GXAurora.cpp b/lib/dolphin/gx/GXAurora.cpp
-index 85a4285..26cd392 100644
+index 85a4285..23d9cee 100644
 --- a/lib/dolphin/gx/GXAurora.cpp
 +++ b/lib/dolphin/gx/GXAurora.cpp
-@@ -51,6 +51,11 @@ void AuroraGXSync() {
+@@ -51,6 +51,15 @@ void AuroraGXSync() {
    aurora::gx::fifo::drain();
  }
  
@@ -34,12 +36,16 @@ index 85a4285..26cd392 100644
 +  GX_WRITE_AURORA(GX_AURORA_MATERIAL_RELIGHTING);
 +  GX_WRITE_U8(enabled);
 +}
++void AuroraSetSurfaceProfile(u8 profile) {
++  GX_WRITE_AURORA(GX_AURORA_SURFACE_PROFILE);
++  GX_WRITE_U8(profile);
++}
 +
  void GXSetViewportRender(f32 left, f32 top, f32 wd, f32 ht, f32 nearz, f32 farz) {
    GX_WRITE_AURORA(GX_AURORA_LOAD_VIEWPORT_RENDER);
    GX_WRITE_F32(left);
 diff --git a/lib/gx/command_processor.cpp b/lib/gx/command_processor.cpp
-index a84fef2..bb29dd9 100644
+index a84fef2..235eb05 100644
 --- a/lib/gx/command_processor.cpp
 +++ b/lib/gx/command_processor.cpp
 @@ -130,11 +130,13 @@ struct DrawCache {
@@ -56,7 +62,7 @@ index a84fef2..bb29dd9 100644
    gfx::Range uniformRange{};
    gfx::Range fogRange{};
    FogRangeLutKey fogRangeKey{};
-@@ -396,14 +398,38 @@ static void push_gx_draw(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, gfx::Rang
+@@ -396,14 +398,45 @@ static void push_gx_draw(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, gfx::Rang
    }
  
    const u8 lineMode = line_mode_for_prim(prim);
@@ -83,7 +89,14 @@ index a84fef2..bb29dd9 100644
 +          // Both variants share uniforms and bindings. Keep the native pipeline
 +          // available while the enhanced variant compiles asynchronously.
 +          cache.fallbackPipelineRef = gfx::pipeline_ref(cache.config);
-+          cache.config.shaderConfig.materialRelighting = 1;
++          cache.config.shaderConfig.materialRelighting =
++              (state.materialRelighting & 2u) && state.blendMode == GX_BM_NONE && state.depthUpdate &&
++              !static_cast<bool>(cache.config.shaderConfig.alphaCompare) ? 3 : 1;
++          // Surface sheen is restricted to solid materials, including actors.
++          // Keep blended effects and cutout foliage on their existing response.
++          if (state.blendMode == GX_BM_NONE && state.depthUpdate &&
++              !static_cast<bool>(cache.config.shaderConfig.alphaCompare))
++            cache.config.shaderConfig.materialRelighting |= 4u;
 +          static bool reported = false;
 +          if (!reported) {
 +            reported = true;
@@ -96,7 +109,7 @@ index a84fef2..bb29dd9 100644
      cache.pipelineRef = gfx::pipeline_ref(cache.config);
      cache.fmt = fmt;
      cache.lineMode = lineMode;
-@@ -457,7 +483,7 @@ static void push_gx_draw(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, gfx::Rang
+@@ -457,7 +490,7 @@ static void push_gx_draw(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, gfx::Rang
    cache.lastDrawFmt = fmt;
    gfx::push_draw_command(DrawData{
        .pipeline = cache.pipelineRef,
@@ -105,7 +118,7 @@ index a84fef2..bb29dd9 100644
        .idxRange = idxRange,
        .uniformRange = cache.uniformRange,
        .immediateData = immediates,
-@@ -521,15 +547,16 @@ static void draw_prim(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, ByteReader&
+@@ -521,15 +554,16 @@ static void draw_prim(GXPrimitive prim, GXVtxFmt fmt, u16 vtxCount, ByteReader&
        idxRange = gfx::push_indices(idxBuf.data(), idxBuf.size(), hadIndexRange ? 0 : 4);
        idxBuf.clear();
      }
@@ -126,15 +139,28 @@ index a84fef2..bb29dd9 100644
      if (lastDraw->idxRange.size == 0) {
        lastDraw->idxRange = idxRange;
      } else {
-@@ -554,7 +581,13 @@ void handle_aurora(ByteReader& reader) noexcept {
+@@ -554,7 +588,26 @@ void handle_aurora(ByteReader& reader) noexcept {
    ZoneScoped;
    const u16 subCmd = reader.read<u16>();
  
 -  if (subCmd == GX_AURORA_LOAD_VIEWPORT_RENDER) {
-+  if (subCmd == GX_AURORA_MATERIAL_RELIGHTING) {
-+    const bool enabled = reader.read<u8>() == 1;
-+    if (g_gxState.materialRelighting != enabled) {
-+      g_gxState.materialRelighting = enabled;
++  if (subCmd == GX_AURORA_SURFACE_PROFILE) {
++    const u8 profile = reader.read<u8>();
++    // Exponent, highlight strength, UV relief strength, metal/wet coating.
++    constexpr std::array<std::array<float,4>,7> responses{{
++        {14.f,.12f,1.f,0.f}, {8.f,.055f,1.30f,0.f}, {18.f,.085f,.85f,0.f},
++        {6.f,.025f,.12f,0.f}, {96.f,.32f,.18f,.85f}, {64.f,.25f,.4f,-.35f},
++        {28.f,.13f,.3f,0.f}}};
++    const auto& response=responses[profile<responses.size() ? profile : 0];
++    if (g_gxState.surfaceResponse != response) {
++      g_gxState.surfaceResponse=response;
++      g_gxState.dirty |= DirtyUniform;
++    }
++  } else if (subCmd == GX_AURORA_MATERIAL_RELIGHTING) {
++    const u8 value = reader.read<u8>();
++    const u8 mode = value == 3 ? 3 : value == 1 ? 1 : 0;
++    if (g_gxState.materialRelighting != mode) {
++      g_gxState.materialRelighting = mode;
 +      g_gxState.dirty |= DirtyPipeline;
 +    }
 +  } else if (subCmd == GX_AURORA_LOAD_VIEWPORT_RENDER) {
@@ -142,7 +168,7 @@ index a84fef2..bb29dd9 100644
      const f32 top = reader.read<f32>();
      const f32 width = reader.read<f32>();
 diff --git a/lib/gx/gx.hpp b/lib/gx/gx.hpp
-index a97b987..2387fc2 100644
+index a97b987..ce0bf74 100644
 --- a/lib/gx/gx.hpp
 +++ b/lib/gx/gx.hpp
 @@ -47,7 +47,6 @@ constexpr float GX_LARGE_NUMBER = -1048576.0f;
@@ -153,15 +179,16 @@ index a97b987..2387fc2 100644
  constexpr bool UseReversedZ = true;
  
  constexpr u32 MaxTextures = GX_MAX_TEXMAP;
-@@ -334,6 +333,7 @@ struct GXState {
+@@ -334,6 +333,8 @@ struct GXState {
    u32 currentPnMtx;
    Mat4x4<float> proj;
    GXProjectionType projType; // for GXGetProjectionv
-+  bool materialRelighting = false;
++  u8 materialRelighting = 0; // bit 0: RGB lighting; bit 1: opaque scenery relief
++  std::array<float,4> surfaceResponse{14.f,0.12f,1.f,0.f};
    FogState fog;
    GXCullMode cullMode = GX_CULL_BACK;
    u8 lineWidth = 0;
-@@ -492,7 +492,7 @@ struct ShaderConfig {
+@@ -492,7 +493,7 @@ struct ShaderConfig {
    u8 lineMode : 2 = 0; // 1 = GX_LINES, 2 = GX_LINESTRIP, 3 = GX_POINTS
    u8 fogRangeEnabled : 1 = false;
    u8 pad1 : 5 = 0;
@@ -203,7 +230,7 @@ index 0c3631c..4160bb8 100644
  
    const auto& resources = gfx::detail::resources();
 diff --git a/lib/gx/pipeline.hpp b/lib/gx/pipeline.hpp
-index 1abcbd5..9f4fbd8 100644
+index 1abcbd5..c15df00 100644
 --- a/lib/gx/pipeline.hpp
 +++ b/lib/gx/pipeline.hpp
 @@ -6,7 +6,7 @@
@@ -215,11 +242,28 @@ index 1abcbd5..9f4fbd8 100644
    gfx::Range idxRange;
    gfx::Range uniformRange;
    DrawImmediateData immediateData;
+@@ -17,7 +17,7 @@ struct DrawData {
+   uint32_t dstAlpha;
+ };
+ 
+-constexpr uint32_t GXPipelineConfigVersion = 13;
++constexpr uint32_t GXPipelineConfigVersion = 14;
+ struct PipelineConfig {
+   uint32_t version = GXPipelineConfigVersion;
+   uint32_t msaaSamples = 1;
 diff --git a/lib/gx/shader.cpp b/lib/gx/shader.cpp
-index 92f358b..d09aec7 100644
+index 92f358b..2050e6c 100644
 --- a/lib/gx/shader.cpp
 +++ b/lib/gx/shader.cpp
-@@ -264,7 +264,9 @@ std::string alpha_arg_reg(GXTevAlphaArg arg, size_t stageIdx, const ShaderConfig
+@@ -11,6 +11,7 @@
+ 
+ #include <absl/container/flat_hash_set.h>
+ #include <mutex>
++#include <atomic>
+ #include <string_view>
+ #include <utility>
+ 
+@@ -264,7 +265,9 @@ std::string alpha_arg_reg(GXTevAlphaArg arg, size_t stageIdx, const ShaderConfig
      }
      u32 idx = color_channel(stage.channelId);
      const auto& swap = config.tevSwapTable[stage.tevSwapRas];
@@ -230,7 +274,7 @@ index 92f358b..d09aec7 100644
    }
    case GX_CA_KONST: {
      switch (stage.kaSel) {
-@@ -776,11 +778,11 @@ constexpr std::string_view nbt_slice_local(NbtSlice slice) noexcept {
+@@ -776,11 +779,11 @@ constexpr std::string_view nbt_slice_local(NbtSlice slice) noexcept {
  
  constexpr bool is_emboss_texgen(GXTexGenType type) noexcept { return type >= GX_TG_BUMP0 && type <= GX_TG_BUMP7; }
  
@@ -245,7 +289,7 @@ index 92f358b..d09aec7 100644
      outVar = fmt::format("rast{}", i);
      posVar = "in.mv_pos"sv;
    } else {
-@@ -789,7 +791,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+@@ -789,7 +792,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
    }
    std::string ambSrc, matSrc;
    if (cc.ambSrc == GX_SRC_VTX) {
@@ -254,7 +298,7 @@ index 92f358b..d09aec7 100644
        ambSrc = fmt::format("in.clr{}", i);
      } else {
        ambSrc = vtx_attr(config, static_cast<GXAttr>(GX_VA_CLR0 + i));
-@@ -798,7 +800,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+@@ -798,7 +801,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
      ambSrc = fmt::format("ubuf.cc{0}{1}_amb", i, alpha ? "a"sv : ""sv);
    }
    if (cc.matSrc == GX_SRC_VTX) {
@@ -263,7 +307,7 @@ index 92f358b..d09aec7 100644
        matSrc = fmt::format("in.clr{}", i);
      } else {
        matSrc = vtx_attr(config, static_cast<GXAttr>(GX_VA_CLR0 + i));
-@@ -820,7 +822,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+@@ -820,7 +823,7 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
            var dist_attn = dot(light.dist_att, vec3f(1.0, dist, dist2));
            attn = max(0.0, cos_attn / dist_attn);)""");
    } else if (cc.attnFn == GX_AF_SPEC) {
@@ -272,7 +316,7 @@ index 92f358b..d09aec7 100644
      std::string dist_attn = diffFn != GX_DF_NONE
                                  ? "max(0.0, dot(normalize(light.dist_att), vec3f(1.0, attn, attn * attn)));"
                                  : "max(0.0, dot(light.dist_att, vec3f(1.0, attn, attn * attn)));";
-@@ -835,19 +837,38 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+@@ -835,36 +838,95 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
    if (diffFn == GX_DF_NONE) {
      lightDiffFn = "1.0"sv;
    } else if (diffFn == GX_DF_SIGN) {
@@ -312,11 +356,29 @@ index 92f358b..d09aec7 100644
 +  }
 +  const std::string attenuationGuard = relighting
 +      ? "\n          if (!(abs(attn) <= 3.402823e38)) { continue; }" : "";
++  const bool sheen = relighting && (config.materialRelighting & 4u) && cc.attnFn != GX_AF_SPEC;
++  const std::string sheenLight = sheen ? R"""(
++          let view_length = length(in.mv_pos);
++          if (view_length > 0.00001) {
++            let view = -in.mv_pos / view_length;
++            let half_vector = ldir + view;
++            let half_length = length(half_vector);
++            let normal = normalize(mix(in.mv_nrm / max(length(in.mv_nrm), 0.00001), relight_normal, 0.3));
++            let nl = max(0.0, dot(normal, ldir));
++            let nv = max(0.0, dot(normal, view));
++            if (half_length > 0.00001 && nl > 0.0 && nv > 0.0) {
++              let h = half_vector / half_length;
++              let fresnel = ubuf.surface_response.y * (1.0 + 1.666667 * pow(1.0 - clamp(dot(view, h), 0.0, 1.0), 5.0));
++              let highlight = pow(max(0.0, dot(normal, h)), ubuf.surface_response.x) * sqrt(nl) * fresnel;
++              channel_sheen += clamp(light.color.rgb, vec3f(0.0), vec3f(1.0)) * clamp(attn, 0.0, 1.0) * highlight;
++            }
++          })""" : "";
 +  const auto body = fmt::format(R"""(
      {{
        var lighting = {5};
++      {15}
        for (var i = 0u; i < {1}u; i++) {{
-@@ -855,16 +876,34 @@ auto lighting_func(const ShaderConfig& config, const ColorChannelConfig& cc, u8
+           if ((ubuf.lightState{0}{9} & (1u << i)) == 0u) {{ continue; }}
            var light = ubuf.lights[i];
            var ldir = light.pos - {6};
            var dist2 = dot(ldir, ldir);
@@ -327,10 +389,12 @@ index 92f358b..d09aec7 100644
 +          {11}
            var diff = {3};
            lighting = lighting + (attn * diff * light.color);
++          {16}
        }}
 -      {7}{8} = ({4} * clamp(lighting, vec4f(0.0), vec4f(1.0))){8};
 +      {12}
 +      {14}
++      {17}
 +      {13}
      }})""",
                       i, GX::MaxLights, lightAttnFn, lightDiffFn, matSrc, ambSrc, posVar, outVar, swizzle,
@@ -339,7 +403,9 @@ index 92f358b..d09aec7 100644
 +                     relighting ? fmt::format("if (all(abs(lighting) <= vec4f(3.402823e38)) && all(abs({}) <= vec4f(3.402823e38))) {{", matSrc) : "",
 +                     relighting ? "}" : "",
 +                     relighting ? fmt::format("{0} = vec4f(({1} * clamp(lighting, vec4f(0.0), vec4f(1.0))).rgb, {0}.a);", outVar, matSrc)
-+                                : fmt::format("{0}{2} = ({1} * clamp(lighting, vec4f(0.0), vec4f(1.0))){2};", outVar, matSrc, swizzle));
++                                : fmt::format("{0}{2} = ({1} * clamp(lighting, vec4f(0.0), vec4f(1.0))){2};", outVar, matSrc, swizzle),
++                     sheen ? "var channel_sheen = vec3f(0.0);" : "", sheenLight,
++                     sheen ? "material_sheen = max(material_sheen, channel_sheen);" : "");
 +  if (!relighting) return body;
 +  // Retain the native raster RGB when interpolation cannot produce a usable
 +  // surface normal. Alpha always comes from the native vertex lighting path.
@@ -348,12 +414,12 @@ index 92f358b..d09aec7 100644
 +      let relight_length = dot(in.mv_nrm, in.mv_nrm);
 +      if (relight_length > 1e-10 && relight_length <= 3.402823e38 &&
 +          all(abs(in.mv_pos) <= vec3f(3.402823e38))) {
-+        let relight_normal = in.mv_nrm * inverseSqrt(relight_length);
++        let relight_normal = material_normal;
 +  )""" + body + "\n      }\n    }";
  }
  
  absl::flat_hash_set<gfx::ShaderRef> s_seenShaders;
-@@ -874,6 +913,12 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+@@ -874,6 +936,12 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
    ZoneScoped;
    const auto hash = xxh3_hash(config);
    const auto info = build_shader_info(config);
@@ -366,7 +432,27 @@ index 92f358b..d09aec7 100644
    if (EnableDebugPrints && !s_seenShaders.contains(hash)) {
      s_seenShaders.insert(hash);
  
-@@ -1150,7 +1195,7 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+@@ -1069,6 +1137,9 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+   uniBufAttrs += fmt::format("\n    postex_mtx: array<mat3x4f, {}>,", MaxPnMtx + MaxTexMtx);
+   uniBufAttrs += fmt::format("\n    nrm_mtx: array<mat3x4f, {}>,", MaxPnMtx);
+   std::string fragmentFnPre;
++  std::string fragmentRelighting;
++  int reliefStage = -1;
++  int finishStage = -1;
+   std::string fragmentFn;
+ 
+   static std::array regName{"prev"sv, "tevreg0"sv, "tevreg1"sv, "tevreg2"sv};
+@@ -1139,7 +1210,8 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+     lightState0: u32,
+     lightState1: u32,
+     lightState0a: u32,
+-    lightState1a: u32,)"""),
++    lightState1a: u32,
++    surface_response: vec4f,)"""),
+                                GX::MaxLights);
+     uniformPre +=
+         "\n"
+@@ -1150,7 +1222,7 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
          "    cos_att: vec3f,\n"
          "    dist_att: vec3f,\n"
          "};";
@@ -375,7 +461,7 @@ index 92f358b..d09aec7 100644
        vtxOutAttrs += fmt::format("\n    @location({}) mv_pos: vec3f,", vtxOutIdx++);
        vtxOutAttrs += fmt::format("\n    @location({}) mv_nrm: vec3f,", vtxOutIdx++);
        vtxXfrAttrs += fmt::format(FMT_STRING(R"""(
-@@ -1179,24 +1224,17 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+@@ -1179,24 +1251,17 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
        uniBufAttrs += fmt::format("\n    cc{0}a_mat: vec4f,", i);
      }
  
@@ -404,7 +490,86 @@ index 92f358b..d09aec7 100644
 -      vtxXfrAttrs += lighting_func(config, cc, i, false);
 -      vtxXfrAttrs += lighting_func(config, cca, i, true);
 -      fragmentFnPre += fmt::format("\n    var rast{0} = in.cc{0};", i);
-+      fragmentFnPre += lighting_func(config, cc, i, false, true);
++      fragmentRelighting += lighting_func(config, cc, i, false, true);
      }
    }
    for (int i = 0; i < info.sampledKColors.size(); ++i) {
+@@ -1517,6 +1582,57 @@ std::string build_shader_source(const ShaderConfig& config) noexcept {
+     fragmentFnPre +=
+         fmt::format("\n    var sampled{0} = textureSampleBias(tex{1}, tex{1}_samp, {2}, ubuf.tex{1}_size_bias.z);", i,
+                     underlying(stage.texMapId), uvIn);
++    if (materialRelighting && finishStage < 0 && config.numIndStages == 0 && !needsTevTexCoord &&
++        config.tcgs[underlying(stage.texCoordId)].type == GX_TG_MTX2x4 &&
++        config.tcgs[underlying(stage.texCoordId)].src == GX_TG_TEX0) finishStage = i;
++    if (materialRelighting && (config.materialRelighting & 2u) && reliefStage < 0 &&
++        config.numIndStages == 0 && !needsTevTexCoord &&
++        config.tcgs[underlying(stage.texCoordId)].type == GX_TG_MTX2x4 &&
++        config.tcgs[underlying(stage.texCoordId)].src == GX_TG_TEX0) {
++      reliefStage = i;
++    }
++  }
++  if (materialRelighting) {
++    fragmentFnPre += "\n    var material_normal = in.mv_nrm / max(length(in.mv_nrm), 0.00001);";
++    if (config.materialRelighting & 4u) {
++      fragmentFnPre += "\n    var material_sheen = vec3f(0.0);";
++      // Add the light response after TEV so dark textures can reflect light.
++      // Keep TEV alpha and native fog, and bound the added energy per channel.
++      fragmentFn += fmt::format(R"""(
++    let finish_tint = mix(vec3f(1.0), {}, max(ubuf.surface_response.w, 0.0));
++    let finish_energy = min(material_sheen, vec3f(0.22 + max(ubuf.surface_response.w, 0.0)*0.22));
++    prev = vec4f(clamp({} * (1.0 + min(ubuf.surface_response.w, 0.0)*0.15) + finish_energy*finish_tint,
++                      vec3f(0.0), vec3f(1.0)), prev.a);)""",
++          finishStage >= 0 ? fmt::format("clamp(sampled{}.rgb * 1.5, vec3f(0.0), vec3f(1.0))",finishStage) : "vec3f(1.0)",
++          prevColorNormalized ? "prev.rgb" : "tev_overflow_vec3f(prev.rgb)");
++      static std::atomic_flag sheenReported = ATOMIC_FLAG_INIT;
++      if (!sheenReported.test_and_set()) Log.info("Material sheen: soft native-light highlights on opaque surfaces");
++    }
++    if (reliefStage >= 0) {
++      static std::atomic_flag reported = ATOMIC_FLAG_INIT;
++      if (!reported.test_and_set()) Log.info("Material relief: original UV texture drives bounded scenery normals");
++      // Texture contrast is an approximate height signal, not an authored normal map.
++      uniformPre += R"""(
++fn scenery_relief(point: vec3f, normal: vec3f, height: f32) -> vec3f {
++    let dx = dpdx(point);
++    let dy = dpdy(point);
++    let hx = dpdx(height);
++    let hy = dpdy(height);
++    let r1 = cross(dy, normal);
++    let r2 = cross(normal, dx);
++    let determinant = dot(dx, r1);
++    let distance_fade = 1.0 - smoothstep(1400.0, 4200.0, length(point));
++    if (!(abs(determinant) > 1e-8) || distance_fade <= 0.0) { return normal; }
++    let gradient = (r1 * hx + r2 * hy) * (sign(determinant) * 6.0 * ubuf.surface_response.z / abs(determinant));
++    let magnitude = length(gradient);
++    if (!(magnitude < 1e10)) { return normal; }
++    let bounded = gradient * min(1.0, 0.42 / max(magnitude, 0.00001)) * distance_fade;
++    return normalize(normal - bounded);
++}
++)""";
++      fragmentFnPre += fmt::format("\n    material_normal = scenery_relief(in.mv_pos, material_normal, dot(sampled{}.rgb, vec3f(0.2126, 0.7152, 0.0722)));", reliefStage);
++    }
++    fragmentFnPre += fragmentRelighting;
+   }
+   if (info.usesPTTexMtx.any()) {
+     uniBufAttrs += fmt::format("\n    postmtx: array<mat3x4f, {}>,", MaxPTTexMtx);
+diff --git a/lib/gx/shader_info.cpp b/lib/gx/shader_info.cpp
+index c74bd6d..635eef3 100644
+--- a/lib/gx/shader_info.cpp
++++ b/lib/gx/shader_info.cpp
+@@ -319,7 +319,7 @@ ShaderInfo build_shader_info(const ShaderConfig& config) noexcept {
+   }
+   if (info.lightingEnabled) {
+     // Lights + light state for all channels
+-    info.uniformSize += 16 + sizeof(Light) * GX::MaxLights;
++    info.uniformSize += 32 + sizeof(Light) * GX::MaxLights;
+   }
+   for (int i = 0; i < info.sampledColorChannels.size(); ++i) {
+     if (info.sampledColorChannels.test(i)) {
+@@ -422,6 +422,7 @@ static void fill_uniform(ByteBuffer& buf, const ShaderInfo& info) noexcept {
+     for (int i = 0; i < 4; ++i) {
+       buf.append<u32>(g_gxState.colorChannelState[i].lightMask.to_ulong());
+     }
++    buf.append(g_gxState.surfaceResponse);
+   }
+   for (int i = 0; i < info.sampledColorChannels.size(); ++i) {
+     if (!info.sampledColorChannels.test(i)) {

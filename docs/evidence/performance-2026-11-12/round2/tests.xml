@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Win32-MSBuild"
+	tests="8"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="cmdcntr"
+	time="1"
+	timestamp="2026-11-12T11:56:40"
+	>
+	<testcase name="grass_assembly" classname="grass_assembly" time="0.0155246" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="grass_reach" classname="grass_reach" time="0.139965" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="grass_cpu" classname="grass_cpu" time="0.372551" status="run">
+		<properties/>
+		<system-out>.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.135s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="terrain_index" classname="terrain_index" time="0.0432176" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="performance_bench" classname="performance_bench" time="0.262603" status="run">
+		<properties/>
+		<system-out>....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="terrain_trails" classname="terrain_trails" time="0.0146301" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="grass_view" classname="grass_view" time="0.0145966" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="package_contract" classname="package_contract" time="0.142002" status="run">
+		<properties/>
+		<system-out>Valid windows-amd64 native package: C:\dev\midnafx\build\windows-release\mods\midnafx.dusk
+</system-out>
+	</testcase>
+</testsuite>

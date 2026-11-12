@@ -23,8 +23,11 @@
 #include <d/actor/d_a_obj_rstair.h>
 #include <d/d_kankyo.h>
 #include <d/d_kankyo_wether.h>
+#include "game/wind.hpp"
 #include <dolphin/gx/GXAurora.h>
 #include <dolphin/gx/GXBump.h>
+#include <dolphin/gx/GXGet.h>
+#include <dolphin/gx/GXTransform.h>
 #include <dolphin/gx/GXExtra.h>
 #include <dolphin/gx/GXFrameBuffer.h>
 #include <dolphin/gx/GXPixel.h>
@@ -35,7 +38,9 @@
 #include <mods/svc/hook.hpp>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -106,10 +111,15 @@ GfxResolvedTargets pre_water_depth = GFX_RESOLVED_TARGETS_INIT;
 GfxResolvedTargets water_surface = GFX_RESOLVED_TARGETS_INIT;
 bool pre_water_depth_ready = false;
 bool water_surface_ready = false;
-std::vector<J3DShapePacket*> pending_surface_packets;
+std::array<float, 4> pre_water_clip{0, 0, 1, 1};
+struct SurfacePacket {
+    J3DShapePacket* packet;
+    std::array<float, 7> projection;
+};
+std::vector<SurfacePacket> pending_surface_packets;
 constexpr std::size_t kMaxSurfacePackets = 64;
-bool pending_surface_overflow = false;
-bool surface_overflow_warned = false;
+bool pending_surface_rejected = false;
+bool surface_rejection_warned = false;
 
 bool diagnostic_requested() {
     return settings::water_classification_diagnostic_enabled() ||
@@ -122,8 +132,6 @@ bool thickness_requested() {
 }
 
 bool diagnostic_active() { return hooks_ready && cleanup_hook != 0 && diagnostic_requested(); }
-
-bool is_stage_water_candidate(const char* stage);
 
 void log_summary(const char* reason) {
     if (!svc_log || (classified_draws == 0 && thickness_captures == 0))
@@ -203,32 +211,59 @@ void classify(J3DModel* model, const char* water_class, const char* role, float 
     }
 }
 
-void inspect(J3DModel* model, const char* water_class, int room, const char* role) {
+bool has_level_water_shape(J3DModelData& data, const J3DMaterial* material) {
+    bool found = false;
+    for (u16 index = 0; index < data.getShapeNum(); ++index) {
+        auto* shape = data.getShapeNodePointer(index);
+        if (!shape || shape->getMaterial() != material) continue;
+        const auto& low = *shape->getMin();
+        const auto& high = *shape->getMax();
+        const float width = std::min(high.x - low.x, high.z - low.z);
+        const float rise = high.y - low.y;
+        if (!(width > 16.0f && rise >= 0.0f && rise <= 8.0f + 0.12f * width)) return false;
+        found = true;
+    }
+    return found;
+}
+
+void inspect(J3DModel* model, const char* water_class, int room, const char* role, bool known_stage) {
     if (!diagnostic_active() || !model)
         return;
     J3DModelData* data = model->getModelData();
     if (!data)
         return;
     const bool first_this_frame = frame_models.insert(data).second;
-    if (first_this_frame && !previous_models.contains(data))
-        log_model(data, water_class, role, model->getBaseTRMtx()[1][3], room);
     JUTNameTab* names = data->getMaterialName();
     bool selected = false;
     for (u16 index = 0; names && index < data->getMaterialNum(); ++index) {
         const char* name = names->getName(index);
-        const auto decision = game::water::classify_stage_material(
-            water_class ? water_class : "", room, role ? role : "", name ? name : "");
+        auto* material = data->getMaterialNodePointer(index);
+        if (!material || !name) continue;
+        auto decision = known_stage ? game::water::classify_stage_material(water_class, room, role, name) :
+                                      game::water::StageMaterialDecision{};
+        if (!decision.selected && game::water::is_water_surface_family(name)) {
+            const auto* blend = material->getBlend();
+            const auto* depth = material->getZMode();
+            // Match the verified translucent surface state. Foam, overlays and
+            // depth-writing geometry must stay out of the thickness capture.
+            if (blend && depth && blend->getBlendMode() == GX_BM_BLEND &&
+                blend->getSrcFactor() == GX_BL_SRCALPHA && blend->getDstFactor() == GX_BL_INVSRCALPHA &&
+                depth->getCompareEnable() && depth->getFunc() == GX_LEQUAL && !depth->getUpdateEnable() &&
+                (!std::string_view(name).starts_with("cc_MA03_") || has_level_water_shape(*data, material)))
+                decision = {true, true};
+        }
         if (decision.selected) {
-            if (J3DMaterial* material = data->getMaterialNodePointer(index)) {
-                frame_materials.insert(material);
-                frame_material_identities[material] = {name, decision.thickness};
-                frame_has_thickness_candidate |= decision.thickness;
-                selected = true;
-            }
+            frame_materials.insert(material);
+            frame_material_identities[material] = {name, decision.thickness};
+            frame_has_thickness_candidate |= decision.thickness;
+            selected = true;
         }
     }
     if (selected)
         frame_classified_models.insert(data);
+    if ((selected || settings::water_classification_diagnostic_enabled()) &&
+        first_this_frame && !previous_models.contains(data))
+        log_model(data, water_class, role, model->getBaseTRMtx()[1][3], room);
 }
 
 HookAction on_lv3_water(ModContext*, void* args, void*, void*) {
@@ -281,16 +316,15 @@ HookAction on_boss_water(ModContext*, void* args, void*, void*) {
     return HOOK_CONTINUE;
 }
 
-bool is_stage_water_candidate(const char* stage) {
-    return stage && game::water::has_stage_water(stage);
-}
+struct StageScan {
+    const char* stage;
+    bool known;
+};
 
-int inspect_stage_actor(void* raw_actor, void*) {
+int inspect_stage_actor(void* raw_actor, void* user) {
     if (!raw_actor)
         return 0;
-    const char* stage = dComIfGp_getStartStageName();
-    if (!is_stage_water_candidate(stage))
-        return 0;
+    const auto& scan = *static_cast<const StageScan*>(user);
     int room = fopAcM_GetRoomNo(static_cast<fopAc_ac_c*>(raw_actor));
     if (room < 0)
         room = dComIfGp_roomControl_getStayNo();
@@ -300,24 +334,28 @@ int inspect_stage_actor(void* raw_actor, void*) {
         for (unsigned i = 0; i < 6; ++i) {
             char role[16];
             std::snprintf(role, sizeof(role), "part-%u", i);
-            inspect(actor->mBgParts[i].model, stage, room, role);
+            inspect(actor->mBgParts[i].model, scan.stage, room, role, scan.known);
         }
     } else if (name == fpcNm_BG_OBJ_e) {
         auto* actor = static_cast<daBgObj_c*>(raw_actor);
+        if (actor->field_0xcc8 >= 2) return 0;
         for (unsigned i = 0; i < 2; ++i) {
             char role[24];
             std::snprintf(role, sizeof(role), "bgobj-%u", i);
-            inspect(actor->field_0x5a8[actor->field_0xcc8][i], stage, room, role);
+            inspect(actor->field_0x5a8[actor->field_0xcc8][i], scan.stage, room, role, scan.known);
         }
     }
     return 0;
 }
 
 void scan_stage_actors() {
-    if (!diagnostic_active() || !is_stage_water_candidate(dComIfGp_getStartStageName()))
+    if (!diagnostic_active())
         return;
+    const auto* stage = dComIfGp_getStartStageName();
+    if (!stage || !*stage) return;
+    StageScan scan{stage, game::water::has_stage_water(stage)};
     const auto started = std::chrono::steady_clock::now();
-    (void)fopAcIt_Executor(inspect_stage_actor, nullptr);
+    (void)fopAcIt_Executor(inspect_stage_actor, &scan);
     stage_scan_ns +=
         static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
                                        std::chrono::steady_clock::now() - started)
@@ -336,13 +374,22 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
     const bool thickness_candidate =
         identity != frame_material_identities.end() && identity->second.thickness_candidate;
     if (classified && thickness_candidate && thickness_requested() && pre_water_depth_ready &&
-        !pending_surface_overflow &&
-        std::find(pending_surface_packets.begin(), pending_surface_packets.end(), packet) ==
-            pending_surface_packets.end()) {
+        !pending_surface_rejected &&
+        std::none_of(pending_surface_packets.begin(), pending_surface_packets.end(),
+                     [&](const auto& pending) { return pending.packet == packet; })) {
         if (pending_surface_packets.size() >= kMaxSurfacePackets)
-            pending_surface_overflow = true;
-        else
-            pending_surface_packets.push_back(packet);
+            pending_surface_rejected = true;
+        else {
+            SurfacePacket pending{packet, {}};
+            GXGetProjectionv(pending.projection.data());
+            if (pending.projection[0] != 0.0f || pending.projection[1] == 0.0f ||
+                pending.projection[3] == 0.0f || pending.projection[6] == 0.0f ||
+                !std::all_of(pending.projection.begin(), pending.projection.end(),
+                             [](float value) { return std::isfinite(value); }))
+                pending_surface_rejected = true; // Reject an unusable frame before replay.
+            else
+                pending_surface_packets.push_back(pending);
+        }
         if (!thickness_target_logged && svc_log) {
             char message[224];
             std::snprintf(message, sizeof(message),
@@ -402,16 +449,16 @@ HookAction mark_classified_shape(ModContext*, void* args, void*, void*) {
 }
 
 void resolve_pending_surface_packets() {
-    if (pending_surface_overflow) {
+    if (pending_surface_rejected) {
         pending_surface_packets.clear();
-        pending_surface_overflow = false;
+        pending_surface_rejected = false;
         water_surface_ready = false;
         ++thickness_captures;
         ++thickness_capture_failures;
-        if (!surface_overflow_warned && svc_log) {
+        if (!surface_rejection_warned && svc_log) {
             svc_log->warn(mod_ctx,
-                          "Water thickness packet limit exceeded; frame failed closed");
-            surface_overflow_warned = true;
+                          "Water thickness capture rejected invalid projection or packet limit; frame bypassed");
+            surface_rejection_warned = true;
         }
         return;
     }
@@ -422,11 +469,22 @@ void resolve_pending_surface_packets() {
     water_surface_ready = false;
     if (pre_water_depth_ready && svc_gfx &&
         svc_gfx->create_pass(mod_ctx, pre_water_depth.width, pre_water_depth.height) == MOD_OK) {
-        for (auto* packet : pending_surface_packets) {
+        std::array<float, 7> saved_projection{};
+        GXGetProjectionv(saved_projection.data());
+        std::array<u32, 4> saved_scissor{};
+        GXGetScissor(&saved_scissor[0], &saved_scissor[1], &saved_scissor[2], &saved_scissor[3]);
+        const u32 left = static_cast<u32>(std::ceil(pre_water_clip[0] * pre_water_depth.width));
+        const u32 top = static_cast<u32>(std::ceil(pre_water_clip[1] * pre_water_depth.height));
+        const u32 right = static_cast<u32>(pre_water_clip[2] * pre_water_depth.width);
+        const u32 bottom = static_cast<u32>(pre_water_clip[3] * pre_water_depth.height);
+        for (const auto& pending : pending_surface_packets) {
+            auto* packet = pending.packet;
             J3DShape* shape = packet ? packet->getShape() : nullptr;
             J3DMaterial* material = shape ? shape->getMaterial() : nullptr;
             if (!packet || !shape || !material)
                 continue;
+            // Replay occurs after native 2D/fade setup has changed projection.
+            // Each water draw must use the projection observed at its original draw.
             // The replay is untextured. Loading the source material would only rebind its
             // textures/NBT scale and can reference a stale J3D texture table at this stage.
             shape->loadPreDrawSetting();
@@ -448,6 +506,11 @@ void resolve_pending_surface_packets() {
             GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
             if (packet->getDisplayListObj())
                 packet->getDisplayListObj()->callDL();
+            GXSetProjectionv(pending.projection.data());
+            // The source geometry extends behind the native letterbox trim.
+            // Keep those pixels out of the mask so the final water pass cannot recolor bars.
+            GXSetScissorRender(left, top, right > left ? right - left : 0,
+                              bottom > top ? bottom - top : 0);
             ShapeDrawFast::g_orig(packet);
         }
 
@@ -459,6 +522,8 @@ void resolve_pending_surface_packets() {
             water_surface.color && water_surface.depth &&
             water_surface.width == pre_water_depth.width &&
             water_surface.height == pre_water_depth.height;
+        GXSetProjectionv(saved_projection.data());
+        GXSetScissor(saved_scissor[0], saved_scissor[1], saved_scissor[2], saved_scissor[3]);
     }
     const auto packet_count = pending_surface_packets.size();
     thickness_packet_total += packet_count;
@@ -493,11 +558,24 @@ void capture_pre_water_scene(ModContext*, const GfxStageContext* context, void*)
     pre_water_depth_ready = false;
     water_surface_ready = false;
     pending_surface_packets.clear();
-    pending_surface_overflow = false;
+    pending_surface_rejected = false;
     if (!context || context->stage != GFX_STAGE_SCENE_AFTER_OPAQUE ||
         (!settings::water_surface_capture_diagnostic_enabled() &&
          !thickness_requested()))
         return;
+    const auto* viewport = static_cast<const view_port_class*>(context->game_viewport);
+    if (!viewport || viewport->x_orig != 0 || viewport->y_orig != 0 ||
+        !std::isfinite(viewport->width) || !std::isfinite(viewport->height) ||
+        viewport->width <= 0 || viewport->height <= 0) return;
+    const auto& clip = viewport->scissor;
+    const std::array<float, 4> edges{clip.x_orig, clip.y_orig,
+                                    clip.x_orig + clip.width, clip.y_orig + clip.height};
+    if (!std::all_of(edges.begin(), edges.end(), [](float value) { return std::isfinite(value); })) return;
+    pre_water_clip = {std::clamp(edges[0] / viewport->width, 0.0f, 1.0f),
+                      std::clamp(edges[1] / viewport->height, 0.0f, 1.0f),
+                      std::clamp(edges[2] / viewport->width, 0.0f, 1.0f),
+                      std::clamp(edges[3] / viewport->height, 0.0f, 1.0f)};
+    if (pre_water_clip[0] >= pre_water_clip[2] || pre_water_clip[1] >= pre_water_clip[3]) return;
     // Presentation can run between 30 Hz simulation ticks. Refresh stage-model
     // identity here so interpolated frames do not lose exact water classification.
     scan_stage_actors();
@@ -562,7 +640,7 @@ void clear_after_frame(ModContext*, const GfxStageContext*, void*) {
     pre_water_depth_ready = false;
     water_surface_ready = false;
     pending_surface_packets.clear();
-    pending_surface_overflow = false;
+    pending_surface_rejected = false;
     frame_materials.clear();
     frame_material_identities.clear();
     previous_models = frame_models;
@@ -671,7 +749,7 @@ void initialize() {
     thickness_capture_warned = false;
     thickness_depth_logged = false;
     thickness_target_logged = false;
-    surface_overflow_warned = false;
+    surface_rejection_warned = false;
     cleanup_hook = 0;
     capture_hook = 0;
     pre_water_depth = GFX_RESOLVED_TARGETS_INIT;
@@ -679,7 +757,7 @@ void initialize() {
     pre_water_depth_ready = false;
     water_surface_ready = false;
     pending_surface_packets.clear();
-    pending_surface_overflow = false;
+    pending_surface_rejected = false;
     hooks_ready = false;
     if (!svc_hook || !svc_gfx)
         return;
@@ -771,17 +849,9 @@ bool latest_environment_light(float out_position[3]) {
 Environment environment() {
     Environment out;
     const bool outdoor = dKy_Outdoor_check();
-    const auto* stage = dComIfGp_getStartStageName();
-    if (stage && std::strcmp(stage, "F_SP127") == 0) out.motion[3] = 0.31f;
-    else if (stage && std::strcmp(stage, "F_SP115") == 0) out.motion[3] = 1.0f;
-    else if (!outdoor) out.motion[3] = 0.42f;
-    const auto& wind = g_env_light.global_wind_influence;
-    const float length = std::hypot(wind.vec.x, wind.vec.z);
-    if (std::isfinite(length) && length > 0.001f) {
-        out.motion[0] = wind.vec.x / length;
-        out.motion[1] = wind.vec.z / length;
-    }
-    if (outdoor && std::isfinite(wind.pow)) out.motion[2] = std::clamp(wind.pow, 0.0f, 1.0f);
+    const auto wind_state = wind::sample();
+    std::copy_n(wind_state.begin(), 3, out.motion);
+    out.motion[3] = outdoor ? std::lerp(0.34f, 1.0f, wind_state[2]) : 0.42f;
     if (!outdoor || g_env_light.hide_vrbox || dKy_camera_water_in_status_check()) return out;
 
     const auto channel = [](float value) { return std::clamp(value / 255.0f, 0.0f, 1.0f); };
@@ -830,7 +900,7 @@ void shutdown() {
     pre_water_depth_ready = false;
     water_surface_ready = false;
     pending_surface_packets.clear();
-    pending_surface_overflow = false;
+    pending_surface_rejected = false;
     release_pre_water_capture();
 }
 } // namespace midnafx::water_probe

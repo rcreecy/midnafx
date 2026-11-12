@@ -1,0 +1,19 @@
+{
+  "measured_head": "2cd2858b02bcb97937803f9ece13f9b66b9c4c3e",
+  "package_sha256": "cdf146287c6a68fb371dbfe3fa8042068eb12a2d987ceea5253968879c85f0f2",
+  "matches_native_candidate_package": true,
+  "source_sha256": {
+    "src/render/ground_grass.cpp": "9214e533a75ca61144a24aa2d129422c9516b6f3c0835ab42b9d66fd2f9c22dd",
+    "src/render/airborne_source_cache.hpp": "b0209b8238e57a6f528d1c19dc2d3916520fb7fccedfdb089fb522a61a7b5f25",
+    "tests/airborne_source_cache.cpp": "c8084cc6b422703afde13fd5f18f6375b3f3b05745fd55e652f0ff0b3b45f375",
+    "tests/CMakeLists.txt": "307d379cd29b30996e9ad2142f7dec4dcb14eb31c1afdf5398c628204037dade",
+    "tools/grass-cpu.py": "297a5cb96903b992640c80b5360f5dfdb52e4907c85ec9bf674a910e7458e159",
+    "tests/grass_cpu.py": "16f7c3e28a728124231c8b9ed65532501d11e6a30e8636d617468c142b4be289",
+    "tests/surface_map_contract.py": "91bad04a375c6b2b362c811ab05badb41c48355087006ec265a28d6e9d7b74af",
+    "tests/surface_map_contract_tests.py": "9de32c46dca8cdd60c08906bca747708a13f871440c9d1d51d57724a1540d7d0",
+    "tests/aa_pixels.cpp": "a5999dc439421e10d6cacc0293b4a151f80deaa9aa01f9823ba02cb2eabbfb66",
+    "tests/aa_cli.py": "7b294d6f558240d57efbfc1b1466f1d9e98118128942a08e80a4431d1e87b96a"
+  },
+  "host_modified": false,
+  "publish_authorized": "User requested merge to main and origin, including complete MidnaFX working tree"
+}

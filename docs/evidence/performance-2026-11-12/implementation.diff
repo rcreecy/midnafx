@@ -1,0 +1,114 @@
+--- baseline/src/render/ground_grass.cpp
++++ optimized/src/render/ground_grass.cpp
+@@ -1,5 +1,6 @@
+ #include "ground_grass.hpp"
+ #include "grass_view.hpp"
++#include "terrain_index.hpp"
+ #include "waterfall.hpp"
+ #include "game/topology.hpp"
+ #include "game/wind.hpp"
+@@ -118,6 +119,7 @@
+     const J3DModel* instance = nullptr;
+     const J3DModelData* model = nullptr;
+     std::vector<GrassSurface> grass_surfaces;
++    TerrainIndex grass_index;
+     std::vector<std::array<Vec3, 3>> grass_paths;
+     std::array<std::unordered_map<std::uint64_t, GrassTile>, 3> grass_tiles;
+     std::vector<Pebble> pebbles;
+@@ -136,6 +138,8 @@
+ };
+ std::unordered_map<const J3DModel*, ObjectFall> object_falls;
+ std::vector<Clump> clumps;
++// Borrowed tile pointers are cleared before each query and on cover invalidation.
++std::array<std::vector<const GrassTile*>, 3> visible_tiles;
+ bool frame_reported = false;
+ terrain_trails::History trail_history;
+ bool trail_reported = false;
+@@ -826,6 +830,14 @@
+                 std::min({p.x, q.x, r.x}), std::max({p.x, q.x, r.x}),
+                 std::min({p.z, q.z, r.z}), std::max({p.z, q.z, r.z}), ordon});
+         }
++    }
++    // Water/atmosphere also discover cover; they do not query grass tiles.
++    // Toggling ground cover already invalidates RoomCover before enabling it.
++    if (settings::ground_grass_enabled()) {
++        cover.grass_index.rebuild(static_cast<unsigned>(cover.grass_surfaces.size()), [&](unsigned i) {
++            const auto& surface = cover.grass_surfaces[i];
++            return TerrainIndex::Bounds{surface.min_x, surface.max_x, surface.min_z, surface.max_z};
++        });
+     }
+     // Match authored ground materials. Overlay dirt gets fewer pebbles than base gravel.
+     std::uint32_t rng = 0x5f27b6u;
+@@ -1022,7 +1034,7 @@
+     return tile;
+ }
+ 
+-std::array<std::vector<const GrassTile*>, 3> prepare_grass_tiles(const CameraInfo& camera, bool& ready) {
++const std::array<std::vector<const GrassTile*>, 3>& prepare_grass_tiles(const CameraInfo& camera, bool& ready) {
+     struct Request {
+         RoomCover* cover;
+         int x, z;
+@@ -1072,8 +1084,8 @@
+                             const float distance = dx * dx + dz * dz;
+                             // Include tiles touching the draw circle, even when their center is outside it.
+                             if (distance > (radius + size * 0.71f) * (radius + size * 0.71f) ||
+-                                !std::any_of(cover.grass_surfaces.begin(), cover.grass_surfaces.end(), [&](const auto& surface) {
+-                                    if (!overlaps(surface, px, pz, size)) return false;
++                                !cover.grass_index.any({px, px+size, pz, pz+size}, [&](unsigned i) {
++                                    const auto& surface = cover.grass_surfaces[i];
+                                     float low_y=surface.points[0].y, high_y=low_y;
+                                     for (const auto& p : surface.points) { low_y=std::min(low_y,p.y); high_y=std::max(high_y,p.y); }
+                                     return grass_view::visible(camera.proj_from_world,
+@@ -1097,10 +1109,11 @@
+     }
+     static unsigned epoch = 0;
+     ++epoch;
+-    std::array<std::vector<const GrassTile*>, 3> tiles;
++    auto& tiles = visible_tiles;
+     ready = true;
+     for (unsigned layer = 0; layer < 3; ++layer) {
+         unsigned built = 0;
++        tiles[layer].clear();
+         tiles[layer].reserve(requests[layer].size());
+         for (const auto& request : requests[layer]) {
+             auto& cache = request.cover->grass_tiles[layer];
+@@ -1201,6 +1214,7 @@
+ }
+ 
+ void clear_cover() {
++    for (auto& tiles : visible_tiles) tiles.clear();
+     trail_history.clear(); trail_reported=false;
+     for (auto& room : room_cover) room = {};
+     object_falls.clear();
+@@ -1339,7 +1353,10 @@
+                std::abs(clip[1]) <= clip[3] * 1.1f;
+     };
+     bool grass_ready = false;
+-    const auto tiles = prepare_grass_tiles(camera, grass_ready);
++    const auto& tiles = prepare_grass_tiles(camera, grass_ready);
++    struct ClearTilePointers {
++        ~ClearTilePointers() { for (auto& list : visible_tiles) list.clear(); }
++    } clear_tile_pointers;
+     unsigned near_count = 0;
+     unsigned distant_count = 0, canopy_count = 0, trampled = 0;
+     for (unsigned layer = 0; layer < 3; ++layer) {
+@@ -1617,6 +1634,7 @@
+     pipeline = nullptr;
+     clear_cover();
+     frame_reported = false;
++    visible_tiles = {};
+     std::vector<Clump>().swap(clumps);
+ }
+ } // namespace midnafx::render::ground_grass
+--- baseline/tests/CMakeLists.txt
++++ optimized/tests/CMakeLists.txt
+@@ -1,4 +1,9 @@
+ find_package(Python3 COMPONENTS Interpreter REQUIRED)
++add_executable(terrain_index terrain_index.cpp)
++target_compile_features(terrain_index PRIVATE cxx_std_20)
++target_include_directories(terrain_index PRIVATE ../src)
++add_test(NAME terrain_index COMMAND terrain_index)
++add_test(NAME performance_bench COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/performance_bench.py")
+ add_executable(atmosphere_light atmosphere_light.cpp)
+ target_compile_features(atmosphere_light PRIVATE cxx_std_20)
+ target_include_directories(atmosphere_light PRIVATE ../src)

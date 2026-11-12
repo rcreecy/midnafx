@@ -1,4 +1,5 @@
 #include "midnafx_shader.hpp"
+#include "render/surface_map_shader.hpp"
 #include <webgpu/webgpu.h>
 
 #include <cstdio>
@@ -228,8 +229,11 @@ int main() {
         ambient_compute_entries, std::size(ambient_compute_entries));
     const bool bloom = validate_compute(instance, device.device,
         midnafx::render::bloom_compute_shader, "MidnaFX scene bloom", bloom_entries, std::size(bloom_entries));
+    constexpr const char* map_entries[]{"generate"};
+    const bool maps=validate_compute(instance,device.device,aurora::gfx::surface_maps::Shader,
+        "Cached material maps",map_entries,1);
     wgpuDeviceRelease(device.device);
     wgpuAdapterRelease(adapter.adapter);
     wgpuInstanceRelease(instance);
-    return pass && grade && depth && dof && dof_blur && dof_composite && water && ambient && exposure && ambient_compute && bloom ? 0 : 1;
+    return pass && grade && depth && dof && dof_blur && dof_composite && water && ambient && exposure && ambient_compute && bloom && maps ? 0 : 1;
 }

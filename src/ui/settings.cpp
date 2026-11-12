@@ -39,16 +39,16 @@ struct NumberSetting {
     ConfigVarHandle handle = 0;
 };
 
-Toggle master{"grading_enabled"}, diagnostics_toggle{"diagnostics"},
+Toggle master{"grading_enabled", true}, diagnostics_toggle{"diagnostics"},
     look_bypass{"look_bypass"},
-    passthrough{"passthrough_test"}, detail_toggle{"detail_enabled"},
+    passthrough{"passthrough_test"}, detail_toggle{"detail_enabled", true},
     auto_twilight{"auto_twilight"}, geometry_diagnostics{"geometry_diagnostics"},
     asset_diagnostics{"asset_diagnostics"},
     asset_draw_diagnostics{"asset_draw_diagnostics"},
     pumpkin_body_control{"pumpkin_body_control"},
     pumpkin_warm_profile{"pumpkin_warm_profile"},
     topology_diagnostics{"topology_diagnostics"}, geometry_mutation_test{"geometry_mutation_test"},
-    geometry_smoothing{"geometry_smoothing"},
+    geometry_smoothing{"geometry_smoothing", true},
     geometry_skinned_smoothing{"geometry_skinned_smoothing"}, camera_toggle{"camera_enabled"},
     water_classification_diagnostic{"water_classification_diagnostic"},
     water_scene_capture_diagnostic{"water_scene_capture_diagnostic"},
@@ -76,9 +76,9 @@ Toggle motion_clarity{"motion_clarity", false};
 NumberSetting smoothing_angle_setting{
     "geometry_smoothing_angle", "Smoothing face angle (degrees)", 10, 90, 55, 55, false};
 NumberSetting detail_strength_setting{
-    "detail_strength", "Detail strength (%)", 0, 50, 20, 20, true};
+    "detail_strength", "Detail strength (%)", 0, 50, 12, 12, true};
 NumberSetting debug_mode_setting{"debug_mode", "Debug view", 0, 6, 0, 0, false};
-NumberSetting color_look_setting{"color_look", "Color Look", 0, 2, 0, 0, false};
+NumberSetting color_look_setting{"color_look", "Color Look", 0, 2, 1, 1, false};
 NumberSetting look_intensity_setting{"look_intensity", "Look Intensity (%)", 0, 100, 100, 100, false};
 constexpr std::array<const char*, 3> LookLabels{"Neutral", "MidnaFX Natural", "Twilight"};
 float look_twilight_blend = 0.0f;
@@ -359,6 +359,13 @@ void apply_preset(const presets::Snapshot& snapshot, const std::string& name) {
         apply_toggle(local_lights, presets::LocalLights);
         apply_toggle(material_relighting, presets::MaterialRelighting);
         apply_toggle(ground_grass, presets::GroundGrass);
+    }
+    if (name == RemasterName) {
+        if (svc_config && color_look_setting.handle &&
+            svc_config->set_int(mod_ctx, color_look_setting.handle, 1) != MOD_OK)
+            save_warning("Could not save the Remaster color look.");
+        else
+            color_look_setting.value = 1;
     }
     // A failed config write must not advertise a completely applied profile.
     // Keep the saved Custom snapshot available for explicit recovery.
@@ -1045,14 +1052,18 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Enable grading", master);
     add_toggle(panel, "Enhanced model shading", geometry_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Smooths qualified rigid models without changing silhouettes. After reloading MidnaFX, restart the game to restore automatic coverage.", nullptr));
+        "Smooths qualified rigid surfaces while preserving transparent regions and silhouettes. After reloading MidnaFX, restart the game to restore automatic coverage.", nullptr));
     add_toggle(panel, "Enhanced Link shading", geometry_skinned_smoothing);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Smooths supported regions of Link's original Ordon and Hero's Clothes. Armor outfits and replacement models stay unchanged.", nullptr));
     add_toggle(panel, "Material relighting (experimental)", material_relighting);
     add_toggle(panel, "Ground cover (grass, gravel, and litter)", ground_grass);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        render::material_relighting::available()
+        render::material_relighting::surface_profiles_available()
+            ? "Adds distinct finishes to recognized rock, wood, cloth, leather, metal and wet surfaces. Preserves textures and transparency."
+            : render::material_relighting::surface_relief_available()
+            ? "Uses native lighting and adds texture relief to solid scenery. Preserves textures and transparency."
+            : render::material_relighting::available()
             ? "Uses each lit material's original lights and normals for per-pixel lighting. Preserves transparency and textures."
             : "Unavailable on this host. Requires Dusklight with native material relighting support.", nullptr));
     add_toggle(panel, "Modern exploration camera", camera_toggle);
@@ -1085,14 +1096,14 @@ ModResult build_panel(ModContext*, UiElementHandle panel, void*, ModError*) {
     add_toggle(panel, "Contact shadows", contact_shadows);
     add_number(panel, contact_shadow_strength_setting);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Adds short directional shadows using native environment light. HUD stays unchanged.", nullptr));
+        "Adds contact shadows and longer sun shadows from visible scenery, with warm daylight and cooler shade.", nullptr));
     add_toggle(panel, "Color bounce (experimental)", color_bounce);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Approximates reflected color between nearby visible surfaces. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Depth atmosphere", atmosphere);
     add_number(panel, atmosphere_strength_setting);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
-        "Uses native fog color and range for distance atmosphere. Clear outdoor daylight adds directional sun color to distant haze. HUD stays unchanged.", nullptr));
+        "Uses native fog color and range for distance atmosphere. Outdoor vegetation adds drifting pollen by day and forest fireflies at night. Clear daylight adds directional sun color to distant haze. HUD stays unchanged.", nullptr));
     add_toggle(panel, "Sunlight shafts (experimental)", sunlight_shafts);
     check_ui(svc_ui->pane_add_text(mod_ctx, panel,
         "Adds outdoor sun rays shaped by visible scenery. Off-screen sun bypasses the effect; hidden sun fades it out.", nullptr));

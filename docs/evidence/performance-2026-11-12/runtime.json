@@ -1,0 +1,40 @@
+{
+  "scenario": "F_SP121,6,2,4",
+  "backend": "D3D12",
+  "render_size": [
+    1216,
+    896
+  ],
+  "textures": "original",
+  "settings": {
+    "mod.com_midnafx_midnafx.camera_enabled": true,
+    "mod.com_midnafx_midnafx.camera_lower_angle": true,
+    "mod.com_midnafx_midnafx.contrast": 108,
+    "mod.com_midnafx_midnafx.detail_enabled": true,
+    "mod.com_midnafx_midnafx.detail_strength": 20,
+    "mod.com_midnafx_midnafx.diagnostics": true,
+    "mod.com_midnafx_midnafx.dof_autofocus": true,
+    "mod.com_midnafx_midnafx.dof_blur": true,
+    "mod.com_midnafx_midnafx.dof_blur_radius": 6,
+    "mod.com_midnafx_midnafx.dof_focus_transition_cs": 20,
+    "mod.com_midnafx_midnafx.exposure": 15,
+    "mod.com_midnafx_midnafx.geometry_skinned_smoothing": true,
+    "mod.com_midnafx_midnafx.geometry_smoothing": true,
+    "mod.com_midnafx_midnafx.grading_enabled": true,
+    "mod.com_midnafx_midnafx.rolloff": 20,
+    "mod.com_midnafx_midnafx.saturation": 105
+  },
+  "host_sha256": "7fa566c403024f5f5c62cbaad28a96ee7bd0d23529a3b6fd27b8cd81f3d2d779",
+  "package_sha256": "a7341effba53efc3a677d4af2154cbd3441cd42d4a2eb2e1505e3197c25e01c2",
+  "duration_policy": "25 seconds after launch, then CloseMainWindow; exited before 10-second deadline",
+  "graceful_close_requested": true,
+  "mod_shutdown_logged": true,
+  "gpu_time": null,
+  "matched_visual_comparison": false,
+  "notes": [
+    "Existing optional host integrations present; no host changes made",
+    "Missing gczelda2 card file error",
+    "Device-destroyed and aborted-mapping warnings after mod shutdown",
+    "This is a smoke run, not a controlled native performance comparison"
+  ]
+}

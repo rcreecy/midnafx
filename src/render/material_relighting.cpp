@@ -10,9 +10,22 @@ bool reported_conflict = false;
 }
 
 bool available() noexcept {
-    return svc_native_material &&
-           svc_native_material->header.struct_size >= sizeof(NativeMaterialService) &&
+    return SERVICE_HAS(svc_native_material, NativeMaterialService, set_relighting) &&
            svc_native_material->set_relighting;
+}
+
+bool surface_relief_available() noexcept {
+    return available() && svc_native_material->header.minor_version >= 1 &&
+           SERVICE_HAS(svc_native_material, NativeMaterialService, set_surface_relief) &&
+           svc_native_material->set_surface_relief;
+}
+bool surface_profiles_available() noexcept {
+    return available() && svc_native_material->header.minor_version >= 2 &&
+           SERVICE_HAS(svc_native_material, NativeMaterialService, set_surface_profile) &&
+           svc_native_material->set_surface_profile;
+}
+bool set_surface_profile(unsigned profile) noexcept {
+    return surface_profiles_available() && svc_native_material->set_surface_profile(mod_ctx, profile) == MOD_OK;
 }
 
 void update() {
@@ -26,6 +39,11 @@ void update() {
             svc_log->warn(mod_ctx, "Material relighting: host rejected scene request");
         }
         return;
+    }
+    if (enable && surface_relief_available()) {
+        const auto relief = svc_native_material->set_surface_relief(mod_ctx, 1u);
+        svc_log->info(mod_ctx, relief == MOD_OK ? "Material relief: opaque scenery texture response enabled"
+                                             : "Material relief: unavailable; per-fragment lighting retained");
     }
     requested = enable;
     reported_conflict = false;

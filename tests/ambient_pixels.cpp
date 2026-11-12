@@ -35,8 +35,15 @@ struct Params {
     float local_distance[4][4]{};
     float fog_light_direction[4]{};
     float fog_light_color[4]{};
+    float fog_world_from_view[16]{};
+    float fog_grid[4]{};
+    float fog_wind[4]{};
+    std::array<Field, 144> fog_cells{};
+    std::array<Field, 6> wet_spray{};
+    float wet_light[4]{};
+    std::array<Field, 2> fog_actors{};
 };
-static_assert(sizeof(Params) == 496);
+static_assert(sizeof(Params) == 3040);
 
 bool wait(WGPUInstance instance, WGPUFuture future) {
     WGPUFutureWaitInfo info = WGPU_FUTURE_WAIT_INFO_INIT;
@@ -1417,6 +1424,62 @@ int main() {
                 report("Directional haze composes after contact darkening with the original atmosphere cap",valid);
             }
         }
+    }
+    {
+        Fixture fixture(instance, device);
+        constexpr unsigned width = 33, height = 25;
+        const std::vector<Pixel> stone(width * height, Pixel{104, 100, 96, 177});
+        const std::vector<float> depth(width * height, depth_at(10));
+        auto params = perspective(width, height);
+        params.strength = 0;
+        for (unsigned i : {0u, 5u, 10u, 15u}) params.fog_world_from_view[i] = 1;
+        params.wet_spray[0] = {0, 0, -10, 6};
+        params.wet_light[3] = 1;
+        const auto wet = fixture.run(width, height, depth, params, {}, stone);
+        const auto center = (height / 2) * width + width / 2;
+        const bool valid = bounded(wet, width, height, stone) &&
+                           wet.color[center][0] < stone[center][0] - 8 &&
+                           wet.color[center][3] == stone[center][3] &&
+                           wet.color.front() == stone.front();
+        report("Spray darkens nearby opaque stone and leaves distant stone and alpha intact", valid);
+    }
+    {
+        Fixture fixture(instance, device);
+        constexpr unsigned width = 96, height = 80;
+        auto params = perspective(width, height);
+        params.strength = 0;
+        params.light_position[0] = 8;
+        params.light_position[2] = -4;
+        params.light_position[3] = 0.3f;
+        params.shadow_range[0] = 0.3f;
+        std::vector<float> depth(width * height, depth_at(10));
+        for (unsigned y = height / 3; y < 2 * height / 3; ++y)
+            for (unsigned x = width / 2; x < width / 2 + width / 8; ++x)
+                depth[y * width + x] = depth_at(8);
+        const auto short_range = fixture.run(width, height, depth, params);
+        params.fog_light_direction[0] = 0.8f;
+        params.fog_light_direction[2] = 0.6f;
+        params.shadow_range[1] = 4;
+        params.shadow_range[2] = 0.21f;
+        const auto canopy = fixture.run(width, height, depth, params);
+        bool valid = bounded(short_range, width, height) && bounded(canopy, width, height);
+        unsigned reached = 0;
+        if (valid) for (size_t i = 0; i < canopy.raw.size(); ++i)
+            reached += canopy.raw[i][1] > short_range.raw[i][1] + 0.005f;
+        report("Sun rays reach visible casters beyond contact range and preserve alpha", valid && reached > 8);
+        auto reversed = params;
+        reversed.background_depth = 0;
+        reversed.proj_from_view[10] = 1.0f / 99;
+        reversed.proj_from_view[14] = 100.0f / 99;
+        reversed.view_from_proj[11] = 99.0f / 100;
+        reversed.view_from_proj[15] = 1.0f / 100;
+        for (auto& value : depth) value = 1 - value;
+        const auto inverse = fixture.run(width, height, depth, reversed);
+        valid = bounded(inverse, width, height) && canopy.color.size() == inverse.color.size();
+        if (valid) for (size_t i = 0; i < canopy.color.size(); ++i)
+            for (unsigned c = 0; c < 4; ++c)
+                valid &= std::abs(int(canopy.color[i][c]) - int(inverse.color[i][c])) <= 1;
+        report("Canopy sunlight agrees across forward and reversed depth", valid);
     }
     std::printf("%u ambient pixel cases: %s\n", cases, ok ? "PASS" : "FAIL");
     wgpuDeviceRelease(device); wgpuAdapterRelease(adapter); wgpuInstanceRelease(instance);

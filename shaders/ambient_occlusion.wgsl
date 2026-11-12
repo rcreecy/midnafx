@@ -9,8 +9,98 @@ fn vs_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
     let triangle = array<vec2f, 3>(vec2f(-1,-1), vec2f(3,-1), vec2f(-1,3));
     return vec4f(triangle[index], 0, 1);
 }
+fn terrain_cell(grid: vec2f) -> vec4f {
+    if (any(grid < vec2f(0)) || any(grid >= vec2f(11))) { return vec4f(0.0); }
+    let cell = vec2u(grid);
+    let i = cell.y * 12u + cell.x;
+    let f = fract(grid);
+    return mix(mix(params.fog_cells[i], params.fog_cells[i+1u], f.x),
+               mix(params.fog_cells[i+12u], params.fog_cells[i+13u], f.x), f.y);
+}
+
+fn ground_fog_density(world: vec3f) -> f32 {
+    let grid = (world.xz - params.fog_grid.xy) * params.fog_grid.z;
+    let surface = terrain_cell(grid);
+    if (surface.w < 0.45) { return 0.0; }
+    let water = surface.y / surface.w;
+    let hollow = surface.z / surface.w;
+    let altitude = world.y - surface.x / surface.w;
+    let thickness = 55.0 + water * 200.0 + hollow * 125.0;
+    let vertical = smoothstep(-thickness * 0.8, 10.0, altitude) *
+                   (1.0 - smoothstep(12.0, thickness, altitude));
+    let breeze = params.fog_wind;
+    let drift = world.xz - breeze.xy * breeze.z * breeze.w * 12.0;
+    let veil = 0.75 + 0.16 * sin(dot(drift, vec2f(0.0053, 0.0031)) +
+                                sin(dot(drift, vec2f(0.0021, -0.0047))));
+    let edge = min(grid, vec2f(11) - grid);
+    let coverage = smoothstep(0.0, 2.25, min(edge.x, edge.y)) * smoothstep(0.45, 0.95, surface.w);
+    var wake = 1.0;
+    for (var i = 0u; i < 2u; i++) {
+        let actor = params.fog_actors[i];
+        if (actor.w <= 0.0) { continue; }
+        let distance = length(vec3f(world.x - actor.x, (world.y - actor.y) * 0.6, world.z - actor.z));
+        wake *= mix(0.28, 1.0, smoothstep(actor.w * 0.3, actor.w * 2.3, distance));
+    }
+    return vertical * veil * coverage * wake * (0.10 + 1.60 * water + 0.95 * hollow);
+}
+
+fn wet_rock(color: vec4f, pixel: vec2i, center: DepthSample) -> vec4f {
+    if (params.wet_light.w <= 0.0) { return color; }
+    let world = (params.fog_world_from_view * vec4f(center.point, 1.0)).xyz;
+    let grid = (world.xz - params.fog_grid.xy) * params.fog_grid.z;
+    let surface = terrain_cell(grid);
+    var wet = 0.0;
+    if (surface.w > 0.65) {
+        let water = surface.y / surface.w;
+        let bank = smoothstep(0.03, 0.4, water) * (1.0 - smoothstep(0.48, 0.97, water));
+        let altitude = world.y - surface.x / surface.w;
+        let edge = min(grid, vec2f(11) - grid);
+        wet = bank * (1.0 - smoothstep(24.0, 130.0, abs(altitude))) *
+              smoothstep(0.0, 1.5, min(edge.x, edge.y));
+    }
+    for (var i = 0u; i < 6u; i++) {
+        let spray = params.wet_spray[i];
+        if (spray.w <= 0.0) { break; }
+        let delta = world - spray.xyz;
+        let reach = length(vec3f(delta.x, delta.y * 2.7, delta.z)) / spray.w;
+        wet = max(wet, 1.0 - smoothstep(0.30, 1.0, reach));
+    }
+    if (wet <= 0.002) { return color; }
+    // Depth and subdued chroma approximate exposed stone in the contact band.
+    let chroma = max(max(color.r, color.g), color.b) - min(min(color.r, color.g), color.b);
+    wet *= (1.0 - smoothstep(0.11, 0.33, chroma)) * params.wet_light.w;
+    let normal = surface_normal(pixel, center);
+    if (dot(normal, normal) < 0.5) { return color; }
+    let eye = normalize(-center.point);
+    let facing = clamp(dot(normal, eye), 0.0, 1.0);
+    let rim = pow(1.0 - facing, 4.0);
+    let world_normal = (params.fog_world_from_view * vec4f(normal, 0.0)).xyz;
+    let ray = params.wet_light.xyz - world;
+    let world_eye = (params.fog_world_from_view * vec4f(eye, 0.0)).xyz;
+    let half_ray = ray / max(length(ray), 1.0) + world_eye;
+    let highlight = select(0.0, pow(clamp(dot(world_normal, half_ray / max(length(half_ray), 0.001)),
+                                          0.0, 1.0), 32.0), any(params.wet_light.xyz != vec3f(0.0)));
+    let sheen = vec3f(0.036, 0.044, 0.051) * rim + vec3f(0.075) * highlight;
+    return vec4f(clamp(color.rgb * (1.0 - wet * 0.24) + sheen * wet, vec3f(0.0), vec3f(1.0)), color.a);
+}
+
+fn terrain_mist(point: vec3f) -> f32 {
+    if (params.fog_grid.w <= 0.0) { return 0.0; }
+    let eye = params.fog_world_from_view[3].xyz;
+    let ray = (params.fog_world_from_view * vec4f(point, 0.0)).xyz;
+    let distance = length(ray);
+    let reach = min(distance, 2050.0);
+    let direction = ray / max(distance, 1.0);
+    var density = 0.0;
+    for (var i = 0u; i < 4u; i++) {
+        density += ground_fog_density(eye + direction * reach * (f32(i) + 0.5) * 0.25);
+    }
+    let surface = ground_fog_density(eye + ray + vec3f(0.0, 34.0, 0.0));
+    return 1.0 - exp(-(density * 0.19 + surface * 0.57) * smoothstep(55.0, 680.0, reach));
+}
+
 fn atmosphere(color: vec4f, point: vec3f) -> vec4f {
-    if (params.fog_color.a <= 0.0) { return color; }
+    if (params.fog_color.a <= 0.0 && params.fog_range.z <= 0.0) { return color; }
     let span = max(params.fog_range.y - params.fog_range.x, 1.0);
     let distance = max(-point.z - params.fog_range.x, 0.0) / span;
     let amount = params.fog_color.a * (1.0 - exp(-2.0 * min(distance, 4.0)));
@@ -33,7 +123,9 @@ fn atmosphere(color: vec4f, point: vec3f) -> vec4f {
             fog_target = mix(fog_target, clamp(sun_color.rgb, vec3f(0), vec3f(1)), tint);
         }
     }
-    return vec4f(mix(color.rgb, fog_target, amount), color.a);
+    let distant = mix(color.rgb, fog_target, amount);
+    let mist_target = mix(fog_target, vec3f(0.61, 0.66, 0.64), 0.49);
+    return vec4f(mix(distant, mist_target, terrain_mist(point) * params.fog_range.z), color.a);
 }
 fn sunlight(color: vec4f, pixel: vec2i, center: vec3f) -> vec4f {
     let strength = clamp(params.sun_screen.z, 0, 0.25);
@@ -108,14 +200,28 @@ fn lighting(pixel: vec2i, center: vec3f) -> vec4f {
 @fragment
 fn fs_ambient(@builtin(position) position: vec4f) -> @location(0) vec4f {
     let pixel = vec2i(position.xy);
-    let color = textureLoad(scene_color, pixel, 0);
-    let center = view_point(pixel);
-    if (center.z >= -0.0001) { return sunlight(color, pixel, center); }
+    let source = textureLoad(scene_color, pixel, 0);
+    let sample = view_sample(pixel);
+    let center = sample.point;
+    if (center.z >= -0.0001) { return sunlight(source, pixel, center); }
+    let color = wet_rock(source, pixel, sample);
     if (params.strength <= 0 && params.light_position.w <= 0 && lighting_strength() <= 0) {
         return sunlight(atmosphere(color, center), pixel, center);
     }
     let light = lighting(pixel, center);
     var shaded = color.rgb * light.a;
+    if (params.shadow_range.z > 0.0) {
+        let normal = surface_normal(pixel, sample);
+        let facing = max(dot(normal, params.fog_light_direction.xyz), 0.0);
+        let daylight = min(params.shadow_range.z / 0.21, 1.0);
+        let shade = clamp((1.0 - light.a) * 2.7, 0.0, 1.0);
+        let warm = vec3f(1.07, 1.035, 0.985);
+        let cool = vec3f(0.965, 0.99, 1.065);
+        let response = mix(vec3f(1.0), mix(warm, cool, shade), daylight);
+        let fill = color.rgb * (1.0 - color.rgb) * facing * (1.0 - shade) *
+                   vec3f(0.12, 0.095, 0.045) * daylight;
+        shaded = clamp(shaded * response + fill, vec3f(0.0), vec3f(1.0));
+    }
     if (lighting_strength() > 0 && any(light.rgb > vec3f(0))) {
         let base = bounce_linear(shaded);
         // Lit receiver color is a conservative reflectance proxy, not albedo.

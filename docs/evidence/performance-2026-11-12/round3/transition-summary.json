@@ -1,0 +1,50 @@
+[
+  {
+    "variant": "A",
+    "directory": "00-A",
+    "first_immutable_sample": null,
+    "max_submission_us_all_384": 486.2,
+    "max_selected_span_us_all_384": 4852.3,
+    "max_owned_gpu_buffer_bytes_all_384": 0
+  },
+  {
+    "variant": "B",
+    "directory": "01-B",
+    "first_immutable_sample": 285,
+    "max_submission_us_all_384": 702.3,
+    "max_selected_span_us_all_384": 4944.1,
+    "max_owned_gpu_buffer_bytes_all_384": 2387220
+  },
+  {
+    "variant": "B",
+    "directory": "02-B",
+    "first_immutable_sample": 285,
+    "max_submission_us_all_384": 627.6,
+    "max_selected_span_us_all_384": 5311.5,
+    "max_owned_gpu_buffer_bytes_all_384": 2387220
+  },
+  {
+    "variant": "A",
+    "directory": "03-A",
+    "first_immutable_sample": null,
+    "max_submission_us_all_384": 342.7,
+    "max_selected_span_us_all_384": 4886.0,
+    "max_owned_gpu_buffer_bytes_all_384": 0
+  },
+  {
+    "variant": "A",
+    "directory": "04-A",
+    "first_immutable_sample": null,
+    "max_submission_us_all_384": 453.1,
+    "max_selected_span_us_all_384": 5103.7,
+    "max_owned_gpu_buffer_bytes_all_384": 0
+  },
+  {
+    "variant": "B",
+    "directory": "05-B",
+    "first_immutable_sample": 285,
+    "max_submission_us_all_384": 812.3,
+    "max_selected_span_us_all_384": 4978.9,
+    "max_owned_gpu_buffer_bytes_all_384": 2387220
+  }
+]

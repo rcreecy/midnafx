@@ -63,6 +63,7 @@ int main() {
     CHECK(presets::enhanced().product_flags == (presets::Grading | presets::Camera));
     CHECK((presets::enhanced().product_flags & presets::Dof) == 0);
     const auto remaster = presets::remaster();
+    CHECK((remaster.product_flags & presets::Geometry) != 0);
     CHECK((remaster.product_flags & presets::SkinnedGeometry) != 0);
     CHECK((remaster.product_flags & presets::MovementCamera) != 0);
     CHECK((remaster.product_flags & presets::MotionClarity) != 0);

@@ -294,7 +294,7 @@ const char* label(Class classification) {
 
 Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positions,
                       std::span<const Vec3> originals, Representation representation,
-                      Options options) {
+                      Options options, std::span<const std::uint16_t> protected_indices) {
     Qualification out;
     struct Edge {
         std::uint16_t a, b;
@@ -303,7 +303,7 @@ Qualification qualify(const topology::Result& mesh, std::span<const Vec3> positi
     std::vector<Edge> edges;
     std::vector<std::uint32_t> parent;
     std::vector<std::vector<std::uint32_t>> refs;
-    std::vector<std::uint16_t> fixed_indices;
+    std::vector<std::uint16_t> fixed_indices(protected_indices.begin(), protected_indices.end());
     std::vector<std::uint16_t> used;
     const bool preserve_uncertain =
         options.preserve_uncertain_vertices && options.preserve_conflicting_indices;

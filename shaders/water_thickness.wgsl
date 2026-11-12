@@ -18,7 +18,7 @@ struct WaterParameters {
     reflection_range: f32,
     reflection_padding_2: f32,
     shoreline_strength: f32,
-    shoreline_padding_0: f32,
+    caustic_strength: f32,
     shoreline_padding_1: f32,
     shoreline_padding_2: f32,
     light_position: vec4f,
@@ -91,7 +91,8 @@ fn water_surface_normal(world: vec3f, dimensions: vec2f, distance: f32) -> vec3f
     let fine = wind * cos(fine_a) * 0.61 + (wind - crosswind * 0.30) * cos(fine_b) * 0.39;
     let footprint = 2.0 * distance / max(abs(params.proj_from_view[1][1]) * dimensions.y, 1.0);
     let detail = 1.0 - smoothstep(0.22, 1.0, footprint * params.wave_scale * 10.3);
-    let wind_strength = mix(0.54, 1.0, params.water_motion.z);
+    let gust = wind_gust(world.xz, vec4f(params.water_motion.xyz, params.animation_time));
+    let wind_strength = 0.24 + 1.55 * gust;
     let slope = (broad * mix(0.35, 1.0, exposure) + fine * detail * exposure * wind_strength * 0.78) *
                 params.wave_strength * 0.31;
     return normalize(vec3f(-slope.x, 1.0, -slope.y));
@@ -107,7 +108,8 @@ fn water_surface_detail(color: vec3f, world: vec3f, normal: vec3f, distance: f32
     let fine = sin(dot(xy, vec2f(0.034, 0.017)) - time * 3.9 + current * 0.6);
     let footprint = 2.0 * distance / max(abs(params.proj_from_view[1][1]) * dimensions.y, 1.0);
     let visibility = 1.0 - smoothstep(6.0, 32.0, footprint);
-    let flow = broad * 0.47 + current * 0.37 + fine * 0.16 * visibility;
+    let gust = wind_gust(world.xz, vec4f(params.water_motion.xyz, params.animation_time));
+    let flow = broad * 0.47 + current * 0.37 + fine * visibility * (0.05 + 0.34 * gust * params.water_motion.w);
     let strength = min(params.wave_strength * 3.6, 0.90) * mix(0.58, 1.0, params.water_motion.w);
     let directional = clamp(dot(normal.xz, wind) * 8.0, -1.0, 1.0);
     let light = 1.0 + strength * (flow * 0.32 + directional * 0.16);
@@ -306,6 +308,37 @@ fn apply_shoreline_treatment(color: vec3f, normalized_depth: f32,
     return mix(color, highlight, clamp(weight, 0.0, 0.16));
 }
 
+fn submerged_caustics(color: vec3f, coord: vec2i, depth: f32, dimensions: vec2f,
+                       surface: vec3f, ray_thickness: f32, distance: f32) -> vec3f {
+    let strength = params.caustic_strength * smoothstep(0.015, 0.50, params.sun_color.a);
+    if (strength <= 0.0 || ray_thickness > 1850.0) { return color; }
+    let receiver = world_position(coord, depth, dimensions);
+    if (any(receiver != receiver) || any(abs(receiver) > vec3f(1e20))) { return color; }
+    let height = surface.y - receiver.y;
+    if (height < 3.0 || height > 580.0) { return color; }
+    let raw_sun = params.sun_position.xyz - surface;
+    let sun = raw_sun / max(length(raw_sun), 1.0);
+    if (sun.y <= 0.03) { return color; }
+    let substrate = textureLoad(scene_behind_water, coord, 0).rgb;
+    let visibility = smoothstep(0.018, 0.19, dot(substrate, vec3f(0.2126, 0.7152, 0.0722)));
+    if (visibility <= 0.0) { return color; }
+    let view = reflection_point(coord, dimensions);
+    let normal = reflection_source_normal(coord, view, dimensions);
+    let facing = smoothstep(0.12, 0.75, dot(normal, params.view_from_world[1].xyz));
+    let light = refract(-sun, vec3f(0.0, 1.0, 0.0), 0.75);
+    let p = (receiver.xz + light.xz * height / min(light.y, -0.35)) * 0.037;
+    let time = params.animation_time;
+    let a = sin(dot(p, vec2f(0.94, 0.34)) + sin(p.y * 0.79 + time * 0.91) * 1.14 - time * 1.35);
+    let b = sin(dot(p, vec2f(-0.53, 1.17)) + sin(p.x * 0.57 - time * 0.69) * 1.23 + time * 1.12);
+    let ridge = 1.0 - smoothstep(0.05, 0.27, abs(a + 0.64 * b));
+    let broken = smoothstep(-0.60, 0.67, sin(dot(p, vec2f(0.51, -0.42)) + time * 0.76));
+    let footprint = 2.0 * distance / max(abs(params.proj_from_view[1][1]) * dimensions.y, 1.0);
+    let fade = smoothstep(3.0, 23.0, height) * (1.0 - smoothstep(140.0, 580.0, height)) *
+               (1.0 - smoothstep(2.8, 11.0, footprint)) * smoothstep(0.03, 0.28, sun.y);
+    let amount = ridge * broken * fade * facing * visibility * strength * 0.33;
+    return min(color + (substrate * 0.72 + vec3f(0.055)) * params.sun_color.rgb * amount, vec3f(1.0));
+}
+
 fn apply_specular(color: vec3f, coord: vec2i, water_depth: f32,
                   dimensions: vec2f, normal: vec3f) -> vec3f {
     if (params.specular_strength <= 0.0 || params.light_position.w < 0.5) {
@@ -415,8 +448,13 @@ fn apply_absorption(coord: vec2i, source: vec3f) -> vec3f {
     // discontinuities from appearing as hard silhouettes in the final water.
     // This limits only absorption/scatter; refraction and the later surface
     // responses retain their independent controls.
-    let physical_absorption = transmitted_source * transmission + scatter * (1.0 - transmission);
-    let absorbed = mix(transmitted_source, physical_absorption, 0.15);
+    var lit_source = transmitted_source;
+    if (!background) {
+        lit_source = submerged_caustics(lit_source, coord, opaque_depth, dimensions, world,
+                                       opaque_distance - water_distance, opaque_distance);
+    }
+    let physical_absorption = lit_source * transmission + scatter * (1.0 - transmission);
+    let absorbed = mix(lit_source, physical_absorption, 0.15);
     let detailed = water_surface_detail(absorbed, world, surface_normal, water_distance, dimensions, scatter);
     let shoreline = apply_shoreline_treatment(detailed, normalized, surface_normal);
     let reflected = apply_fresnel_reflection(coord, water_depth, dimensions, shoreline, surface_normal);

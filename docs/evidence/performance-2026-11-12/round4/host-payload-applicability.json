@@ -1,0 +1,16 @@
+[
+  {
+    "component": "dusklight",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "upstream_status_unchanged": true
+  },
+  {
+    "component": "aurora",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "upstream_status_unchanged": true
+  }
+]

@@ -455,6 +455,16 @@ bool fresh_owner(const dRes_info_c& info) {
     return std::find(fresh_owners.begin(), fresh_owners.end(), &info) != fresh_owners.end();
 }
 
+bool opaque_smoothing_material(J3DMaterial* material) {
+    if (!material || (material->getMaterialMode() & 7) != 1 || !material->getPEBlock()) return false;
+    if (material->getPEBlock()->getType() == 'PEOP') return true;
+    auto* blend = material->getBlend();
+    auto* alpha = material->getPEBlock()->getAlphaComp();
+    return blend && blend->getBlendMode() == GX_BM_NONE && alpha &&
+           alpha->getComp0() == GX_ALWAYS && alpha->getComp1() == GX_ALWAYS &&
+           (alpha->getOp() == GX_AOP_AND || alpha->getOp() == GX_AOP_OR);
+}
+
 const char* rigid_rejection(const dRes_info_c& info, J3DModelData& model) {
     if (!deform_registered || !skin_registered) return "deformation guards unavailable";
     if (rigid_history_lost) return "load history budget unavailable";
@@ -478,20 +488,13 @@ const char* rigid_rejection(const dRes_info_c& info, J3DModelData& model) {
     if (const auto* reason = rigid_shading::rejection(layout)) return reason;
     if (!model.getJointNodePointer(0) || model.getJointNodePointer(0)->getMtxType() != 0)
         return "non-rigid joint matrix type";
+    bool has_opaque = false;
     for (u16 i = 0; i < model.getMaterialNum(); ++i) {
         auto* material = model.getMaterialNodePointer(i);
-        if (!material || (material->getMaterialMode() & 7) != 1 || !material->getPEBlock())
-            return "non-opaque material";
-        // The compact opaque block encodes these fixed states without exposing
-        // individual blend/alpha objects. Null/edge/translucent blocks do not.
-        if (material->getPEBlock()->getType() == 'PEOP') continue;
-        auto* blend = material->getBlend();
-        auto* alpha = material->getPEBlock()->getAlphaComp();
-        if (!blend || blend->getBlendMode() != GX_BM_NONE || !alpha ||
-            alpha->getComp0() != GX_ALWAYS || alpha->getComp1() != GX_ALWAYS ||
-            (alpha->getOp() != GX_AOP_AND && alpha->getOp() != GX_AOP_OR))
-            return "blended or alpha-tested material";
+        if (!material || !material->getPEBlock()) return "invalid material";
+        has_opaque |= opaque_smoothing_material(material);
     }
+    if (!has_opaque) return "no opaque material";
     for (u16 i = 0; i < model.getShapeNum(); ++i) {
         auto* shape = model.getShapeNodePointer(i);
         if (!shape || shape->checkFlag(J3DShpFlag_SkinPosCpu | J3DShpFlag_SkinNrmCpu) ||
@@ -818,7 +821,23 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
             true,
             model.getWEvlpMtxNum() == 0 && model.getJointNum() == 1 && model.getDrawMtxNum() == 1,
             exact, false};
-        qualification = smoothing::qualify(result, positions, normals, representation, options);
+        std::vector<std::uint16_t> protected_normals;
+        if (automatic_rigid) {
+            for (const auto& triangle : result.triangles) {
+                if (triangle.material < model.getMaterialNum() &&
+                    opaque_smoothing_material(model.getMaterialNodePointer(triangle.material))) continue;
+                for (const auto& corner : triangle.corners) protected_normals.push_back(corner.normal);
+            }
+            std::sort(protected_normals.begin(), protected_normals.end());
+            protected_normals.erase(std::unique(protected_normals.begin(), protected_normals.end()), protected_normals.end());
+        }
+        qualification = smoothing::qualify(result, positions, normals, representation, options, protected_normals);
+        if (!protected_normals.empty()) {
+            char message[160];
+            std::snprintf(message, sizeof(message), "Rigid shading mixed materials: %zu protected normals, %u changed",
+                          protected_normals.size(), qualification.smoothing.changed_indices);
+            svc_log->info(mod_ctx, message);
+        }
         smooth = std::move(qualification.smoothing);
         if (original_character) {
             char message[160];
@@ -831,7 +850,7 @@ void analyze_topology(const dRes_info_c& info, const char* name, J3DModelData& m
         smooth_us = static_cast<long long>(qualification.smoothing_us);
         peak_vector_bytes = std::max(
             peak_vector_bytes, vector_bytes(result.triangles) + vector_bytes(positions) +
-                                   vector_bytes(normals) + qualification.working_vector_bytes);
+                                   vector_bytes(normals) + vector_bytes(protected_normals) + qualification.working_vector_bytes);
     } else {
         smooth.error = "unsupported normal array or topology";
         qualification.reason = result.error ? result.error : smooth.error;
@@ -1038,7 +1057,8 @@ void on_resource_loaded(ModContext*, void* args, void* retval, void*) {
     if ((!settings::geometry_diagnostics_enabled() && !settings::geometry_mutation_test_enabled() &&
          !settings::topology_diagnostics_enabled() && !settings::geometry_smoothing_enabled() &&
          !settings::geometry_skinned_smoothing_enabled() && !settings::asset_diagnostics_enabled() &&
-         !settings::pumpkin_body_control_enabled() && !settings::pumpkin_warm_profile_enabled()) ||
+         !settings::pumpkin_body_control_enabled() && !settings::pumpkin_warm_profile_enabled() &&
+         !settings::material_relighting_enabled()) ||
         !args || !retval || *static_cast<int*>(retval) < 0)
         return;
     if (!info || !info->mArchive || !info->mRes)

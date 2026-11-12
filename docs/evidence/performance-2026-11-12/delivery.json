@@ -1,0 +1,32 @@
+{
+  "source_sha256": {
+    "src/render/ground_grass.cpp": "de9a907b85bc62eb58ca43742764dd44427be31f8fd6cc9c7b27478c522f58e2",
+    "src/render/terrain_index.hpp": "58c43fd03c348b1114e7f9467396317567b483fef6f74bff6dfd71872c5fcf79",
+    "tests/CMakeLists.txt": "a87c06b0dc5a5a8c168d0db5f3694925c7e6d27a1b1108dcae141534f2abfbd5",
+    "tests/terrain_index.cpp": "b3b20e7f48db3ab0c4312339f58ec406db427385b741df8b6b1b36db7c51a923",
+    "tests/performance_bench.py": "ed82632f5ff6c632ed35864aa182fda31ed9102ef09c380ebdd5ffe3c204e83f",
+    "tools/performance-bench.py": "49e547575f3b075e76452dda12f2316f07235d786dca4c9f659ce5c1292f8101"
+  },
+  "package_sha256": "c6a1c02e80e95566dbd3fa207c44e39c2f6826d9c5a77e349d28df9dbd1c5787",
+  "host_sha256": "7fa566c403024f5f5c62cbaad28a96ee7bd0d23529a3b6fd27b8cd81f3d2d779",
+  "scenario": "F_SP121,6,2,4",
+  "backend": "D3D12",
+  "size": [
+    1216,
+    896
+  ],
+  "textures": "original",
+  "normal_close_requested": true,
+  "shutdown_logged": true,
+  "grass_receipts": [
+    "Ground cover visible: 38809 grass roots (16825 near, 18600 distant, 3384 canopy), view reach 149044"
+  ],
+  "diagnostic_receipts": [
+    "Diagnostics sample: preset=Custom grading=on values=[15,0,108,100,105,20,0,0] active=0xff detail=on/20% status=Pre-HUD grading ready size=1216x896 samples(active/disabled/neutral)=256/0/0 draws(submitted/encoded)=256/255 cpu_us(active_p50/p95/latest)=36.10/49.60/44.70 cpu_us(disabled_p50/p95/latest)=0.00/0.00/0.00 layout_us=24.00 resolve_us=4.00 config_us=2.90 atmosphere_depth=off/5000 dof_coc=off/1200/500"
+  ],
+  "notes": [
+    "Final guard skips terrain index construction when ground cover is disabled; enabled-state index algorithm unchanged from measured benchmark",
+    "Inherited isolated config and arguments match first smoke run",
+    "Neither smoke run is a matched image or timing comparison"
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "scope": "native grass producer CPU spans, excludes discovery and GPU execution",
+  "gpu_us": null,
+  "whole_frame_us": null,
+  "metadata": {
+    "schema": 1,
+    "scene": "F_SP121,6,2,4",
+    "backend": "d3d12",
+    "seconds": 55,
+    "warmup_samples": 288,
+    "host_sha256": "7FA566C403024F5F5C62CBAAD28A96EE7BD0D23529A3B6FD27B8CD81F3D2D779",
+    "config_sha256": "61FBA73F7713C514EEC90DD679F2707B2C41034E2F69BD60BECEE70A692BD028",
+    "reference_sha256": "E09B6EC01D0776EB71A2EB5FCBD2EE0445C9491E6CAABA0E7A5E1687E2E43016",
+    "candidate_sha256": null,
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": [
+      {
+        "Name": "Intel(R) UHD Graphics 630",
+        "DriverVersion": "31.0.101.2140"
+      },
+      {
+        "Name": "Microsoft Remote Display Adapter",
+        "DriverVersion": "10.0.26100.9818"
+      }
+    ],
+    "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+    "runs": [
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round4\\pilot\\00-A",
+        "pid": 6464,
+        "started_utc": "2026-11-12T21:02:05.1072848Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6717626,
+        "profile_samples": 384
+      }
+    ]
+  },
+  "runs": [
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round4\\pilot\\00-A",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "external_spans_us": {
+        "discovery": {
+          "count": 96,
+          "min": 9.799999999999999,
+          "max": 18.700000000000003,
+          "p50": 11.0,
+          "p95": 13.325,
+          "p99": 15.37499999999999,
+          "mean": 11.220833333333333
+        },
+        "airborne": {
+          "count": 96,
+          "min": 153.79999999999998,
+          "max": 256.7,
+          "p50": 161.15,
+          "p95": 187.425,
+          "p99": 216.79999999999987,
+          "mean": 165.92083333333332
+        }
+      },
+      "airborne_samples": 96,
+      "airborne_reused_samples": 0,
+      "airborne_count_min": 6,
+      "airborne_count_max": 6,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.3,
+          "p50": 0.5,
+          "p95": 1.0,
+          "p99": 1.1099999999999994,
+          "mean": 0.5708333333333333
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.4,
+          "max": 1.2,
+          "p50": 0.6,
+          "p95": 1.0250000000000001,
+          "p99": 1.2,
+          "mean": 0.6302083333333334
+        },
+        "tiles": {
+          "count": 96,
+          "min": 20.0,
+          "max": 45.1,
+          "p50": 22.55,
+          "p95": 27.625,
+          "p99": 38.63999999999998,
+          "mean": 23.407291666666666
+        },
+        "assembly": {
+          "count": 96,
+          "min": 135.4,
+          "max": 246.4,
+          "p50": 145.0,
+          "p95": 162.45,
+          "p99": 186.83499999999984,
+          "mean": 147.72187499999998
+        },
+        "submission": {
+          "count": 96,
+          "min": 3.8,
+          "max": 23.2,
+          "p50": 4.8500000000000005,
+          "p95": 5.725,
+          "p99": 16.73999999999998,
+          "mean": 5.161458333333333
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 162.20000000000002,
+        "max": 300.20000000000005,
+        "p50": 174.3,
+        "p95": 195.14999999999998,
+        "p99": 221.72999999999976,
+        "mean": 177.49166666666667
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96,
+      "immutable_samples": 96,
+      "streamed_instance_bytes": 0,
+      "max_owned_instance_bytes": 2387220
+    }
+  ]
+}

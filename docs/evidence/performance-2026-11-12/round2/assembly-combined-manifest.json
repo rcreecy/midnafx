@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "scene": "F_SP121,6,2,4",
+  "backend": "d3d12",
+  "seconds": null,
+  "warmup_samples": 128,
+  "host_sha256": "7FA566C403024F5F5C62CBAAD28A96EE7BD0D23529A3B6FD27B8CD81F3D2D779",
+  "config_sha256": "61FBA73F7713C514EEC90DD679F2707B2C41034E2F69BD60BECEE70A692BD028",
+  "reference_sha256": "49A8955DABBC9450A09A4CC6630D03A776D463997BB44BD37037C92E03639B12",
+  "candidate_sha256": "AFD95F92224C5BCCF5903C90752066438827D1234B118FA427BC267FAD1BE6D6",
+  "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+  "gpu": [
+    {
+      "Name": "Intel(R) UHD Graphics 630",
+      "DriverVersion": "31.0.101.2140"
+    },
+    {
+      "Name": "Microsoft Remote Display Adapter",
+      "DriverVersion": "10.0.26100.9818"
+    }
+  ],
+  "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+  "runs": [
+    {
+      "variant": "A",
+      "directory": "assembly-original/04-A",
+      "pid": 13268,
+      "started_utc": "2026-11-12T19:36:02.3162948Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 40.6245711,
+      "requested_seconds": 40
+    },
+    {
+      "variant": "B",
+      "directory": "assembly-original/05-B",
+      "pid": 9000,
+      "started_utc": "2026-11-12T19:36:42.9488138Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 40.4821524,
+      "requested_seconds": 40
+    },
+    {
+      "variant": "A",
+      "directory": "assembly-makeup/00-A",
+      "pid": 16304,
+      "started_utc": "2026-11-12T19:39:39.5550702Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.6525229,
+      "profile_samples": 384,
+      "requested_seconds": 55
+    },
+    {
+      "variant": "B",
+      "directory": "assembly-makeup/01-B",
+      "pid": 23376,
+      "started_utc": "2026-11-12T19:40:35.2569974Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.6641727,
+      "profile_samples": 384,
+      "requested_seconds": 55
+    },
+    {
+      "variant": "B",
+      "directory": "assembly-makeup/02-B",
+      "pid": 12304,
+      "started_utc": "2026-11-12T19:41:30.9297663Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.6561051,
+      "profile_samples": 384,
+      "requested_seconds": 55
+    },
+    {
+      "variant": "A",
+      "directory": "assembly-makeup/03-A",
+      "pid": 24668,
+      "started_utc": "2026-11-12T19:42:26.5939862Z",
+      "close_requested": true,
+      "forced": false,
+      "exit_code": 0,
+      "elapsed_seconds": 55.640899,
+      "profile_samples": 384,
+      "requested_seconds": 55
+    }
+  ],
+  "run_windows_seconds": [
+    40,
+    55
+  ],
+  "sampling_policy": "first 384 stage samples per run; omit first 128, require ready; longer wall window only ensures buffer emitted",
+  "excluded_from_paired_acceptance": [
+    {
+      "run": "assembly-original/00-A",
+      "reason": "normal exit, fewer than 384 sampled stages; buffer not emitted"
+    },
+    {
+      "run": "assembly-original/01-B",
+      "reason": "valid capture, paired reference incomplete"
+    },
+    {
+      "run": "assembly-original/02-B",
+      "reason": "valid capture, paired reference incomplete"
+    },
+    {
+      "run": "assembly-original/03-A",
+      "reason": "normal exit, fewer than 384 sampled stages; buffer not emitted"
+    }
+  ]
+}

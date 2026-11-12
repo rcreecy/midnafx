@@ -1,0 +1,572 @@
+{
+  "schema": 1,
+  "scope": "native grass producer CPU spans, excludes discovery and GPU execution",
+  "gpu_us": null,
+  "whole_frame_us": null,
+  "metadata": {
+    "schema": 1,
+    "scene": "F_SP121,6,2,4",
+    "backend": "d3d12",
+    "seconds": 55,
+    "warmup_samples": 288,
+    "host_sha256": "7FA566C403024F5F5C62CBAAD28A96EE7BD0D23529A3B6FD27B8CD81F3D2D779",
+    "config_sha256": "61FBA73F7713C514EEC90DD679F2707B2C41034E2F69BD60BECEE70A692BD028",
+    "reference_sha256": "979FCD0FBE07D7485CBB942BE44FA888F7355C10EACFD0172B95CFDDEDC122B1",
+    "candidate_sha256": "802B6A2E7C59A450AFBC5C56FF81CABE5D1516E8715EE2EE248A13DEC0F9E8E4",
+    "cpu": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "gpu": [
+      {
+        "Name": "Intel(R) UHD Graphics 630",
+        "DriverVersion": "31.0.101.2140"
+      },
+      {
+        "Name": "Microsoft Remote Display Adapter",
+        "DriverVersion": "10.0.26100.9818"
+      }
+    ],
+    "power_policy": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+    "runs": [
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\00-A",
+        "pid": 17308,
+        "started_utc": "2026-11-12T19:49:17.9177710Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6220874,
+        "profile_samples": 384
+      },
+      {
+        "variant": "B",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\01-B",
+        "pid": 22988,
+        "started_utc": "2026-11-12T19:50:13.5772098Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6250564,
+        "profile_samples": 384
+      },
+      {
+        "variant": "B",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\02-B",
+        "pid": 23848,
+        "started_utc": "2026-11-12T19:51:09.2093925Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6616053,
+        "profile_samples": 384
+      },
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\03-A",
+        "pid": 16196,
+        "started_utc": "2026-11-12T19:52:04.8787288Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6083285,
+        "profile_samples": 384
+      },
+      {
+        "variant": "A",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\04-A",
+        "pid": 14872,
+        "started_utc": "2026-11-12T19:53:00.4958712Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.6142264,
+        "profile_samples": 384
+      },
+      {
+        "variant": "B",
+        "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\05-B",
+        "pid": 23896,
+        "started_utc": "2026-11-12T19:53:56.1174029Z",
+        "close_requested": true,
+        "forced": false,
+        "exit_code": 0,
+        "elapsed_seconds": 55.5997729,
+        "profile_samples": 384
+      }
+    ]
+  },
+  "runs": [
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\00-A",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.1,
+          "max": 13.6,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 1.6299999999999641,
+          "mean": 0.5083333333333333
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 0.9,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.9,
+          "mean": 0.3927083333333334
+        },
+        "tiles": {
+          "count": 96,
+          "min": 20.9,
+          "max": 46.4,
+          "p50": 23.8,
+          "p95": 33.85,
+          "p99": 38.98999999999998,
+          "mean": 25.320833333333336
+        },
+        "assembly": {
+          "count": 96,
+          "min": 2380.3999999999996,
+          "max": 3415.7999999999997,
+          "p50": 2512.95,
+          "p95": 3132.65,
+          "p99": 3163.1949999999997,
+          "mean": 2604.134375
+        },
+        "submission": {
+          "count": 96,
+          "min": 175.2,
+          "max": 297.3,
+          "p50": 198.95000000000002,
+          "p95": 255.0,
+          "p99": 267.8499999999999,
+          "mean": 205.05625
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 2589.9,
+        "max": 3657.0,
+        "p50": 2732.25,
+        "p95": 3377.0,
+        "p99": 3429.759999999999,
+        "mean": 2835.4125
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 0
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\01-B",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.1,
+          "max": 1.3,
+          "p50": 0.4,
+          "p95": 0.7,
+          "p99": 1.1099999999999994,
+          "mean": 0.4135416666666667
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 2.4,
+          "p50": 0.35,
+          "p95": 0.9,
+          "p99": 1.069999999999996,
+          "mean": 0.41041666666666665
+        },
+        "tiles": {
+          "count": 96,
+          "min": 20.8,
+          "max": 41.8,
+          "p50": 24.9,
+          "p95": 35.87500000000001,
+          "p99": 39.709999999999994,
+          "mean": 25.820833333333336
+        },
+        "assembly": {
+          "count": 96,
+          "min": 127.40000000000002,
+          "max": 240.79999999999998,
+          "p50": 139.2,
+          "p95": 179.62499999999997,
+          "p99": 231.58499999999998,
+          "mean": 148.06770833333334
+        },
+        "submission": {
+          "count": 96,
+          "min": 160.5,
+          "max": 333.8,
+          "p50": 205.55,
+          "p95": 287.275,
+          "p99": 312.6149999999999,
+          "mean": 212.68437500000002
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 309.90000000000003,
+        "max": 619.3000000000001,
+        "p50": 386.34999999999997,
+        "p95": 467.25,
+        "p99": 567.9999999999999,
+        "mean": 387.39687499999997
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\02-B",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.3,
+          "max": 1.1,
+          "p50": 0.5,
+          "p95": 0.8,
+          "p99": 1.005,
+          "mean": 0.49062500000000003
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 0.8,
+          "p50": 0.4,
+          "p95": 0.7,
+          "p99": 0.8,
+          "mean": 0.3854166666666667
+        },
+        "tiles": {
+          "count": 96,
+          "min": 20.5,
+          "max": 49.2,
+          "p50": 22.9,
+          "p95": 28.6,
+          "p99": 47.3,
+          "mean": 23.91875
+        },
+        "assembly": {
+          "count": 96,
+          "min": 125.9,
+          "max": 166.0,
+          "p50": 133.74999999999997,
+          "p95": 158.25,
+          "p99": 163.625,
+          "mean": 135.61770833333333
+        },
+        "submission": {
+          "count": 96,
+          "min": 160.5,
+          "max": 355.7,
+          "p50": 183.04999999999998,
+          "p95": 244.82500000000002,
+          "p99": 346.9599999999999,
+          "mean": 193.24895833333335
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 312.7,
+        "max": 527.8000000000001,
+        "p50": 342.45000000000005,
+        "p95": 429.4,
+        "p99": 508.51499999999993,
+        "mean": 353.6614583333333
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\03-A",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.0,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.9049999999999997,
+          "mean": 0.421875
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 0.9,
+          "p50": 0.4,
+          "p95": 0.8,
+          "p99": 0.9,
+          "mean": 0.43333333333333335
+        },
+        "tiles": {
+          "count": 96,
+          "min": 20.5,
+          "max": 39.699999999999996,
+          "p50": 23.35,
+          "p95": 28.400000000000002,
+          "p99": 33.33499999999998,
+          "mean": 23.98229166666667
+        },
+        "assembly": {
+          "count": 96,
+          "min": 2407.7000000000003,
+          "max": 3145.5,
+          "p50": 2505.65,
+          "p95": 2635.2000000000003,
+          "p99": 2904.484999999999,
+          "mean": 2519.93125
+        },
+        "submission": {
+          "count": 96,
+          "min": 174.6,
+          "max": 266.6,
+          "p50": 190.25,
+          "p95": 231.92499999999998,
+          "p99": 259.2849999999999,
+          "mean": 195.56770833333334
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 2608.6,
+        "max": 3378.7,
+        "p50": 2728.1,
+        "p95": 2872.0249999999996,
+        "p99": 3191.6449999999995,
+        "mean": 2740.336458333333
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 0
+    },
+    {
+      "variant": "A",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\04-A",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 0.9,
+          "p50": 0.3,
+          "p95": 0.8,
+          "p99": 0.8049999999999997,
+          "mean": 0.37395833333333334
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.2,
+          "p50": 0.3,
+          "p95": 0.7,
+          "p99": 0.9149999999999991,
+          "mean": 0.375
+        },
+        "tiles": {
+          "count": 96,
+          "min": 19.400000000000002,
+          "max": 45.400000000000006,
+          "p50": 22.05,
+          "p95": 27.3,
+          "p99": 43.214999999999996,
+          "mean": 22.884375000000002
+        },
+        "assembly": {
+          "count": 96,
+          "min": 2385.2000000000003,
+          "max": 2662.0,
+          "p50": 2488.25,
+          "p95": 2609.8749999999995,
+          "p99": 2638.82,
+          "mean": 2494.616666666667
+        },
+        "submission": {
+          "count": 96,
+          "min": 170.2,
+          "max": 250.7,
+          "p50": 189.79999999999998,
+          "p95": 235.8,
+          "p99": 250.51000000000002,
+          "mean": 194.23229166666667
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 2577.1000000000004,
+        "max": 2936.5,
+        "p50": 2710.5,
+        "p95": 2834.4499999999994,
+        "p99": 2903.44,
+        "mean": 2712.4822916666667
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 0
+    },
+    {
+      "variant": "B",
+      "directory": "C:\\dev\\midnafx\\build\\performance-round2\\settled\\05-B",
+      "samples": 384,
+      "warmup_samples": 288,
+      "ready_samples": 96,
+      "phases_us": {
+        "reach": {
+          "count": 96,
+          "min": 0.2,
+          "max": 1.0,
+          "p50": 0.4,
+          "p95": 0.9,
+          "p99": 1.0,
+          "mean": 0.45625
+        },
+        "requests": {
+          "count": 96,
+          "min": 0.2,
+          "max": 0.9,
+          "p50": 0.4,
+          "p95": 0.7,
+          "p99": 0.9,
+          "mean": 0.38645833333333335
+        },
+        "tiles": {
+          "count": 96,
+          "min": 20.2,
+          "max": 46.300000000000004,
+          "p50": 22.8,
+          "p95": 29.8,
+          "p99": 37.84499999999998,
+          "mean": 23.675
+        },
+        "assembly": {
+          "count": 96,
+          "min": 125.8,
+          "max": 167.5,
+          "p50": 132.64999999999998,
+          "p95": 154.5,
+          "p99": 162.74999999999997,
+          "mean": 136.09791666666666
+        },
+        "submission": {
+          "count": 96,
+          "min": 170.8,
+          "max": 302.70000000000005,
+          "p50": 192.85,
+          "p95": 252.72499999999997,
+          "p99": 281.8949999999999,
+          "mean": 202.33333333333334
+        }
+      },
+      "selected_stage_us": {
+        "count": 96,
+        "min": 325.29999999999995,
+        "max": 459.29999999999995,
+        "p50": 353.95,
+        "p95": 418.15000000000003,
+        "p99": 449.89500000000004,
+        "mean": 362.94895833333334
+      },
+      "roots_min": 39787,
+      "roots_max": 39787,
+      "assembly_reused_samples": 96
+    }
+  ],
+  "paired_phase_p50_ratios": [
+    {
+      "reach": 1.3333333333333335,
+      "requests": 1.1666666666666667,
+      "tiles": 1.0462184873949578,
+      "assembly": 0.05539306392884857,
+      "submission": 1.0331741643629053
+    },
+    {
+      "reach": 1.6666666666666667,
+      "requests": 1.0,
+      "tiles": 0.9807280513918628,
+      "assembly": 0.05337936264043261,
+      "submission": 0.96215505913272
+    },
+    {
+      "reach": 1.3333333333333335,
+      "requests": 1.3333333333333335,
+      "tiles": 1.034013605442177,
+      "assembly": 0.053310559630262225,
+      "submission": 1.0160695468914647
+    }
+  ],
+  "paired_reach_ratio_median": 1.3333333333333335,
+  "paired_reach_input_checks": [
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    },
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    },
+    {
+      "matched_camera_xz_count": 1,
+      "furthest_mismatched_inputs": [],
+      "reference_distinct_camera_xz": 1,
+      "candidate_distinct_camera_xz": 1
+    }
+  ],
+  "paired_geometry_checks": [
+    {
+      "matched_input_hash_count": 3,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 1
+    },
+    {
+      "matched_input_hash_count": 3,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 1
+    },
+    {
+      "matched_input_hash_count": 3,
+      "geometry_mismatched_inputs": [],
+      "candidate_reused_proof_samples": 1
+    }
+  ],
+  "paired_assembly_ratio_median": 0.05337936264043261,
+  "paired_selected_stage_p50_ratios": [
+    0.14140360508738217,
+    0.12552692349987174,
+    0.13058476295886368
+  ],
+  "paired_assembly_mean_ratios": [
+    0.0568587050479426,
+    0.053818019175457,
+    0.054556645309566595
+  ],
+  "paired_selected_stage_mean_ratios": [
+    0.13662804794716818,
+    0.12905767730011863,
+    0.13380694113594443
+  ]
+}

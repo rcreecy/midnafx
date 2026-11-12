@@ -3,6 +3,9 @@
 #include "geometry_probe.hpp"
 #include "material_scope.hpp"
 #include "material_identity.hpp"
+#include "surface_profiles.hpp"
+#include "surface_class.hpp"
+#include "render/material_relighting.hpp"
 #include "services.hpp"
 #include "ui/settings.hpp"
 #include <JSystem/J3DGraphAnimator/J3DModelData.h>
@@ -43,6 +46,9 @@ bool draw_hook = false;
 bool draw_scopes[8]{};
 bool body_scopes[8]{};
 bool warm_scopes[8]{};
+unsigned finish_previous[8]{};
+bool finish_scopes[8]{}, finish_reported[surface_class::Count]{};
+unsigned current_finish=0;
 void* draw_args[8]{};
 unsigned draw_depth = 0;
 unsigned long long draw_epoch = 0;
@@ -224,7 +230,8 @@ HookAction before_shape(ModContext*, void* args, void*, void*) {
         if (warm) bind_cached_body();
     }
     const bool observe = settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled();
-    if (!draw_depth && !observe && !control && !warm) return HOOK_CONTINUE;
+    const bool finishes=settings::material_relighting_enabled() && render::material_relighting::surface_profiles_available();
+    if (!draw_depth && !observe && !control && !warm && !finishes) return HOOK_CONTINUE;
     if (!args || draw_depth >= 8) return HOOK_CONTINUE;
     DrawProbeTimer timer(observe);
     if (observe) ++draw_probe_calls;
@@ -233,9 +240,23 @@ HookAction before_shape(ModContext*, void* args, void*, void*) {
     draw_scopes[depth] = false;
     body_scopes[depth] = false;
     warm_scopes[depth] = false;
+    finish_scopes[depth]=false;
     try {
         const auto* shape = mods::arg<const J3DShape*>(args, 0);
         auto* material = shape ? shape->getMaterial() : nullptr;
+        if (finishes) {
+            finish_previous[depth]=current_finish;
+            const unsigned kind=surface_profiles::lookup(material);
+            if (render::material_relighting::set_surface_profile(kind)) {
+                current_finish=kind; finish_scopes[depth]=true;
+                if (kind && !finish_reported[kind]) {
+                    finish_reported[kind]=true;
+                    char message[100];
+                    std::snprintf(message,sizeof(message),"Material finish draw request: %s; cached native material",surface_class::Labels[kind]);
+                    svc_log->info(mod_ctx,message);
+                }
+            }
+        }
         // The pinned drawFast path is non-recursive and leaves TEV state alone.
         // This is a static, qualified SCALE_4 restore, not a generic state stack.
         if (control && !depth && material && material == body_binding.material) {
@@ -305,6 +326,10 @@ void after_shape(ModContext*, void* args, void*, void*) {
     DrawProbeTimer timer(settings::asset_draw_diagnostics_enabled() && settings::asset_diagnostics_enabled());
     const auto depth = --draw_depth;
     draw_args[depth] = nullptr;
+    if (finish_scopes[depth]) {
+        (void)render::material_relighting::set_surface_profile(finish_previous[depth]);
+        current_finish=finish_previous[depth]; finish_scopes[depth]=false;
+    }
     // Restoration cannot depend on the current UI request: it may change between
     // callbacks. The copied FIFO bytes hold no pointer into the game material.
     if (depth < 8 && warm_scopes[depth]) {
@@ -431,6 +456,7 @@ void begin(dRes_info_c* owner) noexcept {
 }
 void loaded(dRes_info_c* owner, unsigned index, J3DModelData* model) noexcept {
     if (!model) return;
+    surface_profiles::remember(owner,model);
     try {
         if (owner == body_binding.owner && index == body_binding.index) {
             bind_body(owner, index, model, "bound-pumpkin-body");
@@ -466,6 +492,7 @@ void created(J3DModelData* model) noexcept {
     } catch (...) { failure(); }
 }
 void erase(dRes_info_c* owner) noexcept {
+    surface_profiles::erase(owner);
     if (owner && owner == body_binding.owner) {
         body_binding = {};
         body_event("archive-delete");
@@ -481,6 +508,9 @@ void erase(dRes_info_c* owner) noexcept {
     std::erase_if(records,[&](const Record& r){return r.owner==owner;});
 }
 void reset() noexcept {
+    surface_profiles::clear(); current_finish=0;
+    std::fill(std::begin(finish_scopes),std::end(finish_scopes),false);
+    std::fill(std::begin(finish_reported),std::end(finish_reported),false);
     body_binding = {};
     draw_sample_requested.store(false, std::memory_order_relaxed);
     pumpkin_materials[0] = pumpkin_materials[1] = nullptr;

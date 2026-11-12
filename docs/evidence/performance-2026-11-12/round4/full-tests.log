@@ -1,0 +1,106 @@
+Test project C:/dev/midnafx/build/windows-release
+      Start  1: airborne_source_cache
+ 1/49 Test  #1: airborne_source_cache ............   Passed    0.01 sec
+      Start  2: grass_assembly
+ 2/49 Test  #2: grass_assembly ...................   Passed    0.02 sec
+      Start  3: grass_reach
+ 3/49 Test  #3: grass_reach ......................   Passed    0.15 sec
+      Start  4: grass_cpu
+ 4/49 Test  #4: grass_cpu ........................   Passed    0.41 sec
+      Start  5: terrain_index
+ 5/49 Test  #5: terrain_index ....................   Passed    0.05 sec
+      Start  6: performance_bench
+ 6/49 Test  #6: performance_bench ................   Passed    0.24 sec
+      Start  7: atmosphere_light
+ 7/49 Test  #7: atmosphere_light .................   Passed    0.02 sec
+      Start  8: bloom_plan
+ 8/49 Test  #8: bloom_plan .......................   Passed    0.02 sec
+      Start  9: local_lights
+ 9/49 Test  #9: local_lights .....................   Passed    0.02 sec
+      Start 10: rigid_shading
+10/49 Test #10: rigid_shading ....................   Passed    0.02 sec
+      Start 11: sunlight_shafts
+11/49 Test #11: sunlight_shafts ..................   Passed    0.02 sec
+      Start 12: motion_clarity
+12/49 Test #12: motion_clarity ...................   Passed    0.02 sec
+      Start 13: character_identity
+13/49 Test #13: character_identity ...............   Passed    0.02 sec
+      Start 14: topology
+14/49 Test #14: topology .........................   Passed    0.02 sec
+      Start 15: asset_identity
+15/49 Test #15: asset_identity ...................   Passed    0.02 sec
+      Start 16: material_scope
+16/49 Test #16: material_scope ...................   Passed    0.30 sec
+      Start 17: asset_intelligence
+17/49 Test #17: asset_intelligence ...............   Passed    0.46 sec
+      Start 18: archive_inventory
+18/49 Test #18: archive_inventory ................   Passed    0.24 sec
+      Start 19: asset_census
+19/49 Test #19: asset_census .....................   Passed    1.03 sec
+      Start 20: asset_overhead
+20/49 Test #20: asset_overhead ...................   Passed    1.62 sec
+      Start 21: frame_timing
+21/49 Test #21: frame_timing .....................   Passed    0.60 sec
+      Start 22: smoothing
+22/49 Test #22: smoothing ........................   Passed    0.02 sec
+      Start 23: qualification
+23/49 Test #23: qualification ....................   Passed    0.02 sec
+      Start 24: bmd_rebuild
+24/49 Test #24: bmd_rebuild ......................   Passed    0.02 sec
+      Start 25: grade_math
+25/49 Test #25: grade_math .......................   Passed    0.02 sec
+      Start 26: presets_roundtrip
+26/49 Test #26: presets_roundtrip ................   Passed    0.03 sec
+      Start 27: realism_grade
+27/49 Test #27: realism_grade ....................   Passed    0.02 sec
+      Start 28: surface_map_cache
+28/49 Test #28: surface_map_cache ................   Passed    0.02 sec
+      Start 29: surface_map_contract
+29/49 Test #29: surface_map_contract .............***Skipped   0.09 sec
+      Start 30: surface_map_contract_tests
+30/49 Test #30: surface_map_contract_tests .......   Passed    0.19 sec
+      Start 31: surface_class
+31/49 Test #31: surface_class ....................   Passed    0.02 sec
+      Start 32: terrain_trails
+32/49 Test #32: terrain_trails ...................   Passed    0.02 sec
+      Start 33: grass_view
+33/49 Test #33: grass_view .......................   Passed    0.02 sec
+      Start 34: airborne_motion
+34/49 Test #34: airborne_motion ..................   Passed    0.02 sec
+      Start 35: visual_parameters
+35/49 Test #35: visual_parameters ................   Passed    0.02 sec
+      Start 36: twilight_profile
+36/49 Test #36: twilight_profile .................   Passed    0.02 sec
+      Start 37: camera_fov
+37/49 Test #37: camera_fov .......................   Passed    0.02 sec
+      Start 38: dof_quality
+38/49 Test #38: dof_quality ......................   Passed    0.02 sec
+      Start 39: water_identity
+39/49 Test #39: water_identity ...................   Passed    0.02 sec
+      Start 40: camera_patch_contract
+40/49 Test #40: camera_patch_contract ............   Passed    0.10 sec
+      Start 41: lut_palette
+41/49 Test #41: lut_palette ......................   Passed    0.02 sec
+      Start 42: native_material_compat
+42/49 Test #42: native_material_compat ...........   Passed    0.02 sec
+      Start 43: shader_compile
+43/49 Test #43: shader_compile ...................   Passed    0.08 sec
+      Start 44: aa_pixels
+44/49 Test #44: aa_pixels ........................   Passed  123.63 sec
+      Start 45: aa_cli
+45/49 Test #45: aa_cli ...........................   Passed    0.15 sec
+      Start 46: ambient_pixels
+46/49 Test #46: ambient_pixels ...................   Passed    5.77 sec
+      Start 47: immutable_instances
+47/49 Test #47: immutable_instances ..............   Passed    0.14 sec
+      Start 48: bloom_pixels
+48/49 Test #48: bloom_pixels .....................   Passed    0.76 sec
+      Start 49: package_contract
+49/49 Test #49: package_contract .................   Passed    0.14 sec
+
+100% tests passed, 0 tests failed out of 49
+
+Total Test time (real) = 136.71 sec
+
+The following tests did not run:
+	 29 - surface_map_contract (Skipped)

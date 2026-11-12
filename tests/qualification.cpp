@@ -31,6 +31,21 @@ int main() {
     auto q = smoothing::qualify(mesh, positions, normals, automatic);
     check(q.safe() && q.smoothing.changed_indices > 0);
     const auto changed = q.smoothing.changed_indices;
+    const std::array<std::uint16_t, 3> transparent_normals{3,4,5};
+    auto protected_plan = smoothing::qualify(mesh, positions, normals, automatic, {}, transparent_normals);
+    check(protected_plan.safe() && protected_plan.smoothing.changed_indices > 0);
+    for (const auto index : transparent_normals)
+        check(std::memcmp(&protected_plan.smoothing.normals[index], &normals[index], sizeof(Vec3)) == 0);
+    // A normal shared with a transparent region is protected at every use.
+    auto shared_material = mesh;
+    shared_material.triangles[1].corners[0].normal = 2;
+    const std::array<std::uint16_t, 3> shared_protected{2,4,5};
+    protected_plan = smoothing::qualify(shared_material, positions, normals, automatic, {}, shared_protected);
+    check(protected_plan.safe());
+    for (const auto index : shared_protected)
+        check(std::memcmp(&protected_plan.smoothing.normals[index], &normals[index], sizeof(Vec3)) == 0);
+    const std::array<std::uint16_t, 1> invalid_protected{65535};
+    check(!smoothing::qualify(mesh, positions, normals, automatic, {}, invalid_protected).safe());
     std::reverse(mesh.triangles.begin(), mesh.triangles.end());
     check(smoothing::qualify(mesh, positions, normals, automatic).smoothing.changed_indices ==
           changed);
