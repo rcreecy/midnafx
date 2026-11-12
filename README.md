@@ -1,226 +1,153 @@
 # MidnaFX
 
-Experimental [material relighting](docs/material-relighting.md) uses a compatible
-Dusklight host to evaluate original material lighting per pixel. Stock hosts
-retain native rendering and the existing post effects.
+**A native visual enhancement mod for The Legend of Zelda: Twilight Princess on Dusklight.**
 
-Developer tooling now supports a whole resource-tree [asset catalog](docs/asset-awareness.md),
-including nested archives, model/material relationships and indexed replacement
-candidates. This closes offline discovery gaps without adding gameplay scanning.
-Generic runtime material control remains incomplete.
+[![Build MidnaFX](https://github.com/rcreecy/midnafx/actions/workflows/build.yml/badge.svg)](https://github.com/rcreecy/midnafx/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-MidnaFX 1.21 upgrades **Depth atmosphere** with sunlit outdoor haze. The native
-sun's color and direction tint distant atmosphere more strongly toward the sun,
-while preserving the existing fog range and strength. No additional control or
-rendering pass is required. Missing or unsupported daylight keeps the original
-atmosphere. See [depth atmosphere](docs/depth-atmosphere.md).
+Current MidnaFX source combines color grading and saved looks with enhanced water, shared screen-space lighting, procedural ground cover, movement trails, shared wind and airborne particles. Feature coverage and compatible-host requirements vary; each feature guide records its fallback and validation limits. Color processing runs before the HUD.
 
-MidnaFX 1.20 upgrades **Adaptive exposure** for steadier scene brightness during
-texture motion and passing highlights. Denser fixed sampling and weighted
-percentile bounds reduce small-feature influence while retaining native night
-mood, fades and the existing exposure limits. Remaster and the independent Basic
-control use the upgrade without new settings. See [adaptive exposure](docs/adaptive-exposure.md).
+The source also includes the revised **MidnaFX Natural** Color Look, which is separate from the parametric **Natural / Vivid Realism** visual profile. Development changes may be ahead of published packages; see the [source development history](docs/source-development-history.md) and [current performance assessment](docs/performance-program.md).
 
-MidnaFX 1.19 upgrades **Scene bloom** with a retained highlight core and wider
-soft halos across bright scenery, characters and replacement textures. The
-existing 20% default, independent control and Remaster integration remain.
-Normalized multi-scale blending redistributes glow without multiplying brightness
-by the number of levels. See [scene bloom](docs/scene-bloom.md) for cost and limits.
+This is a C++20 / WebGPU mod loaded by **Dusklight**, not a standalone game or an emulator shader pack. This repository contains the native mod, WGSL shaders, host extension patches, tests, and development evidence. It includes no game assets or game image; playing requires a working Dusklight installation and your own game data.
 
-MidnaFX 1.18 extends **Local light response** to the default native lantern.
-Moving player-light position and fading reference power feed the existing
-illumination pipeline, using native steep attenuation with bounded screen-space
-visibility. Existing controls and saved looks stay unchanged. See
-[lantern coverage](docs/local-lighting.md#player-lantern-source).
+**[Download](https://github.com/rcreecy/midnafx/releases/latest)** · **[Release history](CHANGELOG.md)** · **[Build guide](docs/development.md)** · **[Report an issue](https://github.com/rcreecy/midnafx/issues)**
 
-MidnaFX 1.17 adds experimental **Local light response** across visible opaque
-scenery. Supported native torch, campfire and stage point lights add bounded
-colored illumination with depth-based visibility. Select Remaster or its
-independent Basic toggle; strength defaults to 15%. See
-[local lighting](docs/local-lighting.md) for source coverage and limitations.
+## Features
 
-MidnaFX 1.16 improves scene contact lighting at steep surfaces and depth edges.
-Surface normals follow projected plane continuity instead of crossing a nearby
-depth step. Existing AO, contact shadows and color bounce share the improvement,
-without new controls or rendering passes. See [contact lighting](docs/contact-lighting.md).
+| Feature | What it does |
+| --- | --- |
+| **Color grading** | Exposure, black point, contrast, gamma, saturation, highlight rolloff, temperature, and tint in a fused pre-HUD pass. Neutral grading with detail disabled bypasses that pass. |
+| **Detail enhancement** | Optional five-tap detail processing with adjustable strength, integrated into the grading shader. |
+| **Presets** | Built-in Vanilla and Natural / Vivid Realism, a separately retained Custom look, and up to 16 saved presets with save, load, duplicate, and restart persistence. |
+| **Twilight profiles** | Opt-in blending from the general look toward a captured target when the game reports active Twilight. Twilight-spot state intentionally retains the general look. |
+| **Exploration camera** | Independent wider vertical FOV and lower chase-camera controls. Opt-in modifiers apply only to supported exploration output and yield to authored events, first person, aiming, lock-on, special cameras, and detached views. Requires the host extension below. |
+| **Enhanced model shading** | Guarded automatic rigid-model qualification, with conservative handling of ambiguous topology and unsupported skinning. Original normals restore on disable/unload. See [coverage and limits](docs/model-shading.md). |
+| **Depth of field** | Experimental, default-off near/far blur with a 2–12 pixel radius, manual focus, optional smooth camera-target autofocus, and depth-aware compositing before the HUD. |
+| **Color Looks** | Cached Natural/Twilight LUT processing, including the [richer Natural palette](docs/color-direction.md), within existing composition paths. |
+| **Ground cover and particles** | Procedural near/distant grass, environmental detail, recovering movement trails and wind-driven airborne effects. See [ground-cover scope](docs/ground-grass-scope.md). |
+| **Enhanced water** | Supported surface absorption, waves, shoreline treatment and screen-space reflection response. Unknown/unsupported cases retain fallback behavior; see [water scope](docs/water-investigation.md). |
+| **Scene lighting and atmosphere** | Shared contact shading, contact shadows, color bounce, local lights, sunlight shafts and sunlit haze. Per-effect coverage and depth limitations apply. |
+| **Bloom and exposure** | Multiscale scene bloom and bounded adaptive exposure; see [bloom](docs/scene-bloom.md) and [exposure](docs/adaptive-exposure.md). |
+| **Material relighting** | Experimental compatible-host per-fragment material response, with fallback when the optional service is unavailable. See [material integration](docs/material-relighting.md). |
+| **Visual diagnostics** | Forced RGBA passthrough, A/B split, luminance, highlight/shadow clipping, and amplified difference views using the same scene snapshot. |
+| **CPU diagnostics** | Stage p50/p95 timings, layout/resolve call times, snapshot requests, and pipeline counts for repeatable development comparisons. These are not GPU timings. |
 
-MidnaFX 1.15 upgrades **Enhanced model shading** with guarded automatic rigid-model
-coverage and live activation. Safe regions can improve while uncertain seams and
-shared normal indices retain their original shading, without new asset lists.
-Enable the independent Basic control; it remains opt-in. See
-[model shading](docs/model-shading.md) for ownership, coverage and limitations.
+See the [Natural / Vivid Realism guide](docs/vivid-realism.md) for exact preset settings and the [architecture guide](docs/architecture.md) for rendering contracts and limits.
 
-MidnaFX 1.14 adds experimental **Sunlight shafts** across supported outdoor
-scenes. Native sun color and visibility drive depth-occluded rays without asset
-lists or extra targets/passes. Select **Profile / Remaster**, or its independent
-Basic toggle. Advanced lighting strength defaults to 10%. See
-[sunlight shafts](docs/sunlight-shafts.md) for evidence and screen-space limits.
+## Install and get started
 
-MidnaFX 1.13 adds experimental **Water scene reflections** on supported enhanced
-water. Nearby visible opaque scenery contributes reflections without new asset
-lists or rendering passes. Select **Profile / Remaster**, or enable Enhanced
-water and its independent Basic reflection toggle. Off-screen scenery retains
-the existing tint. See [water scene reflections](docs/water-scene-reflections.md)
-for geometric evidence and screen-space limits.
+1. Download the `.dusk` asset matching your platform from [GitHub Releases](https://github.com/rcreecy/midnafx/releases/latest).
+2. Copy the `.dusk` file itself into Dusklight's user mods folder:
 
-MidnaFX 1.12 adds **Motion clarity** across gameplay contexts. It reduces native
-previous-frame blending while preserving event/demo-camera blur, without asset
-lists. Select **Profile / Remaster** or the independent Basic toggle. Advanced:
-motion offers 0–100% retained native blend alpha, defaulting to 0%. See
-[motion clarity](docs/motion-clarity.md) for ownership and evidence.
+   | Platform | Release asset | Mods folder |
+   | --- | --- | --- |
+   | Windows x64 | `midnafx-windows-amd64.dusk` | `%APPDATA%\TwilitRealm\Dusklight\mods` |
+   | Intel macOS | `midnafx-macos-x86_64.dusk` | `~/Library/Application Support/TwilitRealm/Dusklight/mods` |
 
-MidnaFX 1.11 adds **Screen-space color bounce (experimental)** across visible
-opaque scenery and characters. Nearby facing surfaces contribute restrained color
-using the native scene image and depth, without asset lists. Select **Profile /
-Remaster** or the independent Basic toggle; Advanced lighting strength defaults
-to 12%. See [color bounce](docs/color-bounce.md) for scope and evidence.
+3. Start Dusklight, or choose **Reload** in its mod manager after replacing an installed package. Open MidnaFX's settings and turn on **Enable grading**.
+4. Choose **Presets > Current preset > Natural / Vivid Realism**. Save or duplicate the look to make an editable copy. Select **Vanilla** to restore neutral grading; camera, geometry, and depth-of-field controls are independent.
 
-MidnaFX 1.10 adds **Movement camera framing** for exploration. The view widens
-smoothly during brisk movement and settles at rest, with native aiming and
-authored camera contexts preserved. Select **Profile / Remaster** or its
-independent Basic control; Advanced offers a 0–12% boost, defaulting to 8%.
-See [movement framing](docs/movement-camera.md) for compatibility and evidence.
+Each package contains one platform's native library. The Intel Mac package is x86_64, not a universal or native Apple Silicon build. No Linux release package is provided by the current CI workflow. Development artifacts are also available from successful [build runs](https://github.com/rcreecy/midnafx/actions/workflows/build.yml); extract their artifact ZIP to obtain `midnafx.dusk`.
 
-MidnaFX 1.9 adds **Contact shadows** across visible opaque scenery and characters.
-Short rays toward the native environment light add directional grounding alongside
-ambient occlusion. Select **Profile / Remaster** or the independent Basic control;
-default strength is 30%. No asset lists or extra texture targets are required.
-See [contact shadows](docs/contact-shadows.md) for scope, evidence and limits.
+### Compatibility and host requirements
 
-MidnaFX 1.8 upgrades scene **anti-aliasing** with edge-directed coverage and
-bounded endpoint searches. Stair-step edges receive smoothing while aligned
-edges and tested fine lines retain their source detail. Existing AA controls
-and defaults remain; no asset lists or extra render targets are needed. See
-[edge-directed AA](docs/edge-antialiasing.md) for evidence and cost limits.
+MidnaFX is developed against Dusklight revision `edf42c6a7202647b56dd2fcdef02d17671bc814b` and its pinned Aurora dependency. Compatibility with arbitrary host revisions is not established.
 
-MidnaFX 1.7 adds **Scene bloom** across bright scenery, characters and replacement
-textures. Select **Profile / Remaster** or its independent Basic control for
-restrained glow at 20% default strength. Vanilla disables it. This LDR treatment
-uses no asset lists and preserves the native HUD; it does not identify emissive
-materials or add new light sources. See [scene bloom](docs/scene-bloom.md).
+- **Exploration camera:** requires MidnaFX's CameraService 1.3 host patch. On a host without the extension, the feature reports unavailable.
+- **Camera-target autofocus:** requires the CameraService 1.4 extension. Manual focus uses the base camera service.
+- **Rendering:** unsupported scene layouts or MSAA bypass the grading pass. Start with MSAA off when validating the render path and inspect the in-mod status.
+- **Host patches:** installing a `.dusk` package does not patch the Dusklight executable. See [camera integration](docs/camera-investigation.md), [depth-of-field integration](docs/depth-of-field-investigation.md), and the [build guide](docs/development.md) before building a source-matched host.
 
-MidnaFX 1.6 upgrades **ambient contact shading** across opaque scenery and
-characters. A denser half-resolution AO field receives depth/normal-aware
-filtering and edge-aware reconstruction, improving contacts without temporal
-history or per-asset lists. Existing AO controls and the Remaster profile use
-the upgrade automatically. See [contact shading](docs/ambient-occlusion.md).
+## Current source qualification
 
-MidnaFX 1.5 adds **Adaptive exposure** across the entire scene, including scenery,
-characters and replacement textures. It gradually opens dark views and restrains
-bright views, with bounded correction that preserves the game's night and dungeon
-mood. Select **Profile / Remaster** or enable the independent Basic control.
-**Vanilla** disables it. Existing settings are preserved until a profile is selected.
-The effect shares the grading/water draw and leaves the HUD untouched. See
-[adaptive exposure](docs/adaptive-exposure.md) for comparisons and limits.
+The November 12 Windows Release qualification has **48 passed, one explicit absent-experiment skip and zero failures**. Native paired trials establish scoped CPU savings and exact data/anchor checks; they do not establish GPU-time or FPS gains. See the [optimization ledger and raw evidence](docs/evidence/performance-2026-11-12/README.md). Broader traversal, image, lifecycle and Intel Mac/Metal coverage remains limited as recorded there.
 
-MidnaFX 1.3 adds **Profile / Remaster**, the first control in the mod's
-settings. It combines natural grading, detail, modern exploration camera,
-anti-aliasing, enhanced water, depth atmosphere and ambient contact shading across opaque
-scenery and characters. **Vanilla** disables these profile effects together.
-Ambient occlusion can also be enabled separately and adjusted with strength and
-radius controls. See the [feature and comparison notes](docs/ambient-occlusion.md).
-Depth atmosphere uses the native fog palette and range, with a separate strength
-control. It shares AO's draw and snapshots, bypassing underwater cameras and
-paused game menus. See [atmosphere](docs/depth-atmosphere.md).
-It uses scene depth and leaves the HUD untouched; it does not
-add dynamic lights, material normal maps or off-screen shadows. Existing installs
-retain their settings until a profile is selected.
+## Historical v1 validation and known limits
 
-MidnaFX 1.4 adds **Enhanced Link shading** to Basic controls and the
-Remaster profile. It conservatively smooths supported regions of Link's original
-Ordon Clothes and, since 1.4.1, Hero's Clothes, preserving uncertain normals and
-authored boundaries. It activates
-on the resident model; disabling it or selecting Vanilla restores the original
-normal bytes. Armor outfits and replacement models are unchanged. This improves
-lighting continuity without adding polygons or changing the silhouette.
+The following describes the earlier v1 release. Later source features extend that scope; consult their individual guides and current receipts above.
 
-MidnaFX is an experimental native visual processing mod for Dusklight. It provides a fused
-pre-HUD grading shader with exposure, black point, contrast, gamma, saturation, highlight
-rolloff, temperature and tint controls, plus optional five-tap detail enhancement.
-Neutral grading with detail, AA and adaptive exposure off and Color Look set to Neutral bypasses the grading pass. Save,
-load, and duplicate looks under Visual profile; Vanilla disables profile effects and
-Custom retains its own live look across preset switches. A forced RGBA passthrough remains
-available for validating the render path. Developer views provide A/B split, luminance,
-highlight/shadow clipping, and amplified difference using the same scene snapshot.
-The development build adds opt-in **Color Look** and **Look Intensity** controls.
-Neutral preserves the existing image. MidnaFX Natural adds restrained tonal
-separation; Twilight smoothly blends toward a cooler table during active Twilight.
-Both creative looks remain experimental. Enable grading to use them. Selection
-and intensity persist independently of visual profiles; changing a profile does
-not replace the selected color look. Developer diagnostics include a bypass and
-resource counters. See [the LUT contract and qualification record](docs/m13-continuation.md).
+The Windows v1 engineering gates are complete. Recorded D3D11 and D3D12 host testing covers rendering, camera transitions, resource restoration, and lifecycle behavior. The final combined D3D12 pass ran grading, detail, exploration camera, depth of field, and allowlisted static smoothing together at 1216×896, then shut down cleanly with original normal arrays restored. The v1 release record reports all 13 native-suite tests passing, including shader and package checks.
 
-The development build enables experimental pre-HUD anti-aliasing by default.
-Its Basic toggle operates independently of grading; Remaster and Vanilla include
-it in their scene switches, while older saved looks preserve its state. Existing
-saved AA-off values are preserved. The edge-directed filter shares source samples
-with detail, and detail does not sharpen edges selected for AA. See the
-[AA correctness review](docs/notes/m13-aa-correctness-review.md) for repairs,
-headless GPU proof, and the remaining visual-quality limitations.
-Optional CPU diagnostics report stage p50/p95, layout/resolve call time, snapshot
-requests, and pipeline counts. An opt-in Twilight prototype can blend from the
-general look toward a user-captured target when Dusklight reports active
-Twilight. Conservative, default-off adaptive normal smoothing is available for a
-structurally qualified rigid models, with exact known-good fixtures for previously
-validated representations. Unknown skinning and ambiguous topology fail closed.
-The development build adds Basic, Advanced, and Developer sections, plus Vanilla+
-and Enhanced profiles. Both profiles leave model shading and DOF off pending
-broader visual validation. See the [product-quality review](docs/product-quality-review.md)
-for current coverage and remaining blockers; these changes are not in the published
-v1.0.0 package. Grading, active/normal Twilight
-detection, rigid geometry, and skinned geometry have been exercised in a
-source-matched Windows D3D11 host. Twilight-spot behavior has deterministic test
-coverage but no live capture. The development build also has a default-off
-modern exploration camera for Dusklight builds carrying MidnaFX's CameraService
-1.3 host patch. Independent controls widen vertical FOV and lower native
-chase-controller latitude. Only active mode-0 chase output is modified;
-authored events, detached cameras, and all other native camera algorithms keep
-their original framing. A default-off depth-of-field prototype separates near
-and far blur at half resolution, then composites against full-resolution depth
-before the HUD. Manual focus works with the base camera service. Camera-target
-focus requires MidnaFX's CameraService 1.4 host extension. The quality pass adds
-an adjustable 2-12 pixel radius, smooth autofocus, and silhouette-gated near
-compositing. Windows runtime checks cover focus orientation, HUD exclusion,
-movement, resize, and clean shutdown. New Ordon on/off captures show an intact
-Link silhouette and HUD, but are not frame-matched and do not close the full
-art-quality matrix. Intel Mac/Metal runtime validation remains deferred.
+The release boundary remains explicit:
 
-Since v1.1, new configurations enable an enhanced-water path by default for a
-small exact allowlist of validated TP water materials. It preserves gameplay
-water, authored animation, splashes, particles, and geometry while adding
-restrained depth absorption, animated surface detail, bounded refraction,
-Fresnel/environment response, shoreline treatment, and authored-light
-specular. Exact classification has live D3D12 evidence across outdoor, moving,
-dungeon, boss, and submerged scenes; the optical path has additional
-waterfall-adjacent and irregular-shore proof. Unknown water remains native;
-screen-space reflections are deferred after an unsuccessful research prototype.
-See [the M12 investigation](docs/water-investigation.md) for exact coverage and
-limits.
+- **Intel Mac/Metal:** CI builds and checks the package, but live rendering and GPU performance have not been validated on Intel Mac hardware.
+- **Depth of field:** the final silhouette correction has runtime execution evidence, but a fresh matched screenshot of that correction remains outstanding.
+- **Twilight:** normal and active-Twilight behavior have live Windows coverage; Twilight-spot behavior has deterministic coverage without a live state-2 capture.
+- **Geometry:** smoothing is limited to exact validated resource fingerprints, not a global model upgrade. Both rigid and skinned controls remain default off.
+- **Scope:** native fog/bloom/lighting overrides, subdivision, mesh or material replacement, and broader model allowlists are outside v1.
 
-Download `midnafx-windows-amd64.dusk` or `midnafx-macos-x86_64.dusk` from the
-[latest release](https://github.com/rcreecy/midnafx/releases/latest), then put that file
-in Dusklight's mods folder. Each package contains one platform's native library.
-The macOS package is CI-built but has not received an Intel Mac runtime pass.
+Read the [v1 readiness audit](docs/v1-readiness.md) and [release correctness review](docs/notes/v1-release-correctness-review.md) for the evidence behind these claims. A successful build is not proof of image quality, platform parity, or GPU performance.
 
-MidnaFX includes **Natural / Vivid Realism** under **Basic: visual profile**.
-This parametric profile is separate from the new **MidnaFX Natural** Color Look.
-Turn on **Enable grading** to use it. The look adds restrained color,
-a small midtone lift, softer highlights, and subtle detail while preserving neutral
-white balance and the black floor. Save or duplicate it to create an editable copy;
-select Vanilla to disable profile effects. See [the preset notes](docs/vivid-realism.md)
-for exact settings, costs, and visual validation limits.
+## Build from source
 
-Research and exact source revision: [docs/research.md](docs/research.md).
-Realism preset settings and validation: [docs/vivid-realism.md](docs/vivid-realism.md).
-Architecture and limits: [docs/architecture.md](docs/architecture.md).
-Build and Intel Mac validation: [docs/development.md](docs/development.md).
-Performance instrumentation and Mac capture plan: [docs/performance.md](docs/performance.md).
-Detail design and sample costs: [docs/detail.md](docs/detail.md).
-One-session Intel Mac checklist: [docs/runtime-validation.md](docs/runtime-validation.md).
-Twilight source audit and M6 decision: [docs/m5-m6-investigation.md](docs/m5-m6-investigation.md).
-Camera foundation, host patch, and runtime evidence: [docs/camera-investigation.md](docs/camera-investigation.md).
-Geometry coverage checkpoint: [docs/m8-geometry-coverage.md](docs/m8-geometry-coverage.md).
-Atmosphere depth/camera gate: [docs/atmosphere-investigation.md](docs/atmosphere-investigation.md).
-Depth of field focus gate: [docs/depth-of-field-investigation.md](docs/depth-of-field-investigation.md).
-Water modernization gates and runtime evidence: [docs/water-investigation.md](docs/water-investigation.md).
-v1 milestone disposition and ship status: [docs/v1-readiness.md](docs/v1-readiness.md).
+Prerequisites: Git, Python 3, CMake 3.26+, and a C++20 compiler. The Windows preset uses Visual Studio 2026 and needs a CMake version supporting that generator; the Intel macOS preset uses Xcode command-line tools and Ninja.
+
+```sh
+git clone https://github.com/rcreecy/midnafx.git
+cd midnafx
+git clone https://github.com/TwilitRealm/dusklight.git upstream/dusklight
+git -C upstream/dusklight checkout edf42c6a7202647b56dd2fcdef02d17671bc814b
+git -C upstream/dusklight submodule update --init extern/aurora
+python tools/camera-host-patch.py --dusklight-dir upstream/dusklight --apply
+```
+
+The patch step matches CI's SDK setup; it does not build or install a patched game host. Then build and verify the Windows package:
+
+```sh
+cmake --preset windows-release
+cmake --build --preset windows-release --parallel
+ctest --preset windows-release
+```
+
+On Intel macOS, use `macos-intel-release` for each preset and `python3` where needed. Follow the [macOS link-stub instructions](docs/development.md) if the linker requires the upstream stub's UUID repair. The package is written to `build/<preset>/mods/midnafx.dusk`.
+
+Compiling the SDK mod target needs no game image or full game build. Initial configuration may download upstream SDK dependencies. The build guide covers custom SDK paths, toolchain setup, packaging, installation scripts, and host patch handling.
+
+## How development is verified
+
+Verification combines deterministic tests, shader/package checks, and controlled in-game comparisons. Each answers a different question.
+
+| Layer | Techniques and coverage |
+| --- | --- |
+| **Portable tests** | Grade math, preset round trips and corrupt-input rejection, realism settings, visual parameters, Twilight transitions, camera math and patch contracts, topology, smoothing, BMD rebuilds, and depth-of-field quality logic. No SDK or GPU required. |
+| **Native build checks** | Dawn WGSL parsing/type checking on its Null backend and package manifest, library layout, and binary architecture checks. Shader validation can skip when the required adapter is absent. |
+| **Visual comparisons** | Fixed save, camera, resolution, and time of day; baseline versus enabled captures; passthrough and neutral identity; A/B and difference views; clipping, focus orientation, silhouettes, and HUD exclusion. |
+| **Lifecycle regression** | Enable/disable, movement, combat and special camera transitions, stage changes, resize, resource unload/reload, mod reload, and graceful shutdown with restoration checks. |
+| **Performance** | Reset CPU timing samples between runs; compare distributions and pipeline/snapshot counts. Use host GPU captures or a platform profiler separately for GPU cost and total frame timing. |
+
+Run the portable suite locally:
+
+```sh
+cmake --preset tests
+cmake --build --preset tests
+ctest --preset tests
+```
+
+The [CI workflow](.github/workflows/build.yml) builds Windows AMD64 and Intel macOS packages and runs the native suites on pushes to `main`, pull requests, and manual runs. Version tags publish platform assets after those jobs succeed. Test presets fail when no tests are registered.
+
+For reproducible runtime reports, record the MidnaFX version, exact Dusklight revision and applied patches, OS/GPU/backend, resolution, MSAA and bloom settings, scene/save, other mods or texture packs, and enabled features. Follow the [runtime checklist](docs/runtime-validation.md) and [performance procedure](docs/performance.md); keep build results, visual evidence, CPU measurements, and GPU measurements distinct.
+
+## Repository guide
+
+| Path | Contents |
+| --- | --- |
+| [`src/`](src/) | Native mod entry point, configuration and presets, game integration, renderer, and settings UI. |
+| [`shaders/`](shaders/) | WGSL grading, passthrough, depth reconstruction, and depth-of-field shaders. |
+| [`tests/`](tests/) | Deterministic C++ tests, shader validation, and Python contract checks. |
+| [`tools/`](tools/) | Build, install, and host-patch helpers. |
+| [`patches/`](patches/) | Source-matched Dusklight extension patches; separate from the mod package. |
+| [`docs/`](docs/) | Architecture, research, feature investigations, validation evidence, and release notes. |
+| [`mod.json`](mod.json) | Mod identity and release version. |
+
+Useful deep dives: [source research](docs/research.md) · [detail processing](docs/detail.md) · [Twilight integration](docs/m5-m6-investigation.md) · [geometry coverage](docs/m8-geometry-coverage.md) · [depth foundation](docs/atmosphere-investigation.md) · [changelog](CHANGELOG.md).
+
+## Issues and contributions
+
+Report bugs or propose focused improvements through [GitHub Issues](https://github.com/rcreecy/midnafx/issues) and pull requests. Include reproduction steps, expected and actual behavior, the runtime details above, and relevant logs or matched captures. For visual changes, identify the exact settings and scene used. Do not attach game images or copyrighted game assets.
+
+For code contributions, run the relevant portable tests and native checks when available, explain behavior changes, and state which runtime checks were actually performed. Geometry allowlist additions need fingerprint, topology, visual, restoration, and performance evidence. Host integration changes should preserve fallback behavior when services or supported resources are unavailable.
+
+## License and credits
+
+MidnaFX is [MIT licensed](LICENSE). It builds on the [Dusklight project](https://github.com/TwilitRealm/dusklight) and its Aurora/WebGPU rendering foundation. Upstream projects and dependencies retain their own licenses. The Legend of Zelda: Twilight Princess belongs to Nintendo; MidnaFX is an independent community mod and is not affiliated with or endorsed by Nintendo.
